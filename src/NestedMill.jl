@@ -1,6 +1,8 @@
 __precompile__()
 module NestedMill
 
-# Package code goes here.
+
+Bags = Vector{UnitRange{Int64}}
+include("ragged.jl")
 
 end
