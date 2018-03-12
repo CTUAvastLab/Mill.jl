@@ -1,6 +1,8 @@
-mutable struct Ragged{A}
+using LearnBase
+
+mutable struct Ragged{A,B<:Union{Void,Bags}}
 	data::A 
-	bags::Bags
+	bags::B
 end
 
 
@@ -52,7 +54,7 @@ julia> NestedMill.remapbag([1:1,2:3,4:5],[1])
 ```
 
 """
-function remapbag(b::Bags,indices::Vector{Int})
+function remapbag(b::Bags,indices::Union{UnitRange{Int},Vector{Int}})
 	rb = Bags(length(indices))
 	offset = 1
 	for (i,j) in enumerate(indices)
@@ -62,7 +64,39 @@ function remapbag(b::Bags,indices::Vector{Int})
 	rb, vcat(map(i -> collect(b[i]),indices)...)
 end
 
+"""
+		function Base.hcat(a,b,c...) where {T<:Ragged} 
 
-# function Base.getindex(x::Ragged,i)
+		concatenates datasets a,b,c
 
-# end
+```juliadoctest
+a = Ragged(rand(3,4),[1:4])
+b = Ragged(rand(3,4),[1:2,3:4])
+hcat(a,b)
+```
+"""
+function Base.hcat(a::T...) where {T<:Ragged} 
+	data = hcat(map(d -> d.data,a)...)
+	bags, offset = Bags(), 0;
+	for i in 1:length(a)
+		d = a[i]
+		(d.bags[1].start != 1) && warn("First bag does not start with one. Wish you know, what you are doing.")
+		append!(bags,d.bags .+ offset)
+		offset += size(d.data,2)
+	end
+	mask = length.(bags) .== 0
+	if sum(mask) > 0
+		bags[mask] = fill(0:-1,sum(mask))
+	end
+	Ragged(data,bags)
+end
+
+
+function Base.getindex(x::Ragged,i::Union{UnitRange{Int},Vector{Int}})
+	nb, ii = remapbag(x.bags,i)
+	Ragged(x.data[:,ii],nb)
+end
+Base.getindex(x::Ragged,i::Int) = x[i:i]
+
+LearnBase.nobs(a::Ragged{A,B},i) where {A,B<:Void} = nobs(a.data,i)
+LearnBase.nobs(a::Ragged{A,B},i) where {A,B} = length(a.bags)
