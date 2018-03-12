@@ -54,9 +54,9 @@ julia> NestedMill.remapbag([1:1,2:3,4:5],[1])
 """
 function remapbag(b::Bags,indices::Vector{Int})
 	rb = Bags(length(indices))
-	offset = 0
+	offset = 1
 	for (i,j) in enumerate(indices)
-		rb[i] = b[j] - offset
+		rb[i] = (b[j] == 0:-1)? b[j] : b[j] - b[j].start + offset
 		offset += length(b[j])
 	end
 	rb, vcat(map(i -> collect(b[i]),indices)...)
