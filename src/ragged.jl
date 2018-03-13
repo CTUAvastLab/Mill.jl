@@ -1,15 +1,20 @@
 using LearnBase
+using DataFrames
 
-mutable struct Ragged{A,B<:Union{Void,Bags}}
+mutable struct Ragged{A,B<:Union{Void,Bags},C}
 	data::A 
 	bags::B
+	metadata::C
 end
 
-Ragged(data) = Ragged(data,nothing)
-LearnBase.nobs(a::Ragged{A,<:Bags}) where A = length(a.bags)
-LearnBase.nobs(a::Ragged{A,<:Void}) where A = nobs(a.data,ObsDim.Last)
-LearnBase.nobs(a::Ragged{A,<:Bags},::Type{ObsDim.Last}) where A = length(a.bags)
-LearnBase.nobs(a::Ragged{A,<:Void},::Type{ObsDim.Last}) where A = nobs(a.data,ObsDim.Last)
+Ragged(data) = Ragged(data,nothing,nothing)
+Ragged(data,bags::B) where {B<:Union{Void,Bags}} = Ragged(data,bags,nothing)
+Ragged(data,i::Vector,metadata = nothing) = Ragged(data,bag(i),nothing)
+
+LearnBase.nobs(a::Ragged{A,<:Bags,C}) where {A,C} = length(a.bags)
+LearnBase.nobs(a::Ragged{A,<:Void,C}) where {A,C} = nobs(a.data,ObsDim.Last)
+LearnBase.nobs(a::Ragged{A,<:Bags,C},::Type{ObsDim.Last}) where {A,C} = length(a.bags)
+LearnBase.nobs(a::Ragged{A,<:Void,C},::Type{ObsDim.Last}) where {A,C} = nobs(a.data,ObsDim.Last)
 LearnBase.nobs(a::Matrix,::Type{ObsDim.Last}) = size(a,2)
 LearnBase.nobs(a::Vector,::Type{ObsDim.Last}) = length(a)
 function LearnBase.nobs(a::Tuple,::Type{ObsDim.Last})
@@ -93,8 +98,9 @@ cat(a,b)
 	Internally, the functions calls package-specific function lastcat to enforce concatenations
 	assuming that last dimension are observations.
 """
-function Base.cat(a::Ragged{A,<:Bags}...) where {A} 
+function Base.cat(a::Ragged{A,<:Bags,C}...) where {A,C} 
 	data = lastcat(map(d -> d.data,a)...)
+	metadata = lastcat(map(d -> d.metadata,a)...)
 	bags, offset = Bags(), 0;
 	for i in 1:length(a)
 		append!(bags,a[i].bags .+ offset)
@@ -104,33 +110,38 @@ function Base.cat(a::Ragged{A,<:Bags}...) where {A}
 	if sum(mask) > 0
 		bags[mask] = fill(0:-1,sum(mask))
 	end
-	Ragged(data,bags)
+	Ragged(data,bags,metadata)
 end
 
-function Base.cat(a::Ragged{A,<:Void}...) where {A} 
+function Base.cat(a::Ragged{A,<:Void,C}...) where {A,C} 
 	data = lastcat(map(d -> d.data,a)...)
-	Ragged(data,nothing)
+	metadata = lastcat(map(d -> d.metadata,a)...)
+	Ragged(data,nothing,metadata)
 end
 
 lastcat(a::Matrix...) = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)
+lastcat(a::DataFrame...) = vcat(a...)
 lastcat(a::Ragged...) = cat(a...)
+lastcat(a::T...) where {T<:Void} = nothing
 lastcat(a::Tuple...) = tuple([lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]...)
 
 
 function Base.getindex(x::Ragged{A,B},i::Union{UnitRange{Int},Vector{Int}}) where {A,B<:Bags}
 	nb, ii = remapbag(x.bags,i)
-	Ragged(subset(x.data,ii),nb)
+	Ragged(subset(x.data,ii),nb,subset(x.metadata,ii))
 end
 
-Base.getindex(x::Ragged{A,B},i::Union{UnitRange{Int},Vector{Int}}) where {B<:Void,A} = Ragged(subset(x.data,ii),nothing)
+Base.getindex(x::Ragged{A,<:Void,C},i::Union{UnitRange{Int},Vector{Int}}) where {A,C} = Ragged(subset(x.data,ii),nothing,subset(x.metadata,ii))
 Base.getindex(x::Ragged,i::Int) = x[i:i]
 
 subset(x::Matrix,i) = x[:,i]
 subset(x::Vector,i) = x[i]
 subset(x::Ragged,i) = x[i]
+subset(x::DataFrame,i) = x[i,:]
+subset(x::T,i) where {T<:Void} = nothing
 subset(xs::Tuple,i) = tuple(map(x -> x[i],xs))
 
 
-LearnBase.nobs(a::Ragged{A,B},i) where {A,B<:Void} = nobs(a.data,i)
-LearnBase.nobs(a::Ragged{A,B},i) where {A,B} = length(a.bags)
+LearnBase.nobs(a::Ragged{A,<:Void,C},i) where {A,C} = nobs(a.data,i)
+LearnBase.nobs(a::Ragged{A,<:Bags,C},i) where {A,C} = length(a.bags)

@@ -84,12 +84,11 @@ import NestedMill: lastcat
   @test all(lastcat(a,b)[2] .== hcat(a[2],b[2]))
   @test all(lastcat(a,b)[3].data .== hcat(a[3].data,b[3].data))
 end
-# @testset "testing nested ragged array" begin
-#   @test all(b[1].data.data .== a.data[:,1:3])
-#   @test all(b[1].data.bags .== [1:2,3:3])
-#   @test all(b[1:2].data.data .== a.data[:,1:3])
-#   @test all(b[1:2].data.bags .== [1:2,3:3,0:-1])
-#   @test all(b[2:3].data.data .== a.data[:,4:6])
-#   @test all(b[2:3].data.bags .== [0:-1,1:2,3:3])
-# end
 
+@testset "testing Ragged with Tuple" begin
+  a = Ragged((rand(3,2),rand(3,1),Ragged(randn(3,2))))
+  b = Ragged((rand(3,2),rand(3,1),Ragged(randn(3,2))))
+  @test all(cat(a,b).data[1] .== hcat(a.data[1],b.data[1]))
+  @test all(cat(a,b).data[2] .== hcat(a.data[2],b.data[2]))
+  @test all(cat(a,b).data[3].data .== hcat(a.data[3].data,b.data[3].data))
+end
