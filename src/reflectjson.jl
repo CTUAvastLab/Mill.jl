@@ -11,7 +11,7 @@ end
 DataSchema(a...) = DataSchema(tuple(a...)) 
 
 
-reflect(s::DataSchema,d::Dict) = map(e -> reflect(e,get(d,e.name,nothing)),s.items)
+reflect(s::DataSchema,d::Dict) = Ragged(tuple(map(e -> reflect(e,get(d,e.name,nothing)),s.items)...))
 reflect(s::E,d::B) where {E<:DataEntry,B<:Array} = s.transform(d) 
 reflect(s::E,::Void) where {E<:DataEntry} = s.default
 

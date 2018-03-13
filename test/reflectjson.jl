@@ -6,10 +6,10 @@ s3 = Dict(:b => [1; 3])
 
 schema = DataSchema((DataEntry(:a,zeros(2,0)),DataEntry(:b,zeros(2))))
 
-reflect(schema,s1)
-reflect(schema,s2)
-reflect(schema,s3)
+a1 = reflect(schema,s1)
+a2 = reflect(schema,s2)
+a3 = reflect(schema,s3)
 
 
-s = "{\"a_number\" : 5.0, \"an_array\" : [\"string\", 9]}"
-j = JSON.parse(s)
+# s = "{\"a_number\" : 5.0, \"an_array\" : [\"string\", 9]}"
+# j = JSON.parse(s)
