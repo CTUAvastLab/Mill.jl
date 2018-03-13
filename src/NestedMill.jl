@@ -6,4 +6,6 @@ include("ragged.jl")
 include("joined.jl")
 include("reflectjson.jl")
 
+
+export Ragged
 end

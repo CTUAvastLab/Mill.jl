@@ -1,6 +1,46 @@
 using LearnBase
 using DataFrames
 
+"""
+	Ragged(data,bags,metadata)
+
+	Core structure of the package. It allows to represent multi-instance problems with columns of data being 
+	instances and bags identifying samples. metadata for every instance can be stored in metadata.
+
+	If bags are void, then normal matrix with samples is stored. Again it is assumed that each column indicate one sample.
+
+```juliadoctest 
+julia> Ragged(randn(3,4),[1:2,3:4])
+```
+
+creates dataset with two samples, each having two instances. 
+
+The same can be achieved by 
+```juliadoctest 
+julia> Ragged(randn(3,4),[1,1,2,2])
+```
+
+Note that following construction Ragged(randn(3,4),[1,2,1,2]) leads to incorrect results, since ids of data should be sorted.
+
+If one wishes to add metadata, it can be added as 
+
+```juliadoctest 
+julia> Ragged(randn(3,4),[1,1,2,2],[1,2,3,4])
+```
+
+The specialty of Ragged is that datasets can be nested and the data can be tuple of datasets. For example
+
+```juliadoctest 
+julia> Ragged((rand(3,2),rand(3,1),Ragged(randn(3,2))))
+```
+contains a tuple with Array, Vector, and nested simple Ragged Array
+
+or 
+```juliadoctest 
+julia> Ragged(Ragged(rand(3,10),[1:2,3:3,0:-1,4:5,6:6,7:10]),[1:2,3:3,4:5,6:6])
+```
+containes two nested multiple-instance containers
+"""
 mutable struct Ragged{A,B<:Union{Void,Bags},C}
 	data::A 
 	bags::B
@@ -96,7 +136,7 @@ cat(a,b)
 ```
 
 	Internally, the functions calls package-specific function lastcat to enforce concatenations
-	assuming that last dimension are observations.
+	assuming that last dimension are observations. If you want to use Ragged with special datastores, you should extend it
 """
 function Base.cat(a::Ragged{A,<:Bags,C}...) where {A,C} 
 	data = lastcat(map(d -> d.data,a)...)
