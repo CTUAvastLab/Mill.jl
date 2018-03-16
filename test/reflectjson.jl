@@ -11,5 +11,6 @@ a2 = reflect(schema,s2)
 a3 = reflect(schema,s3)
 
 
-# s = "{\"a_number\" : 5.0, \"an_array\" : [\"string\", 9]}"
-# j = JSON.parse(s)
+using JSON
+s = "{\"a_number\" : 5.0, \"an_array\" : [\"string\", 9]}"
+j = JSON.parse(s)

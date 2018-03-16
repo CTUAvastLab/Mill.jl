@@ -2,9 +2,9 @@ __precompile__()
 module NestedMill
 
 Bags = Vector{UnitRange{Int64}}
-include("ragged.jl")
-include("reflectjson.jl")
+include("datanode.jl")
+# include("reflectjson.jl")
 
 
-export Ragged
+export DataNode
 end

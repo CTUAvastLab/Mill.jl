@@ -18,14 +18,14 @@ end
 
 
 
-import NestedMill: Ragged
+import NestedMill: DataNode
 
-a = Ragged(rand(3,4),[1:4])
-b = Ragged(rand(3,4),[1:2,3:4])
-c = Ragged(rand(3,4),[1:1,2:2,3:4])
-d = Ragged(rand(3,4),[1:4,0:-1])
+a = DataNode(rand(3,4),[1:4])
+b = DataNode(rand(3,4),[1:2,3:4])
+c = DataNode(rand(3,4),[1:1,2:2,3:4])
+d = DataNode(rand(3,4),[1:4,0:-1])
 
-@testset "testing Ragged hcat" begin
+@testset "testing DataNode hcat" begin
   @test all(cat(a,b,c).data .== hcat(a.data,b.data,c.data))
   @test all(cat(a,b,c).bags .== [1:4,5:6,7:8,9:9,10:10,11:12])
   @test all(cat(c,a).data .== hcat(c.data,a.data))
@@ -40,7 +40,7 @@ d = Ragged(rand(3,4),[1:4,0:-1])
   @test all(cat(d).bags .== [1:4,0:-1])
 end
 
-@testset "testing Ragged hcat" begin
+@testset "testing DataNode hcat" begin
   @test all(a[1].data .== a.data)
   @test all(a[1].bags .== [1:4])
   @test all(b[1:2].data .== b.data)
@@ -66,8 +66,8 @@ end
 
 
 @testset "testing nested ragged array" begin
-  a = Ragged(rand(3,10),[1:2,3:3,0:-1,4:5,6:6,7:10])
-  b = Ragged(a,[1:2,3:3,4:5,6:6])
+  a = DataNode(rand(3,10),[1:2,3:3,0:-1,4:5,6:6,7:10])
+  b = DataNode(a,[1:2,3:3,4:5,6:6])
   @test all(b[1].data.data .== a.data[:,1:3])
   @test all(b[1].data.bags .== [1:2,3:3])
   @test all(b[1:2].data.data .== a.data[:,1:3])
@@ -78,16 +78,16 @@ end
 
 import NestedMill: lastcat
 @testset "testing lastcat" begin
-  a = (rand(3,2),rand(3,1),Ragged(randn(3,2)))
-  b = (rand(3,2),rand(3,1),Ragged(randn(3,2)))
+  a = (rand(3,2),rand(3,1),DataNode(randn(3,2)))
+  b = (rand(3,2),rand(3,1),DataNode(randn(3,2)))
   @test all(lastcat(a,b)[1] .== hcat(a[1],b[1]))
   @test all(lastcat(a,b)[2] .== hcat(a[2],b[2]))
   @test all(lastcat(a,b)[3].data .== hcat(a[3].data,b[3].data))
 end
 
-@testset "testing Ragged with Tuple" begin
-  a = Ragged((rand(3,2),rand(3,1),Ragged(randn(3,2))))
-  b = Ragged((rand(3,2),rand(3,1),Ragged(randn(3,2))))
+@testset "testing DataNode with Tuple" begin
+  a = DataNode((rand(3,2),rand(3,1),DataNode(randn(3,2))))
+  b = DataNode((rand(3,2),rand(3,1),DataNode(randn(3,2))))
   @test all(cat(a,b).data[1] .== hcat(a.data[1],b.data[1]))
   @test all(cat(a,b).data[2] .== hcat(a.data[2],b.data[2]))
   @test all(cat(a,b).data[3].data .== hcat(a.data[3].data,b.data[3].data))
