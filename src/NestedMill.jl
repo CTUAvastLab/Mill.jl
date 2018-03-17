@@ -3,7 +3,8 @@ module NestedMill
 
 Bags = Vector{UnitRange{Int64}}
 include("datanode.jl")
-# include("reflectjson.jl")
+# include("jsonschema.jl")
+include("reflector.jl")
 
 
 export DataNode

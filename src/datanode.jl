@@ -47,6 +47,8 @@ mutable struct DataNode{A,B<:Union{Void,Bags},C}
 	metadata::C
 end
 
+EmptyNode = DataNode{Void,Void,Void};
+voidnode() = DataNode(nothing,nothing,nothing);
 DataNode(data) = DataNode(data,nothing,nothing)
 DataNode(data,bags::B) where {B<:Union{Void,Bags}} = DataNode(data,bags,nothing)
 DataNode(data,i::Vector,metadata = nothing) = DataNode(data,bag(i),nothing)
@@ -138,25 +140,25 @@ cat(a,b)
 	Internally, the functions calls package-specific function lastcat to enforce concatenations
 	assuming that last dimension are observations. If you want to use DataNode with special datastores, you should extend it
 """
-function Base.cat(a::DataNode{A,<:Bags,C}...) where {A,C} 
-	data = lastcat(map(d -> d.data,a)...)
-	metadata = lastcat(map(d -> d.metadata,a)...)
-	bags, offset = Bags(), 0;
-	for i in 1:length(a)
-		append!(bags,a[i].bags .+ offset)
-		offset += nobs(a[i].data,ObsDim.Last)
-	end
-	mask = length.(bags) .== 0
-	if sum(mask) > 0
-		bags[mask] = fill(0:-1,sum(mask))
-	end
-	DataNode(data,bags,metadata)
+function Base.cat(a::DataNode...)
+	data = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.data,a))...)
+	metadata = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.metadata,a))...)
+	bags = all(map(d -> d.bags == nothing,a)) ? nothing : catbags(map(d -> (d.bags == nothing) ? [0:-1] : d.bags ,a)...)
+	return(DataNode(data, bags, metadata))
 end
 
-function Base.cat(a::DataNode{A,<:Void,C}...) where {A,C} 
-	data = lastcat(map(d -> d.data,a)...)
-	metadata = lastcat(map(d -> d.metadata,a)...)
-	DataNode(data,nothing,metadata)
+function catbags(oldbags...)
+	offset = 0
+	newbags = Bags()
+	for b in oldbags
+		append!(newbags,b .+ offset)
+		offset += max(0,mapreduce(i -> i.stop,max,b))
+	end
+	mask = length.(newbags) .== 0
+	if sum(mask) > 0
+		newbags[mask] = fill(0:-1,sum(mask))
+	end
+	newbags
 end
 
 lastcat(a::Matrix...) = hcat(a...)
@@ -165,6 +167,9 @@ lastcat(a::DataFrame...) = vcat(a...)
 lastcat(a::DataNode...) = cat(a...)
 lastcat(a::T...) where {T<:Void} = nothing
 lastcat(a::Tuple...) = tuple([lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]...)
+lastcat(a::Vector{T}...) where {T<:Any} = [lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]
+lastcat() = nothing
+# lastcat(a::Vector...) = tuple([lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]...)
 
 
 function Base.getindex(x::DataNode{A,B},i::Union{UnitRange{Int},Vector{Int}}) where {A,B<:Bags}
