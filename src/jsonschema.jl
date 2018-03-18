@@ -14,12 +14,6 @@ mutable struct DictEntry
 	childs::Dict{String,Any}
 end
 
-function padview(io::IO,n) 
-	for i in 1:n
-		print(io," ")
-	end 
-end
-
 Base.show(io::IO, e::Entry,offset::Int=0) = print(io, @sprintf("[Scalar], %d unique values",length(keys(e.counts))))
 Base.show(io::IO, e::VectorEntry,offset::Int=0) = print(io, @sprintf("[Vector], %d unique values",length(keys(e.counts))))
 

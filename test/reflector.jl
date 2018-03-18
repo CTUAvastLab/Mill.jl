@@ -49,3 +49,28 @@ end
 	@test all(cat(a1,a3).data[2].data .== [-3 0 3 6 -3 0 3 6])
 	@test all(cat(a1,a3).data[2].bags .== [1:4,5:8])
 end
+
+
+brtext = """
+{	"type": "Branch",
+  "vec": {
+    "a": {"type": "Scalar", "center": 2, "scale": 3},
+    "b": {"type": "Scalar", "center": 0.0, "scale": 1.0}
+  },
+  "other": {
+    "c": { "type": "ArrayOf",
+      "item": {
+        "type": "Scalar",
+        "center": 2,
+        "scale": 3
+      }
+    }
+  }
+}
+"""
+
+import NestedMill: tojson, interpret
+@testset "testing interpreting and exporting to JSON" begin
+	br = interpret(brtext)
+	@test tojson(interpret(tojson(br))) == tojson(br)
+end
