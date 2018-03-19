@@ -10,8 +10,10 @@ function padview(io::IO,n)
 	end 
 end
 include("datanode.jl")
-# include("jsonschema.jl")
+include("jsonschema.jl")
 include("reflector.jl")
+include("modelnode.jl")
+include("aggregation.jl")
 
 
 export DataNode

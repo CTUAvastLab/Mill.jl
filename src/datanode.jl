@@ -169,7 +169,6 @@ lastcat(a::T...) where {T<:Void} = nothing
 lastcat(a::Tuple...) = tuple([lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]...)
 lastcat(a::Vector{T}...) where {T<:Any} = [lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]
 lastcat() = nothing
-# lastcat(a::Vector...) = tuple([lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]...)
 
 
 function Base.getindex(x::DataNode{A,B},i::Union{UnitRange{Int},Vector{Int}}) where {A,B<:Bags}
