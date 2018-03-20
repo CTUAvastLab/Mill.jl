@@ -80,8 +80,8 @@ end
 
 # conversion to data extractor
 called(s::T) where {T<:JSONEntry} = sum(s.called)
-recommendscheme(S,e::Entry{T},i) where {T} = Scalar(T)
-recommendscheme(S,e::VectorEntry{T},i)  where {T} = ArrayOf(Scalar(T))
+recommendscheme(S,e::Entry{T},mincount) where {T} = Scalar(T)
+recommendscheme(S,e::VectorEntry{T},mincount)  where {T} = ArrayOf(Scalar(T))
 function recommendscheme(T,e::DictEntry, mincount::Int = typemax(Int))
 	ks = filter(k -> called(e.childs[k]) > mincount, keys(e.childs))
 	if isempty(ks)

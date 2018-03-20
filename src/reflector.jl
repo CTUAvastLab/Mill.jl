@@ -114,7 +114,7 @@ function Branch(T,vec,other)
 	Branch(T,v,o,fnum)
 end
 
-Branch(d::Dict{String,Any}) = Branch(getdatatype(Float64,d),interpret(get(d,"vec","{}")),interpret(get(d,"other","{}")))
+Branch(d::Dict) = Branch(getdatatype(Float64,d),interpret(get(d,"vec","{}")),interpret(get(d,"other","{}")))
 function tojson(s::Branch,indent=0)
 	o = "{\"type\": \"Branch\", \"datatype\": \"$(s.datatype)\",\n"
 	o *= "\"vec\": {"
