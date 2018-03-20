@@ -1,21 +1,48 @@
 using JSON
 
-mutable struct Entry{A}
+abstract type JSONEntry end;
+
+mutable struct Entry{A} <: JSONEntry
 	counts::Dict{A,Int}
+	called::Int
 end
 
-mutable struct VectorEntry{A}
+Base.show(io::IO, e::Entry,offset::Int=0) = print(io, @sprintf("[Scalar], %d unique values, called = %d",length(keys(e.counts)),e.called))
+
+mutable struct VectorEntry{A} <: JSONEntry
 	counts::Dict{A,Int}
 	l::Dict{A,Int}
+	called::Int
 end
 
-mutable struct DictEntry
+Base.show(io::IO, e::VectorEntry,offset::Int=0) = print(io, @sprintf("[Vector], %d unique values, called = %d ",length(keys(e.counts)),e.called))
+
+function accomodate!(a::A,b) where {A<:Union{VectorEntry,Entry}}
+	if length(keys(a.counts)) < 1000
+		a.counts[b] = get(a.counts,b,0) + 1
+	end 
+	a.called +=1
+end
+
+function accomodate!(a::VectorEntry,b::Vector)
+	a.called +=1
+	n = length(b)
+	a.l[n] = get(a.l,n,0) + 1
+	for v in b
+		if length(keys(a.counts)) < 1000
+			a.counts[b] = get(a.counts,b,0) + 1
+		end 
+	end		
+end
+
+mutable struct DictEntry <: JSONEntry
 	counts::Dict{String,Int}
 	childs::Dict{String,Any}
+	called
 end
 
-Base.show(io::IO, e::Entry,offset::Int=0) = print(io, @sprintf("[Scalar], %d unique values",length(keys(e.counts))))
-Base.show(io::IO, e::VectorEntry,offset::Int=0) = print(io, @sprintf("[Vector], %d unique values",length(keys(e.counts))))
+DictEntry() = DictEntry(Dict{String,Int}(),Dict{String,Any}(),0)
+Base.getindex(s::DictEntry,k) = s.childs[k]
 
 function Base.show(io::IO, e::DictEntry,offset::Int=0)
 	print(io,"\n")
@@ -27,33 +54,20 @@ function Base.show(io::IO, e::DictEntry,offset::Int=0)
   end
 end
 
-
-DictEntry() = DictEntry(Dict{String,Int}(),Dict{String,Any}())
-Base.getindex(s::DictEntry,k) = s.childs[k]
-
 function accomodate!(s::DictEntry,v::Dict)
+	s.called +=1
 	for k in keys(v)
 		s.counts[k] = get(s.counts,k,0) +1 
 	end
 	accomodate!(s.childs,v)
 end
 
-function accomodate!(a::A,b) where {A<:Union{VectorEntry,Entry}}
-	if length(keys(a.counts)) < 1000
-		a.counts[b] = get(a.counts,b,0) + 1
-	end 
-end
 
-function accomodate!(a::VectorEntry,b::Vector)
-	n = length(b)
-	a.l[n] = get(a.l,n,0) + 1
-	foreach(v -> accomodate!(a,v),b)
-end
 
 
 # newitem(v::Dict) = Dict{String,Any}()
 newitem(v::Dict) = DictEntry()
-newitem(v::A) where {A} = Entry(Dict{A,Int}())
+newitem(v::A) where {A} = Entry(Dict{A,Int}(),0)
 
 function accomodate!(s::Dict{String,Any},d)
 	for (k,v) in d
@@ -61,4 +75,20 @@ function accomodate!(s::Dict{String,Any},d)
 		accomodate!(i,v)
 		s[k] = i
 	end
+end
+
+
+# conversion to data extractor
+called(s::T) where {T<:JSONEntry} = sum(s.called)
+recommendscheme(S,e::Entry{T},i) where {T} = Scalar(T)
+recommendscheme(S,e::VectorEntry{T},i)  where {T} = ArrayOf(Scalar(T))
+function recommendscheme(T,e::DictEntry, mincount::Int = typemax(Int))
+	ks = filter(k -> called(e.childs[k]) > mincount, keys(e.childs))
+	if isempty(ks)
+		return(Branch(T,Dict{String,Any}(),Dict{String,Any}()))
+	end
+	c = map(k -> (k,recommendscheme(T, e.childs[k], mincount)),ks)
+	mask = map(i -> typeof(i[2])<:NestedMill.Scalar,c)
+	mask = mask .| map(i -> typeof(i[2])<:NestedMill.Categorical,c)
+	Branch(T,Dict(c[mask]),Dict(c[.!mask]))
 end

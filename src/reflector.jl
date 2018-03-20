@@ -1,24 +1,30 @@
+abstract type AbstractReflector end;
+
 """
 	struct Scalar{T}
 		c::T
 		s::T
-		T::DataType
+		T::Type{T}
 	end
 
 	extract a scalar value and center it with c and s
 """
-struct Scalar{T}
-	datatype::DataType
-	c::T
-	s::T
+struct Scalar{T,V} <: AbstractReflector
+	datatype::Type{T}
+	c::V
+	s::V
 end
 
-Scalar() = Scalar(Float64,0.0,1.0)
+Scalar(::Type{T}) where {T<:Number} = Scalar(T,T(0),T(1))
+Scalar(::Type{T}) where {T<:AbstractString} = Scalar(T,nothing,nothing)
 Scalar(d::Dict{String,Any}) = Scalar(getdatatype(Float64,d),get(d,"center",0),get(d,"scale",1))
 tojson(s::Scalar) = "{\"type\": \"Scalar\", \"datatype\": \"$(s.datatype)\", \"center\": $(s.c), \"scale\": $(s.s)}"
 dimension(s::Scalar) = 1
-(s::Scalar)(v) = s.s*(s.datatype(v) - s.c)
-(s::Scalar)(v::String) = s(parse(s.datatype,v))
+(s::Scalar{T,V})(v) where {T<:Number,V}						= s.s*(s.datatype(v) - s.c)
+(s::Scalar{T,V})(v::S) where {T<:Number,V,S<:Void}= 0
+(s::Scalar{T,V} where {V,T<:Number})(v::String)   = s(parse(s.datatype,v))
+(s::Scalar{T,V} where {V,T<:AbstractString})(v)   = v
+(s::Scalar{T,V})(v::S) where {T<:Number,V,S<:AbstractString} = ""
 
 """
 	struct Categorical{T}
@@ -28,8 +34,8 @@ dimension(s::Scalar) = 1
 	convert value to one-hot encoded array
 """
 
-struct Categorical{I}
-	datatype::DataType
+struct Categorical{T,I} <: AbstractReflector
+	datatype::Type{T}
 	items::I
 end
 
@@ -45,6 +51,8 @@ function (s::Categorical)(v)
 	end
 	x
 end
+
+(s::Categorical)(v::V) where {V<:Void} =  zeros(s.datatype,length(s.items))
 
 """
 	struct ArrayOf{T}
@@ -70,7 +78,7 @@ julia> sc([2,3,4]).data
 ```
 """
 
-struct ArrayOf{T}
+struct ArrayOf{T} <: AbstractReflector
 	item::T
 end
 
@@ -78,11 +86,11 @@ ArrayOf(d::Dict{String,Any}) = ArrayOf(interpret(d["item"]))
 tojson(s::ArrayOf) = "{\"type\": \"ArrayOf\", \"item\": "*tojson(s.item)*"}"
 dimension(s::ArrayOf)  = dimension(s.item)
 (s::ArrayOf)(v) = DataNode(hcat(s.item.(v)...),[1:length(v)])
-
+(s::ArrayOf)(v::V) where {V<:Void} = DataNode(nothing,[0:-1])
 
 """
 	struct Branch
-		T::DataType
+		T::Type{T}
 		vec::Dict{String,Any}
 		other::Dict{String,Any}
 		fnum::Int
@@ -92,26 +100,31 @@ dimension(s::ArrayOf)  = dimension(s.item)
 	stored in other
 
 """
-struct Branch
-	datatype::DataType
-	vec::Dict{String,Any}
-	other::Dict{String,Any}
+struct Branch{T,S,V} <: AbstractReflector
+	datatype::Type{T}
+	vec::S
+	other::V
 	fnum::Int
 end
 
-Branch(T,vec,other) = Branch(T,vec,other,mapreduce(dimension,+,values(vec)))
-Branch(d::Dict{String,Any}) = Branch(getdatatype(Float64,d),interpret(get(d,"vec","{}")),interpret(get(d,"other","{}")))
+function Branch(T,vec,other)
+	v = (vec ==  nothing || isempty(vec)) ? nothing : vec
+	fnum = vec ==  nothing ? 0 : mapreduce(dimension,+,values(vec));
+	o = (other ==  nothing || isempty(other)) ? nothing : other
+	Branch(T,v,o,fnum)
+end
 
+Branch(d::Dict{String,Any}) = Branch(getdatatype(Float64,d),interpret(get(d,"vec","{}")),interpret(get(d,"other","{}")))
 function tojson(s::Branch,indent=0)
 	o = "{\"type\": \"Branch\", \"datatype\": \"$(s.datatype)\",\n"
 	o *= "\"vec\": {"
-	if !isempty(s.vec)
+	if s.vec != nothing && !isempty(s.vec)
 		o *= "\n"
 		o *=join(map(k -> @sprintf("\"%s\": %s",k,tojson(s.vec[k])),keys(s.vec)),",\n")
 		o *= "\n"
 	end
   o *= "},\n \"other\": {"
-  if !isempty(s.other)
+  if s.other != nothing && !isempty(s.other)
   	o *= "\n"
 		o *=join(map(k -> @sprintf("\"%s\": %s",k,tojson(s.other[k])),keys(s.other)),",\n")
 		o *= "\n"
@@ -120,13 +133,26 @@ function tojson(s::Branch,indent=0)
 	o *= "}\n"
 end
 
-function (s::Branch)(v::Dict)
-	x = vcat(map(k -> haskey(v,k) ? s.vec[k](v[k]) : zeros(s.datatype,dimension(s.vec[k])), keys(s.vec))...)
+(s::Branch)(v::V) where {V<:Void} = s(Dict{String,Any}())
+function (s::Branch{T,S,V})(v::Dict) where {T,S<:Dict,V<:Dict}
+	x = vcat(map(k -> s.vec[k](get(v,k,nothing)),keys(s.vec))...)
 	x = reshape(x,:,1)
-	o = map(k -> haskey(v,k) ? s.other[k](v[k]) : voidnode(), keys(s.other))	
+	o = map(k -> s.other[k](get(v,k,nothing)), keys(s.other))
+	data = [x,o...]
 	DataNode(Array{Any}([x,o...]),nothing,nothing)
 end
 
+function (s::Branch{T,S,V})(v::Dict) where {T,S<:Dict,V<:Void}
+	x = vcat(map(k -> s.vec[k](get(v,k,nothing)),keys(s.vec))...)
+	x = reshape(x,:,1)
+	DataNode(x,nothing,nothing)
+end
+
+function (s::Branch{T,S,V})(v::Dict) where {T,S<:Void,V<:Dict}
+	x = map(k -> s.other[k](get(v,k,nothing)), keys(s.other))
+	x = (length(x) == 1) ? x[1] : x
+	DataNode(x,nothing,nothing)
+end
 
 extractormap = Dict(:Branch => Branch, :ArrayOf => ArrayOf, :Scalar => Scalar, :Categorical => Categorical)
 interpret(s::String) = interpret(JSON.parse(s))

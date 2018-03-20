@@ -47,8 +47,6 @@ mutable struct DataNode{A,B<:Union{Void,Bags},C}
 	metadata::C
 end
 
-EmptyNode = DataNode{Void,Void,Void};
-voidnode() = DataNode(nothing,nothing,nothing);
 DataNode(data) = DataNode(data,nothing,nothing)
 DataNode(data,bags::B) where {B<:Union{Void,Bags}} = DataNode(data,bags,nothing)
 DataNode(data,i::Vector,metadata = nothing) = DataNode(data,bag(i),nothing)
