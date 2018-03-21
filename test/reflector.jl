@@ -83,11 +83,28 @@ end
 
 @testset "Testing Nested Missing Arrays" begin
 	other = Dict("a" => ExtractArray(ExtractScalar(Float64,2,3)),"b" => ExtractArray(ExtractScalar(Float64,2,3)));
-	br = ExtractBranch(Float64,vec,other)
+	br = ExtractBranch(Float64,nothing,other)
 	a1 = br(Dict("a" => [1,2,3], "b" => [1,2,3,4]))
 	a2 = br(Dict("b" => [2,3,4]))
 	a3 = br(Dict("a" => [2,3,4]))
-	a4 = br(Dict{String,Any})
+	a4 = br(Dict{String,Any}())
+
+	@test all(cat(a1,a2).data[1].data .== [-3.0  0.0  3.0  6.0  0.0  3.0  6.0])
+	@test all(cat(a1,a2).data[1].bags .== [1:4, 5:7])
+	@test all(cat(a1,a2).data[2].data .== [-3.0  0.0  3.0])
+	@test all(cat(a1,a2).data[2].bags .== [1:3, 0:-1])
+
+	
+	@test all(cat(a2,a3).data[1].data .== [0.0  3.0  6.0])
+	@test all(cat(a2,a3).data[1].bags .== [1:3, 0:-1])
+	@test all(cat(a2,a3).data[2].data .== [0 3 6])
+	@test all(cat(a2,a3).data[2].bags .== [0:-1, 1:3])
+
+
+	@test all(cat(a1,a4).data[1].data .== [-3.0  0.0  3.0  6.0])
+	@test all(cat(a1,a4).data[1].bags .== [1:4, 0:-1])
+	@test all(cat(a1,a4).data[2].data .== [-3.0  0.0  3.0])
+	@test all(cat(a1,a4).data[2].bags .== [1:3, 0:-1])
 end
 
 

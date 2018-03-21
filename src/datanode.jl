@@ -139,7 +139,7 @@ cat(a,b)
 	assuming that last dimension are observations. If you want to use DataNode with special datastores, you should extend it
 """
 function Base.cat(a::DataNode...)
-	data = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.data,a))...)
+	data = lastcat(collect(Iterators.filter(i -> i!= nothing,map(d -> d.data,a)))...)
 	metadata = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.metadata,a))...)
 	bags = all(map(d -> d.bags == nothing,a)) ? nothing : catbags(map(d -> (d.bags == nothing) ? [0:-1] : d.bags ,a)...)
 	return(DataNode(data, bags, metadata))
@@ -165,7 +165,6 @@ lastcat(a::DataFrame...) = vcat(a...)
 lastcat(a::DataNode...) = cat(a...)
 lastcat(a::T...) where {T<:Void} = nothing
 lastcat(a::Tuple...) = tuple([lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]...)
-lastcat(a::Vector{T}...) where {T<:Any} = [lastcat([a[j][i] for j in 1:length(a)]...) for i in 1:length(a[1])]
 lastcat() = nothing
 
 

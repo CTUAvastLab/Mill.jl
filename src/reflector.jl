@@ -42,6 +42,7 @@ end
 ExtractCategorical(items) = ExtractCategorical(Float32,items)
 ExtractCategorical(d::Dict{String,Any}) = ExtractCategorical(getdatatype(Float32,d),d["items"])
 ExtractCategorical(T,s::Entry) = ExtractCategorical(T,sort(collect(keys(s.counts))))
+ExtractCategorical(T,s::UnitRange) = ExtractCategorical(T,collect(s))
 tojson(s::ExtractCategorical) = "{\"type\": \"ExtractCategorical\", \"datatype\": \"$(s.datatype)\", items: "*JSON.json(s.items)*"}"
 dimension(s::ExtractCategorical)  = length(s.items)
 function (s::ExtractCategorical)(v) 
@@ -139,8 +140,8 @@ function (s::ExtractBranch{T,S,V})(v::Dict) where {T,S<:Dict,V<:Dict}
 	x = vcat(map(k -> s.vec[k](get(v,k,nothing)),keys(s.vec))...)
 	x = reshape(x,:,1)
 	o = map(k -> s.other[k](get(v,k,nothing)), keys(s.other))
-	data = [x,o...]
-	DataNode(Array{Any}([x,o...]),nothing,nothing)
+	data = tuple([x,o...]...)
+	DataNode(data,nothing,nothing)
 end
 
 function (s::ExtractBranch{T,S,V})(v::Dict) where {T,S<:Dict,V<:Void}
@@ -151,7 +152,7 @@ end
 
 function (s::ExtractBranch{T,S,V})(v::Dict) where {T,S<:Void,V<:Dict}
 	x = map(k -> s.other[k](get(v,k,nothing)), keys(s.other))
-	x = (length(x) == 1) ? x[1] : x
+	x = (length(x) == 1) ? x[1] : tuple(x...)
 	DataNode(x,nothing,nothing)
 end
 
