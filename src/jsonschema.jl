@@ -7,7 +7,7 @@ mutable struct Entry{A} <: JSONEntry
 	called::Int
 end
 
-Base.show(io::IO, e::Entry,offset::Int=0) = print(io, @sprintf("[Scalar], %d unique values, called = %d",length(keys(e.counts)),e.called))
+Base.show(io::IO, e::Entry,offset::Int=0) = print(io, @sprintf("[ExtractScalar], %d unique values, called = %d",length(keys(e.counts)),e.called))
 
 mutable struct VectorEntry{A} <: JSONEntry
 	counts::Dict{A,Int}
@@ -80,15 +80,15 @@ end
 
 # conversion to data extractor
 called(s::T) where {T<:JSONEntry} = sum(s.called)
-recommendscheme(S,e::Entry{T},mincount) where {T} = Scalar(T)
-recommendscheme(S,e::VectorEntry{T},mincount)  where {T} = ArrayOf(Scalar(T))
+recommendscheme(S,e::Entry{T},mincount) where {T} = ExtractScalar(T)
+recommendscheme(S,e::VectorEntry{T},mincount)  where {T} = ExtractArray(ExtractScalar(T))
 function recommendscheme(T,e::DictEntry, mincount::Int = typemax(Int))
 	ks = filter(k -> called(e.childs[k]) > mincount, keys(e.childs))
 	if isempty(ks)
-		return(Branch(T,Dict{String,Any}(),Dict{String,Any}()))
+		return(ExtractBranch(T,Dict{String,Any}(),Dict{String,Any}()))
 	end
 	c = map(k -> (k,recommendscheme(T, e.childs[k], mincount)),ks)
-	mask = map(i -> typeof(i[2])<:NestedMill.Scalar,c)
-	mask = mask .| map(i -> typeof(i[2])<:NestedMill.Categorical,c)
-	Branch(T,Dict(c[mask]),Dict(c[.!mask]))
+	mask = map(i -> typeof(i[2])<:NestedMill.ExtractScalar,c)
+	mask = mask .| map(i -> typeof(i[2])<:NestedMill.ExtractCategorical,c)
+	ExtractBranch(T,Dict(c[mask]),Dict(c[.!mask]))
 end

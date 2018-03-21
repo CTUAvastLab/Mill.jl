@@ -1,16 +1,16 @@
 using Base.Test
-import NestedMill: Scalar, Categorical, ArrayOf, Branch
+import NestedMill: ExtractScalar, ExtractCategorical, ExtractArray, ExtractBranch
 
 
 @testset "Testing scalar conversion" begin
-	sc = Scalar(Float64,2,3)
+	sc = ExtractScalar(Float64,2,3)
 	@test sc("5") == 9
 	@test sc(5) == 9
 end
 
 
 @testset "Testing categorical conversion to one hot" begin
-	sc = Categorical(Float64,2:4)
+	sc = ExtractCategorical(Float64,2:4)
 	@test all(sc(2) .== [1,0,0])
 	@test all(sc(3) .== [0,1,0])
 	@test all(sc(4) .== [0,0,1])
@@ -19,17 +19,17 @@ end
 
 
 @testset "Testing array conversion" begin
-	sc = ArrayOf(Categorical(Float64,2:4))
+	sc = ExtractArray(ExtractCategorical(Float64,2:4))
 	@test all(sc([2,3,4]).data .== eye(3))
-	sc = ArrayOf(Scalar(Float64))
+	sc = ExtractArray(ExtractScalar(Float64))
 	@test all(sc([2,3,4]).data .== [2 3 4])
 end
 
 
-@testset "Testing Branch" begin
-	vec = Dict("a" => Scalar(Float64,2,3),"b" => Scalar(Float64));
-	other = Dict("c" => ArrayOf(Scalar(Float64,2,3)));
-	br = Branch(Float64,vec,other)
+@testset "Testing ExtractBranch" begin
+	vec = Dict("a" => ExtractScalar(Float64,2,3),"b" => ExtractScalar(Float64));
+	other = Dict("c" => ExtractArray(ExtractScalar(Float64,2,3)));
+	br = ExtractBranch(Float64,vec,other)
 	a1 = br(Dict("a" => 5, "b" => 7, "c" => [1,2,3,4]))
 	a2 = br(Dict("a" => 5, "b" => 7))
 	a3 = br(Dict("a" => 5, "c" => [1,2,3,4]))
@@ -50,7 +50,7 @@ end
 	@test all(cat(a1,a3).data[2].bags .== [1:4,5:8])
 
 
-	br = Branch(Float64,vec,nothing)
+	br = ExtractBranch(Float64,vec,nothing)
 	a1 = br(Dict("a" => 5, "b" => 7, "c" => [1,2,3,4]))
 	a2 = br(Dict("a" => 5, "b" => 7))
 	a3 = br(Dict("a" => 5, "c" => [1,2,3,4]))
@@ -59,7 +59,7 @@ end
 	@test all(a3.data .==[0; 9])
 	
 	
-	br = Branch(Float64,nothing,other)
+	br = ExtractBranch(Float64,nothing,other)
 	a1 = br(Dict("a" => 5, "b" => 7, "c" => [1,2,3,4]))
 	a2 = br(Dict("a" => 5, "b" => 7))
 	a3 = br(Dict("a" => 5, "c" => [1,2,3,4]))
@@ -80,16 +80,27 @@ end
 
 end
 
+
+@testset "Testing Nested Missing Arrays" begin
+	other = Dict("a" => ExtractArray(ExtractScalar(Float64,2,3)),"b" => ExtractArray(ExtractScalar(Float64,2,3)));
+	br = ExtractBranch(Float64,vec,other)
+	a1 = br(Dict("a" => [1,2,3], "b" => [1,2,3,4]))
+	a2 = br(Dict("b" => [2,3,4]))
+	a3 = br(Dict("a" => [2,3,4]))
+	a4 = br(Dict{String,Any})
+end
+
+
 brtext = """
-{	"type": "Branch",
+{	"type": "ExtractBranch",
   "vec": {
-    "a": {"type": "Scalar", "center": 2, "scale": 3},
-    "b": {"type": "Scalar", "center": 0.0, "scale": 1.0}
+    "a": {"type": "ExtractScalar", "center": 2, "scale": 3},
+    "b": {"type": "ExtractScalar", "center": 0.0, "scale": 1.0}
   },
   "other": {
-    "c": { "type": "ArrayOf",
+    "c": { "type": "ExtractArray",
       "item": {
-        "type": "Scalar",
+        "type": "ExtractScalar",
         "center": 2,
         "scale": 3
       }
