@@ -16,15 +16,16 @@ struct ExtractScalar{T,V} <: AbstractReflector
 end
 
 ExtractScalar(::Type{T}) where {T<:Number} = ExtractScalar(T,T(0),T(1))
-ExtractScalar(::Type{T}) where {T<:AbstractString} = ExtractScalar(T,nothing,nothing)
+ExtractScalar(::Type{T}) where {T} = ExtractScalar(T,nothing,nothing)
 ExtractScalar(d::Dict{String,Any}) = ExtractScalar(getdatatype(Float32,d),get(d,"center",0),get(d,"scale",1))
 tojson(s::ExtractScalar) = "{\"type\": \"ExtractScalar\", \"datatype\": \"$(s.datatype)\", \"center\": $(s.c), \"scale\": $(s.s)}"
 dimension(s::ExtractScalar) = 1
 (s::ExtractScalar{T,V})(v) where {T<:Number,V}						= s.s*(s.datatype(v) - s.c)
-(s::ExtractScalar{T,V})(v::S) where {T<:Number,V,S<:Void}= 0
 (s::ExtractScalar{T,V} where {V,T<:Number})(v::String)   = s(parse(s.datatype,v))
 (s::ExtractScalar{T,V} where {V,T<:AbstractString})(v)   = v
-(s::ExtractScalar{T,V})(v::S) where {T<:Number,V,S<:AbstractString} = ""
+#handle defaults
+(s::ExtractScalar{T,V})(v::S) where {T<:Number,V,S<:Void}= 0
+(s::ExtractScalar{T,V})(v::S) where {T<:AbstractString,V,S<:Void} = ""
 
 """
 	struct ExtractCategorical{T}
@@ -111,7 +112,7 @@ end
 
 function ExtractBranch(T,vec,other)
 	v = (vec ==  nothing || isempty(vec)) ? nothing : vec
-	fnum = vec ==  nothing ? 0 : mapreduce(dimension,+,values(vec));
+	fnum = v ==  nothing ? 0 : mapreduce(dimension,+,values(v));
 	o = (other ==  nothing || isempty(other)) ? nothing : other
 	ExtractBranch(T,v,o,fnum)
 end
@@ -174,4 +175,4 @@ function getdatatype(s::String)
 	t = Symbol(s)
 	!haskey(typemap,t) && error("unknown type $(t)")
 	return(typemap[t])
-end
+end 

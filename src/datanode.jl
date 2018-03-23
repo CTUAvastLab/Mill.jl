@@ -47,9 +47,28 @@ mutable struct DataNode{A,B<:Union{Void,Bags},C}
 	metadata::C
 end
 
+function Base.show(io::IO, d::DataNode,offset::Int=0)
+	paddedprint(io,"DataNode",offset)
+	d.bags !=nothing && print(io," with $(length(d.bags)) bag(s)")
+	print(io,"\n")
+	customprint(io,data(d),offset+2)
+end
+
+Base.show(io::IO, a::A,offset) where {A<:AbstractArray} = customprint(io,a,offset)
+customprint(io,a::A,offset) where {A<:Tuple} = foreach(a -> Base.show(io,a,offset),data(a))
+customprint(io,a::A,offset) where {A<:DataNode} =  show(io,a,offset)
+customprint(io,a::A,offset) where {A<:AbstractArray} = paddedprint(io,"array of size $(size(a))\n",offset)
+customprint(io,a::A,offset) where {A<:Void} = paddedprint(io,"empty\n",offset)
+
 DataNode(data) = DataNode(data,nothing,nothing)
 DataNode(data,bags::B) where {B<:Union{Void,Bags}} = DataNode(data,bags,nothing)
 DataNode(data,i::Vector,metadata = nothing) = DataNode(data,bag(i),nothing)
+
+mapdata(f,x::DataNode{A,B,C}) where {A<:DataNode,B,C} = DataNode(mapdata(f,data(x)),x.bags,x.metadata)
+mapdata(f,x::DataNode{A,B,C}) where {A<:Tuple,B,C} = DataNode(tuple(map(i -> mapdata(f,i),data(x))...),x.bags,x.metadata)
+mapdata(f,x::DataNode{A,B,C}) where {A<:Void,B,C} = DataNode(nothing,x.bags,x.metadata)
+mapdata(f,x::DataNode{A,B,C}) where {A,B,C} = DataNode(f(data(x)),x.bags,x.metadata)
+mapdata(f,x) = f(x)
 
 LearnBase.nobs(a::DataNode{A,<:Bags,C}) where {A,C} = length(a.bags)
 LearnBase.nobs(a::DataNode{A,<:Void,C}) where {A,C} = nobs(a.data,ObsDim.Last)
@@ -57,6 +76,10 @@ LearnBase.nobs(a::DataNode{A,<:Bags,C},::Type{ObsDim.Last}) where {A,C} = length
 LearnBase.nobs(a::DataNode{A,<:Void,C},::Type{ObsDim.Last}) where {A,C} = nobs(a.data,ObsDim.Last)
 LearnBase.nobs(a::Matrix,::Type{ObsDim.Last}) = size(a,2)
 LearnBase.nobs(a::Vector,::Type{ObsDim.Last}) = length(a)
+
+data(x) = x
+data(x::DataNode) = x.data
+
 function LearnBase.nobs(a::Tuple,::Type{ObsDim.Last})
 	n = nobs(a[1],ObsDim.Last)
 	for i in 2:length(a)
@@ -173,16 +196,27 @@ function Base.getindex(x::DataNode{A,B},i::Union{UnitRange{Int},Vector{Int}}) wh
 	DataNode(subset(x.data,ii),nb,subset(x.metadata,ii))
 end
 
-Base.getindex(x::DataNode{A,<:Void,C},i::Union{UnitRange{Int},Vector{Int}}) where {A,C} = DataNode(subset(x.data,ii),nothing,subset(x.metadata,ii))
+Base.getindex(x::DataNode{A,<:Void,C},i::Union{UnitRange{Int},Vector{Int}}) where {A,C} = DataNode(subset(x.data,i),nothing,subset(x.metadata,i))
 Base.getindex(x::DataNode,i::Int) = x[i:i]
+MLDataPattern.getobs(x::DataNode,i) = x[i]
 
 subset(x::Matrix,i) = x[:,i]
 subset(x::Vector,i) = x[i]
 subset(x::DataNode,i) = x[i]
 subset(x::DataFrame,i) = x[i,:]
 subset(x::T,i) where {T<:Void} = nothing
-subset(xs::Tuple,i) = tuple(map(x -> x[i],xs))
+subset(xs::Tuple,i) = tuple(map(x -> x[i],xs)...)
 
+"""
+		sparsify(x,nnzrate)
 
-LearnBase.nobs(a::DataNode{A,<:Void,C},i) where {A,C} = nobs(a.data,i)
-LearnBase.nobs(a::DataNode{A,<:Bags,C},i) where {A,C} = length(a.bags)
+		replace matrices with at most `nnzrate` fraction of non-zeros with SparseMatrixCSC
+
+```juliadoctest 
+julia> x = DataNode((DataNode((randn(5,5),zeros(5,5))),zeros(5,5)))	
+julia> mapdata(i -> sparsify(i,0.05),x)
+
+```
+"""
+sparsify(x,nnzrate) = x
+sparsify(x::Matrix,nnzrate) = (mean(x .!= 0) <nnzrate) ? sparse(x) : x

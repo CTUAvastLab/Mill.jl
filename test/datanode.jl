@@ -92,3 +92,20 @@ end
   @test all(cat(a,b).data[2] .== hcat(a.data[2],b.data[2]))
   @test all(cat(a,b).data[3].data .== hcat(a.data[3].data,b.data[3].data))
 end
+
+
+import NestedMill: sparsify, mapdata
+@testset "testing sparsify" begin
+  @test typeof(sparsify(zeros(10,10),0.05)) <: SparseMatrixCSC
+  @test typeof(sparsify(randn(10,10),0.05)) <: Matrix
+  @test typeof(sparsify(randn(10),0.05)) <: Vector
+end  
+
+
+@testset "testing sparsify and mapdata" begin
+  x = DataNode((DataNode((randn(5,5),zeros(5,5))),zeros(5,5)))
+  xs = mapdata(i -> sparsify(i,0.05),x)
+  @test typeof(xs.data[2]) <: SparseMatrixCSC
+  @test typeof(xs.data[1].data[2]) <: SparseMatrixCSC
+  @test all(xs.data[1].data[1] .== x.data[1].data[1])
+end  
