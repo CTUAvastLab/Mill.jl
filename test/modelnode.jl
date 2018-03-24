@@ -1,36 +1,32 @@
 using Revise
 using Flux
 using NestedMill
+using Base.Test
 import NestedMill: ModelNode, DataNode, AggregationNode, reflectinmodel
 
+layerbuilder(k) = Flux.Dense(k,2,NNlib.relu),2
 
-x = DataNode(randn(4,4),[1:2,3:4])
-layerbuilder(k) = Dense(k,10,relu),10
+@testset "testing simple aggregation model" begin
+		x = DataNode(randn(4,4),[1:2,3:4])
+		m = reflectinmodel(x,layerbuilder)[1]
+		@test size(m(x)) == (4,2)
+		@test typeof(m) <: AggregationNode
+end
 
-m = reflectinmodel(x,layerbuilder)[1]
-m(x)
-
-
-x = DataNode((randn(3,4),randn(4,4)))
-m = reflectinmodel(x,layerbuilder)[1]
-m(x)
-
-x = DataNode((DataNode(randn(7,3)),DataNode(randn(4,3)))))
-m = reflectinmodel(x,layerbuilder)[1]
-m(x)
-
-# x = DataNode((DataNode(randn(3,4)),DataNode(randn(4,4))))
-# m = ModelNode((Dense(3,2),Chain(Dense(4,2),Dense(2,1))))
-# m(x)
-
-
-# x = DataNode(randn(4,4))
-# m = ModelNode(Dense(4,2))
-# m(x)
-
-
-# x = DataNode(randn(4,4),[1:2,3:4])
-#  = DataNode(nothing,[0:-1])
-# m = AggregationNode(Dense(4,2),NestedMill.segmented_mean)
-
-
+@testset "testing simple tuple model" begin
+		x = DataNode((randn(3,4),randn(4,4)))
+		m = reflectinmodel(x,layerbuilder)[1]
+		@test size(m(x)) == (2,4)
+		x = DataNode((DataNode(randn(3,4)),DataNode(randn(4,4))))
+		m = reflectinmodel(x,layerbuilder)[1]
+		@test size(m(x)) == (2,4)
+		x = DataNode((randn(3,4),DataNode(randn(4,4))))
+		m = reflectinmodel(x,layerbuilder)[1]
+		@test size(m(x)) == (2,4)
+		x = DataNode((DataNode(randn(3,4)),randn(4,4)))
+		m = reflectinmodel(x,layerbuilder)[1]
+		@test size(m(x)) == (2,4)
+		x = DataNode((DataNode(randn(3,4),[1:2,3:4]),DataNode(randn(4,4),[1:1,2:4])))
+		m = reflectinmodel(x,layerbuilder)[1]
+		@test size(m(x)) == (2,2)
+end

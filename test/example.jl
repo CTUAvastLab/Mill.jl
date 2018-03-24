@@ -34,9 +34,9 @@ extract_target.other["provider_variables"] = ExtractBranch(Float32,vec,nothing)
 delete!(extract_target.other,"cms_prescription_counts")
 
 println(NestedMill.tojson(extract_data,2))
-data = @>> samples[1:1000] map(s-> extract_data(JSON.parse(s)));
+data = @>> samples[1:100000] map(s-> extract_data(JSON.parse(s)));
 data = cat(data...);
-target = @>> samples[1:1000] map(s-> extract_target(JSON.parse(s)));
+target = @>> samples[1:100000] map(s-> extract_target(JSON.parse(s)));
 target = cat(target...);
 target = target.data.data
 
@@ -52,7 +52,7 @@ m(data)
 opt = Flux.Optimise.ADAM(params(m))
 fVal = 0.0
 for (i,(x,y)) in enumerate(RandomBatches((data,target),100,10000))
-	l = FluxExtensions.crossentropy(m(getobs(x)),getobs(y))
+	l = FluxExtensions.logitcrossentropy(m(getobs(x)),getobs(y))
 	Flux.Tracker.back!(l)
 	opt()
 	fVal += Flux.data(l)
@@ -62,3 +62,4 @@ for (i,(x,y)) in enumerate(RandomBatches((data,target),100,10000))
 	end
 end
 
+accuracy = mean(Flux.argmax(softmax(m(data))) .== argmax(target))
