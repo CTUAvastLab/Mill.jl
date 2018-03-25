@@ -8,7 +8,7 @@ function segmented_mean(x,bags)
 				o[i,j] += x[i,bi]
 			end 
 		end
-		o[:,j] ./= length(b)
+		o[:,j] ./= max(1,length(b))
 	end
 	o
 end
@@ -35,6 +35,7 @@ function segmented_max(x,bags)
 			end 
 		end
 	end
+	o[ o.== typemin(eltype(x))] .= 0
 	o
 end
 
@@ -71,7 +72,7 @@ function segmented_meanmax(x,bags)
 		for bi in b
 			for i in 1:d
 				o[i,j] = max(o[i,j],x[i,bi])
-				o[i+d,j] += x[i,bi]/length(b)
+				o[i+d,j] += x[i,bi] / max(length(b),1)
 			end 
 		end
 	end
@@ -100,6 +101,7 @@ function segmented_meanmax_back(x,bags,Δ)
 			o[i,idxs[i]] += Δ[i,j] 
 		end
 	end
+	o[ o.== typemin(eltype(x))] .= 0
 	o
 end
 

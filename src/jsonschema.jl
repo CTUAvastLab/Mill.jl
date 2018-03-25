@@ -82,7 +82,7 @@ called(s::T) where {T<:JSONEntry} = s.called
 recommendscheme(T,e::Entry,mincount) = ExtractScalar(eltype(map(identity,keys(e.counts))))
 recommendscheme(T,e::VectorEntry,mincount) = ExtractArray(recommendscheme(T,e.items,mincount))
 function recommendscheme(T,e::DictEntry, mincount::Int = typemax(Int))
-	ks = filter(k -> called(e.childs[k]) > mincount, keys(e.childs))
+	ks = Iterators.filter(k -> called(e.childs[k]) > mincount, keys(e.childs))
 	if isempty(ks)
 		return(ExtractBranch(T,Dict{String,Any}(),Dict{String,Any}()))
 	end

@@ -6,6 +6,7 @@ import NestedMill: ExtractScalar, ExtractCategorical, ExtractArray, ExtractBranc
 	sc = ExtractScalar(Float64,2,3)
 	@test sc("5") == 9
 	@test sc(5) == 9
+	@test sc(nothing) == 0
 end
 
 
@@ -15,14 +16,19 @@ end
 	@test all(sc(3) .== [0,1,0])
 	@test all(sc(4) .== [0,0,1])
 	@test all(sc(5) .== [0,0,0])
+	@test all(sc(nothing) .== [0,0,0])
 end
 
 
 @testset "Testing array conversion" begin
 	sc = ExtractArray(ExtractCategorical(Float64,2:4))
 	@test all(sc([2,3,4]).data .== eye(3))
+	@test all(sc(nothing).data .== [0 0 0])
+	@test all(sc(nothing).bags .== [1:1])
 	sc = ExtractArray(ExtractScalar(Float64))
 	@test all(sc([2,3,4]).data .== [2 3 4])
+	@test all(sc(nothing).data .== [0])
+	@test all(sc(nothing).bags .== [1:1])
 end
 
 
@@ -38,12 +44,12 @@ end
 	@test all(cat(a1,a1).data[2].bags .== [1:4,5:8])
 	
 	@test all(cat(a1,a2).data[1] .==[7 7; 9 9])
-	@test all(cat(a1,a2).data[2].data .== [-3 0 3 6])
-	@test all(cat(a1,a2).data[2].bags .== [1:4,0:-1])
+	@test all(cat(a1,a2).data[2].data .== [-3 0 3 6 0])
+	@test all(cat(a1,a2).data[2].bags .== [1:4,5:5])
 
 	@test all(cat(a2,a3).data[1] .==[7 0; 9 9])
-	@test all(cat(a2,a3).data[2].data .== [-3 0 3 6])
-	@test all(cat(a2,a3).data[2].bags .== [0:-1,1:4])
+	@test all(cat(a2,a3).data[2].data .== [0 -3 0 3 6])
+	@test all(cat(a2,a3).data[2].bags .== [1:1,2:5])
 
 	@test all(cat(a1,a3).data[1] .==[7 0; 9 9])
 	@test all(cat(a1,a3).data[2].data .== [-3 0 3 6 -3 0 3 6])
@@ -69,15 +75,14 @@ end
 	@test all(cat(a1,a1).data.data .== [-3 0 3 6 -3 0 3 6])
 	@test all(cat(a1,a1).data.bags .== [1:4,5:8])
 
-	@test all(cat(a1,a2).data.data .== [-3 0 3 6])
-	@test all(cat(a1,a2).data.bags .== [1:4,0:-1])
+	@test all(cat(a1,a2).data.data .== [-3 0 3 6 0])
+	@test all(cat(a1,a2).data.bags .== [1:4,5:5])
 	
 
 	@test all(a3.data.data .== [-3 0 3 6])
 	@test all(a3.data.bags .== [1:4])
 	@test all(cat(a3,a3).data.data .== [-3 0 3 6 -3 0 3 6])
 	@test all(cat(a3,a3).data.bags .== [1:4,5:8])
-
 end
 
 
@@ -91,43 +96,18 @@ end
 
 	@test all(cat(a1,a2).data[1].data .== [-3.0  0.0  3.0  6.0  0.0  3.0  6.0])
 	@test all(cat(a1,a2).data[1].bags .== [1:4, 5:7])
-	@test all(cat(a1,a2).data[2].data .== [-3.0  0.0  3.0])
-	@test all(cat(a1,a2).data[2].bags .== [1:3, 0:-1])
+	@test all(cat(a1,a2).data[2].data .== [-3.0  0.0  3.0 0])
+	@test all(cat(a1,a2).data[2].bags .== [1:3, 4:4])
 
 	
-	@test all(cat(a2,a3).data[1].data .== [0.0  3.0  6.0])
-	@test all(cat(a2,a3).data[1].bags .== [1:3, 0:-1])
-	@test all(cat(a2,a3).data[2].data .== [0 3 6])
-	@test all(cat(a2,a3).data[2].bags .== [0:-1, 1:3])
+	@test all(cat(a2,a3).data[1].data .== [0.0  3.0  6.0 0])
+	@test all(cat(a2,a3).data[1].bags .== [1:3, 4:4])
+	@test all(cat(a2,a3).data[2].data .== [0 0 3 6])
+	@test all(cat(a2,a3).data[2].bags .== [1:1, 2:4])
 
 
-	@test all(cat(a1,a4).data[1].data .== [-3.0  0.0  3.0  6.0])
-	@test all(cat(a1,a4).data[1].bags .== [1:4, 0:-1])
-	@test all(cat(a1,a4).data[2].data .== [-3.0  0.0  3.0])
-	@test all(cat(a1,a4).data[2].bags .== [1:3, 0:-1])
-end
-
-
-brtext = """
-{	"type": "ExtractBranch",
-  "vec": {
-    "a": {"type": "ExtractScalar", "center": 2, "scale": 3},
-    "b": {"type": "ExtractScalar", "center": 0.0, "scale": 1.0}
-  },
-  "other": {
-    "c": { "type": "ExtractArray",
-      "item": {
-        "type": "ExtractScalar",
-        "center": 2,
-        "scale": 3
-      }
-    }
-  }
-}
-"""
-
-import NestedMill: tojson, interpret
-@testset "testing interpreting and exporting to JSON" begin
-	br = interpret(brtext)
-	@test tojson(interpret(tojson(br))) == tojson(br)
+	@test all(cat(a1,a4).data[1].data .== [-3.0  0.0  3.0  6.0 0])
+	@test all(cat(a1,a4).data[1].bags .== [1:4, 5:5])
+	@test all(cat(a1,a4).data[2].data .== [-3.0  0.0  3.0 0])
+	@test all(cat(a1,a4).data[2].bags .== [1:3, 4:4])
 end
