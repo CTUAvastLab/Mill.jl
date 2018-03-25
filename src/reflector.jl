@@ -82,8 +82,10 @@ struct ExtractArray{T} <: AbstractReflector
 end
 
 dimension(s::ExtractArray)  = dimension(s.item)
-(s::ExtractArray)(v) = DataNode(hcat(s.item.(v)...),[1:length(v)])
-(s::ExtractArray)(v::V) where {V<:Void} = DataNode(reshape(hcat(s.item.([nothing])...),:,1),[1:1])
+(s::ExtractArray{T})(v) where {T<:ExtractBranch} = isempty(v) ? s(nothing) : DataNode(lastcat(s.item.(v)...),[1:length(v)])
+(s::ExtractArray{T})(v::V) where {T<:ExtractBranch,V<:Void} = DataNode(lastcat(s.item.([nothing])...),[1:1])
+(s::ExtractArray)(v) = isempty(v) ? s(nothing) : DataNode(hcat(s.item.(v)...),[1:length(v)])
+(s::ExtractArray)(v::V) where {V<:Void} = DataNode(hcat(s.item.([nothing])...),[1:1])
 
 """
 	struct ExtractBranch
