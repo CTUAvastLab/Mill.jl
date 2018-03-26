@@ -4,9 +4,9 @@ import NestedMill: ExtractScalar, ExtractCategorical, ExtractArray, ExtractBranc
 
 @testset "Testing scalar conversion" begin
 	sc = ExtractScalar(Float64,2,3)
-	@test sc("5") == 9
-	@test sc(5) == 9
-	@test sc(nothing) == 0
+	@test all(sc("5") .== [9])
+	@test all(sc(5) .== [9])
+	@test all(sc(nothing) .== [0])
 end
 
 

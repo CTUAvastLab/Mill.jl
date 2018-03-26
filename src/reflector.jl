@@ -18,12 +18,12 @@ end
 ExtractScalar(::Type{T}) where {T<:Number} = ExtractScalar(T,T(0),T(1))
 ExtractScalar(::Type{T}) where {T} = ExtractScalar(T,nothing,nothing)
 dimension(s::ExtractScalar) = 1
-(s::ExtractScalar{T,V})(v) where {T<:Number,V}						= s.s*(s.datatype(v) - s.c)
+(s::ExtractScalar{T,V})(v) where {T<:Number,V}						= s.s .* (reshape([s.datatype(v)],(1,1)) .- s.c)
 (s::ExtractScalar{T,V} where {V,T<:Number})(v::String)   = s(parse(s.datatype,v))
-(s::ExtractScalar{T,V} where {V,T<:AbstractString})(v)   = v
+(s::ExtractScalar{T,V} where {V,T<:AbstractString})(v)   = reshape([v],(1,1))
 #handle defaults
-(s::ExtractScalar{T,V})(v::S) where {T<:Number,V,S<:Void}= 0
-(s::ExtractScalar{T,V})(v::S) where {T<:AbstractString,V,S<:Void} = ""
+(s::ExtractScalar{T,V})(v::S) where {T<:Number,V,S<:Void}= reshape([0],(1,1))
+(s::ExtractScalar{T,V})(v::S) where {T<:AbstractString,V,S<:Void} = reshape([""],(1,1))
 
 """
 	struct ExtractCategorical{T}
@@ -43,7 +43,7 @@ ExtractCategorical(T,s::Entry) = ExtractCategorical(T,sort(collect(keys(s.counts
 ExtractCategorical(T,s::UnitRange) = ExtractCategorical(T,collect(s))
 dimension(s::ExtractCategorical)  = length(s.items)
 function (s::ExtractCategorical)(v) 
-	x = zeros(s.datatype,length(s.items))
+	x = zeros(s.datatype,length(s.items),1)
 	i = findfirst(s.items,v)
 	if i > 0
 		x[i] = 1
@@ -82,10 +82,8 @@ struct ExtractArray{T} <: AbstractReflector
 end
 
 dimension(s::ExtractArray)  = dimension(s.item)
-(s::ExtractArray{T})(v) where {T<:ExtractBranch} = isempty(v) ? s(nothing) : DataNode(lastcat(s.item.(v)...),[1:length(v)])
-(s::ExtractArray{T})(v::V) where {T<:ExtractBranch,V<:Void} = DataNode(lastcat(s.item.([nothing])...),[1:1])
-(s::ExtractArray)(v) = isempty(v) ? s(nothing) : DataNode(hcat(s.item.(v)...),[1:length(v)])
-(s::ExtractArray)(v::V) where {V<:Void} = DataNode(hcat(s.item.([nothing])...),[1:1])
+(s::ExtractArray)(v::V) where {V<:Void} = DataNode(lastcat(s.item.([nothing])...),[1:1])
+(s::ExtractArray)(v) = isempty(v) ? s(nothing) : DataNode(lastcat(s.item.(v)...),[1:length(v)])
 
 """
 	struct ExtractBranch
@@ -116,7 +114,6 @@ end
 (s::ExtractBranch)(v::V) where {V<:Void} = s(Dict{String,Any}())
 function (s::ExtractBranch{T,S,V})(v::Dict) where {T,S<:Dict,V<:Dict}
 	x = vcat(map(k -> s.vec[k](get(v,k,nothing)),keys(s.vec))...)
-	x = reshape(x,:,1)
 	o = map(k -> s.other[k](get(v,k,nothing)), keys(s.other))
 	data = tuple([x,o...]...)
 	DataNode(data,nothing,nothing)
@@ -124,7 +121,6 @@ end
 
 function (s::ExtractBranch{T,S,V})(v::Dict) where {T,S<:Dict,V<:Void}
 	x = vcat(map(k -> s.vec[k](get(v,k,nothing)),keys(s.vec))...)
-	x = reshape(x,:,1)
 	DataNode(x,nothing,nothing)
 end
 

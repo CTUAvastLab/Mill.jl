@@ -11,8 +11,8 @@ import NestedMill: DictEntry, recommendscheme, accomodate!
 	j2 = JSON.parse("""{"a": 4, "c": { "a": {"a":[2,3],"b":[5,6]}}}""")
 	j3 = JSON.parse("""{"a": 4, "b": {"a":[1,2,3],"b": 1}}""")
 	j4 = JSON.parse("""{"a": 4, "b": {}}""")
-	j5 = JSON.parse("""{"b": {}""")
-	j6 = JSON.parse("""{""")
+	j5 = JSON.parse("""{"b": {}}""")
+	j6 = JSON.parse("""{}""")
 
 	schema = DictEntry()
 	foreach(f -> accomodate!(schema,f),[j1,j2,j3])
