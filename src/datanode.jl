@@ -95,14 +95,14 @@ end
 		create vector of unit ranges from keys k, assuming they are continuous 
 
 ```juliadoctest
-julia> NestedMill.bag([2, 2, 2, 1, 1, 3])
+julia> Mill.bag([2, 2, 2, 1, 1, 3])
 3-element Array{UnitRange{Int64},1}:
  1:3
  4:5
  6:6
 ```
 
-this will throw error ```NestedMill.bag([2, 2, 2, 1, 1, 3, 1])```
+this will throw error ```Mill.bag([2, 2, 2, 1, 1, 3, 1])```
 """
 function bag(k::Vector)
 	b = Bags(length(unique(k)))
@@ -126,13 +126,13 @@ end
 		bags corresponding to indices with collected indices
 
 ```juliadoctest
-julia> NestedMill.remapbag([1:1,2:3,4:5],[2,3])
+julia> Mill.remapbag([1:1,2:3,4:5],[2,3])
 (UnitRange{Int64}[2:3, 2:3], [2, 3, 4, 5])
 
 ```
 
 ```juliadoctest
-julia> NestedMill.remapbag([1:1,2:3,4:5],[1])
+julia> Mill.remapbag([1:1,2:3,4:5],[1])
 (UnitRange{Int64}[1:1], [1])
 ```
 

@@ -1,5 +1,5 @@
 __precompile__()
-module NestedMill
+module Mill
 using JSON 
 using Adapt
 using MLDataPattern
@@ -15,8 +15,6 @@ Bags = Vector{UnitRange{Int64}}
 
 
 include("datanode.jl")
-include("jsonschema.jl")
-include("reflector.jl")
 include("modelnode.jl")
 include("aggregation.jl")
 

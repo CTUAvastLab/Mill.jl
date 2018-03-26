@@ -40,6 +40,10 @@ Adapt.adapt(T, m::AggregationNode) = AggregationNode(Adapt.adapt(T,m.im),Adapt.a
 AggregationNode(im) = AggregationNode(im,identity,identity)
 AggregationNode(im,a) = AggregationNode(im,a,identity)
 
+addlayer(m::ModelNode,a) = ModelNode(Flux.Chain(m.m,a))
+addlayer(m::AggregationNode{A,B,C},a) where {A,B,C<:Void} = AggregationNode(m.im,m.a,a)
+addlayer(m::AggregationNode{A,B,C},a) where {A,B,C} = AggregationNode(m.im,m.a,Flux.Chain(m.bm,a))
+
 
 function 	reflectinmodel(ds::DataNode{A,B,C},layerbuilder::Function) where {A,B,C}
 	(m,d) = reflectinmodel(ds.data,layerbuilder)
@@ -56,6 +60,3 @@ end
 
 reflectinmodel(x::A,layerbuilder::Function) where {A<:AbstractMatrix} = layerbuilder(size(x,1))
 
-addlayer(m::ModelNode,a) = ModelNode(Flux.Chain(m.m,a))
-addlayer(m::AggregationNode{A,B,C},a) where {A,B,C<:Void} = AggregationNode(m.im,m.a,a)
-addlayer(m::AggregationNode{A,B,C},a) where {A,B,C} = AggregationNode(m.im,m.a,Flux.Chain(m.bm,a))

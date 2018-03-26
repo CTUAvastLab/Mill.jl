@@ -1,8 +1,8 @@
 using Revise
 using Flux
-using NestedMill
+using Mill
 using Base.Test
-import NestedMill: ModelNode, DataNode, AggregationNode, reflectinmodel
+import Mill: ModelNode, DataNode, AggregationNode, reflectinmodel
 
 layerbuilder(k) = Flux.Dense(k,2,NNlib.relu),2
 

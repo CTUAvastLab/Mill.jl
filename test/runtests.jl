@@ -1,9 +1,7 @@
 using Revise
-using NestedMill
+using Mill
 using Base.Test
 
 include("datanode.jl")
-include("reflector.jl")
 include("aggregation.jl")
 include("modelnode.jl")
-include("pipelinetest.jl")

@@ -1,5 +1,5 @@
 using Flux
-import NestedMill: segmented_mean, segmented_max, segmented_meanmax
+import Mill: segmented_mean, segmented_max, segmented_meanmax
 import Flux.Tracker: gradcheck
 
 gradcheck(x -> sum(segmented_mean(x,[1:4])),randn(4,4))

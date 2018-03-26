@@ -1,24 +1,24 @@
 @testset "creating bags" begin
 	k = [2, 2, 2, 1, 1, 3]
-	@test all(NestedMill.bag(k) .== [1:3,4:5,6:6])
+	@test all(Mill.bag(k) .== [1:3,4:5,6:6])
 end
 
 
 @testset "testing remapping for subsets" begin
-  @test all(NestedMill.remapbag([1:1,2:3,4:5],[2,3])[1] .== [1:2,3:4])
-  @test all(NestedMill.remapbag([1:1,2:3,4:5],[2,3])[2] .== [2,3,4,5])
-  @test all(NestedMill.remapbag([1:2,3:3,4:5],[1,3])[1] .== [1:2,3:4])
-  @test all(NestedMill.remapbag([1:2,3:3,4:5],[1,3])[2] .== [1,2,4,5])
-  @test all(NestedMill.remapbag([1:2,3:3,4:5],[2,3])[1] .== [1:1,2:3])
-  @test all(NestedMill.remapbag([1:2,3:3,4:5],[2,3])[2] .== [3,4,5])
+  @test all(Mill.remapbag([1:1,2:3,4:5],[2,3])[1] .== [1:2,3:4])
+  @test all(Mill.remapbag([1:1,2:3,4:5],[2,3])[2] .== [2,3,4,5])
+  @test all(Mill.remapbag([1:2,3:3,4:5],[1,3])[1] .== [1:2,3:4])
+  @test all(Mill.remapbag([1:2,3:3,4:5],[1,3])[2] .== [1,2,4,5])
+  @test all(Mill.remapbag([1:2,3:3,4:5],[2,3])[1] .== [1:1,2:3])
+  @test all(Mill.remapbag([1:2,3:3,4:5],[2,3])[2] .== [3,4,5])
 
-  @test all(NestedMill.remapbag([1:2,0:-1,3:4],[2,3])[1] .== [0:-1,1:2])
-  @test all(NestedMill.remapbag([1:2,0:-1,3:4],[2,3])[2] .== [3,4])
+  @test all(Mill.remapbag([1:2,0:-1,3:4],[2,3])[1] .== [0:-1,1:2])
+  @test all(Mill.remapbag([1:2,0:-1,3:4],[2,3])[2] .== [3,4])
 end
 
 
 
-import NestedMill: DataNode
+import Mill: DataNode
 
 a = DataNode(rand(3,4),[1:4])
 b = DataNode(rand(3,4),[1:2,3:4])
@@ -76,7 +76,7 @@ end
   @test all(b[2:3].data.bags .== [0:-1,1:2,3:3])
 end
 
-import NestedMill: lastcat
+import Mill: lastcat
 @testset "testing lastcat" begin
   a = (rand(3,2),rand(3,1),DataNode(randn(3,2)))
   b = (rand(3,2),rand(3,1),DataNode(randn(3,2)))
@@ -94,7 +94,7 @@ end
 end
 
 
-import NestedMill: sparsify, mapdata
+import Mill: sparsify, mapdata
 @testset "testing sparsify" begin
   @test typeof(sparsify(zeros(10,10),0.05)) <: SparseMatrixCSC
   @test typeof(sparsify(randn(10,10),0.05)) <: Matrix
