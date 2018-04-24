@@ -4,7 +4,7 @@ using Mill
 using Base.Test
 import Mill: ModelNode, DataNode, AggregationNode, reflectinmodel
 
-layerbuilder(k) = Flux.Dense(k,2,NNlib.relu),2
+layerbuilder(k) = Flux.Dense(k,2,NNlib.relu)
 
 @testset "testing simple aggregation model" begin
 		x = DataNode(randn(4,4),[1:2,3:4])

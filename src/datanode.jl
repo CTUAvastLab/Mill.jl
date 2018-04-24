@@ -74,7 +74,7 @@ LearnBase.nobs(a::DataNode{A,<:Bags,C}) where {A,C} = length(a.bags)
 LearnBase.nobs(a::DataNode{A,<:Void,C}) where {A,C} = nobs(a.data,ObsDim.Last)
 LearnBase.nobs(a::DataNode{A,<:Bags,C},::Type{ObsDim.Last}) where {A,C} = length(a.bags)
 LearnBase.nobs(a::DataNode{A,<:Void,C},::Type{ObsDim.Last}) where {A,C} = nobs(a.data,ObsDim.Last)
-LearnBase.nobs(a::Matrix,::Type{ObsDim.Last}) = size(a,2)
+LearnBase.nobs(a::T,::Type{ObsDim.Last}) where {T<:AbstractMatrix} = size(a,2)
 LearnBase.nobs(a::Vector,::Type{ObsDim.Last}) = length(a)
 
 data(x) = x
@@ -200,7 +200,7 @@ Base.getindex(x::DataNode{A,<:Void,C},i::Union{UnitRange{Int},Vector{Int}}) wher
 Base.getindex(x::DataNode,i::Int) = x[i:i]
 MLDataPattern.getobs(x::DataNode,i) = x[i]
 
-subset(x::Matrix,i) = x[:,i]
+subset(x::T,i) where {T<: AbstractMatrix} = x[:,i]
 subset(x::Vector,i) = x[i]
 subset(x::DataNode,i) = x[i]
 subset(x::DataFrame,i) = x[i,:]

@@ -54,9 +54,13 @@ function reflectinmodel(x::A,layerbuilder::Function) where {A<:Tuple}
 	mm = map(i -> reflectinmodel(i,layerbuilder),x)
 	im = ModelNode(tuple(map(i -> i[1],mm)...))
 	d = mapreduce(i ->i[2],+,mm)
-	tm, d = layerbuilder(d)
+	tm, d = reflectinmodel(im(x),layerbuilder)
 	Chain(im,tm),d
 end
 
-reflectinmodel(x::A,layerbuilder::Function) where {A<:AbstractMatrix} = layerbuilder(size(x,1))
+
+function reflectinmodel(x::A,layerbuilder::Function) where {A<:AbstractMatrix} 
+	m = layerbuilder(size(x,1))
+	m, size(m(x),1)
+end
 
