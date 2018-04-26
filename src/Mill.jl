@@ -6,9 +6,9 @@ using MLDataPattern
 
 function paddedprint(io,s,padding)
 	for _ in 1:padding
-	    write(io, ' ')
+	    print(io, ' ')
 	end
-  write(io,s)
+  print(io,s)
 end
 
 Bags = Vector{UnitRange{Int64}}
