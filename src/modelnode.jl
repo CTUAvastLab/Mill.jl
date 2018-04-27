@@ -5,16 +5,17 @@ using Flux
 		m::T
 	end
 
-	This model is a counterpart of DataNode. It consists of tuples and apply it on items of DataNode.
+	This model is a counterpart of DataNode. 
 """
-struct ModelNode{T}
+struct ModelNode{F,T}
+	f::F
 	m::T
 end
 
 Flux.treelike(ModelNode)
-Adapt.adapt(T, m::ModelNode) = ModelNode(Adapt.adapt(T,m.m))
-(m::ModelNode)(x) = m.m(data(x))
-(m::ModelNode{T})(x::V) where {T<:Tuple,V<:Tuple} = vcat(map(f -> f[1](f[2]),zip(m.m,x))...)
+Adapt.adapt(T, m::ModelNode) = ModelNode(Adapt.adapt(T,m.f),Adapt.adapt(T,m.m))
+(m::ModelNode)(x) = m.m(m.f(data(x)))
+(m::ModelNode{F,T})(x::V) where {F<:Tuple,T,V<:Tuple} = m.m(vcat(map(f -> f[1](f[2]),zip(m.f,x))...))
 
 Base.show(io::IO, m::ModelNode{T},offset::Int=0) where {T} = modelprint(io,m,offset)
 
@@ -29,11 +30,12 @@ function modelprint(io::IO, m::Flux.Chain,offset::Int=0)
 	end
 end
 
-function modelprint(io::IO, m::ModelNode{T},offset::Int=0) where {T<:Tuple}
+function modelprint(io::IO, m::ModelNode{F,M},offset::Int=0) where {F<:Tuple,M}
 	print(io,"\nTuple:\n")
-	for i in 1:length(m.m)
-		modelprint(io,m.m[i],offset+2);
+	for i in 1:length(m.f)
+		modelprint(io,m.f[i],offset+2);
 	end
+	modelprint(io,m.m,offset);
 end
 
 function modelprint(io,m,offset)
@@ -95,16 +97,16 @@ function 	reflectinmodel(ds::DataNode{A,B,C},layerbuilder::Function) where {A,B,
 		mb,d =  reflectinmodel(segmented_meanmax(m(ds.data),ds.bags),layerbuilder)
 		return(AggregationNode(m,segmented_meanmax,mb),d)
 	else 
-		return (ModelNode(m),d)
+		return (ModelNode(identity,m),d)
 	end
 end
 
 function reflectinmodel(x::A,layerbuilder::Function) where {A<:Tuple} 
 	mm = map(i -> reflectinmodel(i,layerbuilder),x)
-	im = ModelNode(tuple(map(i -> i[1],mm)...))
+	im = tuple(map(i -> i[1],mm)...)
 	d = mapreduce(i ->i[2],+,mm)
-	tm, d = reflectinmodel(im(x),layerbuilder)
-	Chain(im,tm),d
+	tm, d = reflectinmodel(ModelNode(im,identity)(x),layerbuilder)
+	ModelNode(im,tm),d
 end
 
 
