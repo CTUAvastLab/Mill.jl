@@ -17,10 +17,15 @@ Adapt.adapt(T, m::ModelNode) = ModelNode(Adapt.adapt(T,m.f),Adapt.adapt(T,m.m))
 (m::ModelNode)(x) = m.m(m.f(data(x)))
 (m::ModelNode{F,T})(x::V) where {F<:Tuple,T,V<:Tuple} = m.m(vcat(map(f -> f[1](f[2]),zip(m.f,x))...))
 
+addlayer(m::ModelNode{A,B}, a) where {A,B<:Chain} = ModelNode(m.f,Flux.Chain(vcat(m.m.layers,[a])))
+addlayer(m::ModelNode, a) = (m.m == identity)? ModelNode(m.f,a) : ModelNode(m.f,Flux.Chain([m.m,a]...))
+
+
 Base.show(io::IO, m::ModelNode{T},offset::Int=0) where {T} = modelprint(io,m,offset)
 
 function modelprint(io::IO, m::ModelNode{T},offset::Int=0) where {T}
-	modelprint(io,m.m,offset)
+	modelprint(io,m.f,offset)
+	m.m != identity && modelprint(io,m.m,offset)
 end
 
 function modelprint(io::IO, m::Flux.Chain,offset::Int=0)
@@ -31,11 +36,11 @@ function modelprint(io::IO, m::Flux.Chain,offset::Int=0)
 end
 
 function modelprint(io::IO, m::ModelNode{F,M},offset::Int=0) where {F<:Tuple,M}
-	print(io,"\nTuple:\n")
+	paddedprint(io,"Tuple:\n",offset)
 	for i in 1:length(m.f)
 		modelprint(io,m.f[i],offset+2);
 	end
-	modelprint(io,m.m,offset);
+	m.m != identity && modelprint(io,m.m,offset);
 end
 
 function modelprint(io,m,offset)
@@ -68,17 +73,9 @@ Adapt.adapt(T, m::AggregationNode) = AggregationNode(Adapt.adapt(T,m.im),Adapt.a
 AggregationNode(im) = AggregationNode(im,identity,identity)
 AggregationNode(im,a) = AggregationNode(im,a,identity)
 
-addlayer(m::ModelNode,a) = ModelNode(Flux.Chain(m.m,a))
 addlayer(m::AggregationNode{A,B,C},a) where {A,B,C<:Void} = AggregationNode(m.im,m.a,a)
 addlayer(m::AggregationNode{A,B,C},a) where {A,B,C} = AggregationNode(m.im,m.a,Flux.Chain(m.bm,a))
 
-function Base.show(io::IO, m::AggregationNode)
-	print(io,"AggregationNode(")
-	print(io,m.im)
-	print(io," meanmax")
-	print(io,m.bm)
-	print(io,")")
-end
 Base.show(io::IO, m::AggregationNode,offset::Int=0) = modelprint(io,m,offset)
 
 function modelprint(io::IO, m::AggregationNode,offset::Int=0)
@@ -86,9 +83,7 @@ function modelprint(io::IO, m::AggregationNode,offset::Int=0)
 	modelprint(io,m.im,offset+2)
 	paddedprint(io,"meanmax",offset+2)
 	print(io,"\n")
-	if m.bm != identity
-		modelprint(io,m.bm,offset+2)
-	end
+	m.bm != identity &&	modelprint(io,m.bm,offset+2)
 end
 
 function 	reflectinmodel(ds::DataNode{A,B,C},layerbuilder::Function) where {A,B,C}
@@ -97,7 +92,7 @@ function 	reflectinmodel(ds::DataNode{A,B,C},layerbuilder::Function) where {A,B,
 		mb,d =  reflectinmodel(segmented_meanmax(m(ds.data),ds.bags),layerbuilder)
 		return(AggregationNode(m,segmented_meanmax,mb),d)
 	else 
-		return (ModelNode(identity,m),d)
+		return (ModelNode(m,identity),d)
 	end
 end
 
