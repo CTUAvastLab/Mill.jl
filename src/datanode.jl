@@ -137,7 +137,7 @@ julia> Mill.remapbag([1:1,2:3,4:5],[1])
 ```
 
 """
-function remapbag(b::Bags,indices::I) where {I<:Union{UnitRange{Int},Vector{Int}}}
+function remapbag(b::Bags,indices::V) where {V<:VecOrRange}
 	rb = Bags(length(indices))
 	offset = 1
 	for (i,j) in enumerate(indices)
@@ -182,7 +182,7 @@ function catbags(oldbags...)
 	newbags
 end
 
-lastcat(a::Matrix...) = hcat(a...)
+lastcat(a::T...) where {T<:AbstractMatrix{V} where V} = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)
 lastcat(a::DataFrame...) = vcat(a...)
 lastcat(a::DataNode...) = cat(a...)
@@ -191,14 +191,16 @@ lastcat(a::Tuple...) = tuple([lastcat([a[j][i] for j in 1:length(a)]...) for i i
 lastcat() = nothing
 
 
-function Base.getindex(x::DataNode{A,B},i::Union{UnitRange{Int},Vector{Int}}) where {A,B<:Bags}
+function Base.getindex(x::DataNode{A,B},i::I) where {A,B<:Bags,I<:VecOrRange}
 	nb, ii = remapbag(x.bags,i)
 	DataNode(subset(x.data,ii),nb,subset(x.metadata,ii))
 end
 
-Base.getindex(x::DataNode{A,<:Void,C},i::Union{UnitRange{Int},Vector{Int}}) where {A,C} = DataNode(subset(x.data,i),nothing,subset(x.metadata,i))
+Base.getindex(x::DataNode{A,<:Void,C},i::I) where {A,C,I<:VecOrRange} = DataNode(subset(x.data,i),nothing,subset(x.metadata,i))
 Base.getindex(x::DataNode,i::Int) = x[i:i]
 MLDataPattern.getobs(x::DataNode,i) = x[i]
+MLDataPattern.getobs(x::DataNode,i,::LearnBase.ObsDim.Undefined) = x[i]
+MLDataPattern.getobs(x::DataNode,i,::LearnBase.ObsDim.Last) = x[i]
 
 subset(x::T,i) where {T<: AbstractMatrix} = x[:,i]
 subset(x::Vector,i) = x[i]
