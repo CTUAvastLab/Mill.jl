@@ -141,7 +141,7 @@ function remapbag(b::Bags,indices::V) where {V<:VecOrRange}
 	rb = Bags(length(indices))
 	offset = 1
 	for (i,j) in enumerate(indices)
-		rb[i] = (b[j] == 0:-1)? b[j] : b[j] - b[j].start + offset
+		rb[i] = (b[j] == 0:-1) ? b[j] : b[j] - b[j].start + offset
 		offset += length(b[j])
 	end
 	rb, vcat(map(i -> collect(b[i]),indices)...)
