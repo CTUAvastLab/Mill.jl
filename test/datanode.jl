@@ -24,7 +24,6 @@ a = DataNode(rand(3,4),[1:4])
 b = DataNode(rand(3,4),[1:2,3:4])
 c = DataNode(rand(3,4),[1:1,2:2,3:4])
 d = DataNode(rand(3,4),[1:4,0:-1])
-
 @testset "testing DataNode hcat" begin
   @test all(cat(a,b,c).data .== hcat(a.data,b.data,c.data))
   @test all(cat(a,b,c).bags .== [1:4,5:6,7:8,9:9,10:10,11:12])
@@ -65,9 +64,9 @@ end
 
 
 
+a = DataNode(rand(3,10),[1:2,3:3,0:-1,4:5,6:6,7:10])
+b = DataNode(a,[1:2,3:3,4:5,6:6])
 @testset "testing nested ragged array" begin
-  a = DataNode(rand(3,10),[1:2,3:3,0:-1,4:5,6:6,7:10])
-  b = DataNode(a,[1:2,3:3,4:5,6:6])
   @test all(b[1].data.data .== a.data[:,1:3])
   @test all(b[1].data.bags .== [1:2,3:3])
   @test all(b[1:2].data.data .== a.data[:,1:3])
@@ -77,17 +76,17 @@ end
 end
 
 import Mill: lastcat
+a = (rand(3,2),rand(3,1),DataNode(randn(3,2)))
+b = (rand(3,2),rand(3,1),DataNode(randn(3,2)))
 @testset "testing lastcat" begin
-  a = (rand(3,2),rand(3,1),DataNode(randn(3,2)))
-  b = (rand(3,2),rand(3,1),DataNode(randn(3,2)))
   @test all(lastcat(a,b)[1] .== hcat(a[1],b[1]))
   @test all(lastcat(a,b)[2] .== hcat(a[2],b[2]))
   @test all(lastcat(a,b)[3].data .== hcat(a[3].data,b[3].data))
 end
 
+a = DataNode((rand(3,2),rand(3,1),DataNode(randn(3,2))))
+b = DataNode((rand(3,2),rand(3,1),DataNode(randn(3,2))))
 @testset "testing DataNode with Tuple" begin
-  a = DataNode((rand(3,2),rand(3,1),DataNode(randn(3,2))))
-  b = DataNode((rand(3,2),rand(3,1),DataNode(randn(3,2))))
   @test all(cat(a,b).data[1] .== hcat(a.data[1],b.data[1]))
   @test all(cat(a,b).data[2] .== hcat(a.data[2],b.data[2]))
   @test all(cat(a,b).data[3].data .== hcat(a.data[3].data,b.data[3].data))
