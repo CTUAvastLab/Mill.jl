@@ -93,6 +93,7 @@ b = DataNode((rand(3,2),rand(3,1),DataNode(randn(3,2))))
 end
 
 
+using SparseArrays
 import Mill: sparsify, mapdata
 @testset "testing sparsify" begin
   @test typeof(sparsify(zeros(10,10),0.05)) <: SparseMatrixCSC
