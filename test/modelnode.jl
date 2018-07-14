@@ -1,7 +1,4 @@
-using Revise
-using Flux
-using Mill
-using Base.Test
+
 import Mill: ModelNode, DataNode, AggregationNode, reflectinmodel
 
 layerbuilder(k) = Flux.Dense(k,2,NNlib.relu)
@@ -9,7 +6,7 @@ layerbuilder(k) = Flux.Dense(k,2,NNlib.relu)
 @testset "testing simple aggregation model" begin
 		x = DataNode(randn(4,4),[1:2,3:4])
 		m = reflectinmodel(x,layerbuilder)[1]
-		@test size(m(x)) == (2,2)
+		@test size(m(x)) .== (2,2)
 		@test typeof(m) <: AggregationNode
 end
 
