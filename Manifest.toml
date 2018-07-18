@@ -60,17 +60,13 @@ git-tree-sha1 = "eb98811a03884748e0e7fc0ceb6849f3bb727ffd"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
 version = "0.70.0"
 
-[[DataFlow]]
-deps = ["Juno", "Lazy", "MacroTools"]
-git-tree-sha1 = "a493f7e35bddcacb19248a8d3826dd42ac4dd2ce"
-uuid = "a237f610-4214-5ca7-a9c6-385896804134"
-version = "0.3.1"
-
 [[DataFrames]]
-deps = ["CategoricalArrays", "CodecZlib", "Compat", "DataStreams", "Missings", "Reexport", "SortingAlgorithms", "StatsBase", "TranscodingStreams", "WeakRefStrings"]
-git-tree-sha1 = "be4d979564837fbb6be9eb4872ab7352bbc32e71"
+deps = ["CategoricalArrays", "CodecZlib", "Compat", "DataStreams", "Dates", "LinearAlgebra", "Missings", "Printf", "Random", "Reexport", "SortingAlgorithms", "Statistics", "StatsBase", "Test", "TranscodingStreams", "Unicode", "WeakRefStrings"]
+git-tree-sha1 = "5955bfbbbd8184d3cdd10d9ef59b27063da95847"
+repo-rev = "0.7cleanup"
+repo-url = "https://github.com/JuliaData/DataFrames.jl.git"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "0.11.6"
+version = "0.11.7+"
 
 [[DataStreams]]
 deps = ["Compat", "Missings", "NamedTuples", "WeakRefStrings"]
@@ -112,10 +108,12 @@ uuid = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
 version = "0.5.1"
 
 [[Flux]]
-deps = ["AbstractTrees", "Adapt", "Colors", "DataFlow", "DiffRules", "ForwardDiff", "GZip", "Juno", "MacroTools", "NNlib", "NaNMath", "Reexport", "Requires", "SpecialFunctions", "ZipFile"]
-git-tree-sha1 = "f6c14c9d012875cb0b04d0d788c49be55761c10d"
+deps = ["AbstractTrees", "Adapt", "Colors", "DiffRules", "ForwardDiff", "GZip", "LinearAlgebra", "MacroTools", "NNlib", "NaNMath", "Reexport", "Requires", "SpecialFunctions", "StatsBase", "ZipFile"]
+git-tree-sha1 = "66e769fd696b420560baa980405e9d63f5133414"
+repo-rev = "julia-0.7"
+repo-url = "https://github.com/FluxML/Flux.jl.git"
 uuid = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-version = "0.5.3"
+version = "0.5.3+"
 
 [[ForwardDiff]]
 deps = ["CommonSubexpressions", "Compat", "DiffResults", "DiffRules", "NaNMath", "SpecialFunctions", "StaticArrays"]
@@ -141,23 +139,13 @@ git-tree-sha1 = "723a515212612b2175095fa5fa55da0bb4c377e5"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.18.0"
 
-[[Juno]]
-deps = ["Media"]
-git-tree-sha1 = "3519243f4b170061de4c1a96e536850e8bcf688b"
-uuid = "e5e0dc1b-0480-54bc-9374-aad01c23163d"
-version = "0.4.1"
-
-[[Lazy]]
-deps = ["Compat", "MacroTools"]
-git-tree-sha1 = "1dea2ef59fab543a5b1ce066b678dcdd70d21abf"
-uuid = "50d2b5c4-7a5e-59d5-8109-a42b560f39c0"
-version = "0.12.1"
-
 [[LearnBase]]
-deps = ["Compat", "StatsBase"]
-git-tree-sha1 = "3c2162fbf99b257907730c5e389df385896654a9"
+deps = ["StatsBase", "Test", "Unicode"]
+git-tree-sha1 = "2f1741fc75a6487ac1c3ea102e1266669c112d7d"
+repo-rev = "jd/0.7-fixes"
+repo-url = "https://github.com/JuliaML/LearnBase.jl.git"
 uuid = "7f8f8fb0-2700-5f03-b4bd-41f8cfc144b6"
-version = "0.1.6"
+version = "0.1.6+"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
@@ -194,12 +182,6 @@ version = "0.2.0"
 
 [[Markdown]]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
-
-[[Media]]
-deps = ["MacroTools", "Test"]
-git-tree-sha1 = "9cc7fc9d0e3e7e4ecb1f1b81209f9dc626e893f1"
-uuid = "e89f7d12-3494-54d1-8411-f7d8b9ae1f27"
-version = "0.4.0"
 
 [[Missings]]
 deps = ["Compat"]
@@ -301,9 +283,9 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[TranscodingStreams]]
 deps = ["Compat", "Random", "Test"]
-git-tree-sha1 = "497524e8b703e67caf20cc086d20235852041fe4"
+git-tree-sha1 = "d10e1e4b8fb8c6c50a1458c8e0de8f7abd0fc144"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.5.2"
+version = "0.5.3"
 
 [[URIParser]]
 deps = ["Compat", "Unicode"]
