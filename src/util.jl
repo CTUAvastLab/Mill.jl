@@ -1,3 +1,23 @@
+"""
+		sparsify(x,nnzrate)
+
+		replace matrices with at most `nnzrate` fraction of non-zeros with SparseMatrixCSC
+
+```juliadoctest
+julia> x = TreeNode((
+				TreeNode((
+					MatrixNode(randn(5,5)),
+					MatrixNode(zeros(5,5))
+						)),
+				MatrixNode(zeros(5,5))
+				))
+julia> mapdata(i -> sparsify(i,0.05),x)
+
+```
+"""
+sparsify(x,nnzrate) = x
+sparsify(x::Matrix,nnzrate) = (mean(x .!= 0) <nnzrate) ? sparse(x) : x
+
 function length2bags(ls::Vector{Int})
 	ls = vcat([0],cumsum(ls))
 	bags = map(i -> i[1]+1:i[2],zip(ls[1:end-1],ls[2:end]))

@@ -1,32 +1,68 @@
-abstract type ModelNode end
+abstract type MillModel end
 
-struct ChainNode <: ModelNode
-	f::Flux.Chain
+struct ChainModel <: MillModel
+	m::Flux.Chain
 end
 
-struct CatNode <: ModelNode
+struct JointModel{N} <: MillModel
+	m::Flux.Chain
+	ms::NTuple{N, MillModel}
 end
 
-struct AggregationNode <: ModelNode
-	im::ChainNode
+struct AggregationModel <: MillModel
+	im::MillModel
 	a::Function
-	bm::ChainNode
+	bm::MillModel
 end
 
-Flux.treelike(ModelNode)
-Adapt.adapt(T, m::ModelNode) = ModelNode(Adapt.adapt(T, m.f), Adapt.adapt(T, m.m))
+AggregationModel(im) = AggregationModel(im, identity, identity)
+AggregationModel(im, a) = AggregationModel(im, a, identity)
+JointModel(ms::Tuple{MillModel}) = JointModel(identity, ms)
 
-(m::ModelNode)(x::MatrixNode) = m(x.data)
-(m::ModelNode{F, T})(x::TreeNode) where {F<:Tuple, T} = m.m(vcat(map(f -> f[1](f[2]), zip(m.f, x.data))...))
-(m::ModelNode)(x::AbstractMatrix) = m.m(m.f(x))
+Flux.treelike(ChainModel)
+Flux.treelike(JointModel)
+Flux.treelike(AggregationModel)
 
-addlayer(m::ModelNode{A, B}, a) where {A, B<:Chain} = ModelNode(m.f, Flux.Chain(vcat(m.m.layers, [a])...))
-addlayer(m::ModelNode, a) = (m.m == identity)? ModelNode(m.f, a) : ModelNode(m.f, Flux.Chain([m.m, a]...))
+Adapt.adapt(T, m::ChainModel) = ChainModel(Adapt.adapt(T, m.m))
+Adapt.adapt(T, m::JointModel) = JointModel(Adapt.adapt(T, m.m), (map(m -> Adapt.adapt(T, m), m.ms)...))
+Adapt.adapt(T, m::AggregationModel) = AggregationModel(Adapt.adapt(T, m.im), Adapt.adapt(T, m.a), Adapt.adapt(T, m.bm))
 
-Base.show(io::IO, m::ModelNode, offset::Int=0) = modelprint(io, m, offset)
+(m::ChainModel)(x::MatrixNode) = m.m(x.data)
+# enforce the same length of JointModel and TreeNode
+(m::JointModel{N})(x::TreeNode{N}) where N = m.m(vcat(map(f -> f[1](f[2]), zip(m.ms, x.data))...))
+(m::AggregationModel)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
+(m::AggregationModel)(x::WeightedBagNode) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
 
-function modelprint(io::IO, m::ModelNode, offset::Int=0)
-	modelprint(io, m.f, offset)
+################################################################################
+
+function reflectinmodel(x::AbstractBag, layerbuilder::Function)
+	im, d = reflectinmodel(x.data, layerbuilder)
+	bm, d =  reflectinmodel(Matrix(segmented_meanmax(im(x.data), x.bags)), layerbuilder)
+	Aggregation(im, segmented_meanmax, bm), d
+end
+
+function reflectinmodel(x::AbstractTree, layerbuilder::Function)
+	mm = map(i -> reflectinmodel(i, layerbuilder), x.data)
+	im = tuple(map(i -> i[1], mm)...)
+	# d = mapreduce(i ->i[2], +, mm)
+	tm, d = reflectinmodel(Matrix(Model(im, identity)(x)), layerbuilder)
+	Model(im, tm), d
+end
+
+reflectinmodel(x::Matrix, layerbuilder::Function) = reflectinmodel(x.data, layerbuilder)
+
+function reflectinmodel(x::AbstractMatrix, layerbuilder::Function)
+	m = layerbuilder(size(x, 1))
+	Model(m, identity), size(m(x), 1)
+end
+
+################################################################################
+
+Base.show(io::IO, m::MillModel, offset::Int=0) = modelprint(io, m, offset)
+
+function modelprint(io::IO, m::ChainModel, offset::Int=0)
+	paddedprint()
+	modelprint(io, m.m, offset)
 	m.m != identity && modelprint(io, m.m, offset)
 end
 
@@ -50,45 +86,10 @@ function modelprint(io, m, offset)
 	print(io, m, "\n")
 end
 
-Flux.treelike(AggregationNode)
-Adapt.adapt(T,  m::AggregationNode) = AggregationNode(Adapt.adapt(T, m.im), Adapt.adapt(T, m.a), Adapt.adapt(T, m.bm))
-
-(m::AggregationNode)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
-(m::AggregationNode)(x::WeightedBagNode) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
-
-AggregationNode(im) = AggregationNode(im, identity, identity)
-AggregationNode(im, a) = AggregationNode(im, a, identity)
-
-addlayer(m::AggregationNode{A, B, C}, a) where {A, B, C<:Void} = AggregationNode(m.im, m.a, a)
-addlayer(m::AggregationNode, a) = AggregationNode(m.im, m.a, Flux.Chain(m.bm, a))
-
-Base.show(io::IO,  m::AggregationNode, offset::Int=0) = modelprint(io, m, offset)
-
 function modelprint(io::IO,  m::AggregationNode, offset::Int=0)
 	paddedprint(io, "AggregationNode\n", offset)
 	modelprint(io, m.im, offset+2)
 	paddedprint(io, "meanmax", offset+2)
 	print(io, "\n")
 	m.bm != identity &&	modelprint(io, m.bm, offset+2)
-end
-
-function reflectinmodel(x::AbstractBagNode, layerbuilder::Function)
-	im, d = reflectinmodel(x.data, layerbuilder)
-	bm, d =  reflectinmodel(MatrixNode(segmented_meanmax(im(x.data), x.bags)), layerbuilder)
-	AggregationNode(im, segmented_meanmax, bm), d
-end
-
-function reflectinmodel(x::AbstractTreeNode, layerbuilder::Function)
-	mm = map(i -> reflectinmodel(i, layerbuilder), x.data)
-	im = tuple(map(i -> i[1], mm)...)
-	# d = mapreduce(i ->i[2], +, mm)
-	tm, d = reflectinmodel(MatrixNode(ModelNode(im, identity)(x)), layerbuilder)
-	ModelNode(im, tm), d
-end
-
-reflectinmodel(x::MatrixNode, layerbuilder::Function) = reflectinmodel(x.data, layerbuilder)
-
-function reflectinmodel(x::AbstractMatrix, layerbuilder::Function)
-	m = layerbuilder(size(x, 1))
-	ModelNode(m, identity), size(m(x), 1)
 end

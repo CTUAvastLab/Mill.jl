@@ -38,24 +38,33 @@ WeightedBagNode(data::AbstractNode, b, weights::Vector, metadata=nothing) = Weig
 TreeNode(data::NTuple{N, AbstractNode}, metadata::C) where {N, C} = TreeNode{N, C}(data, metadata)
 TreeNode(data) = TreeNode(data, nothing)
 
+################################################################################
+
 Base.show(io::IO, n::MatrixNode, offset::Int=0) =
 	paddedprint(io,"MatrixNode$(size(n.data))\n",offset)
+
 function Base.show(io::IO, n::BagNode, offset::Int=0)
 	paddedprint(io,"BagNode with $(length(n.bags)) bag(s)\n",offset)
 	Base.show(io, n.data, offset+2)
 end
+
 Base.show(io::IO, n::WeightedBagNode, offset::Int=0) =
 	paddedprint(io,"WeightedNode$(size(n.data)) with $(length(n.bags)) bag(s) and weights summing to $(sum(n.weights))\n",offset)
+
 function Base.show(io::IO, n::AbstractTreeNode{N}, offset::Int=0) where {N}
 	paddedprint(io,"TreeNode{$N}(\n", offset)
 	foreach(m -> Base.show(io, m, offset+2), n.data)
 	paddedprint(io,")\n", offset)
 end
 
+################################################################################
+
 mapdata(f, x::MatrixNode) = MatrixNode(f(x.data), x.metadata)
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data), x.metadata)
+
+################################################################################
 
 LearnBase.nobs(a::MatrixNode) = size(a.data,2)
 LearnBase.nobs(a::MatrixNode, ::Type{ObsDim.Last}) = nobs(a)
@@ -64,20 +73,8 @@ LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 LearnBase.nobs(a::AbstractTreeNode) = nobs(a.data[1],ObsDim.Last)
 LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
-"""
-		function Base.cat(a,b,c...) where {T<:AbstractNode}
+################################################################################
 
-		concatenates datasets a,b,c
-
-```juliadoctest
-a = BagNode(MatrixNode(rand(3,4)),[1:4])
-b = BagNode(MatrixNode(rand(3,4)),[1:2,3:4])
-cat(a,b)
-```
-
-	Internally, the functions calls package-specific function lastcat to enforce concatenations
-	assuming that last dimension are observations. If you want to use AbstractNode with special datastores, you should extend it
-"""
 function Base.cat(a::T...) where T <: AbstractNode
 	data = lastcat(map(d -> d.data, a)...)
 	metadata = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.metadata,a))...)
@@ -114,7 +111,10 @@ lastcat(a::Void...) = nothing
 lastcat(a::NTuple{N, AbstractNode}...) where N = ((cat(d...) for d in zip(a...))...)
 lastcat() = nothing
 
+################################################################################
+
 Base.getindex(x::T, i::VecOrRange) where T <: AbstractNode = T(subset(x.data, i), subset(x.metadata, i))
+
 function Base.getindex(x::BagNode, i::VecOrRange)
 	nb, ii = remapbag(x.bags, i)
 	BagNode(subset(x.data,ii), nb, subset(x.metadata, ii))
@@ -136,23 +136,3 @@ subset(x::AbstractNode, i) = x[i]
 subset(x::DataFrame, i) = x[i, :]
 subset(x::Void, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
-
-"""
-		sparsify(x,nnzrate)
-
-		replace matrices with at most `nnzrate` fraction of non-zeros with SparseMatrixCSC
-
-```juliadoctest
-julia> x = TreeNode((
-				TreeNode((
-					MatrixNode(randn(5,5)),
-					MatrixNode(zeros(5,5))
-						)),
-				MatrixNode(zeros(5,5))
-				))
-julia> mapdata(i -> sparsify(i,0.05),x)
-
-```
-"""
-sparsify(x,nnzrate) = x
-sparsify(x::Matrix,nnzrate) = (mean(x .!= 0) <nnzrate) ? sparse(x) : x
