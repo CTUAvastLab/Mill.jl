@@ -1,4 +1,4 @@
-import Mill: DataNode, MatrixNode, BagNode, TreeNode, WeightedBagNode
+import Mill: DataNode, ArrayNode, BagNode, TreeNode, WeightedBagNode
 
 @testset "creating bags" begin
 	k = [2, 2, 2, 1, 1, 3]
@@ -17,20 +17,20 @@ end
   @test all(Mill.remapbag([1:2,0:-1,3:4],[2,3])[2] .== [3,4])
 end
 
-a = BagNode(MatrixNode(rand(3,4)),[1:4])
-b = BagNode(MatrixNode(rand(3,4)),[1:2,3:4])
-c = BagNode(MatrixNode(rand(3,4)),[1:1,2:2,3:4])
-d = BagNode(MatrixNode(rand(3,4)),[1:4,0:-1])
-wa = WeightedBagNode(MatrixNode(rand(3,4)),[1:4], rand(1:4, 4))
-wb = WeightedBagNode(MatrixNode(rand(3,4)),[1:2,3:4], rand(1:4, 4))
-wc = WeightedBagNode(MatrixNode(rand(3,4)),[1:1,2:2,3:4], rand(1:4, 4))
-wd = WeightedBagNode(MatrixNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4))
-e = MatrixNode(rand(2, 2))
+a = BagNode(ArrayNode(rand(3,4)),[1:4])
+b = BagNode(ArrayNode(rand(3,4)),[1:2,3:4])
+c = BagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4])
+d = BagNode(ArrayNode(rand(3,4)),[1:4,0:-1])
+wa = WeightedBagNode(ArrayNode(rand(3,4)),[1:4], rand(1:4, 4))
+wb = WeightedBagNode(ArrayNode(rand(3,4)),[1:2,3:4], rand(1:4, 4))
+wc = WeightedBagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], rand(1:4, 4))
+wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4))
+e = ArrayNode(rand(2, 2))
 
 f = TreeNode((wb,b))
 g = TreeNode((c,wc))
 h = TreeNode((wc,c))
-i = TreeNode((b, TreeNode((b, BagNode(BagNode(MatrixNode(rand(2,4)), [1:1, 2:2, 3:3, 4:4]), [1:3, 4:4])))))
+i = TreeNode((b, TreeNode((b, BagNode(BagNode(ArrayNode(rand(2,4)), [1:1, 2:2, 3:3, 4:4]), [1:3, 4:4])))))
 
 @testset "testing nobs" begin
   import LearnBase: nobs
@@ -45,7 +45,7 @@ i = TreeNode((b, TreeNode((b, BagNode(BagNode(MatrixNode(rand(2,4)), [1:1, 2:2, 
   @test nobs(i) == nobs(b)
 end
 
-@testset "testing MatrixNode hcat" begin
+@testset "testing ArrayNode hcat" begin
   @test all(cat(e, e).data .== hcat(e.data, e.data))
 end
 
@@ -138,7 +138,7 @@ end
 end
 
 @testset "testing nested ragged array" begin
-  a = BagNode(MatrixNode(rand(3,10)),[1:2,3:3,0:-1,4:5,6:6,7:10])
+  a = BagNode(ArrayNode(rand(3,10)),[1:2,3:3,0:-1,4:5,6:6,7:10])
   b = BagNode(a,[1:2,3:3,4:5,6:6])
   @test all(b[1].data.data.data .== a.data.data[:,1:3])
   @test all(b[1].data.bags .== [1:2,3:3])
@@ -149,8 +149,8 @@ end
 end
 
 @testset "testing TreeNode" begin
-  a = TreeNode((MatrixNode(rand(3,2)),MatrixNode(rand(3,2)),MatrixNode(randn(3,2))))
-  b = TreeNode((MatrixNode(rand(3,2)),MatrixNode(rand(3,2)),MatrixNode(randn(3,2))))
+  a = TreeNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
+  b = TreeNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
   @test all(cat(a,b).data[1].data .== hcat(a.data[1].data,b.data[1].data))
   @test all(cat(a,b).data[2].data .== hcat(a.data[2].data,b.data[2].data))
   @test all(cat(a,b).data[3].data .== hcat(a.data[3].data,b.data[3].data))
@@ -164,7 +164,7 @@ end
 end
 
 @testset "testing sparsify and mapdata" begin
-  x = TreeNode((TreeNode((MatrixNode(randn(5,5)), MatrixNode(zeros(5,5)))), MatrixNode(zeros(5,5))))
+  x = TreeNode((TreeNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
   xs = mapdata(i -> sparsify(i,0.05),x)
   @test typeof(xs.data[2].data) <: SparseMatrixCSC
   @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC

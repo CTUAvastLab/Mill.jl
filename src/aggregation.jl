@@ -175,6 +175,13 @@ function segmented_weighted_meanmax_back(x::Matrix, bags::Bags, w::Vector, Δ::M
 	o
 end
 
+segmented_mean(x::ArrayNode, args...) = ArrayNode(segmented_mean(x.data, args...))
+segmented_max(x::ArrayNode, args...) = ArrayNode(segmented_max(x.data, args...))
+segmented_meanmax(x::ArrayNode, args...) = ArrayNode(segmented_max(x.data, args...))
+segmented_weighted_mean(x::ArrayNode, args...) = ArrayNode(segmented_weighted_mean(x.data, args...))
+segmented_weighted_max(x::ArrayNode, args...) = ArrayNode(segmented_weighted_max(x.data, args...))
+segmented_weighted_meanmax(x::ArrayNode, args...) = ArrayNode(segmented_weighted_max(x.data, args...))
+
 # identical by definition
 segmented_weighted_max(x, bags, w) = segmented_max(x, bags)
 
