@@ -1,14 +1,16 @@
-"""
-	ModelNode{F, T}
-		f::F
-		m::T
-	end
+abstract type ModelNode end
 
-	This model is a counterpart of AbstractNode.
-"""
-struct ModelNode{F, T}
-	f::F
-	m::T
+struct ChainNode <: ModelNode
+	f::Flux.Chain
+end
+
+struct CatNode <: ModelNode
+end
+
+struct AggregationNode <: ModelNode
+	im::ChainNode
+	a::Function
+	bm::ChainNode
 end
 
 Flux.treelike(ModelNode)
@@ -46,20 +48,6 @@ end
 function modelprint(io, m, offset)
 	paddedprint(io, "", offset)
 	print(io, m, "\n")
-end
-
-"""
-	struct AggregationNode{A, B, C}
-		im::A
-		a::B
-		bm::C
-	end
-
-"""
-struct AggregationNode{A, B, C}
-	im::A
-	a::B
-	bm::C
 end
 
 Flux.treelike(AggregationNode)
