@@ -5,7 +5,7 @@ using FileIO
 using Flux
 using MLDataPattern
 using Flux: throttle
-import Mill: BagNode, ArrayNode, segmented_meanmax, AggregationModel, reflectinmodel
+using Mill: BagNode, ArrayNode, segmented_meanmax, AggregationModel, ChainModel, reflectinmodel
 
 
 # load the musk dataset
