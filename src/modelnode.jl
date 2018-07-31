@@ -1,7 +1,7 @@
 abstract type MillModel end
 
 struct ChainModel <: MillModel
-	m::Union{Flux.Dense, Flux.Chain}
+	m::Flux.Chain
 end
 
 struct AggregationModel <: MillModel
@@ -15,12 +15,12 @@ struct JointModel{N} <: MillModel
 	m::ChainModel
 end
 
-ChainModel(f::Function) = ChainModel(Flux.Chain(f))
-AggregationModel(im::Function, a, bm::Function) = AggregationModel(ChainModel(im), a, ChainModel(bm))
-AggregationModel(im::Function, a) = AggregationModel(im, a, identity)
+ChainModel(f::MillFunction) = ChainModel(Flux.Chain(f))
+AggregationModel(im::MillFunction, a, bm::MillFunction) = AggregationModel(ChainModel(im), a, ChainModel(bm))
+AggregationModel(im::MillFunction, a) = AggregationModel(im, a, identity)
 AggregationModel(im::MillModel, a) = AggregationModel(im, a, ChainModel(identity))
 JointModel(ms::NTuple{N, MillModel}) where N = JointModel(ms, ChainModel(identity))
-JointModel(ms, f::Function) = JointModel(ms, ChainModel(f))
+JointModel(ms, f::MillFunction) = JointModel(ms, ChainModel(f))
 
 Flux.treelike(ChainModel)
 Flux.treelike(AggregationModel)
