@@ -17,20 +17,32 @@ end
   @test all(Mill.remapbag([1:2,0:-1,3:4],[2,3])[2] .== [3,4])
 end
 
-a = BagNode(ArrayNode(rand(3,4)),[1:4])
+a = BagNode(ArrayNode(rand(3,4)),[1:4], ["metadata", "metadata", "metadata", "metadata"])
 b = BagNode(ArrayNode(rand(3,4)),[1:2,3:4])
-c = BagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4])
+c = BagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], ["metadata", "metadata", "metadata", "metadata"])
 d = BagNode(ArrayNode(rand(3,4)),[1:4,0:-1])
 wa = WeightedBagNode(ArrayNode(rand(3,4)),[1:4], rand(1:4, 4))
-wb = WeightedBagNode(ArrayNode(rand(3,4)),[1:2,3:4], rand(1:4, 4))
+wb = WeightedBagNode(ArrayNode(rand(3,4)),[1:2,3:4], rand(1:4, 4), ["metadata", "metadata", "metadata", "metadata"])
 wc = WeightedBagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], rand(1:4, 4))
-wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4))
+wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4), ["metadata", "metadata", "metadata", "metadata"])
 e = ArrayNode(rand(2, 2))
 
 f = TreeNode((wb,b))
 g = TreeNode((c,wc))
 h = TreeNode((wc,c))
-i = TreeNode((b, TreeNode((b, BagNode(BagNode(ArrayNode(rand(2,4)), [1:1, 2:2, 3:3, 4:4]), [1:3, 4:4])))))
+i = TreeNode(
+    (b,
+    TreeNode(
+          (b, BagNode(
+                BagNode(
+                    ArrayNode(rand(2,4)), [1:1, 2:2, 3:3, 4:4]
+                      ),
+                    [1:3, 4:4]
+                    )
+          )
+           )
+    )
+  )
 
 @testset "testing nobs" begin
   import LearnBase: nobs

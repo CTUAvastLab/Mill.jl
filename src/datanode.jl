@@ -14,64 +14,74 @@ mutable struct BagNode{T, C} <: AbstractBagNode{T, C}
 	data::T
 	bags::Bags
 	metadata::C
+
+	function BagNode{T, C}(data::T, bags::Union{Bags, Vector}, metadata::C) where {T <: AbstractNode, C}
+		new(data, bag(bags), metadata)
+	end
 end
 
-mutable struct WeightedBagNode{W, T, C} <: AbstractBagNode{T, C}
+mutable struct WeightedBagNode{T, W, C} <: AbstractBagNode{T, C}
 	data::T
 	bags::Bags
 	weights::Vector{W}
 	metadata::C
+
+	function WeightedBagNode{T, W, C}(
+		data::T, bags::Union{Bags, Vector}, weights::Vector{W}, metadata::C) where {T <: AbstractNode, W, C}
+		new(data, bag(bags), weights, metadata)
+	end
 end
 
-mutable struct TreeNode{N, C} <: AbstractTreeNode{N, C}
+mutable struct TreeNode{N} <: AbstractTreeNode{N, Void}
 	data::NTuple{N, AbstractNode}
-	metadata::C
-	function TreeNode{N, C}(data::NTuple{N, AbstractNode}, metadata::C) where {N, C}
+
+	function TreeNode{N}(data::NTuple{N, AbstractNode}) where N
 		assert(length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data))
-		new(data, metadata)
+		new(data)
 	end
 end
 
 ArrayNode(data::AbstractArray) = ArrayNode(data, nothing)
-BagNode(data::AbstractNode, b) = BagNode(data, bag(b), nothing)
-WeightedBagNode(data::AbstractNode, b, weights::Vector) = WeightedBagNode(data, bag(b), weights, nothing)
-TreeNode(data::NTuple{N, AbstractNode}, metadata::C) where {N, C} = TreeNode{N, C}(data, metadata)
-TreeNode(data) = TreeNode(data, nothing)
+BagNode(x::T, b::Union{Bags, Vector}, metadata::C=nothing) where {T <: AbstractNode, C} =
+	BagNode{T, C}(x, b, metadata)
+WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=nothing) where {T <: AbstractNode, W, C} =
+	WeightedBagNode{T, W, C}(x, b, weights, metadata)
+TreeNode(data::NTuple{N, AbstractNode}) where N = TreeNode{N}(data)
 
 ################################################################################
 
 mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
-mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data), x.metadata)
+mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data))
 
 ################################################################################
 
-LearnBase.nobs(a::ArrayNode) = size(a.data,2)
+LearnBase.nobs(a::ArrayNode) = size(a.data, 2)
 LearnBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
-LearnBase.nobs(a::AbstractTreeNode) = nobs(a.data[1],ObsDim.Last)
+LearnBase.nobs(a::AbstractTreeNode) = nobs(a.data[1], ObsDim.Last)
 LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
 ################################################################################
 
 function Base.cat(a::T...) where T <: AbstractNode
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
 	return T(data, metadata)
 end
 
 function Base.cat(a::BagNode...)
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
 	bags = catbags(map(d -> d.bags, a)...)
 	return BagNode(data, bags, metadata)
 end
 
 function Base.cat(a::WeightedBagNode...)
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
 	bags = catbags(map(d -> d.bags, a)...)
 	weights = lastcat(map(d -> d.weights, a)...)
 	return WeightedBagNode(data, bags, weights, metadata)
@@ -79,8 +89,7 @@ end
 
 function Base.cat(a::TreeNode...)
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i!= nothing,map(d -> d.metadata,a))...)
-	return TreeNode(data, metadata)
+	return TreeNode(data)
 end
 
 lastcat(a::AbstractArray...) = hcat(a...)
@@ -105,6 +114,8 @@ function Base.getindex(x::WeightedBagNode, i::VecOrRange)
 	nb, ii = remapbag(x.bags, i)
 	WeightedBagNode(subset(x.data,ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
 end
+
+Base.getindex(x::TreeNode, i::VecOrRange) = TreeNode(subset(x.data, i))
 
 Base.getindex(x::AbstractNode, i::Int) = x[i:i]
 MLDataPattern.getobs(x::AbstractNode, i) = x[i]

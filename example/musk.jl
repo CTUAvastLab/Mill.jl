@@ -23,17 +23,17 @@ end
 model = AggregationModel(
     ChainModel(Dense(166, 10, Flux.relu)),   # model on the level of Flows
     segmented_meanmax,                                    # simultaneous mean and maximum is an all-time favorite
-    ChainModel(Chain(Dense(20, 10, Flux.relu), Dense(10,2))))         # model on the level of bags
+    ChainModel(Chain(Dense(20, 10, Flux.relu), Dense(10, 2))))         # model on the level of bags
 
 #define loss function
-loss(x,y) = Flux.logitcrossentropy(model(getobs(x)), Flux.onehotbatch(y,1:2));
+loss(x,y) = Flux.logitcrossentropy(model(getobs(x)).data, Flux.onehotbatch(y, 1:2));
 
 # the usual way of training
 data, y = loaddata()
-dataset = RandomBatches((data,y),100, 2000)
+dataset = RandomBatches((data,y), 100, 2000)
 evalcb = () -> @show(loss(data, y))
 opt = Flux.ADAM(params(model))
 Flux.train!(loss, dataset, opt, cb = throttle(evalcb, 10))
 
  # calculate the error on the training set (no testing set right now)
-mean(mapslices(indmax,model(data),1)' .!= y)
+mean(mapslices(indmax, model(data).data, 1)' .!= y)
