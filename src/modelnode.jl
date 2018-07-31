@@ -16,9 +16,11 @@ struct JointModel{N} <: MillModel
 end
 
 ChainModel(f::Function) = ChainModel(Flux.Chain(f))
-AggregationModel(im) = AggregationModel(im, ChainModel(identity), ChainModel(identity))
-AggregationModel(im, a) = AggregationModel(im, a, ChainModel(identity))
+AggregationModel(im::Function, a, bm::Function) = AggregationModel(ChainModel(im), a, ChainModel(bm))
+AggregationModel(im::Function, a) = AggregationModel(im, a, identity)
+AggregationModel(im::MillModel, a) = AggregationModel(im, a, ChainModel(identity))
 JointModel(ms::NTuple{N, MillModel}) where N = JointModel(ms, ChainModel(identity))
+JointModel(ms, f::Function) = JointModel(ms, ChainModel(f))
 
 Flux.treelike(ChainModel)
 Flux.treelike(AggregationModel)
