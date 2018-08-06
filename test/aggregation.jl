@@ -1,5 +1,5 @@
 using Flux
-import Mill: segmented_mean, segmented_max, segmented_meanmax, segmented_weighted_mean, segmented_weighted_max, segmented_weighted_meanmax
+import Mill: segmented_mean, segmented_max, segmented_meanmax, segmented_weighted_mean, segmented_weighted_max, segmented_weighted_meanmax, segmented_pnorm
 import Flux.Tracker: gradcheck
 
 x1 = randn(2,10)
@@ -38,4 +38,8 @@ end
 	@test segmented_weighted_mean(x2, bags2, w) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
 	@test segmented_weighted_max(x2, bags2, w) ≈ segmented_max(x2, bags2)
 	@test segmented_weighted_meanmax(x2, bags2, w) ≈ cat(1, segmented_weighted_max(x2, bags2, w), segmented_weighted_mean(x2, bags2, w))
+
+	import Mill: pmap, inv_pmap
+	@test segmented_pnorm(x2, bags2, inv_pmap.([1, 1]), [0, 0]) ≈ segmented_mean(abs.(x2), bags2)
+	@test segmented_pnorm(x2, bags2, inv_pmap.([2, 2]), [0, 0]) ≈ hcat([sqrt.(sum(x2[:, b] .^ 2, 2) ./ length(b)) for b in bags2]...)
 end
