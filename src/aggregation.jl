@@ -5,6 +5,8 @@ struct PNorm{T <: Number}
 	PNorm{T}(d) where T <: Number = new{T}(randn(T, d), randn(T, d))
 end
 
+Flux.treelike(PNorm)
+
 (n::PNorm{T})(x::Matrix, bags::Bags) where T = segmented_pnorm(x, bags, n.ρ, n.c)
 pmap(ρ) = 1 .+ log.(1 .+ exp.(ρ))
 inv_pmap(p) = log.(exp.(p-1) .- 1)
