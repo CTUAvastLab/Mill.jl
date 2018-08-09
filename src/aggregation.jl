@@ -191,20 +191,20 @@ weighted = [
 ]
 
 for s in vcat(unweighted, weighted)
-	@eval $(s)(x::ArrayNode, args...) = ArrayNode($(s)(x.data, args...))
+	@eval $s(x::ArrayNode, args...) = ArrayNode($s(x.data, args...))
 end
 
 for s in unweighted
-	@eval $(s)(x, bags, w) = $(s)(x, bags)
-	@eval $(s)(x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.track($(s), x, bags)
-	@eval Flux.Tracker.@grad function $(s)(x, bags)
-		$(s)(Flux.data(x), bags), Δ -> ($(Symbol(string(s) * "_back"))(Flux.data(x), bags, Δ), nothing)
+	@eval $s(x, bags, w) = $s(x, bags)
+	@eval $s(x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.track($s, x, bags)
+	@eval Flux.Tracker.@grad function $s(x, bags)
+		$s(Flux.data(x), bags), Δ -> ($(Symbol(string(s) * "_back"))(Flux.data(x), bags, Δ), nothing)
 	end
 end
 
 for s in weighted
-	@eval $(s)(x::Flux.Tracker.TrackedArray, bags, w) = Flux.Tracker.track($(s), x, bags, w)
-	@eval Flux.Tracker.@grad function $(s)(x, bags, w)
-		$(s)(Flux.data(x), bags, w), Δ -> ($(Symbol(string(s) * "_back"))(Flux.data(x), bags, w, Δ), nothing, nothing)
+	@eval $s(x::Flux.Tracker.TrackedArray, bags, w) = Flux.Tracker.track($s, x, bags, w)
+	@eval Flux.Tracker.@grad function $s(x, bags, w)
+		$s(Flux.data(x), bags, w), Δ -> ($(Symbol(string(s) * "_back"))(Flux.data(x), bags, w, Δ), nothing, nothing)
 	end
 end
