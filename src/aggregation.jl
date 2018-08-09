@@ -175,27 +175,36 @@ function segmented_weighted_meanmax_back(x::Matrix, bags::Bags, w::Vector, Δ::M
 	o
 end
 
-segmented_mean(x::ArrayNode, args...) = ArrayNode(segmented_mean(x.data, args...))
-segmented_max(x::ArrayNode, args...) = ArrayNode(segmented_max(x.data, args...))
-segmented_meanmax(x::ArrayNode, args...) = ArrayNode(segmented_meanmax(x.data, args...))
-segmented_weighted_mean(x::ArrayNode, args...) = ArrayNode(segmented_weighted_mean(x.data, args...))
-segmented_weighted_max(x::ArrayNode, args...) = ArrayNode(segmented_weighted_max(x.data, args...))
-segmented_weighted_meanmax(x::ArrayNode, args...) = ArrayNode(segmented_weighted_meanmax(x.data, args...))
-
 # identical by definition
 segmented_weighted_max(x, bags, w) = segmented_max(x, bags)
+segmented_weighted_max_back(x, bags, w, Δ) = segmented_max_back(x, bags, Δ)
 
-segmented_mean(x, bags, w) = segmented_mean(x, bags)
-segmented_max(x, bags, w) = segmented_max(x, bags)
-segmented_meanmax(x, bags, w) = segmented_meanmax(x, bags)
+unweighted = [
+	:segmented_mean,
+	:segmented_max,
+	:segmented_meanmax
+]
+weighted = [
+	:segmented_weighted_mean,
+	:segmented_weighted_max,
+	:segmented_weighted_meanmax
+]
 
-segmented_mean(x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.track(segmented_mean, x, bags)
-Flux.Tracker.back(::typeof(segmented_mean), Δ, x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.back(x, segmented_mean_back(x.data, bags, Δ))
-segmented_weighted_mean(x::Flux.Tracker.TrackedArray, bags, w) = Flux.Tracker.track(segmented_weighted_mean, x, bags, w)
-Flux.Tracker.back(::typeof(segmented_weighted_mean), Δ, x::Flux.Tracker.TrackedArray, bags, w) = Flux.Tracker.back(x, segmented_weighted_mean_back(x.data, bags, w, Δ))
-segmented_max(x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.track(segmented_max, x, bags)
-Flux.Tracker.back(::typeof(segmented_max), Δ, x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.back(x, segmented_max_back(x.data, bags, Δ))
-segmented_meanmax(x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.track(segmented_meanmax, x, bags)
-Flux.Tracker.back(::typeof(segmented_meanmax), Δ, x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.back(x, segmented_meanmax_back(x.data, bags, Δ))
-segmented_weighted_meanmax(x::Flux.Tracker.TrackedArray, bags, w) = Flux.Tracker.track(segmented_weighted_meanmax, x, bags, w)
-Flux.Tracker.back(::typeof(segmented_weighted_meanmax), Δ, x::Flux.Tracker.TrackedArray, bags, w) = Flux.Tracker.back(x, segmented_weighted_meanmax_back(x.data, bags, w, Δ))
+for s in vcat(unweighted, weighted)
+	@eval $(s)(x::ArrayNode, args...) = ArrayNode($(s)(x.data, args...))
+end
+
+for s in unweighted
+	@eval $(s)(x, bags, w) = $(s)(x, bags)
+	@eval $(s)(x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.track($(s), x, bags)
+	@eval Flux.Tracker.@grad function $(s)(x, bags)
+		$(s)(Flux.data(x), bags), Δ -> ($(Symbol(string(s) * "_back"))(Flux.data(x), bags, Δ), nothing)
+	end
+end
+
+for s in weighted
+	@eval $(s)(x::Flux.Tracker.TrackedArray, bags, w) = Flux.Tracker.track($(s), x, bags, w)
+	@eval Flux.Tracker.@grad function $(s)(x, bags, w)
+		$(s)(Flux.data(x), bags, w), Δ -> ($(Symbol(string(s) * "_back"))(Flux.data(x), bags, w, Δ), nothing, nothing)
+	end
+end
