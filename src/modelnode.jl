@@ -15,6 +15,10 @@ struct JointModel{N} <: MillModel
 	m::ChainModel
 end
 
+Base.push!(m::ChainModel, l) = push!(m.m.layers, l)
+Base.push!(m::JointModel, l) = push!(m.m, l)
+Base.push!(m::AggregationModel, l) = push!(m.bm, l)
+
 ChainModel(f::MillFunction) = ChainModel(Flux.Chain(f))
 AggregationModel(im::MillFunction, a, bm::MillFunction) = AggregationModel(ChainModel(im), a, ChainModel(bm))
 AggregationModel(im::MillFunction, a) = AggregationModel(im, a, identity)

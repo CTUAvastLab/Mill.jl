@@ -49,8 +49,9 @@ WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=no
 TreeNode(data::NTuple{N, AbstractNode}) where N = TreeNode{N}(data)
 
 ################################################################################
-
-mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
+Base.convert(x::ArrayNode,xx::Matrix) = ArrayNode(xx, x.metadata)
+Base.convert(x::ArrayNode,xx) = xx
+mapdata(f, x::ArrayNode) = convert(x, f(x.data))
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data))
