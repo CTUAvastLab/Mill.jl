@@ -42,6 +42,7 @@ mutable struct TreeNode{N} <: AbstractTreeNode{N, Void}
 end
 
 ArrayNode(data::AbstractArray) = ArrayNode(data, nothing)
+ArrayNode(data::AbstractNode, metadata = nothing) = data
 BagNode(x::T, b::Union{Bags, Vector}, metadata::C=nothing) where {T <: AbstractNode, C} =
 	BagNode{T, C}(x, b, metadata)
 WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=nothing) where {T <: AbstractNode, W, C} =
@@ -49,9 +50,7 @@ WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=no
 TreeNode(data::NTuple{N, AbstractNode}) where N = TreeNode{N}(data)
 
 ################################################################################
-Base.convert(x::ArrayNode,xx::Matrix) = ArrayNode(xx, x.metadata)
-Base.convert(x::ArrayNode,xx) = xx
-mapdata(f, x::ArrayNode) = convert(x, f(x.data))
+mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data))
