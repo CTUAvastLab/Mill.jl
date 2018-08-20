@@ -1,15 +1,40 @@
 abstract type MillModel end
 
+"""
+	struct ChainModel <: MillModel
+		m::Flux.Chain
+	end
+
+	use a Chain on an ArrayNode
+"""
 struct ChainModel <: MillModel
 	m::Flux.Chain
 end
 
+"""
+	struct AggregationModel <: MillModel
+		im::MillModel
+		a::Function
+		bm::MillModel
+	end
+
+	use a `im` model on data in `BagNode`, the uses function `a` to aggregate individual bags, 
+	and finally it uses `bm` model on the output
+"""
 struct AggregationModel <: MillModel
 	im::MillModel
 	a::Function
 	bm::MillModel
 end
 
+"""
+	struct JointModel{N} <: MillModel
+		ms::NTuple{N, MillModel}
+		m::ChainModel
+	end
+
+	uses each model in `ms` on each data in `TreeNode`, concatenate the output and pass it to the chainmodel `m`
+"""
 struct JointModel{N} <: MillModel
 	ms::NTuple{N, MillModel}
 	m::ChainModel
