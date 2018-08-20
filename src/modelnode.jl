@@ -32,7 +32,7 @@ Flux.treelike(JointModel)
 
 Adapt.adapt(T, m::ChainModel) = ChainModel(Adapt.adapt(T, m.m))
 Adapt.adapt(T, m::AggregationModel) = AggregationModel(Adapt.adapt(T, m.im), Adapt.adapt(T, m.a), Adapt.adapt(T, m.bm))
-Adapt.adapt(T, m::JointModel) = JointModel((map(m -> Adapt.adapt(T, m), m.ms)...), Adapt.adapt(T, m.m))
+Adapt.adapt(T, m::JointModel) = JointModel((map(m -> Adapt.adapt(T, m), m.ms)...,), Adapt.adapt(T, m.m))
 
 (m::ChainModel)(x::ArrayNode) = ArrayNode(m.m(x.data))
 # enforce the same length of JointModel and TreeNode

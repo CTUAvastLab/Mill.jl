@@ -98,7 +98,7 @@ lastcat(a::DataFrame...) = vcat(a...)
 lastcat(a::AbstractNode...) = cat(a...)
 lastcat(a::Void...) = nothing
 # enforces both the same length of the tuples and their structure
-lastcat(a::NTuple{N, AbstractNode}...) where N = ((cat(d...) for d in zip(a...))...)
+lastcat(a::NTuple{N, AbstractNode}...) where N = ((cat(d...) for d in zip(a...))...,)
 lastcat() = nothing
 
 ################################################################################
