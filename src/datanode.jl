@@ -1,12 +1,12 @@
 using LearnBase
 using DataFrames
 
-abstract type AbstractNode{C} end
-abstract type AbstractBagNode{T <: AbstractNode, C} <: AbstractNode{C} end
-abstract type AbstractTreeNode{N, C} <: AbstractNode{C} end
+abstract type AbstractNode end
+abstract type AbstractBagNode{T <: AbstractNode, C} <: AbstractNode end
+abstract type AbstractTreeNode{N, C} <: AbstractNode end
 
-mutable struct ArrayNode{C} <: AbstractNode{C}
-	data::AbstractArray
+mutable struct ArrayNode{A,C} <: AbstractNode
+	data::A
 	metadata::C
 end
 
