@@ -1,7 +1,7 @@
 using Revise
 using Mill
 using Base.Test
-import Mill: ChainModel, AggregationModel, JointModel, reflectinmodel
+import Mill: ArrayModel, BagModel, ProductModel, reflectinmodel
 
 layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
 
@@ -9,33 +9,33 @@ layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
 	x = ArrayNode(randn(4, 5))
 	m = reflectinmodel(x, layerbuilder)[1]
 	@test size(m(x).data) == (2, 5)
-	@test typeof(m) <: ChainModel
+	@test typeof(m) <: ArrayModel
 end
 
 @testset "testing simple aggregation model" begin
 	x = BagNode(ArrayNode(randn(4, 4)), [1:2, 3:4])
 	m = reflectinmodel(x, layerbuilder)[1]
 	@test size(m(x).data) == (2, 2)
-	@test typeof(m) <: AggregationModel
+	@test typeof(m) <: BagModel
 end
 
 @testset "testing simple tuple models" begin
 	x = TreeNode((ArrayNode(randn(3, 4)), ArrayNode(randn(4, 4))))
 	m = reflectinmodel(x, layerbuilder)[1]
 	@test size(m(x).data) == (2, 4)
-	@test typeof(m) <: JointModel
-	@test typeof(m.ms[1]) <: ChainModel
-	@test typeof(m.ms[2]) <: ChainModel
+	@test typeof(m) <: ProductModel
+	@test typeof(m.ms[1]) <: ArrayModel
+	@test typeof(m.ms[2]) <: ArrayModel
 	x = TreeNode((BagNode(ArrayNode(randn(3, 4)), [1:2, 3:4]), BagNode(ArrayNode(randn(4, 4)), [1:1, 2:4])))
 	m = reflectinmodel(x, layerbuilder)[1]
 	@test size(m(x).data) == (2, 2)
-	@test typeof(m) <: JointModel
-	@test typeof(m.ms[1]) <: AggregationModel
-	@test typeof(m.ms[1].im) <: ChainModel
-	@test typeof(m.ms[1].bm) <: ChainModel
-	@test typeof(m.ms[2]) <: AggregationModel
-	@test typeof(m.ms[2].im) <: ChainModel
-	@test typeof(m.ms[2].bm) <: ChainModel
+	@test typeof(m) <: ProductModel
+	@test typeof(m.ms[1]) <: BagModel
+	@test typeof(m.ms[1].im) <: ArrayModel
+	@test typeof(m.ms[1].bm) <: ArrayModel
+	@test typeof(m.ms[2]) <: BagModel
+	@test typeof(m.ms[2].im) <: ArrayModel
+	@test typeof(m.ms[2].bm) <: ArrayModel
 end
 
 @testset "testing nested bag model" begin
@@ -43,9 +43,9 @@ end
 	x = BagNode(b, [1:2, 3:4])
 	m = reflectinmodel(x, layerbuilder)[1]
 	@test size(m(x).data) == (2, 2)
-	@test typeof(m) <: AggregationModel
-	@test typeof(m.im) <: AggregationModel
-	@test typeof(m.im.im) <: ChainModel
-	@test typeof(m.im.bm) <: ChainModel
-	@test typeof(m.bm) <: ChainModel
+	@test typeof(m) <: BagModel
+	@test typeof(m.im) <: BagModel
+	@test typeof(m.im.im) <: ArrayModel
+	@test typeof(m.im.bm) <: ArrayModel
+	@test typeof(m.bm) <: ArrayModel
 end
