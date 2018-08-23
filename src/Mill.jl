@@ -18,6 +18,6 @@ include("aggregation.jl")
 
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
-export MillModel, ChainModel, AggregationModel, JointModel
+export MillModel, ArrayModel, BagModel, ProductModel
 
 end
