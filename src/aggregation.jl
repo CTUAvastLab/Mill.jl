@@ -1,45 +1,65 @@
+using Flux.Tracker: TrackedArray
+
 # https://arxiv.org/pdf/1311.1780.pdf
 struct PNorm{T <: Number}
 	ρ::Vector{T}
 	c::Vector{T}
-	PNorm{T}(d) where T <: Number = new{T}(randn(T, d), randn(T, d))
+	PNorm{T}(d::Integer) where T <: Number = new{T}(randn(T, d), randn(T, d))
 end
+PNorm(d::Integer) = PNorm{Float64}(d)
 
 Flux.treelike(PNorm)
 
 (n::PNorm{T})(x::Matrix, bags::Bags) where T = segmented_pnorm(x, bags, n.ρ, n.c)
-pmap(ρ) = 1 .+ log.(1 .+ exp.(ρ))
-inv_pmap(p) = log.(exp.(p-1) .- 1)
+p_map(ρ) = 1 .+ log.(1 .+ exp.(ρ))
+inv_p_map(p) = log.(exp.(p-1) .- 1)
 
 function segmented_pnorm(x::Matrix, bags::Bags, ρ::Vector{<:Number}, c::Vector{<:Number})
 	o = zeros(eltype(x), size(x, 1), length(bags))
 	@inbounds for (j, b) in enumerate(bags)
 		for bi in b
 			for i in 1:size(x, 1)
-				o[i,j] += abs(x[i,bi] - c[i]) ^ pmap(ρ[i])
+				o[i, j] += abs(x[i, bi] - c[i]) ^ p_map(ρ[i])
 			end
 		end
-		o[:,j] ./= max(1, length(b))
-		o[:,j] .^= 1 ./ pmap(ρ)
+		o[:, j] ./= max(1, length(b))
+		o[:, j] .^= 1 ./ p_map(ρ)
 	end
 	o
 end
 
-# TODO for the time being works only for FIXED p
-function segmented_pnorm_back(x::Matrix, bags::Bags, ρ::Vector{T}, c::Vector{T}, Δ::Matrix) where T <: Number
-	o = similar(x, size(x))
+# TODO weighted pnorm
+function segmented_pnorm_back(x::Matrix, n::Matrix, bags::Bags, ρ::Vector{<:Number}, c::Vector{<:Number}, Δ::Matrix)
+	o = zero(x)
+	dp = zero(ρ)
+	dps1 = zero(ρ)
+	dps2 = zero(ρ)
+	dc = zero(c)
+	dcs = zero(c)
 	@inbounds for (j, b) in enumerate(bags)
-		n = segmented_pnorm(x[b], [1:length(b)], ρ, c)
+		dcs .= 0
+		dps1 .= 0
+		dps2 .= 0
 		for bi in b
 			for i in 1:size(x,1)
-				o[i, bi] = Δ[i,j]
-				o[i, bi] *= sign(x[i, bi] - c[i])
-				o[i, bi] /= length(b)
-				o[i, bi] *= (abs(x[i, bi] - c[i]) / n) ^ (pmap(ρ[i]) - 1)
+				ab = abs(x[i, bi] - c[i])
+				sig = sign(x[i, bi] - c[i])
+				o[i, bi] = Δ[i, j] * sig
+				o[i, bi] /= max(1, length(b))
+				o[i, bi] *= (ab / n[i, j]) ^ (p_map(ρ[i]) - 1)
+				dps1[i] +=  ab ^ p_map(ρ[i]) * log(ab)
+				dps2[i] +=  ab ^ p_map(ρ[i])
+				dcs[i] -= sig * (ab ^ (p_map(ρ[i]) - 1))
 			end
 		end
+		t = n[:, j] ./ p_map(ρ) .* (dps1 ./ dps2 .- (log.(dps2) .- log(max(1, length(b)))) ./ p_map(ρ))
+		dp .+= Δ[:, j] .* t
+		dcs ./= max(1, length(b))
+		dcs .*= n[:, j] .^ (1 .- p_map(ρ))
+		dc .+= Δ[:, j] .* dcs
 	end
-	o
+	@show (o, σ.(ρ) .* dp , dc)
+	o, σ.(ρ) .* dp , dc
 end
 
 function segmented_mean(x::Matrix, bags::Bags)
@@ -226,7 +246,8 @@ segmented_weighted_max_back(x, bags, w, Δ) = segmented_max_back(x, bags, Δ)
 unweighted = [
 	:segmented_mean,
 	:segmented_max,
-	:segmented_meanmax
+	:segmented_meanmax,
+	:segmented_pnorm
 ]
 weighted = [
 	:segmented_weighted_mean,
@@ -239,15 +260,33 @@ for s in vcat(unweighted, weighted)
 end
 
 for s in unweighted
-	@eval $s(x, bags, w) = $s(x, bags)
-	@eval $s(x::Flux.Tracker.TrackedArray, bags) = Flux.Tracker.track($s, x, bags)
+	@eval $s(x, bags, w, args...) = $s(x, bags, args...)
+	# TODO nemusi se track pridat i na (n::PNorm?)
+	@eval $s(x::TrackedArray, bags, args...) = Flux.Tracker.track($s, x, bags, args...)
+end
+function segmented_pnorm(x::Union{TrackedArray, AbstractArray}, bags,
+	ρ::Union{TrackedArray, AbstractArray}, c::Union{TrackedArray, AbstractArray})
+	Flux.Tracker.track(segmented_pnorm, x, bags, ρ, c)
+end
+
+for s in filter(x -> x != :segmented_pnorm, unweighted)
 	@eval Flux.Tracker.@grad function $s(x, bags)
 		$s(Flux.data(x), bags), Δ -> ($(Symbol(string(s) * "_back"))(Flux.data(x), bags, Δ), nothing)
 	end
 end
 
+# TODO rewrite everything into one function for better performance
+Flux.Tracker.@grad function segmented_pnorm(x, bags, ρ, c)
+	n = segmented_pnorm(Flux.data(x), bags, Flux.data(ρ), Flux.data(c))
+	grad = Δ -> begin
+		o, dρ, dc = segmented_pnorm_back(Flux.data(x), n, bags, Flux.data(ρ), Flux.data(c), Δ)
+		(o, nothing, dρ, dc)
+	end
+	n, grad
+end
+
 for s in weighted
-	@eval $s(x::Flux.Tracker.TrackedArray, bags, w) = Flux.Tracker.track($s, x, bags, w)
+	@eval $s(x::TrackedArray, bags, w) = Flux.Tracker.track($s, x, bags, w)
 	@eval Flux.Tracker.@grad function $s(x, bags, w)
 		$s(Flux.data(x), bags, w), Δ -> ($(Symbol(string(s) * "_back"))(Flux.data(x), bags, w, Δ), nothing, nothing)
 	end

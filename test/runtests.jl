@@ -1,4 +1,3 @@
-using Revise
 using Mill
 using Base.Test
 
