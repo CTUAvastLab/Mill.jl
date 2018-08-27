@@ -40,9 +40,9 @@ struct ProductModel{N} <: MillModel
 	m::ArrayModel
 end
 
-Base.push!(m::ArrayModel, l) = push!(m.m.layers, l)
-Base.push!(m::ProductModel, l) = push!(m.m, l)
-Base.push!(m::BagModel, l) = push!(m.bm, l)
+Base.push!(m::ArrayModel, l) = (push!(m.m.layers, l);m)
+Base.push!(m::ProductModel, l) = (push!(m.m, l);m)
+Base.push!(m::BagModel, l) = (push!(m.bm, l);m)
 
 ArrayModel(f::MillFunction) = ArrayModel(Flux.Chain(f))
 BagModel(im::MillFunction, a, bm::MillFunction) = BagModel(ArrayModel(im), a, ArrayModel(bm))

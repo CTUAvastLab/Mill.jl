@@ -28,8 +28,8 @@ function catbags(oldbags...)
 	offset = 0
 	newbags = Bags()
 	for b in oldbags
-		append!(newbags,b .+ offset)
-		offset += max(0,mapreduce(i -> i.stop,max,b))
+		append!(newbags, [bb .+ offset for bb in b])
+		offset += max(0,mapreduce(i -> maximum(i), max ,b))
 	end
 	mask = length.(newbags) .== 0
 	if sum(mask) > 0
@@ -94,5 +94,5 @@ function remapbag(b::Bags,indices::VecOrRange)
 		rb[i] = (b[j] == 0:-1) ? b[j] : b[j] .- b[j].start .+ offset
 		offset += length(b[j])
 	end
-	rb, vcat(map(i -> collect(b[i]),indices)...)
+	rb, vcat([collect(b[i]) for i in indices]...)
 end
