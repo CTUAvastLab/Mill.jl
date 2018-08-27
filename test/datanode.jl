@@ -1,4 +1,5 @@
-import Mill: DataNode, ArrayNode, BagNode, TreeNode, WeightedBagNode
+using Mill: ArrayNode, BagNode, TreeNode, WeightedBagNode
+using SparseArrays
 
 @testset "creating bags" begin
 	k = [2, 2, 2, 1, 1, 3]
@@ -153,8 +154,6 @@ end
 a = BagNode(ArrayNode(rand(3,10)),[1:2,3:3,0:-1,4:5,6:6,7:10])
 b = BagNode(a,[1:2,3:3,4:5,6:6])
 @testset "testing nested ragged array" begin
-  a = BagNode(ArrayNode(rand(3,10)),[1:2,3:3,0:-1,4:5,6:6,7:10])
-  b = BagNode(a,[1:2,3:3,4:5,6:6])
   @test all(b[1].data.data.data .== a.data.data[:,1:3])
   @test all(b[1].data.bags .== [1:2,3:3])
   @test all(b[1:2].data.data.data .== a.data.data[:,1:3])

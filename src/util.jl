@@ -55,7 +55,7 @@ this will throw error ```Mill.bag([2, 2, 2, 1, 1, 3, 1])```
 """
 bag(b::Bags) = b
 function bag(k::Vector)
-	b = Bags(length(unique(k)))
+	b = Bags(undef,length(unique(k)))
 	i = 1
 	bi = 1
 	for j in 2:length(k)
@@ -88,10 +88,10 @@ julia> Mill.remapbag([1:1,2:3,4:5],[1])
 
 """
 function remapbag(b::Bags,indices::VecOrRange)
-	rb = Bags(length(indices))
+	rb = Bags(undef, length(indices))
 	offset = 1
 	for (i,j) in enumerate(indices)
-		rb[i] = (b[j] == 0:-1) ? b[j] : b[j] - b[j].start + offset
+		rb[i] = (b[j] == 0:-1) ? b[j] : b[j] .- b[j].start .+ offset
 		offset += length(b[j])
 	end
 	rb, vcat(map(i -> collect(b[i]),indices)...)

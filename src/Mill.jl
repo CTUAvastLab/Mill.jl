@@ -1,11 +1,8 @@
 __precompile__()
 module Mill
-using JSON
-using Flux
-using Adapt
-using MLDataPattern
+using JSON, Flux, Adapt, MLDataPattern, SparseArrays, Statistics
 
-paddedprint(io, s...; offset::Int=0, color::Int=15) = print_with_color(color, io, repeat(" ",offset), s...)
+paddedprint(io, s...; offset::Int=0, color::Int=15) = printstyled(io, repeat(" ",offset), s..., color = color)
 
 const Bags = Vector{UnitRange{Int64}}
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}

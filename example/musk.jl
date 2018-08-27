@@ -36,4 +36,4 @@ opt = Flux.ADAM(params(model))
 Flux.train!(loss, dataset, opt, cb = throttle(evalcb, 10))
 
  # calculate the error on the training set (no testing set right now)
-mean(mapslices(indmax, model(data).data, 1)' .!= y)
+mean(mapslices(argmax, model(data).data, 1)' .!= y)

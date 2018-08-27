@@ -36,7 +36,7 @@ mutable struct TreeNode{N} <: AbstractTreeNode{N, Nothing}
 	data::NTuple{N, AbstractNode}
 
 	function TreeNode{N}(data::NTuple{N, AbstractNode}) where N
-		assert(length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data))
+		@assert length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data)
 		new(data)
 	end
 end
