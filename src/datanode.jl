@@ -92,6 +92,9 @@ function Base.cat(a::TreeNode...)
 	return TreeNode(data)
 end
 
+Base.vcat(a::ArrayNode...) = ArrayNode(vcat([d.data for d in a]...))
+Base.cat(a::ArrayNode...) = ArrayNode(hcat([d.data for d in a]...))
+
 lastcat(a::AbstractArray...) = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)
 lastcat(a::DataFrame...) = vcat(a...)
