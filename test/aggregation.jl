@@ -2,12 +2,12 @@ using Flux
 import Mill: segmented_mean, segmented_max, segmented_meanmax, segmented_weighted_mean, segmented_weighted_max, segmented_weighted_meanmax
 import Flux.Tracker: gradcheck
 
+x1 = randn(2,10)
+x2 = Matrix{Float64}(reshape(1:12, 2, 6))
+bags1 = [1:5,6:10]
+bags2 = [1:1, 2:3, 4:6]
+w = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 @testset "aggregation grad check" begin
-	x1 = randn(2,10)
-	x2 = Matrix{Float64}(reshape(1:12, 2, 6))
-	bags1 = [1:5,6:10]
-	bags2 = [1:1, 2:3, 4:6]
-	w = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 	
 	@test gradcheck(x -> sum(segmented_mean(x, [1:4])), randn(4, 4))
 	@test gradcheck(x -> sum(segmented_mean(x, [1:2, 3:4, 5:5, 6:8])), randn(4, 8))
@@ -31,12 +31,12 @@ import Flux.Tracker: gradcheck
 	end
 end
 
+x1 = randn(2,10)
+x2 = Matrix{Float64}(reshape(1:12, 2, 6))
+bags1 = [1:5,6:10]
+bags2 = [1:1, 2:3, 4:6]
+w = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 @testset "aggregation functionality" begin
-	x1 = randn(2,10)
-	x2 = Matrix{Float64}(reshape(1:12, 2, 6))
-	bags1 = [1:5,6:10]
-	bags2 = [1:1, 2:3, 4:6]
-	w = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 
 	@test segmented_mean(x2, bags2) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0]
 	@test segmented_max(x2, bags2) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0]

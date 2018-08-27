@@ -29,7 +29,7 @@ function catbags(oldbags...)
 	newbags = Bags()
 	for b in oldbags
 		append!(newbags, [bb .+ offset for bb in b])
-		offset += max(0,mapreduce(i -> maximum(i), max ,b))
+		offset += max(0,mapreduce(i -> isempty(i) ? 0 : maximum(i), max ,b))
 	end
 	mask = length.(newbags) .== 0
 	if sum(mask) > 0

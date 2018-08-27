@@ -62,6 +62,10 @@ end
   @test all(cat(e, e).data .== hcat(e.data, e.data))
 end
 
+@testset "testing ArrayNode vcat" begin
+  @test all(vcat(e, e).data .== vcat(e.data, e.data))
+end
+
 @testset "testing BagNode hcat" begin
   @test all(cat(a, b, c).data.data .== hcat(a.data.data, b.data.data, c.data.data))
   @test all(cat(a, b, c).bags .== [1:4, 5:6, 7:8, 9:9, 10:10, 11:12])
@@ -163,9 +167,9 @@ b = BagNode(a,[1:2,3:3,4:5,6:6])
 end
 
 
+a = TreeNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
+b = TreeNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
 @testset "testing TreeNode" begin
-  a = TreeNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
-  b = TreeNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
   @test all(cat(a,b).data[1].data .== hcat(a.data[1].data,b.data[1].data))
   @test all(cat(a,b).data[2].data .== hcat(a.data[2].data,b.data[2].data))
   @test all(cat(a,b).data[3].data .== hcat(a.data[3].data,b.data[3].data))
@@ -178,8 +182,8 @@ end
   @test typeof(sparsify(randn(10),0.05)) <: Vector
 end
 
+x = TreeNode((TreeNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
 @testset "testing sparsify and mapdata" begin
-  x = TreeNode((TreeNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
   xs = mapdata(i -> sparsify(i,0.05),x)
   @test typeof(xs.data[2].data) <: SparseMatrixCSC
   @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC
