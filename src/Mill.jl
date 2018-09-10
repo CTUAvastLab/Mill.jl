@@ -5,7 +5,14 @@ using Flux
 using Adapt
 using MLDataPattern
 
-paddedprint(io, s...; offset::Int=0, color::Int=15) = print_with_color(color, io, repeat(" ",offset), s...)
+const COLORS = [:blue, :cyan, :green, :magenta, :yellow, :red]
+
+function paddedprint(io, s...; color=:default, pad=[])
+    for (c, p) in pad
+        print_with_color(c, io, p)
+    end
+    print_with_color(color, io, s...)
+end
 
 const Bags = Vector{UnitRange{Int64}}
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
