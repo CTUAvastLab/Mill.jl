@@ -21,7 +21,11 @@ const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 include("util.jl")
 include("datanode.jl")
 include("modelnode.jl")
-include("aggregation.jl")
+
+include("aggregation/segmented_mean.jl")
+include("aggregation/segmented_max.jl")
+aggregation_vcat(fs...) = (args...) -> vcat([f(args...) for f in fs]...)
+segmented_meanmax = aggregation_vcat(segmented_mean, segmented_max)
 
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode

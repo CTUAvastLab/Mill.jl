@@ -66,22 +66,25 @@ LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
 ################################################################################
 
+Base.vcat(as::ArrayNode...) = ArrayNode(vcat([a.data for a in as]...))
+Base.hcat(as::ArrayNode...) = ArrayNode(hcat([a.data for a in as]...))
+
 function Base.cat(a::T...) where T <: AbstractNode
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
 	return T(data, metadata)
 end
 
 function Base.cat(a::BagNode...)
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
 	bags = catbags(map(d -> d.bags, a)...)
 	return BagNode(data, bags, metadata)
 end
 
 function Base.cat(a::WeightedBagNode...)
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
 	bags = catbags(map(d -> d.bags, a)...)
 	weights = lastcat(map(d -> d.weights, a)...)
 	return WeightedBagNode(data, bags, weights, metadata)
