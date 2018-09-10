@@ -58,8 +58,10 @@ i = TreeNode(
   @test nobs(i) == nobs(b)
 end
 
-@testset "testing ArrayNode hcat" begin
+@testset "testing ArrayNode hcat and vcat" begin
   @test all(cat(e, e).data .== hcat(e.data, e.data))
+  @test all(hcat(e, e).data .== hcat(e.data, e.data))
+  @test all(vcat(e, e).data .== vcat(e.data, e.data))
 end
 
 @testset "testing ArrayNode vcat" begin

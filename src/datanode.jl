@@ -66,22 +66,25 @@ LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
 ################################################################################
 
+Base.vcat(as::ArrayNode...) = ArrayNode(vcat([a.data for a in as]...))
+Base.hcat(as::ArrayNode...) = ArrayNode(hcat([a.data for a in as]...))
+
 function Base.cat(a::T...) where T <: AbstractNode
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
 	return T(data, metadata)
 end
 
 function Base.cat(a::BagNode...)
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
 	bags = catbags(map(d -> d.bags, a)...)
 	return BagNode(data, bags, metadata)
 end
 
 function Base.cat(a::WeightedBagNode...)
 	data = lastcat(map(d -> d.data, a)...)
-	metadata = lastcat(Iterators.filter(i -> i != nothing,map(d -> d.metadata,a))...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
 	bags = catbags(map(d -> d.bags, a)...)
 	weights = lastcat(map(d -> d.weights, a)...)
 	return WeightedBagNode(data, bags, weights, metadata)
@@ -134,35 +137,44 @@ subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 
 ################################################################################
 
-Base.show(io::IO, n::AbstractNode) = ds_print(io, n)
+Base.show(io::IO, n::AbstractNode) = dsprint(io, n)
 
-ds_print(io::IO, n::ArrayNode; offset::Int=0) =
-	paddedprint(io, "ArrayNode$(size(n.data))\n", offset=offset)
+dsprint(io::IO, n::ArrayNode; pad=[]) =
+	paddedprint(io, "ArrayNode$(size(n.data))\n")
 
-function ds_print(io::IO, n::BagNode{ArrayNode}; offset::Int=0)
-	paddedprint(io,"BagNode$(size(n.data)) with $(length(n.bags)) bag(s)\n", offset=offset)
-	ds_print(io, n.data, offset=offset + 2)
+function dsprint(io::IO, n::BagNode{ArrayNode}; pad=[])
+	c = rand(COLORS)
+	paddedprint(io,"BagNode$(size(n.data)) with $(length(n.bags)) bag(s)\n", color=c)
+	paddedprint(io, "  └── ", color=c, pad=pad)
+	dsprint(io, n.data, pad = [pad; (c, "      ")])
 end
 
-function ds_print(io::IO, n::BagNode; offset::Int=0)
-	c = rand(1:256)
-	paddedprint(io,"BagNode with $(length(n.bags)) bag(s)\n", offset=offset, color=c)
-	ds_print(io, n.data, offset=offset + 2)
+function dsprint(io::IO, n::BagNode; pad=[])
+	c = rand(COLORS)
+	paddedprint(io,"BagNode with $(length(n.bags)) bag(s)\n", color=c)
+	paddedprint(io, "  └── ", color=c, pad=pad)
+	dsprint(io, n.data, pad = [pad; (c, "      ")])
 end
 
-function ds_print(io::IO, n::WeightedBagNode{ArrayNode}; offset::Int=0)
-	paddedprint(io, "WeightedNode$(size(n.data)) with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n", offset=offset)
+function dsprint(io::IO, n::WeightedBagNode{ArrayNode}; pad=[])
+	paddedprint(io, "WeightedNode$(size(n.data)) with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n")
 end
 
-function ds_print(io::IO, n::WeightedBagNode; offset::Int=0)
-	c = rand(1:256)
-	paddedprint(io, "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n", offset=offset, color=c)
-	ds_print(io, n.data, offset=offset + 2)
+function dsprint(io::IO, n::WeightedBagNode; pad=[])
+	c = rand(COLORS)
+	paddedprint(io, "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n", color=c)
+	paddedprint(io, "  └── ", color=c, pad=pad)
+	dsprint(io, n.data, pad = [pad; (c, "      ")])
 end
 
-function ds_print(io::IO, n::AbstractTreeNode{N}; offset::Int=0) where {N}
-	c = rand(1:256)
-	paddedprint(io, "TreeNode{$N}(\n", offset=offset, color=c)
-	foreach(m -> ds_print(io, m, offset=offset + 2), n.data)
-	paddedprint(io, "           )\n", offset=offset, color=c)
+function dsprint(io::IO, n::AbstractTreeNode{N}; pad=[]) where {N}
+	c = rand(COLORS)
+	paddedprint(io, "TreeNode{$N}\n", color=c)
+
+	for i in 1:length(n.data)-1
+		paddedprint(io, "  ├── ", color=c, pad=pad)
+		dsprint(io, n.data[i], pad=[pad; (c, "  │   ")])
+	end
+	paddedprint(io, "  └── ", color=c, pad=pad)
+	dsprint(io, n.data[end], pad=[pad; (c, "      ")])
 end

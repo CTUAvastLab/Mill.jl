@@ -18,7 +18,7 @@ end
 		bm::MillModel
 	end
 
-	use a `im` model on data in `BagNode`, the uses function `a` to aggregate individual bags, 
+	use a `im` model on data in `BagNode`, the uses function `a` to aggregate individual bags,
 	and finally it uses `bm` model on the output
 """
 struct BagModel <: MillModel
@@ -90,26 +90,31 @@ end
 
 Base.show(io::IO, m::MillModel) = modelprint(io, m)
 
-modelprint(io::IO, m::ArrayModel; offset::Int=0) = paddedprint(io, "$(m.m)\n")
+modelprint(io::IO, m::MillModel; pad=[]) = paddedprint(io, m, "\n")
 
-function modelprint(io::IO, m::BagModel; offset::Int=0)
-	c = rand(1:256)
-	paddedprint(io, "BagModel(\n", color=c)
-	paddedprint(io, "↱ ", offset=offset + 2, color=c)
-	modelprint(io, m.im, offset=offset + 2)
-	paddedprint(io, "↦ ", m.a, "\n", offset=offset + 2, color=c)
-	paddedprint(io, "↳ ", offset=offset + 2, color=c)
-	modelprint(io, m.bm, offset=offset + 2)
-	paddedprint(io, "                )\n", color=c)
+modelprint(io::IO, m::ArrayModel; pad=[]) = paddedprint(io, m.m, "\n")
+
+function modelprint(io::IO, m::BagModel; pad=[])
+	c = rand(COLORS)
+	paddedprint(io, "BagModel\n", color=c)
+	paddedprint(io, "  ├── ", color=c, pad=pad)
+	modelprint(io, m.im, pad=[pad; (c, "  │   ")])
+	paddedprint(io, "  ├── ", color=c, pad=pad)
+	paddedprint(io, m.a, "\n")
+	paddedprint(io, "  └── ", color=c, pad=pad)
+	modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
 end
 
-function modelprint(io::IO, m::ProductModel; offset::Int=0)
-	c = rand(1:256)
+function modelprint(io::IO, m::ProductModel; pad=[])
+	c = rand(COLORS)
 	paddedprint(io, "ProductModel(\n", color=c)
-	for i in 1:length(m.ms)
-		paddedprint(io, "⌙ ", offset=offset + 2, color=c)
-		modelprint(io, m.ms[1], offset=offset + 4)
+	for i in 1:length(m.ms)-1
+		paddedprint(io, "  ├── ", color=c, pad=pad)
+		modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")])
 	end
-	paddedprint(io, "          ) ↦ ", offset=offset + 2, color=c)
-	modelprint(io, m.m, offset=offset + 6)
+	paddedprint(io, "  └── ", color=c, pad=pad)
+	modelprint(io, m.ms[end], pad=[pad; (c, "      ")])
+
+	paddedprint(io, ") ↦  ", color=c, pad=pad)
+	modelprint(io, m.m, pad=pad)
 end
