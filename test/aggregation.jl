@@ -26,9 +26,9 @@ w = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 		]
 		@test gradcheck(se, x1)
 	end
-	for se in [  x -> sum(segmented_weighted_mean(x, bags2, w)),
-				x -> sum(segmented_weighted_max(x, bags2, w)),
-				x -> sum(segmented_weighted_meanmax(x, bags2, w))
+	for se in [  x -> sum(segmented_mean(x, bags2, w)),
+				x -> sum(segmented_max(x, bags2, w)),
+				x -> sum(segmented_meanmax(x, bags2, w))
 		]
 		@test gradcheck(se, x2)
 	end

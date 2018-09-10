@@ -64,10 +64,6 @@ end
   @test all(vcat(e, e).data .== vcat(e.data, e.data))
 end
 
-@testset "testing ArrayNode vcat" begin
-  @test all(vcat(e, e).data .== vcat(e.data, e.data))
-end
-
 @testset "testing BagNode hcat" begin
   @test all(cat(a, b, c).data.data .== hcat(a.data.data, b.data.data, c.data.data))
   @test all(cat(a, b, c).bags .== [1:4, 5:6, 7:8, 9:9, 10:10, 11:12])
