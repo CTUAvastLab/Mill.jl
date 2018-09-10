@@ -6,7 +6,7 @@ end
 
 struct AggregationModel <: MillModel
 	im::MillModel
-	a::Function
+	a
 	bm::MillModel
 end
 

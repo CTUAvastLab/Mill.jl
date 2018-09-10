@@ -5,8 +5,8 @@ abstract type AbstractNode{C} end
 abstract type AbstractBagNode{T <: AbstractNode, C} <: AbstractNode{C} end
 abstract type AbstractTreeNode{N, C} <: AbstractNode{C} end
 
-mutable struct ArrayNode{C} <: AbstractNode{C}
-	data::AbstractArray
+mutable struct ArrayNode{T, C} <: AbstractNode{C} where T <: AbstractArray
+	data::T
 	metadata::C
 end
 
