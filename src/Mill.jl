@@ -21,7 +21,7 @@ const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 include("util.jl")
 include("datanode.jl")
 include("modelnode.jl")
-include("aggregation.jl")
+include("aggregation/aggregation.jl")
 
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
