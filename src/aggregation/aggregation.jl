@@ -1,3 +1,6 @@
+using Combinatorics: permutations
+using IterTools: subsets
+
 include("segmented_mean.jl")
 include("segmented_max.jl")
 
