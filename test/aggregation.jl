@@ -23,7 +23,7 @@ w = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 	@test gradcheck(x -> sum(segmented_maxmean(x, [1:4])), randn(4, 4))
 	@test gradcheck(x -> sum(segmented_maxmean(x, [1:4, 5:5, 6:8])), randn(4, 8))
 
-	for g in [	x -> sum(segmented_mean(x, bags1)),
+	for se in [	x -> sum(segmented_mean(x, bags1)),
 				x -> sum(segmented_max(x, bags1)),
 				x -> sum(segmented_meanmax(x, bags1)),
 				x -> sum(segmented_maxmean(x, bags1)),
