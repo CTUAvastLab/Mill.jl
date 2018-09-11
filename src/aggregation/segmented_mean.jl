@@ -58,10 +58,3 @@ end
 segmented_mean_back(x::Matrix, bags::Bags, w::TrackedVector) = Δ -> begin
 	error("Not supported yet")
 end
-
-segmented_mean(x::Flux.Tracker.TrackedArray, args...) = Flux.Tracker.track(segmented_mean, x, args...)
-segmented_mean(x::ArrayNode, args...) = ArrayNode(segmented_mean(x.data, args...))
-
-Flux.Tracker.@grad function segmented_mean(x, args...)
-	segmented_mean(Flux.data(x), Flux.data.(args)...), segmented_mean_back(x, args...)
-end

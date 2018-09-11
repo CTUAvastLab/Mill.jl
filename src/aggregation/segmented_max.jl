@@ -41,10 +41,3 @@ end
 segmented_max_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
 	tuple(segmented_max_back(x, bags)(Δ)..., nothing)
 end
-
-segmented_max(x::Flux.Tracker.TrackedArray, args...) = Flux.Tracker.track(segmented_max, x, args...)
-segmented_max(x::ArrayNode, args...) = ArrayNode(segmented_max(x.data, args...))
-
-Flux.Tracker.@grad function segmented_max(x, args...)
-	segmented_max(Flux.data(x), Flux.data.(args)...), segmented_max_back(x, args...)
-end
