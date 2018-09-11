@@ -5,7 +5,7 @@ using Flux
 using Adapt
 using MLDataPattern
 
-const COLORS = [:blue, :cyan, :green, :magenta, :yellow, :red]
+const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
 function paddedprint(io, s...; color=:default, pad=[])
     for (c, p) in pad

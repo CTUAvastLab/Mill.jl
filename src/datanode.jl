@@ -140,32 +140,33 @@ dsprint(io::IO, n::ArrayNode; pad=[]) =
 	paddedprint(io, "ArrayNode$(size(n.data))\n")
 
 function dsprint(io::IO, n::BagNode{ArrayNode}; pad=[])
-	c = rand(COLORS)
+	c = COLORS[(length(pad)%length(COLORS))+1]
 	paddedprint(io,"BagNode$(size(n.data)) with $(length(n.bags)) bag(s)\n", color=c)
 	paddedprint(io, "  └── ", color=c, pad=pad)
 	dsprint(io, n.data, pad = [pad; (c, "      ")])
 end
 
 function dsprint(io::IO, n::BagNode; pad=[])
-	c = rand(COLORS)
+	c = COLORS[(length(pad)%length(COLORS))+1]
 	paddedprint(io,"BagNode with $(length(n.bags)) bag(s)\n", color=c)
 	paddedprint(io, "  └── ", color=c, pad=pad)
 	dsprint(io, n.data, pad = [pad; (c, "      ")])
 end
 
 function dsprint(io::IO, n::WeightedBagNode{ArrayNode}; pad=[])
-	paddedprint(io, "WeightedNode$(size(n.data)) with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n")
+	c = COLORS[(length(pad)%length(COLORS))+1]
+	paddedprint(io, "WeightedNode$(size(n.data)) with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n", color=c)
 end
 
 function dsprint(io::IO, n::WeightedBagNode; pad=[])
-	c = rand(COLORS)
+	c = COLORS[(length(pad)%length(COLORS))+1]
 	paddedprint(io, "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n", color=c)
 	paddedprint(io, "  └── ", color=c, pad=pad)
 	dsprint(io, n.data, pad = [pad; (c, "      ")])
 end
 
 function dsprint(io::IO, n::AbstractTreeNode{N}; pad=[]) where {N}
-	c = rand(COLORS)
+	c = COLORS[(length(pad)%length(COLORS))+1]
 	paddedprint(io, "TreeNode{$N}\n", color=c)
 
 	for i in 1:length(n.data)-1

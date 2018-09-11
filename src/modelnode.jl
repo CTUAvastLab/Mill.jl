@@ -95,7 +95,7 @@ modelprint(io::IO, m::MillModel; pad=[]) = paddedprint(io, m, "\n")
 modelprint(io::IO, m::ArrayModel; pad=[]) = paddedprint(io, m.m, "\n")
 
 function modelprint(io::IO, m::BagModel; pad=[])
-	c = rand(COLORS)
+	c = COLORS[(length(pad)%length(COLORS))+1]
 	paddedprint(io, "BagModel\n", color=c)
 	paddedprint(io, "  ├── ", color=c, pad=pad)
 	modelprint(io, m.im, pad=[pad; (c, "  │   ")])
@@ -106,7 +106,7 @@ function modelprint(io::IO, m::BagModel; pad=[])
 end
 
 function modelprint(io::IO, m::ProductModel; pad=[])
-	c = rand(COLORS)
+	c = COLORS[(length(pad)%length(COLORS))+1]
 	paddedprint(io, "ProductModel(\n", color=c)
 	for i in 1:length(m.ms)-1
 		paddedprint(io, "  ├── ", color=c, pad=pad)
@@ -116,5 +116,5 @@ function modelprint(io::IO, m::ProductModel; pad=[])
 	modelprint(io, m.ms[end], pad=[pad; (c, "      ")])
 
 	paddedprint(io, ") ↦  ", color=c, pad=pad)
-	modelprint(io, m.m, pad=pad)
+	modelprint(io, m.m, pad=[pad; (c, "")])
 end
