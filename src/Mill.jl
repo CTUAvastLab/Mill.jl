@@ -1,4 +1,4 @@
-__precompile__(false)
+__precompile__()
 module Mill
 using JSON, Flux, Adapt, MLDataPattern, SparseArrays, Statistics
 
