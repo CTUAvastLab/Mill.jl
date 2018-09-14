@@ -50,10 +50,27 @@ WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=no
 TreeNode(data::NTuple{N, AbstractNode}) where N = TreeNode{N}(data)
 
 ################################################################################
+
 mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data))
+
+data(x::AbstractNode) = x.data
+data(x) = x
+
+################################################################################
+
+# # Flux Tracker interface compatibility for ArrayNode
+# for s in [
+# 	[:Flux, :param],
+# 	[:Flux, :Tracker, :istracked],
+# 	[:Base, :length],
+# 	[:Base, :zero],
+# ]
+# 	eval(Expr(:import, s...))
+# 	@eval $(s[end])(x::ArrayNode) = mapdata($(s[end]), x)
+# end
 
 ################################################################################
 
@@ -66,8 +83,17 @@ LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
 ################################################################################
 
-Base.vcat(as::ArrayNode...) = ArrayNode(vcat([a.data for a in as]...))
-Base.hcat(as::ArrayNode...) = ArrayNode(hcat([a.data for a in as]...))
+function Base.vcat(as::ArrayNode...)
+	data = vcat([a.data for a in as]...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
+	ArrayNode(data, metadata)
+end
+
+function Base.hcat(as::ArrayNode...)
+	data = hcat([a.data for a in as]...)
+	metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
+	ArrayNode(data, metadata)
+end
 
 function Base.cat(a::T...) where T <: AbstractNode
 	data = lastcat(map(d -> d.data, a)...)

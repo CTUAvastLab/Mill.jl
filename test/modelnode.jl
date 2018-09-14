@@ -1,7 +1,4 @@
-using Revise
-using Mill
-using Base.Test
-import Mill: ArrayModel, BagModel, ProductModel, reflectinmodel
+using Mill: ArrayModel, BagModel, ProductModel, reflectinmodel
 
 layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
 

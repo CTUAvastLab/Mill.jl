@@ -16,8 +16,8 @@ segmented_max(x::Matrix, bags::Bags, w::Vector) = segmented_max(x, bags)
 
 segmented_max_back(x::TrackedArray, bags::Bags) = Δ -> begin
 	x = Flux.data(x)
-	o = similar(x, size(x))
-	fill!(o, 0.0)
+	Δ = Flux.data(Δ)
+	dx = zeros(eltype(x), size(x))
 	v = similar(x, size(x,1))
 	idxs = zeros(Int, size(x,1))
 	@inbounds for (j,b) in enumerate(bags)
@@ -32,10 +32,10 @@ segmented_max_back(x::TrackedArray, bags::Bags) = Δ -> begin
 		end
 
 		for i in 1:size(x, 1)
-			o[i, idxs[i]] = Δ[i, j]
+			dx[i, idxs[i]] = Δ[i, j]
 		end
 	end
-	o, nothing
+	dx, nothing
 end
 
 segmented_max_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
