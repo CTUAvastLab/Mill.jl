@@ -3,10 +3,9 @@ function segmented_mean(x::Matrix, bags::Bags)
 	@inbounds for (j,b) in enumerate(bags)
 		for bi in b
 			for i in 1:size(x, 1)
-				o[i,j] += x[i,bi]
+                o[i,j] += x[i,bi] / length(b)
 			end
 		end
-		o[:,j] ./= max(1, length(b))
 	end
 	o
 end
@@ -17,16 +16,17 @@ function segmented_mean(x::Matrix, bags::Bags, w::Vector)
 		ws = sum(w[b])
 		for bi in b
 			for i in 1:size(x, 1)
-				o[i,j] += w[bi] * x[i,bi]
+				o[i,j] += w[bi] * x[i,bi] / ws
 			end
 		end
-		o[:,j] ./= max(1, ws)
 	end
 	o
 end
 
 segmented_mean_back(x::TrackedArray, bags::Bags) = Δ -> begin
-	dx = similar(x, size(x))
+	x = Flux.data(x)
+	Δ = Flux.data(Δ)
+	dx = similar(x)
 	@inbounds for (j,b) in enumerate(bags)
 		for bi in b
 			for i in 1:size(x,1)
@@ -37,9 +37,10 @@ segmented_mean_back(x::TrackedArray, bags::Bags) = Δ -> begin
 	dx, nothing
 end
 
-
 segmented_mean_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
-	dx = similar(x, size(x))
+	x = Flux.data(x)
+	Δ = Flux.data(Δ)
+	dx = similar(x)
 	@inbounds for (j, b) in enumerate(bags)
 		ws = sum(w[b])
 		for bi in b
@@ -49,19 +50,4 @@ segmented_mean_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
 		end
 	end
 	dx, nothing, nothing
-end
-
-segmented_mean_back(x::TrackedArray, bags::Bags, w::TrackedVector) = Δ -> begin
-	error("Not supported yet")
-end
-
-segmented_mean_back(x::Matrix, bags::Bags, w::TrackedVector) = Δ -> begin
-	error("Not supported yet")
-end
-
-segmented_mean(x::Flux.Tracker.TrackedArray, args...) = Flux.Tracker.track(segmented_mean, x, args...)
-segmented_mean(x::ArrayNode, args...) = ArrayNode(segmented_mean(x.data, args...))
-
-Flux.Tracker.@grad function segmented_mean(x, args...)
-	segmented_mean(Flux.data(x), Flux.data.(args)...), segmented_mean_back(x, args...)
 end

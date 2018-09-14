@@ -23,7 +23,7 @@ end
 """
 struct BagModel <: MillModel
 	im::MillModel
-	a::Function
+	a::Aggregation
 	bm::MillModel
 end
 
@@ -45,9 +45,14 @@ Base.push!(m::ProductModel, l) = push!(m.m, l)
 Base.push!(m::BagModel, l) = push!(m.bm, l)
 
 ArrayModel(f::MillFunction) = ArrayModel(Flux.Chain(f))
+
 BagModel(im::MillFunction, a, bm::MillFunction) = BagModel(ArrayModel(im), a, ArrayModel(bm))
+BagModel(im::MillModel, a, bm::MillFunction) = BagModel(im, a, ArrayModel(bm))
+BagModel(im::MillFunction, a, bm::MillModel) = BagModel(ArrayModel(im), a, bm)
 BagModel(im::MillFunction, a) = BagModel(im, a, identity)
 BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
+BagModel(im::MillModel, a, bm::MillModel) = BagModel(im, Aggregation(a), bm)
+
 ProductModel(ms::NTuple{N, MillModel}) where N = ProductModel(ms, ArrayModel(identity))
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
@@ -59,7 +64,7 @@ Adapt.adapt(T, m::ArrayModel) = ArrayModel(Adapt.adapt(T, m.m))
 Adapt.adapt(T, m::BagModel) = BagModel(Adapt.adapt(T, m.im), Adapt.adapt(T, m.a), Adapt.adapt(T, m.bm))
 Adapt.adapt(T, m::ProductModel) = ProductModel((map(m -> Adapt.adapt(T, m), m.ms)...,), Adapt.adapt(T, m.m))
 
-(m::ArrayModel)(x::ArrayNode) = ArrayNode(m.m(x.data))
+(m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x)
 # enforce the same length of ProductModel and TreeNode
 (m::BagModel)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
 (m::BagModel)(x::WeightedBagNode) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
@@ -67,21 +72,21 @@ Adapt.adapt(T, m::ProductModel) = ProductModel((map(m -> Adapt.adapt(T, m), m.ms
 
 ################################################################################
 
-function reflectinmodel(x::AbstractBagNode, layerbuilder::Function)
-	im, d = reflectinmodel(x.data, layerbuilder)
-	bm, d = reflectinmodel(BagModel(im, segmented_meanmax)(x), layerbuilder)
-	BagModel(im, segmented_meanmax, bm), d
+function reflectinmodel(x::AbstractBagNode, layerbuilder, a=d ->segmented_mean)
+	im, d = reflectinmodel(x.data, layerbuilder, a)
+    bm, d = reflectinmodel(BagModel(im, a(d))(x), layerbuilder, a)
+    BagModel(im, a(d), bm), d
 end
 
-function reflectinmodel(x::AbstractTreeNode, layerbuilder::Function)
-	mm = map(i -> reflectinmodel(i, layerbuilder), x.data)
+function reflectinmodel(x::AbstractTreeNode, layerbuilder, a=d -> segmented_mean)
+	mm = map(i -> reflectinmodel(i, layerbuilder, a), x.data)
 	im = tuple(map(i -> i[1], mm)...)
 	# d = mapreduce(i ->i[2], +, mm)
-	tm, d = reflectinmodel(ProductModel(im)(x), layerbuilder)
+	tm, d = reflectinmodel(ProductModel(im)(x), layerbuilder, a)
 	ProductModel(im, tm), d
 end
 
-function reflectinmodel(x::ArrayNode, layerbuilder::Function)
+function reflectinmodel(x::ArrayNode, layerbuilder, abuilder=d -> segmented_mean)
 	m = ArrayModel(layerbuilder(size(x.data, 1)))
 	m, size(m(x).data, 1)
 end

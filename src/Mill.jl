@@ -19,12 +19,16 @@ const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
 include("util.jl")
-include("datanode.jl")
-include("modelnode.jl")
-include("aggregation/aggregation.jl")
 
+include("datanode.jl")
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
+
+include("aggregation.jl")
+export PNorm, Aggregation
+export segmented_mean, segmented_max, segmented_meanmax, segmented_pnormmeanmax
+
+include("modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 
 end

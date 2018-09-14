@@ -1,4 +1,4 @@
-import Mill: DataNode, ArrayNode, BagNode, TreeNode, WeightedBagNode
+using Mill: ArrayNode, BagNode, TreeNode, WeightedBagNode
 
 @testset "creating bags" begin
 	k = [2, 2, 2, 1, 1, 3]
