@@ -5,24 +5,24 @@ using Mill: reflectinmodel, length2bags
 # suitable for situations where the output of the model is TrackedArray
 # native gradcheck in Flux tests only operations and not models
 function mngradient(f, xs::AbstractArray...)
-	grads = zero.(xs)
-	for (x, Δ) in zip(xs, grads), i in 1:length(x)
-		δ = sqrt(eps())
-		tmp = x[i]
-		x[i] = tmp - δ/2
-		y1 = Flux.data(f(xs...))
-		x[i] = tmp + δ/2
-		y2 = Flux.data(f(xs...))
-		x[i] = tmp
-		Δ[i] = (y2-y1)/δ
-	end
-	return grads
+    grads = zero.(xs)
+    for (x, Δ) in zip(xs, grads), i in 1:length(x)
+        δ = sqrt(eps())
+        tmp = x[i]
+        x[i] = tmp - δ/2
+        y1 = Flux.data(f(xs...))
+        x[i] = tmp + δ/2
+        y2 = Flux.data(f(xs...))
+        x[i] = tmp
+        Δ[i] = (y2-y1)/δ
+    end
+    return grads
 end
 
 function mgradcheck(f, xs...)
-	ret = all(isapprox.(mngradient(f, xs...),
-	Flux.data.(Flux.Tracker.gradient(f, xs...)), rtol = 1e-5, atol = 1e-5))
-	if !ret
+    ret = all(isapprox.(mngradient(f, xs...),
+                        Flux.data.(Flux.Tracker.gradient(f, xs...)), rtol = 1e-5, atol = 1e-5))
+    if !ret
         @show mngradient(f, xs...)
         @show Flux.Tracker.gradient(f, xs...)
     end
@@ -30,34 +30,34 @@ function mgradcheck(f, xs...)
 end
 
 BAGS = [
-	length2bags([1 for _ in 1:10]),
-	length2bags([2 for _ in 1:5]),
-	length2bags([5, 5]),
-	length2bags([10]),
-	length2bags([3, 4, 3]),
+        length2bags([1 for _ in 1:10]),
+        length2bags([2 for _ in 1:5]),
+        length2bags([5, 5]),
+        length2bags([10]),
+        length2bags([3, 4, 3]),
 ]
 
 @testset "aggregation grad check" begin
-	for bags in BAGS
+    for bags in BAGS
         w = randn(10)
-		d = rand(1:1)
-		x = randn(d, 10)
-		for g in [
-			x -> sum(segmented_mean(x, bags)),
-			x -> sum(segmented_max(x, bags)),
-			x -> sum(segmented_meanmax(x, bags)),
-			x -> sum(segmented_mean(x, bags, w)),
-			x -> sum(segmented_max(x, bags, w)),
-			x -> sum(segmented_meanmax(x, bags, w)),
-		]
-			@test gradcheck(g, x)
-		end
-	end
+        d = rand(1:1)
+        x = randn(d, 10)
+        for g in [
+                  x -> sum(segmented_mean(x, bags)),
+                  x -> sum(segmented_max(x, bags)),
+                  x -> sum(segmented_meanmax(x, bags)),
+                  x -> sum(segmented_mean(x, bags, w)),
+                  x -> sum(segmented_max(x, bags, w)),
+                  x -> sum(segmented_meanmax(x, bags, w)),
+                 ]
+            @test gradcheck(g, x)
+        end
+    end
 
-	for bags in BAGS
+    for bags in BAGS
         w = abs.(randn(10)) + 0.01
-		d = rand(1:10)
-		x = randn(d, 10)
+        d = rand(1:10)
+        x = randn(d, 10)
         a = PNorm(d)
         @test mgradcheck(x -> sum(a(x, bags)), x)
         @test mgradcheck(x -> sum(a(x, bags, w)), x)
@@ -86,135 +86,135 @@ BAGS = [
             sum(n(x, bags, w))
         end
         @test mgradcheck(randn(d), randn(d)) do ρ, c
-			n = PNorm(param(ρ), param(c))
+            n = PNorm(param(ρ), param(c))
             sum(n(x, bags))
-		end
+        end
         @test mgradcheck(randn(d), randn(d)) do ρ, c
-			n = PNorm(param(ρ), param(c))
+            n = PNorm(param(ρ), param(c))
             sum(n(x, bags, w))
-		end
-	end
+        end
+    end
 end
 
 @testset "model aggregation grad check w.r.t. inputs" begin
-	layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-	x = randn(4, 4)
-	y = randn(3, 4)
-	z = randn(2, 8)
-	bags = [1:2, 3:4]
-	bags2 = [1:1, 2:4]
-	bags3 = [1:1, 2:2, 3:6, 7:8]
+    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    x = randn(4, 4)
+    y = randn(3, 4)
+    z = randn(2, 8)
+    bags = [1:2, 3:4]
+    bags2 = [1:1, 2:4]
+    bags3 = [1:1, 2:2, 3:6, 7:8]
 
-	n = ArrayNode(x)
-	m = reflectinmodel(n, layerbuilder)[1]
-	@test mgradcheck(x) do x
-		n = ArrayNode(x)
-		sum(m(n).data)
-	end
+    n = ArrayNode(x)
+    m = reflectinmodel(n, layerbuilder)[1]
+    @test mgradcheck(x) do x
+        n = ArrayNode(x)
+        sum(m(n).data)
+    end
 
-	bn = BagNode(ArrayNode(x), bags)
+    bn = BagNode(ArrayNode(x), bags)
     abuilder = d -> PNorm(d)
-	m = reflectinmodel(bn, layerbuilder, abuilder)[1]
-	@test mgradcheck(x) do x
-		bn = BagNode(ArrayNode(x), bags)
-		sum(m(bn).data)
-	end
+    m = reflectinmodel(bn, layerbuilder, abuilder)[1]
+    @test mgradcheck(x) do x
+        bn = BagNode(ArrayNode(x), bags)
+        sum(m(bn).data)
+    end
 
-	tn = TreeNode((ArrayNode(x), ArrayNode(y)))
-	m = reflectinmodel(tn, layerbuilder)[1]
-	@test mgradcheck(x, y) do x, y
-		tn = TreeNode((ArrayNode(x), ArrayNode(y)))
-		sum(m(tn).data)
-	end
+    tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+    m = reflectinmodel(tn, layerbuilder)[1]
+    @test mgradcheck(x, y) do x, y
+        tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+        sum(m(tn).data)
+    end
 
-	tn = TreeNode((BagNode(ArrayNode(y), bags), BagNode(ArrayNode(x), bags2)))
+    tn = TreeNode((BagNode(ArrayNode(y), bags), BagNode(ArrayNode(x), bags2)))
     abuilder = d -> segmented_meanmax
-	m = reflectinmodel(tn, layerbuilder, abuilder)[1]
-	@test mgradcheck(x, y) do x, y
-		tn = TreeNode((BagNode(ArrayNode(y), bags), BagNode(ArrayNode(x), bags2)))
-		sum(m(tn).data)
-	end
+    m = reflectinmodel(tn, layerbuilder, abuilder)[1]
+    @test mgradcheck(x, y) do x, y
+        tn = TreeNode((BagNode(ArrayNode(y), bags), BagNode(ArrayNode(x), bags2)))
+        sum(m(tn).data)
+    end
 
-	bn = BagNode(ArrayNode(z), bags3)
-	bnn = BagNode(bn, bags)
+    bn = BagNode(ArrayNode(z), bags3)
+    bnn = BagNode(bn, bags)
     abuilder = d -> segmented_pnormmeanmax(d)
-	m = reflectinmodel(bnn, layerbuilder, abuilder)[1]
-	@test mgradcheck(z) do z
-		bn = BagNode(ArrayNode(z), bags3)
-		bnn = BagNode(bn, bags)
-		sum(m(bnn).data)
-	end
+    m = reflectinmodel(bnn, layerbuilder, abuilder)[1]
+    @test mgradcheck(z) do z
+        bn = BagNode(ArrayNode(z), bags3)
+        bnn = BagNode(bn, bags)
+        sum(m(bnn).data)
+    end
 end
 
 @testset "model aggregation grad check w.r.t. params" begin
-	layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-	x = randn(4, 4)
-	y = randn(3, 4)
-	z = randn(2, 8)
-	bags = [1:2, 3:4]
-	bags2 = [1:1, 2:4]
-	bags3 = [1:1, 2:2, 3:6, 7:8]
+    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    x = randn(4, 4)
+    y = randn(3, 4)
+    z = randn(2, 8)
+    bags = [1:2, 3:4]
+    bags2 = [1:1, 2:4]
+    bags3 = [1:1, 2:2, 3:6, 7:8]
 
-	n = ArrayNode(x)
-	m = reflectinmodel(n, layerbuilder)[1]
+    n = ArrayNode(x)
+    m = reflectinmodel(n, layerbuilder)[1]
     @test mgradcheck(Flux.data.(Flux.params(m))...) do W, b
         m = ArrayModel(Dense(W, b, relu))
-		sum(m(n).data)
-	end
+        sum(m(n).data)
+    end
 
-	bn = BagNode(ArrayNode(x), bags)
+    bn = BagNode(ArrayNode(x), bags)
     abuilder = d -> PNorm(d)
-	m = reflectinmodel(bn, layerbuilder, abuilder)[1]
-	@test mgradcheck(Flux.data.(Flux.params(m))...) do W1, b1, ρ, c, W2, b2
+    m = reflectinmodel(bn, layerbuilder, abuilder)[1]
+    @test mgradcheck(Flux.data.(Flux.params(m))...) do W1, b1, ρ, c, W2, b2
         m = BagModel(Dense(W1, b1, relu), PNorm(Flux.param(ρ), Flux.param(c)), Dense(W2, b2, σ))
-		sum(m(bn).data)
-	end
+        sum(m(bn).data)
+    end
 
-	tn = TreeNode((ArrayNode(x), ArrayNode(y)))
-	m = reflectinmodel(tn, layerbuilder)[1]
-	@test mgradcheck(Flux.data.(Flux.params(m))...) do W1, b1, W2, b2, W3, b3
+    tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+    m = reflectinmodel(tn, layerbuilder)[1]
+    @test mgradcheck(Flux.data.(Flux.params(m))...) do W1, b1, W2, b2, W3, b3
         m = ProductModel(ArrayModel.((
-                    Dense(W1, b1, σ),
-                    Dense(W2, b2, relu)
-            )), Dense(W3, b3, σ)) 
-		sum(m(tn).data)
-	end
+                                      Dense(W1, b1, σ),
+                                      Dense(W2, b2, relu)
+                                     )), Dense(W3, b3, σ)) 
+        sum(m(tn).data)
+    end
 
-	tn = TreeNode((BagNode(ArrayNode(y), bags), BagNode(ArrayNode(x), bags2)))
+    tn = TreeNode((BagNode(ArrayNode(y), bags), BagNode(ArrayNode(x), bags2)))
     abuilder = d -> segmented_pnormmeanmax(d)
-	m = reflectinmodel(tn, layerbuilder, abuilder)[1]
-	@test mgradcheck(Flux.data.(Flux.params(m))...) do W1, b1, ρ1, c1, W2, b2, W3, b3, ρ2, c2, W4, b4, W5, b5
+    m = reflectinmodel(tn, layerbuilder, abuilder)[1]
+    @test mgradcheck(Flux.data.(Flux.params(m))...) do W1, b1, ρ1, c1, W2, b2, W3, b3, ρ2, c2, W4, b4, W5, b5
         m = ProductModel((
-                BagModel(
-                   Dense(W1, b1, σ),
-                   Aggregation((PNorm(Flux.param(ρ1), Flux.param(c1)), segmented_mean, segmented_max)),
-                   Dense(W2, b2, relu)
-                ),
-                BagModel(
-                   Dense(W3, b3, relu),
-                   Aggregation((PNorm(Flux.param(ρ2), Flux.param(c2)), segmented_mean, segmented_max)),
-                   Dense(W4, b4, σ)
-                ),
-            ), Dense(W5, b5, relu)) 
-		sum(m(tn).data)
-	end
+                          BagModel(
+                                   Dense(W1, b1, σ),
+                                   Aggregation((PNorm(Flux.param(ρ1), Flux.param(c1)), segmented_mean, segmented_max)),
+                                   Dense(W2, b2, relu)
+                                  ),
+                          BagModel(
+                                   Dense(W3, b3, relu),
+                                   Aggregation((PNorm(Flux.param(ρ2), Flux.param(c2)), segmented_mean, segmented_max)),
+                                   Dense(W4, b4, σ)
+                                  ),
+                         ), Dense(W5, b5, relu)) 
+        sum(m(tn).data)
+    end
 
-	bn = BagNode(ArrayNode(z), bags3)
-	bnn = BagNode(bn, bags)
+    bn = BagNode(ArrayNode(z), bags3)
+    bnn = BagNode(bn, bags)
     abuilder = d -> segmented_meanmax
-	m = reflectinmodel(bnn, layerbuilder, abuilder)[1]
-	@test mgradcheck(Flux.data.(Flux.params(m))...) do W1, b1, W2, b2, W3, b3
+    m = reflectinmodel(bnn, layerbuilder, abuilder)[1]
+    @test mgradcheck(Flux.data.(Flux.params(m))...) do W1, b1, W2, b2, W3, b3
         m = BagModel(
-                BagModel(
-                    Dense(W1, b1),
-                    segmented_meanmax,
-                    Dense(W2, b2)
-                ),
-                segmented_meanmax,
-                Dense(W3, b3)
-            )
-		sum(m(bnn).data)
-	end
+                     BagModel(
+                              Dense(W1, b1),
+                              segmented_meanmax,
+                              Dense(W2, b2)
+                             ),
+                     segmented_meanmax,
+                     Dense(W3, b3)
+                    )
+        sum(m(bnn).data)
+    end
 end
 
 # @testset "learning basic pnorm types" begin

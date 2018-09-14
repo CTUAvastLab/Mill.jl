@@ -1,43 +1,43 @@
 abstract type MillModel end
 
 """
-	struct ArrayModel <: MillModel
-		m::Flux.Chain
-	end
+    struct ArrayModel <: MillModel
+    m::Flux.Chain
+    end
 
-	use a Chain on an ArrayNode
+    use a Chain, Dense, or any other function on an ArrayNode
 """
 struct ArrayModel <: MillModel
-	m::Flux.Chain
+    m::MillFunction
 end
 
 """
-	struct BagModel <: MillModel
-		im::MillModel
-		a::Function
-		bm::MillModel
-	end
+    struct BagModel <: MillModel
+    im::MillModel
+    a::Function
+    bm::MillModel
+    end
 
-	use a `im` model on data in `BagNode`, the uses function `a` to aggregate individual bags,
-	and finally it uses `bm` model on the output
+    use a `im` model on data in `BagNode`, the uses function `a` to aggregate individual bags,
+    and finally it uses `bm` model on the output
 """
 struct BagModel <: MillModel
-	im::MillModel
-	a::Aggregation
-	bm::MillModel
+    im::MillModel
+    a::Aggregation
+    bm::MillModel
 end
 
 """
-	struct ProductModel{N} <: MillModel
-		ms::NTuple{N, MillModel}
-		m::ArrayModel
-	end
+    struct ProductModel{N} <: MillModel
+    ms::NTuple{N, MillModel}
+    m::ArrayModel
+    end
 
-	uses each model in `ms` on each data in `TreeNode`, concatenate the output and pass it to the chainmodel `m`
+    uses each model in `ms` on each data in `TreeNode`, concatenate the output and pass it to the chainmodel `m`
 """
 struct ProductModel{N} <: MillModel
-	ms::NTuple{N, MillModel}
-	m::ArrayModel
+    ms::NTuple{N, MillModel}
+    m::ArrayModel
 end
 
 Base.push!(m::ArrayModel, l) = push!(m.m.layers, l)
@@ -73,22 +73,22 @@ Adapt.adapt(T, m::ProductModel) = ProductModel((map(m -> Adapt.adapt(T, m), m.ms
 ################################################################################
 
 function reflectinmodel(x::AbstractBagNode, layerbuilder, a=d ->segmented_mean)
-	im, d = reflectinmodel(x.data, layerbuilder, a)
+    im, d = reflectinmodel(x.data, layerbuilder, a)
     bm, d = reflectinmodel(BagModel(im, a(d))(x), layerbuilder, a)
     BagModel(im, a(d), bm), d
 end
 
 function reflectinmodel(x::AbstractTreeNode, layerbuilder, a=d -> segmented_mean)
-	mm = map(i -> reflectinmodel(i, layerbuilder, a), x.data)
-	im = tuple(map(i -> i[1], mm)...)
-	# d = mapreduce(i ->i[2], +, mm)
-	tm, d = reflectinmodel(ProductModel(im)(x), layerbuilder, a)
-	ProductModel(im, tm), d
+    mm = map(i -> reflectinmodel(i, layerbuilder, a), x.data)
+    im = tuple(map(i -> i[1], mm)...)
+    # d = mapreduce(i ->i[2], +, mm)
+    tm, d = reflectinmodel(ProductModel(im)(x), layerbuilder, a)
+    ProductModel(im, tm), d
 end
 
 function reflectinmodel(x::ArrayNode, layerbuilder, abuilder=d -> segmented_mean)
-	m = ArrayModel(layerbuilder(size(x.data, 1)))
-	m, size(m(x).data, 1)
+    m = ArrayModel(layerbuilder(size(x.data, 1)))
+    m, size(m(x).data, 1)
 end
 
 ################################################################################
@@ -100,26 +100,26 @@ modelprint(io::IO, m::MillModel; pad=[]) = paddedprint(io, m, "\n")
 modelprint(io::IO, m::ArrayModel; pad=[]) = paddedprint(io, m.m, "\n")
 
 function modelprint(io::IO, m::BagModel; pad=[])
-	c = COLORS[(length(pad)%length(COLORS))+1]
-	paddedprint(io, "BagModel\n", color=c)
-	paddedprint(io, "  ├── ", color=c, pad=pad)
-	modelprint(io, m.im, pad=[pad; (c, "  │   ")])
-	paddedprint(io, "  ├── ", color=c, pad=pad)
-	paddedprint(io, m.a, "\n")
-	paddedprint(io, "  └── ", color=c, pad=pad)
-	modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
+    c = COLORS[(length(pad)%length(COLORS))+1]
+    paddedprint(io, "BagModel\n", color=c)
+    paddedprint(io, "  ├── ", color=c, pad=pad)
+    modelprint(io, m.im, pad=[pad; (c, "  │   ")])
+    paddedprint(io, "  ├── ", color=c, pad=pad)
+    paddedprint(io, m.a, "\n")
+    paddedprint(io, "  └── ", color=c, pad=pad)
+    modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
 end
 
 function modelprint(io::IO, m::ProductModel; pad=[])
-	c = COLORS[(length(pad)%length(COLORS))+1]
-	paddedprint(io, "ProductModel(\n", color=c)
-	for i in 1:length(m.ms)-1
-		paddedprint(io, "  ├── ", color=c, pad=pad)
-		modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")])
-	end
-	paddedprint(io, "  └── ", color=c, pad=pad)
-	modelprint(io, m.ms[end], pad=[pad; (c, "      ")])
+    c = COLORS[(length(pad)%length(COLORS))+1]
+    paddedprint(io, "ProductModel(\n", color=c)
+    for i in 1:length(m.ms)-1
+        paddedprint(io, "  ├── ", color=c, pad=pad)
+        modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")])
+    end
+    paddedprint(io, "  └── ", color=c, pad=pad)
+    modelprint(io, m.ms[end], pad=[pad; (c, "      ")])
 
-	paddedprint(io, ") ↦  ", color=c, pad=pad)
-	modelprint(io, m.m, pad=[pad; (c, "")])
+    paddedprint(io, ") ↦  ", color=c, pad=pad)
+    modelprint(io, m.m, pad=[pad; (c, "")])
 end

@@ -9,7 +9,7 @@ for s in AGGF
     @eval $s(x::ArrayNode, args...) = mapdata(x -> $s(x, args...), x)
 
     @eval Flux.Tracker.@grad function $s(x, args...)
-    	 $s(Flux.data(x), Flux.data.(args)...), $(Symbol(string(s, "_back")))(x, args...)
+        $s(Flux.data(x), Flux.data.(args)...), $(Symbol(string(s, "_back")))(x, args...)
     end
 end
 
