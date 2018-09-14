@@ -44,8 +44,6 @@ Base.push!(m::ArrayModel, l) = push!(m.m.layers, l)
 Base.push!(m::ProductModel, l) = push!(m.m, l)
 Base.push!(m::BagModel, l) = push!(m.bm, l)
 
-ArrayModel(f::MillFunction) = ArrayModel(Flux.Chain(f))
-
 BagModel(im::MillFunction, a, bm::MillFunction) = BagModel(ArrayModel(im), a, ArrayModel(bm))
 BagModel(im::MillModel, a, bm::MillFunction) = BagModel(im, a, ArrayModel(bm))
 BagModel(im::MillFunction, a, bm::MillModel) = BagModel(ArrayModel(im), a, bm)
