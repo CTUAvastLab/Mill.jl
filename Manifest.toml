@@ -70,16 +70,16 @@ uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 version = "0.13.1+"
 
 [[DataStreams]]
-deps = ["Dates", "Missings", "Test", "WeakRefStrings"]
-git-tree-sha1 = "c54fb051465fb0741caa57972b67bd21ce2f39c7"
+deps = ["Dates", "Missings", "Pkg", "Test", "WeakRefStrings"]
+git-tree-sha1 = "69c72a1beb4fc79490c361635664e13c8e4a9548"
 uuid = "9a8bc11e-79be-5b39-94d7-1ccc349a1a85"
-version = "0.4.0"
+version = "0.4.1"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "REPL", "Random", "Serialization", "Test"]
-git-tree-sha1 = "2afbbd0294306b0b74a753c196be50b35edb625c"
+git-tree-sha1 = "5162c360c52e9265e0bfafb71415c31f746f7e04"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.11.1"
+version = "0.12.0"
 
 [[Dates]]
 deps = ["Printf"]
@@ -207,9 +207,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[NNlib]]
 deps = ["Libdl", "LinearAlgebra", "MacroTools", "Requires", "Test"]
-git-tree-sha1 = "1375b53e79080b37705a4040c97f1ded4e332cac"
+git-tree-sha1 = "d7f65ad9734adea3c5a4c473bc65b365f8afbb2b"
 uuid = "872c559c-99b0-510c-b3b7-b6c96a88d5cd"
-version = "0.4.1"
+version = "0.4.2"
 
 [[NaNMath]]
 deps = ["Compat"]
@@ -319,9 +319,9 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[WeakRefStrings]]
 deps = ["Missings", "Random", "Test"]
-git-tree-sha1 = "d4631352d65840254d33ab703e2de3d9768cdb77"
+git-tree-sha1 = "1087e8be380f2c8b96434b02bb1150fc1c511135"
 uuid = "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
-version = "0.5.2"
+version = "0.5.3"
 
 [[ZipFile]]
 deps = ["Printf", "Test"]

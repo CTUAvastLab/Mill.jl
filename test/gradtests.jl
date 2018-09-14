@@ -55,7 +55,8 @@ BAGS = [
     end
 
     for bags in BAGS
-        w = abs.(randn(10)) + 0.01
+        # only positive weights allowed in pnorm
+        w = abs.(randn(10)) .+ 0.01
         d = rand(1:10)
         x = randn(d, 10)
         a = PNorm(d)
