@@ -28,6 +28,7 @@ function catbags(oldbags...)
 	offset = 0
 	newbags = Bags()
 	for b in oldbags
+        !isempty(b) || continue
 		append!(newbags, [bb .+ offset for bb in b])
 		offset += max(0,mapreduce(i -> isempty(i) ? 0 : maximum(i), max ,b))
 	end
