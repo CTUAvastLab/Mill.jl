@@ -8,7 +8,7 @@ function paddedprint(io, s...; color=:default, pad=[])
     for (c, p) in pad
         print_styled(io, p, color=c)
     end
-    print_with_color(io, s..., color=color)
+    print_styled(io, s..., color=color)
 end
 
 const Bags = Vector{UnitRange{Int64}}
