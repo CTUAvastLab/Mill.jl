@@ -55,6 +55,7 @@ this will throw error ```Mill.bag([2, 2, 2, 1, 1, 3, 1])```
 """
 bag(b::Bags) = b
 function bag(k::Vector)
+	!isempty(k) || return k
 	b = Bags(undef,length(unique(k)))
 	i = 1
 	bi = 1
