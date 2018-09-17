@@ -6,9 +6,9 @@ const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
 function paddedprint(io, s...; color=:default, pad=[])
     for (c, p) in pad
-        print_styled(io, p, color=c)
+        printstyled(io, p, color=c)
     end
-    print_styled(io, s..., color=color)
+    printstyled(io, s..., color=color)
 end
 
 const Bags = Vector{UnitRange{Int64}}
