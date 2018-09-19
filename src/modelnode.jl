@@ -7,8 +7,8 @@ abstract type MillModel end
 
     use a Chain, Dense, or any other function on an ArrayNode
 """
-struct ArrayModel <: MillModel
-    m::MillFunction
+struct ArrayModel{T <: MillFunction} <: MillModel
+    m::T
 end
 
 """
@@ -21,10 +21,10 @@ end
     use a `im` model on data in `BagNode`, the uses function `a` to aggregate individual bags,
     and finally it uses `bm` model on the output
 """
-struct BagModel <: MillModel
-    im::MillModel
+struct BagModel{T <: MillModel, U <: MillModel} <: MillModel
+    im::T
     a::Aggregation
-    bm::MillModel
+    bm::U
 end
 
 """
@@ -35,14 +35,14 @@ end
 
     uses each model in `ms` on each data in `TreeNode`, concatenate the output and pass it to the chainmodel `m`
 """
-struct ProductModel{N} <: MillModel
+struct ProductModel{N, T <: MillFunction} <: MillModel
     ms::NTuple{N, MillModel}
-    m::ArrayModel
+    m::ArrayModel{T}
 end
 
-Base.push!(m::ArrayModel, l) = (push!(m.m.layers, l);m)
-Base.push!(m::ProductModel, l) = (push!(m.m, l);m)
-Base.push!(m::BagModel, l) = (push!(m.bm, l);m)
+Base.push!(m::ArrayModel{Flux.Chain}, l) = (push!(m.m.layers, l); m)
+Base.push!(m::ProductModel{N, Flux.Chain}, l) where N = (push!(m.m, l); m)
+Base.push!(m::BagModel{T, ArrayModel{Flux.Chain}}, l) where T = (push!(m.bm, l); m)
 
 BagModel(im::MillFunction, a, bm::MillFunction) = BagModel(ArrayModel(im), a, ArrayModel(bm))
 BagModel(im::MillModel, a, bm::MillFunction) = BagModel(im, a, ArrayModel(bm))
