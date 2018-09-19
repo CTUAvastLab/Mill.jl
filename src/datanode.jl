@@ -122,7 +122,6 @@ function Base.cat(a::TreeNode...)
 end
 
 Base.vcat(a::ArrayNode...) = ArrayNode(vcat([d.data for d in a]...))
-Base.cat(a::ArrayNode...) = ArrayNode(hcat([d.data for d in a]...))
 
 lastcat(a::AbstractArray...) = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)
@@ -131,6 +130,7 @@ lastcat(a::AbstractNode...) = cat(a...)
 lastcat(a::Nothing...) = nothing
 # enforces both the same length of the tuples and their structure
 lastcat(a::NTuple{N, AbstractNode}...) where N = ((cat(d...) for d in zip(a...))...,)
+lastcat(a::Tuple...) where N = ((lastcat(d...) for d in zip(a...))...,)
 lastcat() = nothing
 
 ################################################################################
