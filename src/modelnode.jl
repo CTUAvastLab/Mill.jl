@@ -70,20 +70,20 @@ Adapt.adapt(T, m::ProductModel) = ProductModel((map(m -> Adapt.adapt(T, m), m.ms
 
 ################################################################################
 
-function reflectinmodel(x::AbstractBagNode, layerbuilder, a=d ->segmented_mean)
+function reflectinmodel(x::AbstractBagNode, layerbuilder, a=d -> SegmentedMean())
     im, d = reflectinmodel(x.data, layerbuilder, a)
     bm, d = reflectinmodel(BagModel(im, a(d))(x), layerbuilder, a)
     BagModel(im, a(d), bm), d
 end
 
-function reflectinmodel(x::AbstractTreeNode, layerbuilder, a=d -> segmented_mean)
+function reflectinmodel(x::AbstractTreeNode, layerbuilder, a=d -> SegmentedMean())
     mm = map(i -> reflectinmodel(i, layerbuilder, a), x.data)
     im = tuple(map(i -> i[1], mm)...)
     tm, d = reflectinmodel(ProductModel(im)(x), layerbuilder, a)
     ProductModel(im, tm), d
 end
 
-function reflectinmodel(x::ArrayNode, layerbuilder, a=d -> segmented_mean)
+function reflectinmodel(x::ArrayNode, layerbuilder, a=d -> SegmentedMean())
     m = ArrayModel(layerbuilder(size(x.data, 1)))
     m, size(m(x).data, 1)
 end

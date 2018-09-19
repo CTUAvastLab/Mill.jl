@@ -23,7 +23,7 @@ export ArrayNode, BagNode, WeightedBagNode, TreeNode
 
 include("aggregation.jl")
 export PNorm, Aggregation
-export segmented_mean, segmented_max, segmented_meanmax, segmented_pnormmeanmax
+export SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedMeanMax, SegmentedPNormMeanMax
 
 include("modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel

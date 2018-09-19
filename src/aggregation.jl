@@ -23,5 +23,17 @@ Flux.@treelike Aggregation
 
 (a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 
-segmented_meanmax = Aggregation((segmented_mean, segmented_max))
-segmented_pnormmeanmax(d::Int) = Aggregation((PNorm(d), segmented_mean, segmented_max))
+# convenience definitions
+
+SegmentedMax() = Aggregation(segmented_max)
+SegmentedMean() = Aggregation(segmented_mean)
+SegmentedPNorm(d::Int) = Aggregation(PNorm(d))
+SegmentedMeanMax() = Aggregation((segmented_mean, segmented_max))
+
+segmented_meanmax = SegmentedMeanMax()
+
+for s in [:SegmentedMax, :SegmentedMean, :SegmentedMeanMax]
+    @eval $s(d::Int) = $s()
+end
+
+SegmentedPNormMeanMax(d::Int) = Aggregation((PNorm(d), segmented_mean, segmented_max))
