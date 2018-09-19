@@ -64,6 +64,8 @@ end
     @test all(cat(e, e).data .== hcat(e.data, e.data))
     @test all(hcat(e, e).data .== hcat(e.data, e.data))
     @test all(vcat(e, e).data .== vcat(e.data, e.data))
+    x = ArrayNode(randn(2,3),rand(3))
+    @test typeof(cat(x,x[0:-1])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
 end
 
 @testset "testing BagNode hcat" begin
