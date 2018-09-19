@@ -105,13 +105,13 @@ let
         @test all(cat(f, h, f).data[1].data.data .== hcat(wb.data.data, wc.data.data, wb.data.data))
 
         # different tuple length
-        @test_throws Exception cat(f,i)
-        @test_throws Exception cat(g,i)
+        @test_throws Exception cat(f, i)
+        @test_throws Exception cat(g, i)
         # different content
-        @test_throws Exception cat(f,g)
+        @test_throws Exception cat(f, g)
     end
 
-    @testset "testing BagNode hcat" begin
+    @testset "testing BagNode indexing" begin
         @test all(a[1].data.data .== a.data.data)
         @test all(a[1].bags .== [1:4])
         @test all(b[1:2].data.data .== b.data.data)
@@ -134,7 +134,7 @@ let
         @test all(d[2].bags .== [0:-1])
     end
 
-    @testset "testing WeightedBagNode hcat" begin
+    @testset "testing WeightedBagNode indexing" begin
         @test all(wa[1].data.data .== wa.data.data)
         @test all(wa[1].bags .== [1:4])
         @test all(wb[1:2].data.data .== wb.data.data)

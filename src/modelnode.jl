@@ -1,8 +1,8 @@
 abstract type MillModel end
 
 """
-    struct ArrayModel <: MillModel
-    m::Flux.Chain
+    struct ArrayModel{T <: MillFunction} <: MillModel
+        m::T
     end
 
     use a Chain, Dense, or any other function on an ArrayNode
@@ -12,10 +12,10 @@ struct ArrayModel{T <: MillFunction} <: MillModel
 end
 
 """
-    struct BagModel <: MillModel
-    im::MillModel
-    a::Function
-    bm::MillModel
+    struct BagModel{T <: MillModel, U <: MillModel} <: MillModel
+        im::T
+        a::Aggregation
+        bm::U
     end
 
     use a `im` model on data in `BagNode`, the uses function `a` to aggregate individual bags,
@@ -28,9 +28,9 @@ struct BagModel{T <: MillModel, U <: MillModel} <: MillModel
 end
 
 """
-    struct ProductModel{N} <: MillModel
-    ms::NTuple{N, MillModel}
-    m::ArrayModel
+    struct ProductModel{N, T <: MillFunction} <: MillModel
+        ms::NTuple{N, MillModel}
+        m::ArrayModel{T}
     end
 
     uses each model in `ms` on each data in `TreeNode`, concatenate the output and pass it to the chainmodel `m`
@@ -79,12 +79,11 @@ end
 function reflectinmodel(x::AbstractTreeNode, layerbuilder, a=d -> segmented_mean)
     mm = map(i -> reflectinmodel(i, layerbuilder, a), x.data)
     im = tuple(map(i -> i[1], mm)...)
-    # d = mapreduce(i ->i[2], +, mm)
     tm, d = reflectinmodel(ProductModel(im)(x), layerbuilder, a)
     ProductModel(im, tm), d
 end
 
-function reflectinmodel(x::ArrayNode, layerbuilder, abuilder=d -> segmented_mean)
+function reflectinmodel(x::ArrayNode, layerbuilder, a=d -> segmented_mean)
     m = ArrayModel(layerbuilder(size(x.data, 1)))
     m, size(m(x).data, 1)
 end
