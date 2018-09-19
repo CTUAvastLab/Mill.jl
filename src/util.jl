@@ -28,6 +28,7 @@ function catbags(oldbags...)
 	offset = 0
 	newbags = Bags()
 	for b in oldbags
+        !isempty(b) || continue
 		append!(newbags, [bb .+ offset for bb in b])
 		offset += max(0,mapreduce(i -> isempty(i) ? 0 : maximum(i), max ,b))
 	end
@@ -55,6 +56,7 @@ this will throw error ```Mill.bag([2, 2, 2, 1, 1, 3, 1])```
 """
 bag(b::Bags) = b
 function bag(k::Vector)
+	!isempty(k) || return k
 	b = Bags(undef,length(unique(k)))
 	i = 1
 	bi = 1

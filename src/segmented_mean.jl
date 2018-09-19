@@ -13,7 +13,7 @@ end
 function segmented_mean(x::Matrix, bags::Bags, w::Vector)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j,b) in enumerate(bags)
-        ws = sum(w[b])
+        ws = sum(@view w[b])
         for bi in b
             for i in 1:size(x, 1)
                 o[i,j] += w[bi] * x[i,bi] / ws
@@ -42,7 +42,7 @@ segmented_mean_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
     Δ = Flux.data(Δ)
     dx = similar(x)
     @inbounds for (j, b) in enumerate(bags)
-        ws = sum(w[b])
+        ws = sum(@view w[b])
         for bi in b
             for i in 1:size(x,1)
                 dx[i, bi] = w[bi] * Δ[i, j] / ws

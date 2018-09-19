@@ -83,6 +83,8 @@ LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
 ################################################################################
 
+# hcat and vcat only for ArrayNode
+
 function Base.vcat(as::ArrayNode...)
     data = vcat([a.data for a in as]...)
     metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
@@ -95,10 +97,10 @@ function Base.hcat(as::ArrayNode...)
     ArrayNode(data, metadata)
 end
 
-function Base.cat(a::T...) where T <: AbstractNode
+function Base.cat(a::ArrayNode...) 
     data = lastcat(map(d -> d.data, a)...)
     metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
-    return T(data, metadata)
+    return ArrayNode(data, metadata)
 end
 
 function Base.cat(a::BagNode...)
@@ -121,7 +123,6 @@ function Base.cat(a::TreeNode...)
     return TreeNode(data)
 end
 
-Base.vcat(a::ArrayNode...) = ArrayNode(vcat([d.data for d in a]...))
 
 lastcat(a::AbstractArray...) = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)

@@ -27,7 +27,7 @@ function segmented_pnorm(x::Matrix, p::Vector, c::Vector, bags::Bags, w::Vector)
     @assert all(w .> 0)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j, b) in enumerate(bags)
-        ws = sum(w[b])
+        ws = sum(@view w[b])
         for bi in b
             for i in 1:size(x, 1)
                 o[i, j] += w[bi] * abs(x[i, bi] - c[i]) ^ p[i] / ws
@@ -41,7 +41,7 @@ end
 segmented_pnorm_back(x::TrackedArray, p::Vector, ρ::Vector, c::Vector, bags::Bags, n::Matrix) = Δ -> begin
     x = Flux.data(x)
     Δ = Flux.data(Δ)
-    dx = zeros(x)
+    dx = zero(x)
     @inbounds for (j, b) in enumerate(bags)
         for bi in b
             for i in 1:size(x,1)
@@ -57,9 +57,9 @@ end
 segmented_pnorm_back(x::TrackedArray, p::Vector, ρ::Vector, c::Vector, bags::Bags, w::Vector, n::Matrix) = Δ -> begin
     x = Flux.data(x)
     Δ = Flux.data(Δ)
-    dx = zeros(x)
+    dx = zero(x)
     @inbounds for (j, b) in enumerate(bags)
-        ws = sum(w[b])
+        ws = sum(@view w[b])
         for bi in b
             for i in 1:size(x,1)
                 dx[i, bi] = Δ[i, j] * w[bi] * sign(x[i, bi] - c[i])
@@ -77,12 +77,12 @@ segmented_pnorm_back(x::TrackedArray, p::TrackedVector, ρ::TrackedVector, c::Tr
     ρ = Flux.data(ρ)
     c = Flux.data(c)
     Δ = Flux.data(Δ)
-    dx = zeros(x)
-    dp = zeros(p)
-    dps1 = zeros(p)
-    dps2 = zeros(p)
-    dc = zeros(c)
-    dcs = zeros(c)
+    dx = zero(x)
+    dp = zero(p)
+    dps1 = zero(p)
+    dps2 = zero(p)
+    dc = zero(c)
+    dcs = zero(c)
     @inbounds for (j, b) in enumerate(bags)
         dcs .= 0
         dps1 .= 0
@@ -115,14 +115,14 @@ segmented_pnorm_back(x::TrackedArray, p::TrackedVector, ρ::TrackedVector, c::Tr
     ρ = Flux.data(ρ)
     c = Flux.data(c)
     Δ = Flux.data(Δ)
-    dx = zeros(x)
-    dp = zeros(p)
-    dps1 = zeros(p)
-    dps2 = zeros(p)
-    dc = zeros(c)
-    dcs = zeros(c)
+    dx = zero(x)
+    dp = zero(p)
+    dps1 = zero(p)
+    dps2 = zero(p)
+    dc = zero(c)
+    dcs = zero(c)
     @inbounds for (j, b) in enumerate(bags)
-        ws = sum(w[b])
+        ws = sum(@view w[b])
         dcs .= 0
         dps1 .= 0
         dps2 .= 0
@@ -153,11 +153,11 @@ segmented_pnorm_back(x::Matrix, p::TrackedVector, ρ::TrackedVector, c::TrackedV
     ρ = Flux.data(ρ)
     c = Flux.data(c)
     Δ = Flux.data(Δ)
-    dp = zeros(p)
-    dps1 = zeros(p)
-    dps2 = zeros(p)
-    dc = zeros(c)
-    dcs = zeros(c)
+    dp = zero(p)
+    dps1 = zero(p)
+    dps2 = zero(p)
+    dc = zero(c)
+    dcs = zero(c)
     @inbounds for (j, b) in enumerate(bags)
         dcs .= 0
         dps1 .= 0
@@ -186,13 +186,13 @@ segmented_pnorm_back(x::Matrix, p::TrackedVector, ρ::TrackedVector, c::TrackedV
     ρ = Flux.data(ρ)
     c = Flux.data(c)
     Δ = Flux.data(Δ)
-    dp = zeros(p)
-    dps1 = zeros(p)
-    dps2 = zeros(p)
-    dc = zeros(c)
-    dcs = zeros(c)
+    dp = zero(p)
+    dps1 = zero(p)
+    dps2 = zero(p)
+    dc = zero(c)
+    dcs = zero(c)
     @inbounds for (j, b) in enumerate(bags)
-        ws = sum(w[b])
+        ws = sum(@view w[b])
         dcs .= 0
         dps1 .= 0
         dps2 .= 0

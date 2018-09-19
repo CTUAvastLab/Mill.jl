@@ -19,7 +19,7 @@ end
 
 Aggregation(a::Union{Function, PNorm}) = Aggregation((a,))
 
-Flux.treelike(Aggregation)
+Flux.@treelike Aggregation
 
 (a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 
