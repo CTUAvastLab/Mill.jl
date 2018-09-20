@@ -123,6 +123,7 @@ function Base.cat(a::TreeNode...)
     return TreeNode(data)
 end
 
+
 lastcat(a::AbstractArray...) = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)
 lastcat(a::DataFrame...) = vcat(a...)
@@ -130,6 +131,7 @@ lastcat(a::AbstractNode...) = cat(a...)
 lastcat(a::Nothing...) = nothing
 # enforces both the same length of the tuples and their structure
 lastcat(a::NTuple{N, AbstractNode}...) where N = ((cat(d...) for d in zip(a...))...,)
+lastcat(a::Tuple...) where N = ((lastcat(d...) for d in zip(a...))...,)
 lastcat() = nothing
 
 ################################################################################
