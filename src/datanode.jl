@@ -131,7 +131,6 @@ lastcat(a::AbstractNode...) = cat(a...)
 lastcat(a::Nothing...) = nothing
 # enforces both the same length of the tuples and their structure
 lastcat(a::NTuple{N, AbstractNode}...) where N = ((cat(d...) for d in zip(a...))...,)
-lastcat(a::Tuple...) where N = ((lastcat(d...) for d in zip(a...))...,)
 lastcat() = nothing
 
 ################################################################################
