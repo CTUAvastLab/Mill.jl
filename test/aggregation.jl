@@ -26,7 +26,11 @@ let
 
     @testset "lse numerical stability"
         @test LSE([1,1])([1e15 1e15; 1e15 1e15], [1:2]) ≈ [1e15; 1e15]
-        # @test LSE([1,1])([1e15 1e15; 1e15 1e15], [1:2], [1, 1]) ≈ [1e15; 1e15]
+        @test LSE([1,1])([-1e15 -1e15; -1e15 -1e15], [1:2]) ≈ [-1e15; -1e15]
+        @test LSE([1,1])([1e15 1e15; 1e15 1e15], [1:2], [1, 1]) ≈ [1e15; 1e15]
+        @test LSE([1,1])([1e15 1e15; 1e15 1e15], [1:2], [2, 2]) ≈ [1e15; 1e15]
+        @test LSE([1,1])([-1e15 -1e15; -1e15 -1e15], [1:2], [1, 1]) ≈ [-1e15; -1e15]
+        @test LSE([1,1])([-1e15 -1e15; -1e15 -1e15], [1:2], [2, 2]) ≈ [-1e15; -1e15]
     end
 
     @testset "right output aggregation types" begin
