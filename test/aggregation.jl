@@ -17,6 +17,16 @@ let
 
         @test segmented_pnorm(X, [1, 1], [0, 0], BAGS) ≈ SegmentedMean()(abs.(X), BAGS)
         @test segmented_pnorm(X, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(X[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
+
+        # @test segmented_pnorm(X, [1, 1], [0, 0], BAGS, W) ≈ 1 / sum(W) .* (abs.(W'.*X), BAGS)
+        # @test segmented_pnorm(X, [2, 2], [0, 0], BAGS, W) ≈ hcat([sqrt.(sum(W' .* X[:, b] .^ 2, dims=2) ./ sum(W)) for b in BAGS]...)
+
+        # @test segmented_lse(X
+    end
+
+    @testset "lse numerical stability"
+        @test LSE([1,1])([1e15 1e15; 1e15 1e15], [1:2]) ≈ [1e15; 1e15]
+        # @test LSE([1,1])([1e15 1e15; 1e15 1e15], [1:2], [1, 1]) ≈ [1e15; 1e15]
     end
 
     @testset "right output aggregation types" begin
@@ -44,5 +54,15 @@ let
         @test istracked(PNorm(randn(d), randn(d))(Y, BAGS, W))
         @test istracked(PNorm(d)(X, BAGS, W))
         @test istracked(PNorm(d)(Y, BAGS, W))
+
+        @test !istracked(LSE(randn(d))(X, BAGS))
+        @test istracked(LSE(randn(d))(Y, BAGS))
+        @test istracked(LSE(d)(X, BAGS))
+        @test istracked(LSE(d)(Y, BAGS))
+
+        @test !istracked(LSE(randn(d))(X, BAGS, W))
+        @test istracked(LSE(randn(d))(Y, BAGS, W))
+        @test istracked(LSE(d)(X, BAGS, W))
+        @test istracked(LSE(d)(Y, BAGS, W))
     end
 end

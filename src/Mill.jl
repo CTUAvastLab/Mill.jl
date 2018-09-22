@@ -11,6 +11,14 @@ function paddedprint(io, s...; color=:default, pad=[])
     printstyled(io, s..., color=color)
 end
 
+function powerset(x::Vector{T}) where T
+    result = Vector{T}[[]]
+    for elem in x, j in eachindex(result)
+        push!(result, [result[j] ; elem])
+    end
+    result
+end
+
 const Bags = Vector{UnitRange{Int64}}
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
@@ -22,7 +30,7 @@ export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
 
 include("aggregation.jl")
-export PNorm, Aggregation
+export PNorm, LSE, Aggregation
 export SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedMeanMax, SegmentedPNormMeanMax
 
 include("modelnode.jl")

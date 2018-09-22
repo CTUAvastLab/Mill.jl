@@ -1,5 +1,5 @@
 using Flux.Tracker: gradcheck
-using Mill: reflectinmodel, length2bags
+using Mill: reflectinmodel, length2bags, powerset
 
 # working with tracked output - now it is possible to test whole models
 # suitable for situations where the output of the model is TrackedArray
@@ -57,44 +57,38 @@ let
         end
 
         for bags in BAGS
-            # only positive weights allowed in pnorm
+            # only positive weights allowed in pnorm and lse
             w = abs.(randn(10)) .+ 0.01
             d = rand(1:10)
             x = randn(d, 10)
             a = PNorm(d)
+            b = LSE(d)
             @test mgradcheck(x -> sum(a(x, bags)), x)
+            @test mgradcheck(x -> sum(b(x, bags)), x)
             @test mgradcheck(x -> sum(a(x, bags, w)), x)
-            @test mgradcheck(randn(d), randn(d)) do ρ, c
-                n = Aggregation((PNorm(param(ρ), param(c)), SegmentedMean(), SegmentedMax()))
-                sum(n(x, bags))
-            end
-            @test mgradcheck(randn(d), randn(d)) do ρ, c
-                n = Aggregation((PNorm(param(ρ), param(c)), SegmentedMean(), SegmentedMax()))
-                sum(n(x, bags, w))
-            end
-            @test mgradcheck(randn(d), randn(d)) do ρ, c
-                n = Aggregation((SegmentedMean(), PNorm(param(ρ), param(c)), SegmentedMax()))
-                sum(n(x, bags))
-            end
-            @test mgradcheck(randn(d), randn(d)) do ρ, c
-                n = Aggregation((SegmentedMean(), PNorm(param(ρ), param(c)), SegmentedMax()))
-                sum(n(x, bags, w))
-            end
-            @test mgradcheck(randn(d), randn(d)) do ρ, c
-                n = Aggregation((SegmentedMean(), SegmentedMax(), PNorm(param(ρ), param(c))))
-                sum(n(x, bags))
-            end
-            @test mgradcheck(randn(d), randn(d)) do ρ, c
-                n = Aggregation((SegmentedMean(), SegmentedMax(), PNorm(param(ρ), param(c))))
-                sum(n(x, bags, w))
-            end
-            @test mgradcheck(randn(d), randn(d)) do ρ, c
-                n = PNorm(param(ρ), param(c))
-                sum(n(x, bags))
-            end
-            @test mgradcheck(randn(d), randn(d)) do ρ, c
-                n = PNorm(param(ρ), param(c))
-                sum(n(x, bags, w))
+            @test mgradcheck(x -> sum(b(x, bags, w)), x)
+
+            # test on gradients w.r.t. params
+            fs = [:PNorm, :LSE, :SegmentedMean, :SegmentedMax]
+            params = [(:ρ, :c), (:p,), (), ()]
+            for idxs in powerset(collect(1:length(fs)))
+                1 in idxs || 2 in idxs || continue
+                rs = []; as = []; cs = []; 
+                for (f, ps) in zip(fs[idxs], params[idxs])
+                    push!(rs, (:(randn($d)) for _ in ps)...)
+                    push!(as, ps...)
+                    push!(cs, Expr(:call, f, map(p -> :(param($p)), ps)...))
+                end
+                @eval f = (x, bags) -> mgradcheck($(map(eval, rs)...)) do $(as...)
+                    n = Aggregation(tuple($(cs...)))
+                    sum(n(x, bags))
+                end
+                @test f(x, bags)
+                @eval g = (x, bags, w) -> mgradcheck($(map(eval, rs)...)) do $(as...)
+                    n = Aggregation(tuple($(cs...)))
+                    sum(n(x, bags, w))
+                end
+                @test g(x, bags, w)
             end
         end
     end
@@ -219,37 +213,4 @@ let
             sum(m(bnn).data)
         end
     end
-
-    # @testset "learning basic pnorm types" begin
-    # 	import Mill: p_map
-    # 	model = Mill.BagModel(identity, PNorm(1), Flux.Dense(1,2))
-    # 	loss(x,y) = begin
-    # 		Flux.logitcrossentropy(model(x).data, Flux.onehotbatch([y], 1:2));
-    # 	end
-    # 	dataset = []
-    # 	for t in 1:1000
-    # 		p = 4
-    #         c = -2 
-    # 		x = rand(-1.5+c:0.01:1.5+c, 1, 2)
-    # 		y = sum((abs.(x.-c)) .^ p) .^ (1/p) < 1 ? 1 : 2
-    # 		push!(dataset, (Mill.BagNode(Mill.ArrayNode(x), [1:2]), y))
-    # 	end
-    # 
-    # 	opt = Flux.ADAM(params(model))
-    # 	Flux.@epochs 300 begin
-    #         @show model.a.fs[1].c
-    #         @show p_map(model.a.fs[1].ρ)
-    # 		Flux.train!(loss, dataset, opt)
-    # 		l = 0; r = 0; w = 0
-    # 		for(X, y) in dataset
-    # 			pred = findmax(softmax(model(X).data))[2]
-    # 			if pred == y r += 1 else w += 1 end
-    # 			l += loss(X, y)
-    # 		end
-    # 		@show l
-    # 		@show r
-    # 		@show w
-    # 	end
-    # end
-
 end

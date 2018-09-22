@@ -1,6 +1,7 @@
 include("segmented_mean.jl")
 include("segmented_max.jl")
 include("segmented_pnorm.jl")
+include("segmented_lse.jl")
 
 const AGGF = [:segmented_max, :segmented_mean]
 # generic code, for pnorm, situation is more complicated
@@ -13,27 +14,29 @@ for s in AGGF
     end
 end
 
+const ParamAgg = Union{PNorm, LSE}
+
 struct Aggregation
     fs
 end
-
-Aggregation(a::Union{Function, PNorm}) = Aggregation((a,))
-
 Flux.@treelike Aggregation
 
+Aggregation(a::Union{Function, ParamAgg}) = Aggregation((a,))
 (a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 
-# convenience definitions
-
+# convenience definitions - nested Aggregations work, but call definitions directly to avoid overhead
+# without parameters
 SegmentedMax() = Aggregation(segmented_max)
 SegmentedMean() = Aggregation(segmented_mean)
-SegmentedPNorm(d::Int) = Aggregation(PNorm(d))
 SegmentedMeanMax() = Aggregation((segmented_mean, segmented_max))
-
-segmented_meanmax = SegmentedMeanMax()
-
 for s in [:SegmentedMax, :SegmentedMean, :SegmentedMeanMax]
     @eval $s(d::Int) = $s()
 end
 
-SegmentedPNormMeanMax(d::Int) = Aggregation((PNorm(d), segmented_mean, segmented_max))
+# with parameters
+names = ["PNorm", "LSE", "Mean", "Max"]
+fs = [:(PNorm(d)), :(LSE(d)), :segmented_mean, :segmented_max]
+for idxs in powerset(collect(1:length(fs)))
+    1 in idxs || 2 in idxs || continue
+    @eval $(Symbol("Segmented", names[idxs]...))(d::Int) = Aggregation(tuple($(fs[idxs]...)))
+end
