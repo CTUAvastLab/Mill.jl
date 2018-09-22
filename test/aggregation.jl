@@ -1,5 +1,5 @@
 using Flux.Tracker: istracked
-import Mill: segmented_pnorm, segmented_lse, PNorm, LSE
+import Mill: _segmented_pnorm, _segmented_lse, PNorm, LSE
 
 let 
     X = Matrix{Float64}(reshape(1:12, 2, 6))
@@ -15,8 +15,8 @@ let
         @test SegmentedMax()(X, BAGS, W) ≈ SegmentedMax()(X, BAGS)
         @test SegmentedMeanMax()(X, BAGS, W) ≈ cat(SegmentedMean()(X, BAGS, W), SegmentedMax()(X, BAGS, W), dims=1)
 
-        @test segmented_pnorm(X, [1, 1], [0, 0], BAGS) ≈ SegmentedMean()(abs.(X), BAGS)
-        @test segmented_pnorm(X, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(X[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
+        @test _segmented_pnorm(X, [1, 1], [0, 0], BAGS) ≈ SegmentedMean()(abs.(X), BAGS)
+        @test _segmented_pnorm(X, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(X[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
 
         for t = 1:10
             a, b, c, e, r1, r2 = randn(6)

@@ -1,4 +1,4 @@
-function segmented_mean(x::Matrix, bags::Bags)
+function _segmented_mean(x::Matrix, bags::Bags)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j,b) in enumerate(bags)
         for bi in b
@@ -10,7 +10,7 @@ function segmented_mean(x::Matrix, bags::Bags)
     o
 end
 
-function segmented_mean(x::Matrix, bags::Bags, w::Vector)
+function _segmented_mean(x::Matrix, bags::Bags, w::Vector)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j,b) in enumerate(bags)
         ws = sum(@view w[b])
@@ -23,7 +23,7 @@ function segmented_mean(x::Matrix, bags::Bags, w::Vector)
     o
 end
 
-segmented_mean_back(x::TrackedArray, bags::Bags) = Δ -> begin
+_segmented_mean_back(x::TrackedArray, bags::Bags) = Δ -> begin
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = similar(x)
@@ -37,7 +37,7 @@ segmented_mean_back(x::TrackedArray, bags::Bags) = Δ -> begin
     dx, nothing
 end
 
-segmented_mean_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
+_segmented_mean_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = similar(x)

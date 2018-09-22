@@ -5,7 +5,7 @@ using FileIO
 using Flux
 using MLDataPattern
 using Flux: throttle
-using Mill: BagNode, ArrayNode, segmented_meanmax, BagModel, ArrayModel, reflectinmodel
+using Mill: BagNode, ArrayNode, _segmented_meanmax, BagModel, ArrayModel, reflectinmodel
 
 
 # load the musk dataset
@@ -22,7 +22,7 @@ end
 #create the model
 model = BagModel(
     ArrayModel(Dense(166, 10, Flux.relu)),   # model on the level of Flows
-    segmented_meanmax,                                    # simultaneous mean and maximum is an all-time favorite
+    _segmented_meanmax,                                    # simultaneous mean and maximum is an all-time favorite
     ArrayModel(Chain(Dense(20, 10, Flux.relu), Dense(10, 2))))         # model on the level of bags
 
 #define loss function

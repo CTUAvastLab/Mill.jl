@@ -1,4 +1,4 @@
-function segmented_max(x::Matrix, bags::Bags)
+function _segmented_max(x::Matrix, bags::Bags)
     o = similar(x, size(x,1), length(bags))
     fill!(o, typemin(eltype(x)))
     for (j,b) in enumerate(bags)
@@ -12,9 +12,9 @@ function segmented_max(x::Matrix, bags::Bags)
     o
 end
 
-segmented_max(x::Matrix, bags::Bags, w::Vector) = segmented_max(x, bags)
+_segmented_max(x::Matrix, bags::Bags, w::Vector) = _segmented_max(x, bags)
 
-segmented_max_back(x::TrackedArray, bags::Bags) = Δ -> begin
+_segmented_max_back(x::TrackedArray, bags::Bags) = Δ -> begin
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = zero(x)
@@ -38,6 +38,6 @@ segmented_max_back(x::TrackedArray, bags::Bags) = Δ -> begin
     dx, nothing
 end
 
-segmented_max_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
-    tuple(segmented_max_back(x, bags)(Δ)..., nothing)
+_segmented_max_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
+    tuple(_segmented_max_back(x, bags)(Δ)..., nothing)
 end

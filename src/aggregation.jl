@@ -3,7 +3,7 @@ include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 
-const AGGF = [:segmented_max, :segmented_mean]
+const AGGF = [:_segmented_max, :_segmented_mean]
 # generic code, for pnorm, situation is more complicated
 for s in AGGF
     @eval $s(x::TrackedArray, args...) = Flux.Tracker.track($s, x, args...)
@@ -26,9 +26,9 @@ Aggregation(a::Union{Function, ParamAgg}) = Aggregation((a,))
 
 # convenience definitions - nested Aggregations work, but call definitions directly to avoid overhead
 # without parameters
-SegmentedMax() = Aggregation(segmented_max)
-SegmentedMean() = Aggregation(segmented_mean)
-SegmentedMeanMax() = Aggregation((segmented_mean, segmented_max))
+SegmentedMax() = Aggregation(_segmented_max)
+SegmentedMean() = Aggregation(_segmented_mean)
+SegmentedMeanMax() = Aggregation((_segmented_mean, _segmented_max))
 for s in [:SegmentedMax, :SegmentedMean, :SegmentedMeanMax]
     @eval $s(d::Int) = $s()
     @eval export $s
@@ -36,7 +36,7 @@ end
 
 # with parameters
 names = ["PNorm", "LSE", "Mean", "Max"]
-fs = [:(PNorm(d)), :(LSE(d)), :segmented_mean, :segmented_max]
+fs = [:(PNorm(d)), :(LSE(d)), :_segmented_mean, :_segmented_max]
 for idxs in powerset(collect(1:length(fs)))
     1 in idxs || 2 in idxs || continue
     @eval $(Symbol("Segmented", names[idxs]...))(d::Int) = Aggregation(tuple($(fs[idxs]...)))
