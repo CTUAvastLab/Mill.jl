@@ -3,7 +3,6 @@ import Mill: _segmented_pnorm, _segmented_lse, PNorm, LSE
 
 let 
     X = Matrix{Float64}(reshape(1:12, 2, 6))
-    d = size(X, 1)
     BAGS = [1:1, 2:3, 4:6]
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 
@@ -15,12 +14,29 @@ let
         @test SegmentedMax()(X, BAGS, W) ≈ SegmentedMax()(X, BAGS)
         @test SegmentedMeanMax()(X, BAGS, W) ≈ cat(SegmentedMean()(X, BAGS, W), SegmentedMax()(X, BAGS, W), dims=1)
 
-        @test _segmented_pnorm(X, [1, 1], [0, 0], BAGS) ≈ SegmentedMean()(abs.(X), BAGS)
-        @test _segmented_pnorm(X, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(X[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
+        for t = 1:10
+            a, b, c, d, p1, p2, c1, c2, w1, w2 = randn(10)
+            w1 = abs(w1)
+            w2 = abs(w2)
+            @test _segmented_pnorm([a b; c d], [p1, p2], [c1, c2], [1:2]) ≈ [
+                    (1/2*(abs(a-c1)^p1 + abs(b-c1)^p1))^(1/p1);
+                    (1/2*(abs(c-c2)^p2 + abs(d-c2)^p2))^(1/p2)
+                ]
+            @test _segmented_pnorm([a b; c d], [p1, p2], [c1, c2], [1:2], [w1, w2]) ≈ [
+                    (1/(w1+w2)*(w1*abs(a-c1)^p1 + w2*abs(b-c1)^p1))^(1/p1);
+                    (1/(w1+w2)*(w1*abs(c-c2)^p2 + w2*abs(d-c2)^p2))^(1/p2)
+                ]
+            x = randn(2, 6)
+            @test _segmented_pnorm(x, [1, 1], [0, 0], BAGS) ≈ SegmentedMean()(abs.(x), BAGS)
+            @test _segmented_pnorm(x, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(x[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
+        end
 
         for t = 1:10
-            a, b, c, e, r1, r2 = randn(6)
-            @test LSE([r1, r2])([a b; c e], [1:2]) ≈ [1/r1*log(1/2*(exp(a*r1)+exp(b*r1))); 1/r2*log(1/2*(exp(c*r2)+exp(e*r2)))]
+            a, b, c, d, r1, r2 = randn(6)
+            @test LSE([r1, r2])([a b; c d], [1:2]) ≈ [
+                    1/r1*log(1/2*(exp(a*r1)+exp(b*r1)));
+                    1/r2*log(1/2*(exp(c*r2)+exp(d*r2)))
+                ]
             X = randn(2, 6)
             r1, r2 = randn(2)
             @test all(LSE([r1, r2])(X, BAGS) .== LSE([r1, r2])(X, BAGS, W))
@@ -40,6 +56,7 @@ let
 
     @testset "right output aggregation types" begin
         Y = Flux.param(X)
+        dim = size(X, 1)
         @test !istracked(SegmentedMean()(X, BAGS))
         @test !istracked(SegmentedMax()(X, BAGS))
         @test !istracked(SegmentedMeanMax()(X, BAGS))
@@ -54,24 +71,24 @@ let
         @test istracked(SegmentedMax()(Y, BAGS, W))
         @test istracked(SegmentedMeanMax()(Y, BAGS, W))
 
-        @test !istracked(PNorm(randn(d), randn(d))(X, BAGS))
-        @test istracked(PNorm(randn(d), randn(d))(Y, BAGS))
-        @test istracked(PNorm(d)(X, BAGS))
-        @test istracked(PNorm(d)(Y, BAGS))
+        @test !istracked(PNorm(randn(dim), randn(dim))(X, BAGS))
+        @test istracked(PNorm(randn(dim), randn(dim))(Y, BAGS))
+        @test istracked(PNorm(dim)(X, BAGS))
+        @test istracked(PNorm(dim)(Y, BAGS))
 
-        @test !istracked(PNorm(randn(d), randn(d))(X, BAGS, W))
-        @test istracked(PNorm(randn(d), randn(d))(Y, BAGS, W))
-        @test istracked(PNorm(d)(X, BAGS, W))
-        @test istracked(PNorm(d)(Y, BAGS, W))
+        @test !istracked(PNorm(randn(dim), randn(dim))(X, BAGS, W))
+        @test istracked(PNorm(randn(dim), randn(dim))(Y, BAGS, W))
+        @test istracked(PNorm(dim)(X, BAGS, W))
+        @test istracked(PNorm(dim)(Y, BAGS, W))
 
-        @test !istracked(LSE(randn(d))(X, BAGS))
-        @test istracked(LSE(randn(d))(Y, BAGS))
-        @test istracked(LSE(d)(X, BAGS))
-        @test istracked(LSE(d)(Y, BAGS))
+        @test !istracked(LSE(randn(dim))(X, BAGS))
+        @test istracked(LSE(randn(dim))(Y, BAGS))
+        @test istracked(LSE(dim)(X, BAGS))
+        @test istracked(LSE(dim)(Y, BAGS))
 
-        @test !istracked(LSE(randn(d))(X, BAGS, W))
-        @test istracked(LSE(randn(d))(Y, BAGS, W))
-        @test istracked(LSE(d)(X, BAGS, W))
-        @test istracked(LSE(d)(Y, BAGS, W))
+        @test !istracked(LSE(randn(dim))(X, BAGS, W))
+        @test istracked(LSE(randn(dim))(Y, BAGS, W))
+        @test istracked(LSE(dim)(X, BAGS, W))
+        @test istracked(LSE(dim)(Y, BAGS, W))
     end
 end
