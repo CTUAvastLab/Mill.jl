@@ -1,5 +1,5 @@
 using Flux.Tracker: istracked
-import Mill: segmented_pnorm
+import Mill: segmented_pnorm, segmented_lse, PNorm, LSE
 
 let 
     X = Matrix{Float64}(reshape(1:12, 2, 6))
@@ -18,13 +18,18 @@ let
         @test segmented_pnorm(X, [1, 1], [0, 0], BAGS) ≈ SegmentedMean()(abs.(X), BAGS)
         @test segmented_pnorm(X, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(X[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
 
-        # @test segmented_pnorm(X, [1, 1], [0, 0], BAGS, W) ≈ 1 / sum(W) .* (abs.(W'.*X), BAGS)
-        # @test segmented_pnorm(X, [2, 2], [0, 0], BAGS, W) ≈ hcat([sqrt.(sum(W' .* X[:, b] .^ 2, dims=2) ./ sum(W)) for b in BAGS]...)
-
-        # @test segmented_lse(X
+        for t = 1:10
+            a, b, c, e, r1, r2 = randn(6)
+            @test LSE([r1, r2])([a b; c e], [1:2]) ≈ [1/r1*log(1/2*(exp(a*r1)+exp(b*r1))); 1/r2*log(1/2*(exp(c*r2)+exp(e*r2)))]
+            X = randn(2, 6)
+            r1, r2 = randn(2)
+            @test all(LSE([r1, r2])(X, BAGS) .== LSE([r1, r2])(X, BAGS, W))
+            # the bigger value of r, the closer we are to the real maximum
+            @test isapprox(LSE([100, 100])(X, BAGS), SegmentedMax()(X, BAGS), atol=0.1)
+        end
     end
 
-    @testset "lse numerical stability"
+    @testset "lse numerical stability" begin
         @test LSE([1,1])([1e15 1e15; 1e15 1e15], [1:2]) ≈ [1e15; 1e15]
         @test LSE([1,1])([-1e15 -1e15; -1e15 -1e15], [1:2]) ≈ [-1e15; -1e15]
         @test LSE([1,1])([1e15 1e15; 1e15 1e15], [1:2], [1, 1]) ≈ [1e15; 1e15]

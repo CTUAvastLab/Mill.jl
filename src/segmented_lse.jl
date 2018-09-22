@@ -63,7 +63,7 @@ segmented_lse_back(x::TrackedArray, p::TrackedVector, bags::Bags, n::Matrix) = �
             end
         end
         dx[:, b] ./= ss1
-        dp .+= ss2 ./ ss1 - n[:, j]
+        dp .+= Δ[:, j] .* (ss2 ./ ss1 - n[:, j])
     end
     dx, dp ./ p, nothing
 end
@@ -87,7 +87,7 @@ segmented_lse_back(x::Matrix, p::TrackedVector, bags::Bags, n::Matrix) = Δ -> b
                 ss2[i] += x[i, bi] * e
             end
         end
-        dp .+= ss2 ./ ss1 - n[:, j]
+        dp .+= Δ[:, j] .* (ss2 ./ ss1 - n[:, j])
     end
     nothing, dp ./ p, nothing, nothing
 end

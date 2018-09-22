@@ -30,8 +30,8 @@ export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
 
 include("aggregation.jl")
-export PNorm, LSE, Aggregation
-export SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedMeanMax, SegmentedPNormMeanMax
+# agg. types exported in aggregation.jl
+export Aggregation
 
 include("modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel

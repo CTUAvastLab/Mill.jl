@@ -31,6 +31,7 @@ SegmentedMean() = Aggregation(segmented_mean)
 SegmentedMeanMax() = Aggregation((segmented_mean, segmented_max))
 for s in [:SegmentedMax, :SegmentedMean, :SegmentedMeanMax]
     @eval $s(d::Int) = $s()
+    @eval export $s
 end
 
 # with parameters
@@ -39,4 +40,5 @@ fs = [:(PNorm(d)), :(LSE(d)), :segmented_mean, :segmented_max]
 for idxs in powerset(collect(1:length(fs)))
     1 in idxs || 2 in idxs || continue
     @eval $(Symbol("Segmented", names[idxs]...))(d::Int) = Aggregation(tuple($(fs[idxs]...)))
+    @eval export $(Symbol("Segmented", names[idxs]...))
 end
