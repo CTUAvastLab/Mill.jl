@@ -1,5 +1,6 @@
 using LearnBase
 using DataFrames
+import Base: cat, vcat, hcat
 
 abstract type AbstractNode end
 abstract type AbstractBagNode{T <: AbstractNode, C} <: AbstractNode end
@@ -83,8 +84,10 @@ LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
 ################################################################################
 
-# hcat and vcat only for ArrayNode
+# reduce(::typeof(catobs), A::AbstractVector{<:DataNode}) =
+#     _typed_hcat(mapreduce(eltype, promote_type, A), A)
 
+# hcat and vcat only for ArrayNode
 function Base.vcat(as::ArrayNode...)
     data = vcat([a.data for a in as]...)
     metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
@@ -97,20 +100,16 @@ function Base.hcat(as::ArrayNode...)
     ArrayNode(data, metadata)
 end
 
-function Base.cat(a::ArrayNode...) 
-    data = lastcat(map(d -> d.data, a)...)
-    metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
-    return ArrayNode(data, metadata)
-end
+catobs(a::ArrayNode...) = hcat(a...)
 
-function Base.cat(a::BagNode...)
+function catobs(a::BagNode...)
     data = lastcat(map(d -> d.data, a)...)
     metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
     bags = catbags(map(d -> d.bags, a)...)
     return BagNode(data, bags, metadata)
 end
 
-function Base.cat(a::WeightedBagNode...)
+function catobs(a::WeightedBagNode...)
     data = lastcat(map(d -> d.data, a)...)
     metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
     bags = catbags(map(d -> d.bags, a)...)
@@ -118,19 +117,23 @@ function Base.cat(a::WeightedBagNode...)
     return WeightedBagNode(data, bags, weights, metadata)
 end
 
-function Base.cat(a::TreeNode...)
+function catobs(a::TreeNode...)
     data = lastcat(map(d -> d.data, a)...)
     return TreeNode(data)
 end
 
+for s in [:ArrayNode, :BagNode, :WeightedBagNode, :TreeNode]
+    @eval Base.cat(a::$s...) = catobs(a...)
+    @eval @deprecate cat(a::$s...) catobs(a...)
+end
 
 lastcat(a::AbstractArray...) = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)
 lastcat(a::DataFrame...) = vcat(a...)
-lastcat(a::AbstractNode...) = cat(a...)
+lastcat(a::AbstractNode...) = catobs(a...)
 lastcat(a::Nothing...) = nothing
 # enforces both the same length of the tuples and their structure
-lastcat(a::NTuple{N, AbstractNode}...) where N = ((cat(d...) for d in zip(a...))...,)
+lastcat(a::NTuple{N, AbstractNode}...) where N = ((catobs(d...) for d in zip(a...))...,)
 lastcat() = nothing
 
 ################################################################################

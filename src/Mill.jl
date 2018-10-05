@@ -28,6 +28,7 @@ include("util.jl")
 include("datanode.jl")
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
+export catobs
 
 include("aggregation.jl")
 # agg. types exported in aggregation.jl
