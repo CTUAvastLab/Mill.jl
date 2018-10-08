@@ -117,8 +117,8 @@ function catobs(a::BagNode...)
 end
 function _catobs(V::AbstractVecOrTuple{BagNode})
     data = _lastcat(map(x -> x.data, V))
-    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
-    bags = catbags(map(d -> d.bags, a)...)
+    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
+    bags = catbags(map(d -> d.bags, V)...)
     return BagNode(data, metadata)
 end
 
@@ -131,9 +131,9 @@ function catobs(a::WeightedBagNode...)
 end
 function _catobs(V::AbstractVecOrTuple{WeightedBagNode})
     data = _lastcat(map(x -> x.data, V))
-    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
-    bags = catbags(map(d -> d.bags, a)...)
-    weights = _lastcat(map(d -> d.weights, a)...)
+    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
+    bags = catbags(map(d -> d.bags, V)...)
+    weights = _lastcat(map(d -> d.weights, V)...)
     return WeightedBagNode(data, bags, weights, metadata)
 end
 
