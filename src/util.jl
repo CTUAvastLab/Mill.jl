@@ -96,5 +96,5 @@ function remapbag(b::Bags,indices::VecOrRange)
 		rb[i] = (b[j] == 0:-1) ? b[j] : b[j] .- b[j].start .+ offset
 		offset += length(b[j])
 	end
-	rb, vcat([collect(b[i]) for i in indices]...)
+	rb, Array{Int}(vcat([collect(b[i]) for i in indices]...))
 end

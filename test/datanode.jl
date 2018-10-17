@@ -164,6 +164,8 @@ let
         @test all(d[1:2].bags .== [1:4,0:-1])
         @test all(d[2].data.data .== d.data.data[:,0:-1])
         @test all(d[2].bags .== [0:-1])
+        @test isempty(a[2:1].bags)
+        @test isempty(a[2:1].data.data)
     end
 
     @testset "testing WeightedBagNode indexing" begin
