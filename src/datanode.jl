@@ -33,12 +33,13 @@ mutable struct WeightedBagNode{T, W, C} <: AbstractBagNode{T, C}
     end
 end
 
-mutable struct TreeNode{N} <: AbstractTreeNode{N, Nothing}
+mutable struct TreeNode{N,C} <: AbstractTreeNode{N, C}
     data::NTuple{N, AbstractNode}
+    metadata::C
 
-    function TreeNode{N}(data::NTuple{N, AbstractNode}) where N
+    function TreeNode{N,C}(data::NTuple{N, AbstractNode}, metadata::C) where {N, C}
         @assert length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data)
-        new(data)
+        new(data, metadata)
     end
 end
 
@@ -48,14 +49,15 @@ BagNode(x::T, b::Union{Bags, Vector}, metadata::C=nothing) where {T <: AbstractN
 BagNode{T, C}(x, b, metadata)
 WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=nothing) where {T <: AbstractNode, W, C} =
 WeightedBagNode{T, W, C}(x, b, weights, metadata)
-TreeNode(data::NTuple{N, AbstractNode}) where N = TreeNode{N}(data)
+TreeNode(data::NTuple{N, AbstractNode}) where N = TreeNode{N, Nothing}(data, nothing)
+TreeNode(data::NTuple{N, AbstractNode}, metadata::C) where {N, C} = TreeNode{N, C}(data, metadata)
 
 ################################################################################
 
 mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
-mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data))
+mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
 data(x::AbstractNode) = x.data
 data(x) = x
@@ -139,16 +141,18 @@ end
 
 function catobs(a::TreeNode...)
     data = lastcat(map(d -> d.data, a)...)
-    return TreeNode(data)
+    metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
+    return TreeNode(data, metadata)
 end
 function _catobs(V::AbstractVecOrTuple{TreeNode})
     data = _lastcat(map(x -> x.data, V))
-    return TreeNode(data)
+    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
+    return TreeNode(data, metadata)
 end
 
 # remove to make cat unavailable instead of deprecated
 for s in [:ArrayNode, :BagNode, :WeightedBagNode, :TreeNode]
-    @eval Base.cat(a::$s...) = catobs(a...)
+    # @eval Base.cat(a::$s...) = catobs(a...)
     @eval @deprecate cat(a::$s...) catobs(a...)
 end
 
@@ -186,7 +190,7 @@ function Base.getindex(x::WeightedBagNode, i::VecOrRange)
     WeightedBagNode(subset(x.data,ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
 end
 
-Base.getindex(x::TreeNode, i::VecOrRange) = TreeNode(subset(x.data, i))
+Base.getindex(x::TreeNode, i::VecOrRange) = TreeNode(subset(x.data, i), subset(x.metadata, i))
 
 Base.getindex(x::AbstractNode, i::Int) = x[i:i]
 MLDataPattern.getobs(x::AbstractNode, i) = x[i]
