@@ -106,17 +106,18 @@ struct NGramStrings{T}
   s :: Vector{T}
   n :: Int 
   b :: Int 
+  m :: Int
 end
 
 NGramIterator(a::NGramStrings, i) = NGramIterator(codeunits(a.s[i]), a.n, a.b)
 
 Base.length(a::NGramStrings) = length(a.s)
-Base.size(a::NGramStrings) = (2053, length(a.s))
-Base.size(a::NGramStrings, d) = (d == 1) ? 2053 : length(a.s)
-Base.reduce(::typeof(catobs), a::AbstractVector{S}) where {S<:NGramStrings} = _catobs(a)
-Base.cat(a::NGramStrings...) = _catobs(a)
-_lastcat(a::Array{NGramStrings{T},1}) where {T} = _catobs(a)
-_catobs(a::AbstractVecOrTuple{NGramStrings}) = NGramStrings(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b)
+Base.size(a::NGramStrings) = (a.m, length(a.s))
+Base.size(a::NGramStrings, d) = (d == 1) ? a.m : length(a.s)
+Base.reduce(::typeof(catobs), a::AbstractArray{S}) where {S<:NGramStrings} = _catobs(a[:])
+Base.cat(a::NGramStrings...) = _catobs(collect(a))
+_lastcat(a::Array{S}) where {S<:NGramStrings} = _catobs(a)
+_catobs(a::AbstractVecOrTuple{NGramStrings}) = NGramStrings(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
 
 function mul(A::Matrix, B::NGramStrings{T}) where {T<:AbstractString}
   mA, nA = size(A)

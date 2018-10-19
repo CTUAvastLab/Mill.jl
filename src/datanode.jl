@@ -131,7 +131,7 @@ function _catobs(as::Vector{T}) where {T<:WeightedBagNode}
     data = _lastcat([x.data for x in as])
     metadata = _lastcat(filtermetadata([a.metadata for a in as]))
     bags = _catbags([d.bags for d in as])
-    weights = lastcat([d.weights for d in as])
+    weights = _lastcat([d.weights for d in as])
     return WeightedBagNode(data, bags, weights, metadata)
 end
 
@@ -148,7 +148,6 @@ for s in [:ArrayNode, :BagNode, :WeightedBagNode, :TreeNode]
     @eval catobs(as::$s...) = _catobs(collect(as))
     @eval @deprecate cat(a::$s...) catobs(a...)
 end
-
 
 lastcat(a::AbstractArray...) = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)
