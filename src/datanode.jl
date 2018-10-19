@@ -106,8 +106,8 @@ end
 
 catobs(a::ArrayNode...) = hcat(a...)
 function _catobs(V::AbstractVecOrTuple{ArrayNode})
-    data = _lastcat(map(x -> x.data, V))
-    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
+    data = _lastcat([x.data for x in V])
+    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
     return ArrayNode(data, metadata)
 end
 
@@ -118,10 +118,10 @@ function catobs(a::BagNode...)
     return BagNode(data, bags, metadata)
 end
 function _catobs(V::AbstractVecOrTuple{BagNode})
-    data = _lastcat(map(x -> x.data, V))
+    data = _lastcat([x.data for x in V])
     metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
     bags = catbags(map(d -> d.bags, V)...)
-    return BagNode(data, metadata)
+    return BagNode(data, bags, metadata)
 end
 
 function catobs(a::WeightedBagNode...)
@@ -132,7 +132,7 @@ function catobs(a::WeightedBagNode...)
     return WeightedBagNode(data, bags, weights, metadata)
 end
 function _catobs(V::AbstractVecOrTuple{WeightedBagNode})
-    data = _lastcat(map(x -> x.data, V))
+    data = _lastcat([x.data for x in V])
     metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
     bags = catbags(map(d -> d.bags, V)...)
     weights = _lastcat(map(d -> d.weights, V)...)
@@ -145,8 +145,8 @@ function catobs(a::TreeNode...)
     return TreeNode(data, metadata)
 end
 function _catobs(V::AbstractVecOrTuple{TreeNode})
-    data = _lastcat(map(x -> x.data, V))
-    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
+    data = _lastcat([x.data for x in V])
+    metadata = _lastcat(collect(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))))
     return TreeNode(data, metadata)
 end
 
@@ -165,16 +165,17 @@ lastcat(a::DataFrame...) = vcat(a...)
 lastcat(a::AbstractNode...) = catobs(a...)
 lastcat(a::Nothing...) = nothing
 # enforces both the same length of the tuples and their structure
-lastcat(a::NTuple{N, AbstractNode}...) where N = ((catobs(d...) for d in zip(a...))...,)
+lastcat(a::NTuple{N, AbstractNode}...) where N = ((catobs(collect(d)) for d in zip(a...))...,)
 lastcat() = nothing
 
 _lastcat(a::AbstractVecOrTuple{AbstractArray}) = reduce(hcat, a)
 _lastcat(a::AbstractVecOrTuple{Vector}) = reduce(vcat, a)
-_lastcat(a::AbstractVecOrTuple{DataFrame}) = error("Not supported yet")
+_lastcat(a::AbstractVecOrTuple{DataFrame}) = reduce(vcat, a)
 _lastcat(a::AbstractVecOrTuple{AbstractNode}) = reduce(catobs, a)
 _lastcat(a::AbstractVecOrTuple{Nothing}) = nothing
 # enforces both the same length of the tuples and their structure
-_lastcat(a::AbstractVecOrTuple{NTuple{N, AbstractNode}}) where N = ((reduce(catobs, d) for d in zip(a...))...,)
+_lastcat(a::AbstractVecOrTuple{NTuple{N, AbstractNode}}) where N = ((reduce(catobs, collect(d)) for d in zip(a...))...,)
+_lastcat() = nothing
 
 ################################################################################
 

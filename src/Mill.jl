@@ -1,7 +1,7 @@
 __precompile__()
 module Mill
 using JSON, Flux, Adapt, MLDataPattern, SparseArrays, Statistics
-
+import Base.reduce
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
 function paddedprint(io, s...; color=:default, pad=[])
@@ -37,4 +37,6 @@ export Aggregation
 include("modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 
+include("ngrams.jl")
+export NGramIterator, string2ngrams, NGramStrings, ngrams, ngrams!
 end
