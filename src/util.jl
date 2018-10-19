@@ -24,7 +24,8 @@ function length2bags(ls::Vector{Int})
 	map(b -> isempty(b) ? (0:-1) : b,bags)
 end
 
-function catbags(oldbags...)
+catbags(oldbags...) = _catbags(collect(oldbags))
+function _catbags(oldbags::Vector)
 	offset = 0
 	newbags = Bags()
 	for b in oldbags

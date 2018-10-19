@@ -92,72 +92,63 @@ LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 AbstractVecOrTuple{T} = Union{AbstractVector{<:T}, Tuple{Vararg{T}}}
 
 # hcat and vcat only for ArrayNode
+filtermetadata(::Nothing) = nothing
+filtermetadata(a) = a
+function filtermetadata(a::Vector) 
+    if any(a .== nothing)
+        a = a[a .!= nothing]
+    end
+    isempty(a) && return(nothing)
+    if any(isempty.(a))
+        a = a[.!isempty.(a)]
+    end 
+    isempty(a) && return(nothing)
+    Vector{typeof(a[1])}(a)
+end
+
 function Base.vcat(as::ArrayNode...)
     data = vcat([a.data for a in as]...)
-    metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
+    metadata = _lastcat(filtermetadata([a.metadata for a in as]))
     return ArrayNode(data, metadata)
 end
 
-function Base.hcat(as::ArrayNode...)
-    data = hcat([a.data for a in as]...)
-    metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, as))...)
+Base.hcat(as::ArrayNode...) = _catobs(collect(as))
+
+function _catobs(as::Vector{T}) where {T<:ArrayNode}
+    data = _lastcat([x.data for x in as])
+    metadata = _lastcat(filtermetadata([a.metadata for a in as]))
     return ArrayNode(data, metadata)
 end
 
-catobs(a::ArrayNode...) = hcat(a...)
-function _catobs(V::AbstractVecOrTuple{ArrayNode})
-    data = _lastcat([x.data for x in V])
-    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
-    return ArrayNode(data, metadata)
-end
-
-function catobs(a::BagNode...)
-    data = lastcat(map(d -> d.data, a)...)
-    metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
-    bags = catbags(map(d -> d.bags, a)...)
-    return BagNode(data, bags, metadata)
-end
-function _catobs(V::AbstractVecOrTuple{BagNode})
-    data = _lastcat([x.data for x in V])
-    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
-    bags = catbags(map(d -> d.bags, V)...)
+function _catobs(as::Vector{T}) where {T<:BagNode}
+    data = _lastcat([x.data for x in as])
+    metadata = _lastcat(filtermetadata([a.metadata for a in as]))
+    bags = _catbags([d.bags for d in as])
     return BagNode(data, bags, metadata)
 end
 
-function catobs(a::WeightedBagNode...)
-    data = lastcat(map(d -> d.data, a)...)
-    metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
-    bags = catbags(map(d -> d.bags, a)...)
-    weights = lastcat(map(d -> d.weights, a)...)
-    return WeightedBagNode(data, bags, weights, metadata)
-end
-function _catobs(V::AbstractVecOrTuple{WeightedBagNode})
-    data = _lastcat([x.data for x in V])
-    metadata = _lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))...)
-    bags = catbags(map(d -> d.bags, V)...)
-    weights = _lastcat(map(d -> d.weights, V)...)
+function _catobs(as::Vector{T}) where {T<:WeightedBagNode}
+    data = _lastcat([x.data for x in as])
+    metadata = _lastcat(filtermetadata([a.metadata for a in as]))
+    bags = _catbags([d.bags for d in as])
+    weights = lastcat([d.weights for d in as])
     return WeightedBagNode(data, bags, weights, metadata)
 end
 
-function catobs(a::TreeNode...)
-    data = lastcat(map(d -> d.data, a)...)
-    metadata = lastcat(Iterators.filter(i -> i != nothing, map(d -> d.metadata,a))...)
-    return TreeNode(data, metadata)
-end
-function _catobs(V::AbstractVecOrTuple{TreeNode})
-    data = _lastcat([x.data for x in V])
-    metadata = _lastcat(collect(Iterators.filter(i -> i != nothing, map(d -> d.metadata, V))))
+function _catobs(as::Vector{T}) where {T<:TreeNode}
+    data = _lastcat([x.data for x in as])
+    metadata = _lastcat(filtermetadata([a.metadata for a in as]))
     return TreeNode(data, metadata)
 end
 
+catobs(as::Vector{T}) where {T <: AbstractNode} = _catobs(as)
+reduce(::typeof(catobs), A::Array{T}) where {T <: AbstractNode} = _catobs(A[:])
 # remove to make cat unavailable instead of deprecated
 for s in [:ArrayNode, :BagNode, :WeightedBagNode, :TreeNode]
-    # @eval Base.cat(a::$s...) = catobs(a...)
+    @eval catobs(as::$s...) = _catobs(collect(as))
     @eval @deprecate cat(a::$s...) catobs(a...)
 end
 
-# specialized
-reduce(::typeof(catobs), A::AbstractVector{<:AbstractNode}) = _catobs(A)
 
 lastcat(a::AbstractArray...) = hcat(a...)
 lastcat(a::Vector...) = vcat(a...)
@@ -176,6 +167,7 @@ _lastcat(a::AbstractVecOrTuple{Nothing}) = nothing
 # enforces both the same length of the tuples and their structure
 _lastcat(a::AbstractVecOrTuple{NTuple{N, AbstractNode}}) where N = ((reduce(catobs, collect(d)) for d in zip(a...))...,)
 _lastcat() = nothing
+_lastcat(::Nothing) = nothing
 
 ################################################################################
 
