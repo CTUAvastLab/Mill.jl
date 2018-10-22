@@ -155,7 +155,7 @@ lastcat(a::DataFrame...) = vcat(a...)
 lastcat(a::AbstractNode...) = catobs(a...)
 lastcat(a::Nothing...) = nothing
 # enforces both the same length of the tuples and their structure
-lastcat(a::NTuple{N, AbstractNode}...) where N = ((catobs(collect(d)) for d in zip(a...))...,)
+lastcat(as::NTuple{N, AbstractNode}...) where N = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1: N)...)
 lastcat() = nothing
 
 _lastcat(a::AbstractVecOrTuple{AbstractArray}) = reduce(hcat, a)
@@ -164,7 +164,7 @@ _lastcat(a::AbstractVecOrTuple{DataFrame}) = reduce(vcat, a)
 _lastcat(a::AbstractVecOrTuple{AbstractNode}) = reduce(catobs, a)
 _lastcat(a::AbstractVecOrTuple{Nothing}) = nothing
 # enforces both the same length of the tuples and their structure
-_lastcat(a::AbstractVecOrTuple{NTuple{N, AbstractNode}}) where N = ((reduce(catobs, collect(d)) for d in zip(a...))...,)
+_lastcat(as::AbstractVecOrTuple{NTuple{N, AbstractNode}}) where N = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1: N)...)
 _lastcat() = nothing
 _lastcat(::Nothing) = nothing
 
