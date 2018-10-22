@@ -77,8 +77,8 @@ function reflectinmodel(x::AbstractBagNode, layerbuilder, a = d -> SegmentedMean
 end
 
 function reflectinmodel(x::AbstractTreeNode, layerbuilder, a = d -> SegmentedMean())
-    mm = map(i -> reflectinmodel(i, layerbuilder, a), x.data)
-    im = tuple(map(i -> i[1], mm)...)
+    mm = [reflectinmodel(xx, layerbuilder, a) for xx in  x.data]
+    im = tuple([i[1] for i in mm]...)
     tm, d = reflectinmodel(ProductModel(im)(x), layerbuilder, a)
     ProductModel(im, tm), d
 end

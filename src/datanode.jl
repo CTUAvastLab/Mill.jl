@@ -174,7 +174,7 @@ Base.getindex(x::T, i::VecOrRange) where T <: AbstractNode = T(subset(x.data, i)
 
 function Base.getindex(x::BagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
-    BagNode(subset(x.data,ii), nb, subset(x.metadata, ii))
+    BagNode(subset(x.data,ii), nb, subset(x.metadata, i))
 end
 
 function Base.getindex(x::WeightedBagNode, i::VecOrRange)
