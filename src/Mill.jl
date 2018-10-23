@@ -4,6 +4,8 @@ using JSON, Flux, Adapt, MLDataPattern, SparseArrays, Statistics
 import Base.reduce
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
+MLDataPattern.nobs(::Nothing) = nothing
+
 function paddedprint(io, s...; color=:default, pad=[])
     for (c, p) in pad
         printstyled(io, p, color=c)

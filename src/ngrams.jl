@@ -126,7 +126,7 @@ function mul(A::Matrix, B::NGramStrings{T}) where {T<:AbstractString}
   C = zeros(eltype(A), mA, nB)
   @inbounds for jB in 1:length(B)
       for iB in NGramIterator(B, jB)
-      	miB = mod(iB, nA) + 1
+        miB = mod(iB, nA) + 1
         for iA in 1:mA
             C[iA, jB] += A[iA, miB]
         end
@@ -138,7 +138,7 @@ end
 function multrans(A::Matrix, B::NGramStrings{T}) where {T<:AbstractString}
   mA, nA = size(A)
   mB = length(B)
-  C = zeros(eltype(A), mA, mB)
+  C = zeros(eltype(A), mA, B.m)
   @inbounds for jB in 1:length(B)
       for iB in NGramIterator(B, jB)
 	      	miB = mod(iB, nA) + 1
@@ -152,6 +152,6 @@ end
 
 a::Flux.Tracker.TrackedMatrix * b::NGramStrings{S} where {S<:AbstractString} = Flux.Tracker.track(mul, a, b)
 a::Matrix * b::NGramStrings{S} where {S<:AbstractString} = mul(a, b)
-Flux.Tracker.@grad function mul(a::AbstractMatrix, b::NGramStrings{S}) where {S<:AbstractString}
+Flux.Tracker.@grad function mul(a::Flux.Tracker.TrackedMatrix, b::NGramStrings{S}) where {S<:AbstractString}
   return mul(Flux.data(a),b) , Δ -> (multrans(Δ, b),nothing)
 end

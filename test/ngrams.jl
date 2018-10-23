@@ -46,11 +46,15 @@ using BenchmarkTools, SparseArrays, Random
 		@test all(multrans(A , B) .≈ A*transpose(string2ngrams(s, 3, size(A, 2))))
 	end
 
-	@testset "integration with MILL" begin
+	@testset "integration with MILL & Flux" begin
 		s = ["hello", "world", "!!!"]
-		a = NGramStrings(s, 3, 256)
+		a = NGramStrings(s, 3, 256, 2057)
 		@test all(reduce(catobs, [a, a]).s .== vcat(s,s))
 		@test all(cat(a,a).s .== vcat(s,s))
+
+		W = param(randn(2057, 40))
+		@test Flux.back!(W * a, ones(size(W * a))) == nothing
+
 		a = ArrayNode(a, nothing)
 		@test all(reduce(catobs, [a, a]).data.s .== vcat(s,s))
 		a = BagNode(a,[1:3], nothing)
