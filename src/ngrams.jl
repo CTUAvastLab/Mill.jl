@@ -89,7 +89,7 @@ string2ngrams(x, n, m) = x
 
 
 """
-  struct NGramStrings{T}
+  struct NGramMatrix{T}
     s :: Vector{T}
     n :: Int 
     b :: Int 
@@ -102,25 +102,25 @@ string2ngrams(x, n, m) = x
   The structure essentially represents module one-hot representation of strings, where each columns contains one observation (string). 
   Therefore the structure can be viewed as a matrix with `m` rows and `length(s)` columns
 """
-struct NGramStrings{T} <: AbstractMatrix{T}
+struct NGramMatrix{T} <: AbstractMatrix{T}
   s :: Vector{T}
   n :: Int 
   b :: Int 
   m :: Int
 end
 
-NGramIterator(a::NGramStrings, i) = NGramIterator(codeunits(a.s[i]), a.n, a.b)
+NGramIterator(a::NGramMatrix, i) = NGramIterator(codeunits(a.s[i]), a.n, a.b)
 
-Base.length(a::NGramStrings) = length(a.s)
-Base.size(a::NGramStrings) = (a.m, length(a.s))
-Base.size(a::NGramStrings, d) = (d == 1) ? a.m : length(a.s)
-subset(a::NGramStrings{T}, i) where {T<:AbstractString} = NGramStrings(a.s[i], a.n, a.b, a.m)
-Base.reduce(::typeof(catobs), a::AbstractArray{S}) where {S<:NGramStrings} = _catobs(a[:])
-Base.cat(a::NGramStrings...) = _catobs(collect(a))
-_lastcat(a::Array{S}) where {S<:NGramStrings} = _catobs(a)
-_catobs(a::AbstractVecOrTuple{NGramStrings}) = NGramStrings(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
+Base.length(a::NGramMatrix) = length(a.s)
+Base.size(a::NGramMatrix) = (a.m, length(a.s))
+Base.size(a::NGramMatrix, d) = (d == 1) ? a.m : length(a.s)
+subset(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramMatrix(a.s[i], a.n, a.b, a.m)
+Base.reduce(::typeof(catobs), a::AbstractArray{S}) where {S<:NGramMatrix} = _catobs(a[:])
+Base.cat(a::NGramMatrix...) = _catobs(collect(a))
+_lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
+_catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
 
-function mul(A::Matrix, B::NGramStrings{T}) where {T<:AbstractString}
+function mul(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
   mA, nA = size(A)
   nB = length(B)
   C = zeros(eltype(A), mA, nB)
@@ -135,7 +135,7 @@ function mul(A::Matrix, B::NGramStrings{T}) where {T<:AbstractString}
   return C
 end
 
-function multrans(A::Matrix, B::NGramStrings{T}) where {T<:AbstractString}
+function multrans(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
   mA, nA = size(A)
   mB = length(B)
   C = zeros(eltype(A), mA, B.m)
@@ -150,8 +150,8 @@ function multrans(A::Matrix, B::NGramStrings{T}) where {T<:AbstractString}
   return C
 end
 
-a::Flux.Tracker.TrackedMatrix * b::NGramStrings{S} where {S<:AbstractString} = Flux.Tracker.track(mul, a, b)
-a::Matrix * b::NGramStrings{S} where {S<:AbstractString} = mul(a, b)
-Flux.Tracker.@grad function mul(a::Flux.Tracker.TrackedMatrix, b::NGramStrings{S}) where {S<:AbstractString}
+a::Flux.Tracker.TrackedMatrix * b::NGramMatrix{S} where {S<:AbstractString} = Flux.Tracker.track(mul, a, b)
+a::Matrix * b::NGramMatrix{S} where {S<:AbstractString} = mul(a, b)
+Flux.Tracker.@grad function mul(a::Flux.Tracker.TrackedMatrix, b::NGramMatrix{S}) where {S<:AbstractString}
   return mul(Flux.data(a),b) , Δ -> (multrans(Δ, b),nothing)
 end

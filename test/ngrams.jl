@@ -1,5 +1,5 @@
 using Test
-using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NGramStrings
+using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NGramMatrix
 using BenchmarkTools, SparseArrays, Random
 @testset "ngrams" begin
 	x = [1,3,5,2,6,8,3]
@@ -40,7 +40,7 @@ using BenchmarkTools, SparseArrays, Random
 
 		A = randn(4, 10)
 		s = ["hello", "world", "!!!"]
-		B = NGramStrings(s, 3, 256)
+		B = NGramMatrix(s, 3, 256)
 		@test all(A * B .≈ A*string2ngrams(s, 3, size(A, 2)))
 		A = randn(5,3)
 		@test all(multrans(A , B) .≈ A*transpose(string2ngrams(s, 3, size(A, 2))))
@@ -48,7 +48,7 @@ using BenchmarkTools, SparseArrays, Random
 
 	@testset "integration with MILL & Flux" begin
 		s = ["hello", "world", "!!!"]
-		a = NGramStrings(s, 3, 256, 2057)
+		a = NGramMatrix(s, 3, 256, 2057)
 		@test all(reduce(catobs, [a, a]).s .== vcat(s,s))
 		@test all(cat(a,a).s .== vcat(s,s))
 
@@ -68,9 +68,9 @@ begin
 	#begin block body
 	A = randn(80,2053);
 	s = [randstring(10) for i in 1:1000];
-	B = NGramStrings(s, 3, 256)
+	B = NGramMatrix(s, 3, 256)
 	C = sparse(string2ngrams(s, 3, size(A, 2)));
-	println("A * B::NGramStrings"); 
+	println("A * B::NGramMatrix"); 
 	@btime A*B;																	# 526.456 μs (2002 allocations: 671.95 KiB)
 	println("A * string2ngrams(s, 3, size(A, 2))")
 	@btime A*string2ngrams(s, 3, size(A, 2)); 					# 154.646 ms (3013 allocations: 16.38 MiB)

@@ -40,5 +40,5 @@ include("modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 
 include("ngrams.jl")
-export NGramIterator, string2ngrams, NGramStrings, ngrams, ngrams!
+export NGramIterator, string2ngrams, NGramMatrix, ngrams, ngrams!
 end
