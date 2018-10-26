@@ -1,4 +1,5 @@
 abstract type MillModel end
+const TupleOfModels = NTuple{N, MillModel} where {N}
 
 """
     struct ArrayModel{T <: MillFunction} <: MillModel
@@ -35,7 +36,7 @@ end
 
     uses each model in `ms` on each data in `TreeNode`, concatenate the output and pass it to the chainmodel `m`
 """
-struct ProductModel{TT<:NTuple{N, MillModel} where {N}, T <: MillFunction} <: MillModel
+struct ProductModel{TT<:TupleOfModels, T <: MillFunction} <: MillModel
     ms::TT
     m::ArrayModel{T}
 end
@@ -51,7 +52,7 @@ BagModel(im::MillFunction, a) = BagModel(im, a, identity)
 BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
 BagModel(im::MillModel, a, bm::MillModel) = BagModel(im, Aggregation(a), bm)
 
-ProductModel(ms::TT) where {TT<:NTuple{N, MillModel} where N} = ProductModel(ms, ArrayModel(identity))
+ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, ArrayModel(identity))
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
 Flux.@treelike ArrayModel
