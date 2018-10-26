@@ -4,7 +4,7 @@ import Base: cat, vcat, hcat
 
 abstract type AbstractNode end
 abstract type AbstractBagNode{T <: AbstractNode, C} <: AbstractNode end
-abstract type AbstractTreeNode{N, C} <: AbstractNode end
+abstract type AbstractTreeNode{T, C} <: AbstractNode end
 
 mutable struct ArrayNode{A,C} <: AbstractNode
     data::A
@@ -33,11 +33,11 @@ mutable struct WeightedBagNode{T, W, C} <: AbstractBagNode{T, C}
     end
 end
 
-mutable struct TreeNode{N,C} <: AbstractTreeNode{N, C}
-    data::NTuple{N, AbstractNode}
+mutable struct TreeNode{T,C} <: AbstractTreeNode{T, C}
+    data::T
     metadata::C
 
-    function TreeNode{N,C}(data::NTuple{N, AbstractNode}, metadata::C) where {N, C}
+    function TreeNode{T,C}(data::T, metadata::C) where {T <: NTuple{N, AbstractNode} where N, C}
         @assert length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data)
         new(data, metadata)
     end
@@ -49,8 +49,8 @@ BagNode(x::T, b::Union{Bags, Vector}, metadata::C=nothing) where {T <: AbstractN
 BagNode{T, C}(x, b, metadata)
 WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=nothing) where {T <: AbstractNode, W, C} =
 WeightedBagNode{T, W, C}(x, b, weights, metadata)
-TreeNode(data::NTuple{N, AbstractNode}) where N = TreeNode{N, Nothing}(data, nothing)
-TreeNode(data::NTuple{N, AbstractNode}, metadata::C) where {N, C} = TreeNode{N, C}(data, metadata)
+TreeNode(data::T) where {T} = TreeNode{T, Nothing}(data, nothing)
+TreeNode(data::T, metadata::C) where {T, C} = TreeNode{T, C}(data, metadata)
 
 ################################################################################
 
@@ -155,7 +155,7 @@ lastcat(a::DataFrame...) = vcat(a...)
 lastcat(a::AbstractNode...) = catobs(a...)
 lastcat(a::Nothing...) = nothing
 # enforces both the same length of the tuples and their structure
-lastcat(as::NTuple{N, AbstractNode}...) where N = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1: N)...)
+lastcat(as::T...) where {T <: NTuple{N, AbstractNode} where N} = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1:length(as[1]))...)
 lastcat() = nothing
 
 _lastcat(a::AbstractVecOrTuple{AbstractArray}) = reduce(hcat, a)
@@ -164,7 +164,7 @@ _lastcat(a::AbstractVecOrTuple{DataFrame}) = reduce(vcat, a)
 _lastcat(a::AbstractVecOrTuple{AbstractNode}) = reduce(catobs, a)
 _lastcat(a::AbstractVecOrTuple{Nothing}) = nothing
 # enforces both the same length of the tuples and their structure
-_lastcat(as::AbstractVecOrTuple{NTuple{N, AbstractNode}}) where N = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1: N)...)
+_lastcat(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1:length(as[1]))...)
 _lastcat() = nothing
 _lastcat(::Nothing) = nothing
 
@@ -229,9 +229,9 @@ function dsprint(io::IO, n::WeightedBagNode; pad=[])
     dsprint(io, n.data, pad = [pad; (c, "      ")])
 end
 
-function dsprint(io::IO, n::AbstractTreeNode{N}; pad=[]) where {N}
+function dsprint(io::IO, n::AbstractTreeNode; pad=[])
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "TreeNode{$N}\n", color=c)
+    paddedprint(io, "TreeNode{$(length(n.data))}\n", color=c)
 
     for i in 1:length(n.data)-1
         paddedprint(io, "  ├── ", color=c, pad=pad)

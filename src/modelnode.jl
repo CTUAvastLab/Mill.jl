@@ -63,10 +63,9 @@ Adapt.adapt(T, m::BagModel) = BagModel(Adapt.adapt(T, m.im), Adapt.adapt(T, m.a)
 Adapt.adapt(T, m::ProductModel) = ProductModel((map(m -> Adapt.adapt(T, m), m.ms)...,), Adapt.adapt(T, m.m))
 
 (m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x)
-# enforce the same length of ProductModel and TreeNode
 (m::BagModel)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
 (m::BagModel)(x::WeightedBagNode) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
-(m::ProductModel{N})(x::TreeNode{N}) where N = m.m(ArrayNode(vcat(map(f -> f[1](f[2]).data, zip(m.ms, x.data))...)))
+(m::ProductModel)(x::TreeNode) = m.m(ArrayNode(vcat(map(f -> f[1](f[2]).data, zip(m.ms, x.data))...)))
 
 ################################################################################
 
