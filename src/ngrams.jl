@@ -102,7 +102,7 @@ string2ngrams(x, n, m) = x
   The structure essentially represents module one-hot representation of strings, where each columns contains one observation (string). 
   Therefore the structure can be viewed as a matrix with `m` rows and `length(s)` columns
 """
-struct NGramStrings{T}
+struct NGramStrings{T} <: AbstractMatrix{T}
   s :: Vector{T}
   n :: Int 
   b :: Int 
