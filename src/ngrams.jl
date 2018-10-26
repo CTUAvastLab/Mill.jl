@@ -124,10 +124,10 @@ function mul(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
   mA, nA = size(A)
   nB = length(B)
   C = zeros(eltype(A), mA, nB)
-  @inbounds for jB in 1:length(B)
+  for jB in 1:length(B)
       for iB in NGramIterator(B, jB)
         miB = mod(iB, nA) + 1
-        for iA in 1:mA
+         @inbounds for iA in 1:mA
             C[iA, jB] += A[iA, miB]
         end
       end
@@ -139,10 +139,10 @@ function multrans(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
   mA, nA = size(A)
   mB = length(B)
   C = zeros(eltype(A), mA, B.m)
-  @inbounds for jB in 1:length(B)
+  for jB in 1:length(B)
       for iB in NGramIterator(B, jB)
-	      	miB = mod(iB, nA) + 1
-          for iA in 1:mA
+          miB = mod(iB, B.m) + 1
+           @inbounds for iA in 1:mA
               C[iA, miB] += A[iA, jB]
           end
       end
