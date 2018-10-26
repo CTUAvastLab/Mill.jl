@@ -35,13 +35,13 @@ end
 
     uses each model in `ms` on each data in `TreeNode`, concatenate the output and pass it to the chainmodel `m`
 """
-struct ProductModel{N, T <: MillFunction} <: MillModel
-    ms::NTuple{N, MillModel}
+struct ProductModel{TT<:NTuple{N, MillModel} where {N}, T <: MillFunction} <: MillModel
+    ms::TT
     m::ArrayModel{T}
 end
 
 Base.push!(m::ArrayModel{Flux.Chain}, l) = (push!(m.m.layers, l); m)
-Base.push!(m::ProductModel{N, Flux.Chain}, l) where N = (push!(m.m, l); m)
+Base.push!(m::ProductModel{TT, Flux.Chain}, l) where {TT} = (push!(m.m, l); m)
 Base.push!(m::BagModel{T, ArrayModel{Flux.Chain}}, l) where T = (push!(m.bm, l); m)
 
 BagModel(im::MillFunction, a, bm::MillFunction) = BagModel(ArrayModel(im), a, ArrayModel(bm))
@@ -51,7 +51,7 @@ BagModel(im::MillFunction, a) = BagModel(im, a, identity)
 BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
 BagModel(im::MillModel, a, bm::MillModel) = BagModel(im, Aggregation(a), bm)
 
-ProductModel(ms::NTuple{N, MillModel}) where N = ProductModel(ms, ArrayModel(identity))
+ProductModel(ms::TT) where {TT<:NTuple{N, MillModel} where N} = ProductModel(ms, ArrayModel(identity))
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
 Flux.@treelike ArrayModel
