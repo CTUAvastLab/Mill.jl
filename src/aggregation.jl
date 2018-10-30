@@ -11,9 +11,17 @@ for s in AGGF
     @eval $s(x::TrackedArray, args...) = Flux.Tracker.track($s, x, args...)
     @eval $s(x::ArrayNode, args...) = mapdata(x -> $s(x, args...), x)
 
-    @eval Flux.Tracker.@grad function $s(x, args...)
-        $s(Flux.data(x), Flux.data.(args)...), $(Symbol(string(s, "_back")))(x, args...)
-    end
+    # @eval Flux.Tracker.@grad function $s(x, args...)
+        # $s(Flux.data(x), Flux.data.(args)...), $(Symbol(string(s, "_back")))(x, args...)
+    # end
+end
+
+Flux.Tracker.@grad function _segmented_mean(x::Flux.Tracker.TrackedMatrix, b::Bags)
+  return _segmented_mean(Flux.data(x), b) , Δ -> (_segmented_mean_back(Δ, x,  b), nothing)
+end
+
+Flux.Tracker.@grad function _segmented_max(x::Flux.Tracker.TrackedMatrix, b::Bags)
+  return _segmented_max(Flux.data(x), b) , Δ -> (_segmented_max_back(Δ, x,  b), nothing)
 end
 
 const ParamAgg = Union{PNorm, LSE}

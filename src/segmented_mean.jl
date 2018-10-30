@@ -23,7 +23,8 @@ function _segmented_mean(x::Matrix, bags::Bags, w::Vector)
     o
 end
 
-_segmented_mean_back(x::TrackedArray, bags::Bags) = Δ -> begin
+function _segmented_mean_back(Δ, x::TrackedArray, bags::Bags)
+    # @show typeof(Δ, typeof(x), typeof(bags))
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = similar(x)
@@ -34,7 +35,7 @@ _segmented_mean_back(x::TrackedArray, bags::Bags) = Δ -> begin
             end
         end
     end
-    dx, nothing
+    dx
 end
 
 _segmented_mean_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin

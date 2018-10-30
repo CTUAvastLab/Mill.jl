@@ -142,6 +142,8 @@ function _catobs(as::Vector{T}) where {T<:TreeNode}
 end
 
 catobs(as::Vector{T}) where {T <: AbstractNode} = _catobs(as)
+catobs(as::Vector{T}) where {T <: AbstractMatrix} = reduce(hcat, as)
+catobs(as::T...) where {T <: AbstractMatrix} = reduce(hcat, as)
 reduce(::typeof(catobs), A::Array{T}) where {T <: AbstractNode} = _catobs(A[:])
 # remove to make cat unavailable instead of deprecated
 for s in [:ArrayNode, :BagNode, :WeightedBagNode, :TreeNode]

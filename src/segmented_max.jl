@@ -14,7 +14,7 @@ end
 
 _segmented_max(x::Matrix, bags::Bags, w::Vector) = _segmented_max(x, bags)
 
-_segmented_max_back(x::TrackedArray, bags::Bags) = Δ -> begin
+function _segmented_max_back(Δ, x::Matrix, bags::Bags)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = zero(x)
@@ -35,9 +35,9 @@ _segmented_max_back(x::TrackedArray, bags::Bags) = Δ -> begin
             dx[i, idxs[i]] = Δ[i, j]
         end
     end
-    dx, nothing
+    dx
 end
 
-_segmented_max_back(x::TrackedArray, bags::Bags, w::Vector) = Δ -> begin
-    tuple(_segmented_max_back(x, bags)(Δ)..., nothing)
+_segmented_max_back(x::Matrix, bags::Bags, w::Vector) = Δ -> begin
+    tuple(_segmented_max_back(Δ, x, bags), nothing, nothing)
 end

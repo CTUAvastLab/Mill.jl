@@ -120,19 +120,33 @@ Base.cat(a::NGramMatrix...) = _catobs(collect(a))
 _lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
 _catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
 
+
+function mulkernel!(C, A, jB, mA, nA, idxs)
+  for iB in idxs
+    miB = mod(iB, nA) + 1
+     @inbounds for iA in 1:mA
+        C[iA, jB] += A[iA, miB]
+    end
+  end
+end
+
 function mul(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
   mA, nA = size(A)
   nB = length(B)
   C = zeros(eltype(A), mA, nB)
   for jB in 1:length(B)
-      for iB in NGramIterator(B, jB)
-        miB = mod(iB, nA) + 1
-         @inbounds for iA in 1:mA
-            C[iA, jB] += A[iA, miB]
-        end
-      end
+      mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
   end
   return C
+end
+
+function multkernel!(C, A, jB, mA, bm, idxs)
+  for iB in idxs
+    miB = mod(iB, bm) + 1
+    @inbounds for iA in 1:mA
+      C[iA, miB] += A[iA, jB]
+    end
+  end
 end
 
 function multrans(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
@@ -140,12 +154,7 @@ function multrans(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
   mB = length(B)
   C = zeros(eltype(A), mA, B.m)
   for jB in 1:length(B)
-      for iB in NGramIterator(B, jB)
-          miB = mod(iB, B.m) + 1
-           @inbounds for iA in 1:mA
-              C[iA, miB] += A[iA, jB]
-          end
-      end
+    multkernel!(C, A, jB, mA, B.m, NGramIterator(B, jB))
   end
   return C
 end
