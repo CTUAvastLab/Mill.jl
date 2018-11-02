@@ -44,7 +44,13 @@ mutable struct TreeNode{T,C} <: AbstractTreeNode{T, C}
 end
 
 ArrayNode(data::AbstractArray) = ArrayNode(data, nothing)
-ArrayNode(data::AbstractNode, metadata = nothing) = data
+ArrayNode(data::AbstractNode) = data
+ArrayNode(data::AbstractNode, metadata::Nothing) = data
+function ArrayNode(data::AbstractNode, metadata)
+    metadata = data.metadata == nothing ? metadata : hcat(data.metadata, metadata) 
+    typeof(data)(data.data, hcat(data.metadata, metadata))
+end
+
 BagNode(x::T, b::Union{Bags, Vector}, metadata::C=nothing) where {T <: AbstractNode, C} =
 BagNode{T, C}(x, b, metadata)
 WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=nothing) where {T <: AbstractNode, W, C} =
