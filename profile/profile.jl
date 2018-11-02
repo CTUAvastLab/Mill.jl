@@ -17,7 +17,7 @@ function loaddata()
 end
 model = BagModel(
     ArrayModel(Dense(166, 10, Flux.relu)),   # model on the level of Flows
-    SegmentedMax(),
+    SegmentedLSE(10),
     ArrayModel(Chain(Dense(10, 10, Flux.relu), Dense(10, 2))))         # model on the level of bags
 loss(x,y) = Flux.logitcrossentropy(model(getobs(x)).data, Flux.onehotbatch(y, 1:2));
 
@@ -31,9 +31,11 @@ function profile_test(n)
 end
 
 profile_test(1)
-using Profile
-Profile.clear()
-@profile profile_test(3)
 
-using ProfileView
-ProfileView.view()
+@time profile_test(10)
+
+# using Profile
+# Profile.clear()
+# @profile profile_test(3)
+# using ProfileView
+# ProfileView.view()

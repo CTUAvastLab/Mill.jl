@@ -23,7 +23,7 @@ end
 
 _segmented_lse(x::Matrix, p::Vector, bags::Bags, w::Vector) = _segmented_lse(x, p, bags)
 
-_segmented_lse_back(x::TrackedArray, p::Vector, bags::Bags, n::Matrix) = Δ -> begin
+function _segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::Bags, n::Matrix)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = zero(x)
@@ -42,11 +42,9 @@ _segmented_lse_back(x::TrackedArray, p::Vector, bags::Bags, n::Matrix) = Δ -> b
     dx, nothing, nothing
 end
 
-_segmented_lse_back(x::TrackedArray, p::Vector, bags::Bags, w::Vector, n::Matrix) = Δ -> begin
-    tuple(_segmented_lse_back(x, p, bags, n)(Δ)..., nothing)
-end
+_segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::Bags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
 
-_segmented_lse_back(x::TrackedArray, p::TrackedVector, bags::Bags, n::Matrix) = Δ -> begin
+function _segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::Bags, n::Matrix)
     x = Flux.data(x)
     p = Flux.data(p)
     Δ = Flux.data(Δ)
@@ -70,11 +68,9 @@ _segmented_lse_back(x::TrackedArray, p::TrackedVector, bags::Bags, n::Matrix) = 
     dx, dp ./ p, nothing
 end
 
-_segmented_lse_back(x::TrackedArray, p::TrackedVector, bags::Bags, w::Vector, n::Matrix) = Δ -> begin
-    tuple(_segmented_lse_back(x, p, bags, n)(Δ)..., nothing)
-end
+_segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::Bags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
 
-_segmented_lse_back(x::Matrix, p::TrackedVector, bags::Bags, n::Matrix) = Δ -> begin
+function _segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::Bags, n::Matrix)
     p = Flux.data(p)
     Δ = Flux.data(Δ)
     dp = zero(p)
@@ -94,9 +90,7 @@ _segmented_lse_back(x::Matrix, p::TrackedVector, bags::Bags, n::Matrix) = Δ -> 
     nothing, dp ./ p, nothing, nothing
 end
 
-_segmented_lse_back(x::Matrix, p::TrackedVector, bags::Bags, w::Vector, n::Matrix) = Δ -> begin
-    tuple(_segmented_lse_back(x, p, bags, n)(Δ)..., nothing)
-end
+_segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::Bags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
 
 (n::LSE)(x, args...) = let m = maximum(x, dims=2)
     m .+ _segmented_lse(x .- m, n.p, args...)
@@ -106,9 +100,9 @@ end
 (n::LSE{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
 
 # both x and p can be params
-(n::LSE{<:AbstractVector})(x::TrackedArray, args...) = _lse_grad(x, n.p, args...)
+(n::LSE{<:AbstractVector})(x::TrackedMatrix, args...) = _lse_grad(x, n.p, args...)
 (n::LSE{<:TrackedVector})(x, args...) = _lse_grad(x, n.p, args...)
-(n::LSE{<:TrackedVector})(x::TrackedArray, args...) = _lse_grad(x, n.p, args...)
+(n::LSE{<:TrackedVector})(x::TrackedMatrix, args...) = _lse_grad(x, n.p, args...)
 
 _lse_grad(x, p, args...) = let m = maximum(x, dims=2)
     m .+ Flux.Tracker.track(_lse_grad, x .- m, p, args...)
@@ -116,6 +110,6 @@ end
 
 Flux.Tracker.@grad function _lse_grad(x, p, args...)
     n = _segmented_lse(Flux.data(x), Flux.data(p), Flux.data.(args)...)
-    grad = _segmented_lse_back(x, p, args..., n)
+    grad = Δ -> _segmented_lse_back(Δ, x, p, args..., n)
     n, grad
 end
