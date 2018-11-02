@@ -95,8 +95,8 @@ _segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::Bags, w::Vector, n::M
 (n::LSE)(x, args...) = let m = maximum(x, dims=2)
     m .+ _segmented_lse(x .- m, n.p, args...)
 end
-
 (n::LSE)(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
+
 (n::LSE{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
 
 # both x and p can be params

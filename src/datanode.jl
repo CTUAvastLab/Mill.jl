@@ -84,7 +84,6 @@ LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 # but that solution currently fails (see #27188 and #27224)
 AbstractVecOrTuple{T} = Union{AbstractVector{<:T}, Tuple{Vararg{T}}}
 
-# hcat and vcat only for ArrayNode
 filtermetadata(::Nothing) = nothing
 filtermetadata(a) = a
 function filtermetadata(a::Vector) 
@@ -99,7 +98,8 @@ function filtermetadata(a::Vector)
     Vector{typeof(a[1])}(a)
 end
 
-function Base.vcat(as::ArrayNode{T, C}...) where {T, C}
+# hcat and vcat only for ArrayNode
+function Base.vcat(as::ArrayNode...)
     data = vcat([a.data for a in as]...)
     metadata = _lastcat(filtermetadata([a.metadata for a in as]))
     return ArrayNode(data, metadata)
@@ -195,8 +195,7 @@ subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 
 Base.show(io::IO, n::AbstractNode) = dsprint(io, n)
 
-dsprint(io::IO, n::ArrayNode; pad=[]) =
-paddedprint(io, "ArrayNode$(size(n.data))\n")
+dsprint(io::IO, n::ArrayNode; pad=[]) = paddedprint(io, "ArrayNode$(size(n.data))\n")
 
 function dsprint(io::IO, n::BagNode{ArrayNode}; pad=[])
     c = COLORS[(length(pad)%length(COLORS))+1]
