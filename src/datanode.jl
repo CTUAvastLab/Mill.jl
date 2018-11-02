@@ -70,19 +70,6 @@ data(x) = x
 
 ################################################################################
 
-# # Flux Tracker interface compatibility for ArrayNode
-# for s in [
-# 	[:Flux, :param],
-# 	[:Flux, :Tracker, :istracked],
-# 	[:Base, :length],
-# 	[:Base, :zero],
-# ]
-# 	eval(Expr(:import, s...))
-# 	@eval $(s[end])(x::ArrayNode) = mapdata($(s[end]), x)
-# end
-
-################################################################################
-
 LearnBase.nobs(a::ArrayNode) = size(a.data, 2)
 LearnBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
@@ -112,7 +99,7 @@ function filtermetadata(a::Vector)
     Vector{typeof(a[1])}(a)
 end
 
-function Base.vcat(as::ArrayNode...)
+function Base.vcat(as::ArrayNode{T, C}...) where {T, C}
     data = vcat([a.data for a in as]...)
     metadata = _lastcat(filtermetadata([a.metadata for a in as]))
     return ArrayNode(data, metadata)
