@@ -59,10 +59,6 @@ Flux.@treelike ArrayModel
 Flux.@treelike BagModel
 Flux.@treelike ProductModel
 
-Adapt.adapt(T, m::ArrayModel) = ArrayModel(Adapt.adapt(T, m.m))
-Adapt.adapt(T, m::BagModel) = BagModel(Adapt.adapt(T, m.im), Adapt.adapt(T, m.a), Adapt.adapt(T, m.bm))
-Adapt.adapt(T, m::ProductModel) = ProductModel((map(m -> Adapt.adapt(T, m), m.ms)...,), Adapt.adapt(T, m.m))
-
 (m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x)
 (m::BagModel)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
 (m::BagModel)(x::WeightedBagNode) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
