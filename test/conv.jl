@@ -6,7 +6,6 @@ _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 
 
 convsum(bags, xs) = xs
-
 function convsum(bags, xs...)
 	offsets = _convshift(length(xs))
 	o = similar(xs[1]) .= 0
@@ -35,6 +34,11 @@ function ∇convsum(Δ, bags, n)
 		end
 	end
 	tuple(o...)
+end
+
+function convolution(x, bags, f::AbstractArray{3})
+	@assert size(x, 1) == size(f, 1)
+	convsum(bags, [f[:, :, i] for i in 1:size(f, 3)]...)
 end
 
 
