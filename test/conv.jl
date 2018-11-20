@@ -1,11 +1,12 @@
 using Test
+using Flux
 using Flux.Tracker: TrackedReal, gradcheck, grad, checkpoint
 gradtest(f, xs::AbstractArray...) = gradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
 
 _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 
 
-convsum(bags, xs) = xs
+convsum(bags, xs::AbstractMatrix) = xs
 function convsum(bags, xs...)
 	offsets = _convshift(length(xs))
 	o = similar(xs[1]) .= 0
@@ -36,9 +37,10 @@ function ∇convsum(Δ, bags, n)
 	tuple(o...)
 end
 
-function convolution(x, bags, f::AbstractArray{3})
-	@assert size(x, 1) == size(f, 1)
-	convsum(bags, [f[:, :, i] for i in 1:size(f, 3)]...)
+conv(x, bags, f::AbstractArray{3}) = convsum(bags, [f[:, :, i]*x for i in 1:size(f, 3)]...)
+
+Flux.Tracker.@grad function convsum(bags, xs::TrackedMatrix...)
+  convsum(bags, Flux.data.(xs)...), Δ -> (nothing,  ∇convsum(Δ, bags, length(xs))...)
 end
 
 
@@ -50,7 +52,7 @@ end
 end
 
 @testset "testing forward convolution & gradient" begin
-	x = [1 10  100  1000  10000];
+	x = Float64.([1 10  100  1000  10000]);
 	y = 2 .* x;
 	z = 4 .* x;
 	bags = [1:2,3:5];
