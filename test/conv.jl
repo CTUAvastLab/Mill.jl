@@ -36,3 +36,48 @@ end
 	@test gradtest(x -> convmil(x, bags, filters), x)
 	@test gradtest(ff -> convmil(x, bags, ff), filters)
 end
+
+
+#let's test the sequential mapping of sites
+using Mill: ArrayNode, BagNode, SequentialBagNode, nobs, catobs
+
+@testset "Sequential bag node" begin
+	a = SequentialBagNode(ArrayNode(rand(3,4)),[1:4], ["metadata", "metadata", "metadata", "metadata"])
+  b = SequentialBagNode(ArrayNode(rand(3,4)),[1:2,3:4])
+  c = SequentialBagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], ["metadata", "metadata", "metadata", "metadata"])
+  d = SequentialBagNode(ArrayNode(rand(3,4)),[1:4,0:-1])
+
+	@testset "testing nobs" begin
+    @test nobs(a) == 1
+    @test nobs(b) == 2
+    @test nobs(c) == 3
+    @test nobs(d) == 2
+  end
+
+  @testset "testing BagNode hcat" begin
+      @test all(catobs(a, b, c).data.data .== hcat(a.data.data, b.data.data, c.data.data))
+      @test all(reduce(catobs, [a, b, c]).data.data .== hcat(a.data.data, b.data.data, c.data.data))
+      @test all(catobs(a, b, c).bags .== [1:4, 5:6, 7:8, 9:9, 10:10, 11:12])
+      @test all(reduce(catobs, [a, b, c]).bags .== [1:4, 5:6, 7:8, 9:9, 10:10, 11:12])
+      @test all(catobs(c, a).data.data .== hcat(c.data.data, a.data.data))
+      @test all(reduce(catobs, [c, a]).data.data .== hcat(c.data.data, a.data.data))
+      @test all(catobs(c, a).bags .== [1:1, 2:2, 3:4, 5:8])
+      @test all(reduce(catobs, [c, a]).bags .== [1:1, 2:2, 3:4, 5:8])
+      @test all(catobs(a, c).data.data .== hcat(a.data.data, c.data.data))
+      @test all(reduce(catobs, [a, c]).data.data .== hcat(a.data.data, c.data.data))
+      @test all(catobs(a, c).bags .== [1:4, 5:5, 6:6, 7:8])
+      @test all(reduce(catobs, [a, c]).bags .== [1:4, 5:5, 6:6, 7:8])
+      @test all(catobs(a, d).data.data .== hcat(a.data.data, d.data.data))
+      @test all(reduce(catobs, [a, d]).data.data .== hcat(a.data.data, d.data.data))
+      @test all(catobs(a, d).bags .== [1:4, 5:8, 0:-1])
+      @test all(reduce(catobs, [a, d]).bags .== [1:4, 5:8, 0:-1])
+      @test all(catobs(d, a).data.data .== hcat(d.data.data, a.data.data))
+      @test all(reduce(catobs, [d, a]).data.data .== hcat(d.data.data, a.data.data))
+      @test all(catobs(d, a).bags .== [1:4, 0:-1, 5:8])
+      @test all(reduce(catobs, [d, a]).bags .== [1:4, 0:-1, 5:8])
+      @test all(catobs(d).data.data .== hcat(d.data.data))
+      @test all(reduce(catobs, [d]).data.data .== hcat(d.data.data))
+      @test all(catobs(d).bags .== [1:4, 0:-1])
+      @test all(reduce(catobs, [d]).bags .== [1:4, 0:-1])
+  end
+end
