@@ -51,3 +51,47 @@ function _segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::Vector)
     end
     dx, nothing, nothing
 end
+
+function _segmented_mean_back(Δ, x::Matrix, bags::Bags, w::TrackedVector)
+    x = Flux.data(x)
+    Δ = Flux.data(Δ)
+    w = Flux.data(w)
+    n = _segmented_mean(x, bags, w)
+    dw = zero(w)
+    @inbounds for (j, b) in enumerate(bags)
+        ws = sum(@view w[b])
+        for bi in b
+            for i in 1:size(x,1)
+                dw[bi] += Δ[i, j] * (x[i, bi] - n[i, j]) / ws
+            end
+        end
+    end
+    nothing, nothing, dw
+end
+
+function _segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::TrackedVector)
+    x = Flux.data(x)
+    Δ = Flux.data(Δ)
+    w = Flux.data(w)
+    n = _segmented_mean(x, bags, w)
+    dx = similar(x)
+    @inbounds for (j, b) in enumerate(bags)
+        ws = sum(@view w[b])
+        for bi in b
+            for i in 1:size(x,1)
+                dx[i, bi] = w[bi] * Δ[i, j] / ws
+            end
+        end
+    end
+    dw = zero(w)
+    @inbounds for (j, b) in enumerate(bags)
+        ws = sum(@view w[b])
+        for bi in b
+            for i in 1:size(x,1)
+                dw[bi] += Δ[i, j] * (x[i, bi] - n[i, j]) / ws
+            end
+        end
+    end
+    dx, nothing, dw
+end
+

@@ -42,7 +42,7 @@ let
     @testset "aggregation grad check" begin
         for bags in BAGS
             w = randn(10)
-            d = rand(1:1)
+            d = rand(1:10)
             x = randn(d, 10)
             for g in [
                       x -> sum(SegmentedMean()(x, bags)),
@@ -89,6 +89,26 @@ let
                     sum(n(x, bags, w))
                 end
                 @test g(x, bags, w)
+            end
+        end
+    end
+
+    @testset "derivative w.r.t weights in aggregations" begin
+        for bags in BAGS
+            w = randn(10)
+            d = rand(1:10)
+            x = randn(d, 10)
+            for g in [
+                      w -> sum(SegmentedMean()(x, bags, w)),
+                      w -> sum(SegmentedMax()(x, bags, w))
+                     ]
+                @test gradcheck(g, w)
+            end
+            @test mgradcheck(x, w) do x, w
+                sum(SegmentedMean()(x, bags, w))
+            end
+            @test mgradcheck(x, w) do x, w
+                sum(SegmentedMax()(x, bags, w))
             end
         end
     end

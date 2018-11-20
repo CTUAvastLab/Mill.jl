@@ -39,3 +39,5 @@ function _segmented_max_back(Δ, x::TrackedMatrix, bags::Bags)
 end
 
 _segmented_max_back(Δ, x::TrackedMatrix, bags::Bags, w::Vector) = tuple(_segmented_max_back(Δ, x, bags)..., nothing)
+_segmented_max_back(Δ, x::Matrix, bags::Bags, w::TrackedVector) = (nothing, nothing, zero(w))
+_segmented_max_back(Δ, x::TrackedMatrix, bags::Bags, w::TrackedVector) = tuple(_segmented_max_back(Δ, x, bags)..., zero(w))

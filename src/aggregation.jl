@@ -9,10 +9,13 @@ const AGGF = [:_segmented_max, :_segmented_mean]
 # generic code, for pnorm, situation is more complicated
 for s in AGGF
     @eval $s(x::TrackedMatrix, args...) = Flux.Tracker.track($s, x, args...)
+    @eval $s(x, bags, w::TrackedVector) = Flux.Tracker.track($s, x, bags, w)
+    @eval $s(x::TrackedMatrix, bags, w::TrackedVector) = Flux.Tracker.track($s, x, bags, w)
+
     @eval $s(x::ArrayNode, args...) = mapdata(x -> $s(x, args...), x)
 
-    @eval Flux.Tracker.@grad function $s(x, args...)
-        $s(Flux.data(x), Flux.data.(args)...), Δ -> $(Symbol(string(s, "_back")))(Δ, x, args...)
+    @eval Flux.Tracker.@grad function $s(args...)
+        $s(Flux.data.(args)...), Δ -> $(Symbol(string(s, "_back")))(Δ, args...)
     end
 end
 
