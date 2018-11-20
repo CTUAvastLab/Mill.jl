@@ -1,6 +1,7 @@
 __precompile__()
 module Mill
 using JSON, Flux, MLDataPattern, SparseArrays, Statistics
+using Base: tail
 import Base.reduce
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
@@ -25,6 +26,7 @@ const Bags = Vector{UnitRange{Int64}}
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
+
 include("util.jl")
 
 include("datanode.jl")
@@ -40,8 +42,11 @@ include("modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 
 include("conv.jl")
-export convmil
+export bagconv, BagConv
 
 include("ngrams.jl")
 export NGramIterator, string2ngrams, NGramMatrix, ngrams, ngrams!
+
+include("bagchain.jl")
+export BagChain
 end
