@@ -39,6 +39,9 @@ export Aggregation
 include("modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 
+include("conv.jl")
+export convmil
+
 include("ngrams.jl")
 export NGramIterator, string2ngrams, NGramMatrix, ngrams, ngrams!
 end
