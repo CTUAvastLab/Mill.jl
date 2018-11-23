@@ -1,5 +1,88 @@
 using Flux
 _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
+"""
+	_addmatvec!(o, i, W, x, j)
+
+	add an product of matrix `W` with a j-th column of `x` to i-th columns of `o`
+
+"""
+function _addmatvec!(o::Matrix, i, W::Matrix, x::Matrix, j)
+	for s in 1:size(W, 2)
+		for r in 1:size(W, 1)
+			o[r, i] += W[r, s] * x[s, j]
+		end
+	end
+end
+# _addmatvec!(o, i, W, x, j) = o[:, i] .+=  W * view(x, :, j)
+
+
+"""
+	_outeradd!(W, Δ, i, x, j)
+
+	add an outer product of i-th column of `Δ` and transposed `j`-th columns of `x` to `W`
+
+"""
+function _addvecvect!(W::Matrix, Δ::Matrix, i, x::Matrix, j)
+	@inbounds for r in 1:size(W, 2)
+		for s in 1:size(W, 1)
+			W[s, r] += Δ[s, i] * x[r, j]
+		end
+	end
+end
+
+function bagconv(x, bags, W...)
+	offsets = _convshift(length(W))
+	o = similar(x, size(W[1], 1), size(x, 2)) .= 0
+	for b in bags
+		for ri in b 
+			for (i, k) in enumerate(offsets)
+				if first(b) <= k + ri  <= last(b)
+					_addmatvec!(o, ri, W[i], x, k + ri)
+				end
+			end
+		end
+	end
+	o
+end
+
+function ∇wbagconv(Δ, x, bags, W...)
+	offsets = _convshift(length(W))
+	∇W = [similar(w) .= 0 for w in W]
+	for b in bags
+		for ri in b 
+			for (i, k) in enumerate(offsets)
+				if first(b) <= k + ri  <= last(b)
+					_addvecvect!(∇W[i], Δ, ri, x, k + ri)
+				end
+			end
+		end
+	end
+	tuple(∇W...)
+end
+
+bagconv(x, bags, fs::TrackedMatrix...) = Flux.Tracker.track(bagconv, x, bags, fs...)
+Flux.Tracker.@grad function bagconv(x::Matrix, bags, fs::TrackedMatrix...)
+  bagconv(x, bags, Flux.data.(fs)...), Δ -> (nothing, nothing,  ∇wbagconv(Flux.data(Δ), x, bags,  Flux.data.(fs)...)...)
+end
+
+
+struct BagConv{T<:AbstractArray{N,3} where N}
+	W::T
+end
+
+BagConv(d::Int, o::Int, n::Int) = BagConv(param(randn(o, d, n) .* sqrt(2.0/(o + d))))
+
+(m::BagConv)(x, bags) = bagconv(x, bags, m.W)
+(m::BagConv)(x::ArrayNode, bags) = ArrayNode(bagconv(x.data, bags, m.W))
+
+
+show(io, m::BagConv) = modelprint(io, m)
+function modelprint(io::IO, m::BagConv; pad=[])
+  c = COLORS[(length(pad)%length(COLORS))+1]
+  paddedprint(io, "BagConvolution $(size(m.W))\n", color=c, pad=pad)
+end
+
+
 
 convsum(bags, xs::AbstractMatrix) = xs
 function convsum(bags, xs...)
@@ -38,22 +121,7 @@ Flux.Tracker.@grad function convsum(bags, xs::TrackedMatrix...)
   convsum(bags, Flux.data.(xs)...), Δ -> (nothing,  ∇convsum(Flux.data(Δ), bags, length(xs))...)
 end
 
-struct BagConv{T<:AbstractArray{N,3} where N}
-	W::T
-end
-
-BagConv(d::Int, o::Int, n::Int) = BagConv(param(randn(o, d, n) .* sqrt(2.0/(o + d))))
-
-(m::BagConv)(x, bags) = bagconv(x, bags, m.W)
-(m::BagConv)(x::ArrayNode, bags) = ArrayNode(bagconv(x.data, bags, m.W))
-
-bagconv(x, bags, f::AbstractArray{T, 3}) where {T} = convsum(bags, [f[:, :, i]*x for i in 1:size(f, 3)]...) ./ size(f, 3)
-
-show(io, m::BagConv) = modelprint(io, m)
-function modelprint(io::IO, m::BagConv; pad=[])
-  c = COLORS[(length(pad)%length(COLORS))+1]
-  paddedprint(io, "BagConvolution $(size(m.W))\n", color=c, pad=pad)
-end
+legacy_bagconv(x, bags, f::AbstractArray{T, 3}) where {T} = convsum(bags, [f[:, :, i]*x for i in 1:size(f, 3)]...)
 
 
 # """

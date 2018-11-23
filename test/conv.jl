@@ -1,6 +1,6 @@
 using Test, Flux
 using Mill
-using Mill: convsum, bagconv, _convshift, ∇convsum, ArrayNode, BagNode
+using Mill: convsum, bagconv, legacy_bagconv, _convshift, ∇convsum, ArrayNode, BagNode, ∇wbagconv
 using Flux.Tracker: TrackedReal, gradcheck, grad, checkpoint
 gradtest(f, xs::AbstractArray...) = gradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
 
@@ -29,26 +29,46 @@ end
 	@test gradtest((a, b, c) -> convsum(bags, a, b, c), x, y, z)
 end
 
+@testset "testing matvec and vecvec products " begin 
+	W = randn(3, 4)
+	x = randn(4, 10)
+	o = zeros(3, 10)
+
+	foreach(i -> Mill._addmatvec!(o, i, W, x, i), 1:10)
+	@test o ≈ W*x
+
+	o = zeros(3, 1)
+	foreach(i -> Mill._addmatvec!(o, 1, W, x, i), 1:10)
+	@test o ≈ sum(W*x, dims = 2)
+
+	r, s = randn(5,1), randn(5,1)
+	o = zeros(5, 5)
+	Mill._addvecvect!(o, r, 1, s, 1)
+	@test o ≈ r * transpose(s)
+end
+
 @testset "testing the convolution" begin
 	x = randn(3, 15)
 	bags = [1:1, 2:3, 4:6, 7:15]
 	filters = randn(4, 3, 3)
+	fs = [filters[:,:,i] for i in 1:3]
 
-	@test gradtest(x -> bagconv(x, bags, filters), x)
-	@test gradtest(ff -> bagconv(x, bags, ff), filters)
+	@test bagconv(x, bags, fs...) ≈ legacy_bagconv(x, bags, filters)
+	@test isapprox(Flux.Tracker.ngradient(f -> sum(bagconv(x, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), x, bags, fs...)[1], atol = 1e-6)
+	@test gradtest((a, b, c) -> bagconv(x, bags, a, b, c), fs...)
 end
 
 
-x = BagNode(ArrayNode(rand(3,10)),[1:3,4:10])
+# x = BagNode(ArrayNode(rand(3,10)),[1:3,4:10])
 
-k = 7;
+# k = 7;
 
-im = ArrayModel(Dense(size(x.data.data, 1), k, relu))
-tmpx = im(x.data)
-am = Mill.BagChain(BagConv(size(tmpx.data, 1), k, 3), Mill.SegmentedMeanMax())
-tmpx = am(xx, x.bags)
-bm = ArrayModel(Dense(size(tmpx.data, 1), 2))
-m = BagModel(im, am, bm)
+# im = ArrayModel(Dense(size(x.data.data, 1), k, relu))
+# tmpx = im(x.data)
+# am = Mill.BagChain(BagConv(size(tmpx.data, 1), k, 3), Mill.SegmentedMeanMax())
+# tmpx = am(xx, x.bags)
+# bm = ArrayModel(Dense(size(tmpx.data, 1), 2))
+# m = BagModel(im, am, bm)
 
 # #let's test the sequential mapping of sites
 # using Mill: ArrayNode, BagNode, SequentialBagNode, nobs, catobs
