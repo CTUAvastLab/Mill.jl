@@ -89,20 +89,22 @@ Flux.Tracker.@grad function bagconv(x, bags, fs::TrackedMatrix...)
   bagconv(x, bags, Flux.data.(fs)...), Δ -> (nothing, nothing,  ∇wbagconv(Flux.data(Δ), x, bags,  Flux.data.(fs)...)...)
 end
 
-struct BagConv{T<:AbstractArray{N,3} where N}
+struct BagConv{T<:Tuple}
 	W::T
 end
 
-BagConv(d::Int, o::Int, n::Int) = BagConv(param(randn(o, d, n) .* sqrt(2.0/(o + d))))
+Flux.@treelike BagConv
 
-(m::BagConv)(x, bags) = bagconv(x, bags, m.W)
-(m::BagConv)(x::ArrayNode, bags) = ArrayNode(bagconv(x.data, bags, m.W))
+BagConv(d::Int, o::Int, n::Int) = BagConv(tuple([param(randn(o, d) .* sqrt(2.0/(o + d))) for _ in 1:n]...))
+
+(m::BagConv)(x, bags) = bagconv(x, bags, m.W...)
+(m::BagConv)(x::ArrayNode, bags) = ArrayNode(bagconv(x.data, bags, m.W...))
 
 
 show(io, m::BagConv) = modelprint(io, m)
 function modelprint(io::IO, m::BagConv; pad=[])
   c = COLORS[(length(pad)%length(COLORS))+1]
-  paddedprint(io, "BagConvolution $(size(m.W))\n", color=c, pad=pad)
+  paddedprint(io, "BagConvolution ($(size(m.W[1], 2)), $(size(m.W[1], 1)), $(length(m.W)))\n", color=c, pad=pad)
 end
 
 convsum(bags, xs::AbstractMatrix) = xs

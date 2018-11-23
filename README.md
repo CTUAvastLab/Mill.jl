@@ -4,7 +4,7 @@
 Mill is a library to implement flexible multi-instance learning models as described in *Discriminative models for multi-instance problems with tree-structure, Tomáš Pevný, Petr Somol, 2016* https://arxiv.org/abs/1703.02868 and *Using Neural Network Formalism to Solve Multiple-Instance Problems, Tomáš Pevný, Petr Somol, 2016* https://arxiv.org/abs/1609.07257. An example of how to use the library on simple MUSK problem is in example directory.
 
 
-# What is Multiple instance learning (MIL) problem?
+## What is Multiple instance learning (MIL) problem?
 
 In the prototypical machine learning problem the input sample `x` is a vector or matrix of a fixed dimension, or a sequence. In MIL problems the sample `x` is a set of vectors (or matrices) `(x_1, x_2, ..., x_n)`, which means that order does not matter, and which is also the feature making MIL problems different from sequences.
 

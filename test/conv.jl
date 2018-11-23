@@ -1,5 +1,5 @@
-using Test, Flux, SparseArrays, Mill
-using Mill: convsum, bagconv, legacy_bagconv, _convshift, ∇convsum, ArrayNode, BagNode, ∇wbagconv
+using Test, Flux, SparseArrays, Mill, FluxExtensions
+using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇convsum, ArrayNode, BagNode, ∇wbagconv
 using Flux.Tracker: TrackedReal, gradcheck, grad, checkpoint
 gradtest(f, xs::AbstractArray...) = gradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
 
@@ -70,6 +70,15 @@ end
 	@test isapprox(Flux.Tracker.ngradient(f -> sum(bagconv(xs, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), xs, bags, fs...)[1], atol = 1e-6)
 	@test gradtest((a, b, c) -> bagconv(x, bags, a, b, c), fs...)
 	@test gradtest((a, b, c) -> bagconv(xs, bags, a, b, c), fs...)
+
+
+	m = BagConv(3, 4, 3)
+
+	@test params(m) == 3
+	@test size(m(x, bags)) == (4, 15)
+	@test size(m(xs, bags)) == (4, 15)
+	@test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
+	@test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(xs), bags))) == Float32
 end
 
 
