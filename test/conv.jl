@@ -42,6 +42,7 @@ end
 x = BagNode(ArrayNode(rand(3,10)),[1:3,4:10])
 
 k = 7;
+
 im = ArrayModel(Dense(size(x.data.data, 1), k, relu))
 tmpx = im(x.data)
 am = Mill.BagChain(BagConv(size(tmpx.data, 1), k, 3), Mill.SegmentedMeanMax())

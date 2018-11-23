@@ -22,9 +22,9 @@ end
     use a `im` model on data in `BagNode`, the uses function `a` to aggregate individual bags,
     and finally it uses `bm` model on the output
 """
-struct BagModel{T <: MillModel, U <: MillModel} <: MillModel
+struct BagModel{T <: MillModel, A, U <: MillModel} <: MillModel
     im::T
-    a::Aggregation
+    a::A
     bm::U
 end
 
@@ -41,16 +41,11 @@ struct ProductModel{TT<:TupleOfModels, T <: MillFunction} <: MillModel
     m::ArrayModel{T}
 end
 
-Base.push!(m::ArrayModel{Flux.Chain}, l) = (push!(m.m.layers, l); m)
-Base.push!(m::ProductModel{TT, Flux.Chain}, l) where {TT} = (push!(m.m, l); m)
-Base.push!(m::BagModel{T, ArrayModel{Flux.Chain}}, l) where T = (push!(m.bm, l); m)
-
 BagModel(im::MillFunction, a, bm::MillFunction) = BagModel(ArrayModel(im), a, ArrayModel(bm))
 BagModel(im::MillModel, a, bm::MillFunction) = BagModel(im, a, ArrayModel(bm))
 BagModel(im::MillFunction, a, bm::MillModel) = BagModel(ArrayModel(im), a, bm)
 BagModel(im::MillFunction, a) = BagModel(im, a, identity)
 BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
-BagModel(im::MillModel, a, bm::MillModel) = BagModel(im, Aggregation(a), bm)
 
 ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, ArrayModel(identity))
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
