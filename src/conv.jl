@@ -7,9 +7,21 @@ _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 
 """
 function _addmatvec!(o::Matrix, i, W::Matrix, x::Matrix, j)
-	for s in 1:size(W, 2)
+	@inbounds for s in 1:size(W, 2)
 		for r in 1:size(W, 1)
 			o[r, i] += W[r, s] * x[s, j]
+		end
+	end
+end
+
+function _addmatvec!(o::Matrix, i, W::Matrix, x::SparseMatrixCSC, j)
+	rn = x.colptr[j]:x.colptr[j+1] - 1
+	isempty(rn) && return
+	rowptr = x.rowval[rn]
+	vals = x.nzval[rn]
+	@inbounds for (s, v) in zip(rowptr, vals)
+		for r in 1:size(W, 1)
+			o[r, i] += W[r, s] * v
 		end
 	end
 end
@@ -30,9 +42,21 @@ function _addvecvect!(W::Matrix, Δ::Matrix, i, x::Matrix, j)
 	end
 end
 
+function _addvecvect!(W::Matrix, Δ::Matrix, i, x::SparseMatrixCSC, j)
+	rn = x.colptr[j]:x.colptr[j+1] - 1
+	isempty(rn) && return
+	rowptr = x.rowval[rn]
+	vals = x.nzval[rn]
+	for (r, v) in zip(rowptr, vals)
+		for s in 1:size(W, 1)
+			W[s, r] += Δ[s, i] * v
+		end
+	end
+end
+
 function bagconv(x, bags, W...)
 	offsets = _convshift(length(W))
-	o = similar(x, size(W[1], 1), size(x, 2)) .= 0
+	o = similar(W[1], size(W[1], 1), size(x, 2)) .= 0
 	for b in bags
 		for ri in b 
 			for (i, k) in enumerate(offsets)
@@ -61,10 +85,9 @@ function ∇wbagconv(Δ, x, bags, W...)
 end
 
 bagconv(x, bags, fs::TrackedMatrix...) = Flux.Tracker.track(bagconv, x, bags, fs...)
-Flux.Tracker.@grad function bagconv(x::Matrix, bags, fs::TrackedMatrix...)
+Flux.Tracker.@grad function bagconv(x, bags, fs::TrackedMatrix...)
   bagconv(x, bags, Flux.data.(fs)...), Δ -> (nothing, nothing,  ∇wbagconv(Flux.data(Δ), x, bags,  Flux.data.(fs)...)...)
 end
-
 
 struct BagConv{T<:AbstractArray{N,3} where N}
 	W::T
@@ -81,8 +104,6 @@ function modelprint(io::IO, m::BagConv; pad=[])
   c = COLORS[(length(pad)%length(COLORS))+1]
   paddedprint(io, "BagConvolution $(size(m.W))\n", color=c, pad=pad)
 end
-
-
 
 convsum(bags, xs::AbstractMatrix) = xs
 function convsum(bags, xs...)

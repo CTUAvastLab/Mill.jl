@@ -1,5 +1,4 @@
-using Test, Flux
-using Mill
+using Test, Flux, SparseArrays, Mill
 using Mill: convsum, bagconv, legacy_bagconv, _convshift, ∇convsum, ArrayNode, BagNode, ∇wbagconv
 using Flux.Tracker: TrackedReal, gradcheck, grad, checkpoint
 gradtest(f, xs::AbstractArray...) = gradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
@@ -31,31 +30,46 @@ end
 
 @testset "testing matvec and vecvec products " begin 
 	W = randn(3, 4)
-	x = randn(4, 10)
-	o = zeros(3, 10)
+	xs = sprand(4, 10, 0.5)
+	x = Matrix(xs)
 
+	o = zeros(3, 10)
 	foreach(i -> Mill._addmatvec!(o, i, W, x, i), 1:10)
+	@test o ≈ W*x
+	fill!(o, 0)
+	foreach(i -> Mill._addmatvec!(o, i, W, xs, i), 1:10)
 	@test o ≈ W*x
 
 	o = zeros(3, 1)
 	foreach(i -> Mill._addmatvec!(o, 1, W, x, i), 1:10)
 	@test o ≈ sum(W*x, dims = 2)
+	fill!(o, 0)
+	foreach(i -> Mill._addmatvec!(o, 1, W, xs, i), 1:10)
+	@test o ≈ sum(W*x, dims = 2)
 
-	r, s = randn(5,1), randn(5,1)
-	o = zeros(5, 5)
+	xs = sprand(10, 1, 0.5)
+	r, s = randn(10,1), Matrix(xs)
+	o = zeros(10, 10)
 	Mill._addvecvect!(o, r, 1, s, 1)
+	@test o ≈ r * transpose(s)
+	fill!(o, 0)
+	Mill._addvecvect!(o, r, 1, xs, 1)
 	@test o ≈ r * transpose(s)
 end
 
 @testset "testing the convolution" begin
-	x = randn(3, 15)
+	xs = sprand(3, 15, 0.5)
+	x = Matrix(xs)
 	bags = [1:1, 2:3, 4:6, 7:15]
 	filters = randn(4, 3, 3)
 	fs = [filters[:,:,i] for i in 1:3]
 
 	@test bagconv(x, bags, fs...) ≈ legacy_bagconv(x, bags, filters)
+	@test bagconv(x, bags, fs...) ≈ bagconv(xs, bags, fs...)
 	@test isapprox(Flux.Tracker.ngradient(f -> sum(bagconv(x, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), x, bags, fs...)[1], atol = 1e-6)
+	@test isapprox(Flux.Tracker.ngradient(f -> sum(bagconv(xs, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), xs, bags, fs...)[1], atol = 1e-6)
 	@test gradtest((a, b, c) -> bagconv(x, bags, a, b, c), fs...)
+	@test gradtest((a, b, c) -> bagconv(xs, bags, a, b, c), fs...)
 end
 
 
