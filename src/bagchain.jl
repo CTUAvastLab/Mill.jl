@@ -29,11 +29,14 @@ Base.show(io::IO, m::BagChain) = modelprint(io, m)
 
 function modelprint(io::IO, m::BagChain; pad=[])
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "BagChain (", color=c)
+    paddedprint(io, "BagChain (\n", color=c)
     for j in 1:length(m.layers) - 1
-	    modelprint(io, m.layers[j])
-	  end
-    paddedprint(io, m.layers[end], "\n")
+        paddedprint(io, "  ├── ", color=c, pad=pad)
+	    modelprint(io, m.layers[j], pad=[pad; (c, "  │   ")])
+    end
+    paddedprint(io, "  └── ", color=c, pad=pad)
+    modelprint(io, m.layers[end], pad=[pad; (c, "      ")])
+    paddedprint(io, ")\n", color=c, pad=pad)
 end
 
 

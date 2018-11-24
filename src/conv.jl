@@ -103,8 +103,7 @@ BagConv(d::Int, o::Int, n::Int) = BagConv(tuple([param(randn(o, d) .* sqrt(2.0/(
 
 show(io, m::BagConv) = modelprint(io, m)
 function modelprint(io::IO, m::BagConv; pad=[])
-  c = COLORS[(length(pad)%length(COLORS))+1]
-  paddedprint(io, "BagConvolution ($(size(m.W[1], 2)), $(size(m.W[1], 1)), $(length(m.W)))\n", color=c, pad=pad)
+  paddedprint(io, "BagConvolution($(size(m.W[1], 2)), $(size(m.W[1], 1)), $(length(m.W)))\n")
 end
 
 convsum(bags, xs::AbstractMatrix) = xs
