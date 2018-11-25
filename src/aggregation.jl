@@ -21,8 +21,8 @@ end
 
 const ParamAgg = Union{PNorm, LSE}
 
-struct Aggregation
-    fs
+struct Aggregation{F}
+    fs::F
 end
 Flux.@treelike Aggregation
 

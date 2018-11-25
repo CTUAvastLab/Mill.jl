@@ -89,15 +89,37 @@ Flux.Tracker.@grad function bagconv(x, bags, fs::TrackedMatrix...)
   bagconv(x, bags, Flux.data.(fs)...), Δ -> (nothing, nothing,  ∇wbagconv(Flux.data(Δ), x, bags,  Flux.data.(fs)...)...)
 end
 
-struct BagConv{T<:Tuple}
+"""
+	struct BagConv{T, F}
+		W::T
+		σ::F
+	end
+
+	Convolution over a matrix `X` correctly handing borders between bags. The convolution is little bit special, as it 
+	assumes that input is always a matrix (never a tensor) and the kernel always spans the full dimension of the vector.
+
+	BagConv(d::Int, o::Int, n::Int, σ = identity)
+	`d` --- input dimension
+	`o` --- output dimension (number of channels)
+	`n` --- size of convolution
+	`σ` --- transfer function used after the convolution
+
+	note that of `n` equals one, then the convolution boils down to multiplication of input data `x` with a matrix `W` 
+"""
+struct BagConv{T, F}
 	W::T
+	σ::F
 end
 
 Flux.@treelike BagConv
 
-BagConv(d::Int, o::Int, n::Int) = BagConv(tuple([param(randn(o, d) .* sqrt(2.0/(o + d))) for _ in 1:n]...))
+function BagConv(d::Int, o::Int, n::Int, σ = identity)
+	W = (n > 1) ? tuple([param(randn(o, d) .* sqrt(2.0/(o + d))) for _ in 1:n]...) : param(randn(o, d) .* sqrt(2.0/(o + d)))
+	BagConv(W, σ)
+end
 
-(m::BagConv)(x, bags) = bagconv(x, bags, m.W...)
+(m::BagConv{T,F} where {T<:Tuple,F})(x, bags) = m.σ.(bagconv(x, bags, m.W...))
+(m::BagConv{T,F} where {T<:AbstractMatrix,F})(x, bags) = m.σ.(m.W * x)
 (m::BagConv)(x::ArrayNode, bags) = ArrayNode(bagconv(x.data, bags, m.W...))
 
 
@@ -145,58 +167,3 @@ Flux.Tracker.@grad function convsum(bags, xs::TrackedMatrix...)
 end
 
 legacy_bagconv(x, bags, f::AbstractArray{T, 3}) where {T} = convsum(bags, [f[:, :, i]*x for i in 1:size(f, 3)]...)
-
-
-# """
-# 	mutable struct SequentialBagNode{T, C} <: AbstractSequentialBagNode{T, C}
-#     data::T
-#     bags::Bags
-#     metadata::C
-# 	end
-
-# 	`SequentialBagNode` is a `BagNode`, where it is assumed that individual instances have some correlation between each other.  
-# 	The `SequentialBagNode` is intended to be used with convolution model, followed by the usual pooling `meanmax`. The idea is 
-# 	that the convolution will helps to model the correlation.
-# """
-# mutable struct SequentialBagNode{T, C} <: AbstractBagNode{T, C}
-#     data::T
-#     bags::Bags
-#     metadata::C
-
-#     function SequentialBagNode{T, C}(data::T, bags::Union{Bags, Vector}, metadata::C) where {T <: AbstractNode, C}
-#         new(data, bag(bags), metadata)
-#     end
-# end
-
-# SequentialBagNode(x::T, b::Union{Bags, Vector}, metadata::C=nothing) where {T <: AbstractNode, C} =
-# SequentialBagNode{T, C}(x, b, metadata)
-
-# mapdata(f, x::SequentialBagNode) = SequentialBagNode(mapdata(f, x.data), x.bags, x.metadata)
-
-# function _catobs(as::Vector{T}) where {T<:SequentialBagNode}
-#   data = _lastcat([x.data for x in as])
-#   metadata = _lastcat(filtermetadata([a.metadata for a in as]))
-#   bags = _catbags([d.bags for d in as])
-#   return SequentialBagNode(data, bags, metadata)
-# end
-
-# catobs(as::SequentialBagNode...) = _catobs(collect(as))
-
-# function Base.getindex(x::SequentialBagNode, i::VecOrRange)
-#     nb, ii = remapbag(x.bags, i)
-#     SequentialBagNode(subset(x.data,ii), nb, subset(x.metadata, i))
-# end
-
-# function dsprint(io::IO, n::SequentialBagNode{ArrayNode}; pad=[])
-#     c = COLORS[(length(pad)%length(COLORS))+1]
-#     paddedprint(io,"SequentialBagNode$(size(n.data)) with $(length(n.bags)) bag(s)\n", color=c)
-#     paddedprint(io, "  └── ", color=c, pad=pad)
-#     dsprint(io, n.data, pad = [pad; (c, "      ")])
-# end
-
-# function dsprint(io::IO, n::SequentialBagNode; pad=[])
-#     c = COLORS[(length(pad)%length(COLORS))+1]
-#     paddedprint(io,"SequentialBagNode with $(length(n.bags)) bag(s)\n", color=c)
-#     paddedprint(io, "  └── ", color=c, pad=pad)
-#     dsprint(io, n.data, pad = [pad; (c, "      ")])
-# end
