@@ -47,3 +47,11 @@ for idxs in powerset(collect(1:length(fs)))
     @eval $(Symbol("Segmented", names[idxs]...))(d::Int) = Aggregation(tuple($(fs[idxs]...)))
     @eval export $(Symbol("Segmented", names[idxs]...))
 end
+
+function modelprint(io::IO, a::Aggregation; pad=[])
+    paddedprint(io, "Aggregation($(join(a.fs, ", ")))\n")
+end
+
+function modelprint(io::IO, f; pad=[])
+    paddedprint(io, "$f\n")
+end

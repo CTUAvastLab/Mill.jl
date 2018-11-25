@@ -93,7 +93,7 @@ function modelprint(io::IO, m::BagModel; pad=[])
     paddedprint(io, "  ├── ", color=c, pad=pad)
     modelprint(io, m.im, pad=[pad; (c, "  │   ")])
     paddedprint(io, "  ├── ", color=c, pad=pad)
-    paddedprint(io, m.a, "\n")
+    modelprint(io, m.a, pad=[pad; (c, "  │   ")])
     paddedprint(io, "  └── ", color=c, pad=pad)
     modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
 end
