@@ -3,7 +3,7 @@ _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 """
 	_addmatvec!(o, i, W, x, j)
 
-	add an product of matrix `W` with a j-th column of `x` to i-th columns of `o`
+	add a product of matrix `W` with a j-th column of `x` to i-th columns of `o`
 
 """
 function _addmatvec!(o::Matrix, i, W::Matrix, x::Matrix, j)
@@ -25,8 +25,21 @@ function _addmatvec!(o::Matrix, i, W::Matrix, x::SparseMatrixCSC, j)
 		end
 	end
 end
-# _addmatvec!(o, i, W, x, j) = o[:, i] .+=  W * view(x, :, j)
 
+
+"""
+	_addmattvec!(o, i, W, x, j)
+
+	add a product of a transposed matrix `W` with a j-th column of `x` to i-th columns of `o`
+
+"""
+function _addmattvec!(o::Matrix, i, W::Matrix, x::Matrix, j)
+	@inbounds for s in 1:size(W, 1)
+		for r in 1:size(W, 2)
+			o[r, i] += W[s, r] * x[s, j]
+		end
+	end
+end
 
 """
 	_outeradd!(W, Δ, i, x, j)
@@ -84,9 +97,49 @@ function ∇wbagconv(Δ, x, bags, W...)
 	tuple(∇W...)
 end
 
+function ∇xbagconv(Δ, x, bags, W...)
+	offsets = _convshift(length(W))
+	∇x = similar(W[1], size(x)) .= 0
+	for b in bags
+		for ri in b 
+			for (i, k) in enumerate(offsets)
+				if first(b) <= k + ri  <= last(b)
+					_addmattvec!(∇x, k + ri, W[i], Δ, ri)
+				end
+			end
+		end
+	end
+	∇x
+end
+
+function ∇xwbagconv(Δ, x, bags, W...)
+	offsets = _convshift(length(W))
+	∇x = similar(W[1], size(x)) .= 0
+	∇W = [similar(w) .= 0 for w in W]
+	for b in bags
+		for ri in b 
+			for (i, k) in enumerate(offsets)
+				if first(b) <= k + ri  <= last(b)
+					_addmattvec!(∇x, k + ri, W[i], Δ, ri)
+					_addvecvect!(∇W[i], Δ, ri, x, k + ri)
+				end
+			end
+		end
+	end
+	∇x, tuple(∇W...)
+end
+
 bagconv(x, bags, fs::TrackedMatrix...) = Flux.Tracker.track(bagconv, x, bags, fs...)
+bagconv(x::TrackedMatrix, bags, fs::TrackedMatrix...) = Flux.Tracker.track(bagconv, x, bags, fs...)
+bagconv(x::TrackedMatrix, bags, fs::Matrix...) = Flux.Tracker.track(bagconv, x, bags, fs...)
 Flux.Tracker.@grad function bagconv(x, bags, fs::TrackedMatrix...)
   bagconv(x, bags, Flux.data.(fs)...), Δ -> (nothing, nothing,  ∇wbagconv(Flux.data(Δ), x, bags,  Flux.data.(fs)...)...)
+end
+Flux.Tracker.@grad function bagconv(x::TrackedMatrix, bags, fs::TrackedMatrix...)
+  bagconv(Flux.data(x), bags, Flux.data.(fs)...), Δ -> ((∇x, ∇W) = ∇xwbagconv(Flux.data(Δ), Flux.data(x), bags,  Flux.data.(fs)...); (∇x, nothing, ∇W...))
+end
+Flux.Tracker.@grad function bagconv(x::TrackedMatrix, bags, fs::Matrix...)
+  bagconv(Flux.data(x), bags, fs...), Δ -> (∇xbagconv(Flux.data(Δ), Flux.data(x), bags,  Flux.data.(fs)...), nothing,  fill(nothing, length(fs))...)
 end
 
 """
