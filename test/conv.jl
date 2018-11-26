@@ -82,18 +82,31 @@ end
 	@test gradtest((a, b, c) -> bagconv(xs, bags, a, b, c), fs...)
 	@test gradtest(x -> bagconv(x, bags, fs...), x)
 	@test gradtest((x, a, b , c) -> bagconv(x, bags, a, b, c), x, fs...)
+end
 
+@testset "testing convolution layer" begin
+	xs = sprand(3, 15, 0.5)
+	x = Matrix(xs)
+	bags = [1:1, 2:3, 4:6, 7:15]
+	ds = BagNode(ArrayNode(Float32.(x)), bags)
 
 	m = BagConv(3, 4, 3, relu)
 	@test length(params(m)) == 3
 	@test size(m(x, bags)) == (4, 15)
 	@test size(m(xs, bags)) == (4, 15)
 	@test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
-	@test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(xs), bags))) == Float32
+	@test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
+	@test eltype(Flux.data(FluxExtensions.to32(m)(ds).data)) == Float32
 	
 	m = BagConv(3, 4, 1)
 	@test size(m(x, bags)) == (4, 15)
 	@test size(m(xs, bags)) == (4, 15)
 	@test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
 	@test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(xs), bags))) == Float32
+
+	m = BagChain(BagConv(3, 4, 3, relu), BagConv(3, 4, 2))
+	@test length(params(m)) == 5
+	@test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
 end
+
+

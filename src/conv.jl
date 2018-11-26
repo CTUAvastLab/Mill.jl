@@ -174,9 +174,11 @@ end
 (m::BagConv{T,F} where {T<:Tuple,F})(x, bags) = m.σ.(bagconv(x, bags, m.W...))
 (m::BagConv{T,F} where {T<:AbstractMatrix,F})(x, bags) = m.σ.(m.W * x)
 (m::BagConv)(x::ArrayNode, bags) = ArrayNode(bagconv(x.data, bags, m.W...))
+(m::BagConv)(x::BagNode) = ArrayNode(bagconv(x.data.data, x.bags, m.W...))
 
 
-show(io, m::BagConv) = modelprint(io, m)
+Base.show(io::IO, m::BagConv) = modelprint(io, m)
+
 function modelprint(io::IO, m::BagConv; pad=[])
   paddedprint(io, "BagConvolution($(size(m.W[1], 2)), $(size(m.W[1], 1)), $(length(m.W)))\n")
 end
