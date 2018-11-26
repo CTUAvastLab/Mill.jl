@@ -1,4 +1,4 @@
-function _segmented_mean(x::Matrix, bags::Bags)
+function segmented_mean(x::Matrix, bags::Bags)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j,b) in enumerate(bags)
         for bi in b
@@ -10,7 +10,7 @@ function _segmented_mean(x::Matrix, bags::Bags)
     o
 end
 
-function _segmented_mean(x::Matrix, bags::Bags, w::Vector)
+function segmented_mean(x::Matrix, bags::Bags, w::Vector)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j,b) in enumerate(bags)
         ws = sum(@view w[b])
@@ -23,7 +23,7 @@ function _segmented_mean(x::Matrix, bags::Bags, w::Vector)
     o
 end
 
-function _segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags)
+function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = similar(x)
@@ -37,7 +37,7 @@ function _segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags)
     dx, nothing
 end
 
-function _segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::Vector)
+function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::Vector)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = similar(x)
@@ -52,11 +52,11 @@ function _segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::Vector)
     dx, nothing, nothing
 end
 
-function _segmented_mean_back(Δ, x::Matrix, bags::Bags, w::TrackedVector)
+function segmented_mean_back(Δ, x::Matrix, bags::Bags, w::TrackedVector)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     w = Flux.data(w)
-    n = _segmented_mean(x, bags, w)
+    n = segmented_mean(x, bags, w)
     dw = zero(w)
     @inbounds for (j, b) in enumerate(bags)
         ws = sum(@view w[b])
@@ -69,11 +69,11 @@ function _segmented_mean_back(Δ, x::Matrix, bags::Bags, w::TrackedVector)
     nothing, nothing, dw
 end
 
-function _segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::TrackedVector)
+function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::TrackedVector)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     w = Flux.data(w)
-    n = _segmented_mean(x, bags, w)
+    n = segmented_mean(x, bags, w)
     dx = similar(x)
     @inbounds for (j, b) in enumerate(bags)
         ws = sum(@view w[b])
