@@ -1,4 +1,4 @@
-using Flux
+using Flux, KissThreading
 _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 """
 	_addmatvec!(o, i, W, x, j)
@@ -60,16 +60,15 @@ function _addvecvect!(W::Matrix, Δ::Matrix, i, x::SparseMatrixCSC, j)
 	isempty(rn) && return
 	rowptr = x.rowval[rn]
 	vals = x.nzval[rn]
-	for (r, v) in zip(rowptr, vals)
+	@inbounds for (r, v) in zip(rowptr, vals)
 		for s in 1:size(W, 1)
 			W[s, r] += Δ[s, i] * v
 		end
 	end
 end
 
-function bagconv(x, bags, W...)
+function bagconv!(o, x, bags, W...)
 	offsets = _convshift(length(W))
-	o = similar(W[1], size(W[1], 1), size(x, 2)) .= 0
 	for b in bags
 		for ri in b 
 			for (i, k) in enumerate(offsets)
@@ -78,6 +77,15 @@ function bagconv(x, bags, W...)
 				end
 			end
 		end
+	end
+	o
+end
+
+function bagconv(x, bags, W...)
+	o = similar(W[1], size(W[1], 1), size(x, 2)) .= 0
+	n = length(bags)
+	Threads.@threads for i in 1:Threads.nthreads()
+		bagconv!(o, x, bags[KissThreading.getrange(n)], W...)
 	end
 	o
 end
