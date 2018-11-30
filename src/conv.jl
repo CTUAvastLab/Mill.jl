@@ -1,4 +1,4 @@
-using Flux, KissThreading
+using Flux
 _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 """
 	_addmatvec!(o, i, W, x, j)
@@ -85,7 +85,7 @@ end
 function bagconv(x, bags, W...)
 	o = similar(W[1], size(W[1], 1), size(x, 2))
 	Threads.@threads for i in 1:Threads.nthreads()
-		bagconv!(o, x, bags[KissThreading.getrange(length(bags))], W...)
+		bagconv!(o, x, subsetof(bags), W...)
 	end
 	o
 end
@@ -107,7 +107,7 @@ end
 function ∇wbagconv(Δ, x, bags, W...)
 	∇Ws = [[similar(w) for w in W] for i in 1:Threads.nthreads()]
 	Threads.@threads for i in 1:Threads.nthreads()
-		∇wbagconv!(∇Ws[i], Δ, x, bags[KissThreading.getrange(length(bags))], W...)
+		∇wbagconv!(∇Ws[i], Δ, x, subsetof(bags), W...)
 	end
 	foreach(i -> foreach(x -> x[1] .+= x[2], zip(∇Ws[1], ∇Ws[i])), 2:Threads.nthreads())
 	return(tuple(∇Ws[1]...))

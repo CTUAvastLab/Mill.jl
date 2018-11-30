@@ -207,14 +207,6 @@ git-tree-sha1 = "3c29a199713e7ec62cfdc11f44d7760219d5f658"
 uuid = "e5e0dc1b-0480-54bc-9374-aad01c23163d"
 version = "0.5.3"
 
-[[KissThreading]]
-deps = ["Compat", "Future"]
-git-tree-sha1 = "f7f2ea6abcf71c1296c6739ef89855a6c7834b6e"
-repo-rev = "master"
-repo-url = "https://github.com/bkamins/KissThreading.jl"
-uuid = "36cdf07b-9254-507f-b4f5-798eb7a84506"
-version = "0.0.0"
-
 [[LearnBase]]
 deps = ["LinearAlgebra", "SparseArrays", "StatsBase", "Test"]
 git-tree-sha1 = "c4b5da6d68517f46f70ed5157b28336b56cd2ff3"
