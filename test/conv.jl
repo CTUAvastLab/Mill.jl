@@ -75,9 +75,9 @@ end
 
 	@test bagconv(x, bags, fs...) ≈ legacy_bagconv(x, bags, filters)
 	@test bagconv(x, bags, fs...) ≈ bagconv(xs, bags, fs...)
-	@test isapprox(Flux.Tracker.ngradient(f -> sum(bagconv(x, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), x, bags, fs...)[1], atol = 1e-6)
-	@test isapprox(Flux.Tracker.ngradient(f -> sum(bagconv(xs, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), xs, bags, fs...)[1], atol = 1e-6)
-	@test isapprox(Flux.Tracker.ngradient(x -> sum(bagconv(x, bags, fs...)), x)[1],  ∇xbagconv(ones(4, 15), x, bags, fs...), atol = 1e-5)
+	@test isapprox(Flux.Tracker.ngradient(f -> sum(bagconv(x, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), x, bags, fs...)[1], rtol = 1e-6)
+	@test isapprox(Flux.Tracker.ngradient(f -> sum(bagconv(xs, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), xs, bags, fs...)[1], rtol = 1e-6)
+	@test isapprox(Flux.Tracker.ngradient(x -> sum(bagconv(x, bags, fs...)), x)[1],  ∇xbagconv(ones(4, 15), x, bags, fs...), rtol = 1e-5)
 	@test gradtest((a, b, c) -> bagconv(x, bags, a, b, c), fs...)
 	@test gradtest((a, b, c) -> bagconv(xs, bags, a, b, c), fs...)
 	@test gradtest(x -> bagconv(x, bags, fs...), x)
