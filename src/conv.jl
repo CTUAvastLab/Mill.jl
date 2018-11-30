@@ -84,15 +84,15 @@ end
 
 function bagconv(x, bags, W...)
 	o = similar(W[1], size(W[1], 1), size(x, 2))
-	n = length(bags)
 	Threads.@threads for i in 1:Threads.nthreads()
-		bagconv!(o, x, bags[KissThreading.getrange(n)], W...)
+		bagconv!(o, x, bags[KissThreading.getrange(length(bags))], W...)
 	end
 	o
 end
 
 function ∇wbagconv!(∇W, Δ, x, bags, W...)
 	offsets = _convshift(length(W))
+	foreach(w -> w .= 0, ∇W)
 	for b in bags
 		for ri in b 
 			for (i, k) in enumerate(offsets)
@@ -105,20 +105,12 @@ function ∇wbagconv!(∇W, Δ, x, bags, W...)
 end
 
 function ∇wbagconv(Δ, x, bags, W...)
-	if Threads.nthreads() == 1
-		∇W = [similar(w) .= 0 for w in W]
-		∇wbagconv!(∇W, Δ, x, bags, W...)
-		return(tuple(∇W...))
-	else
-		∇Ws = [[similar(w) .= 0 for w in W] for i in 1:Threads.nthreads()]
-		n = length(bags)
-		Threads.@threads for i in 1:Threads.nthreads()
-			∇wbagconv!(∇Ws[i], Δ, x, bags[KissThreading.getrange(n)], W...)
-		end
-		∇W = ∇Ws[1]
-		foreach(i -> foreach(x -> x[1] .+= x[2], zip(∇W, ∇Ws[i])), 2:Threads.nthreads())
-		return(tuple(∇W...))
+	∇Ws = [[similar(w) for w in W] for i in 1:Threads.nthreads()]
+	Threads.@threads for i in 1:Threads.nthreads()
+		∇wbagconv!(∇Ws[i], Δ, x, bags[KissThreading.getrange(length(bags))], W...)
 	end
+	foreach(i -> foreach(x -> x[1] .+= x[2], zip(∇Ws[1], ∇Ws[i])), 2:Threads.nthreads())
+	return(tuple(∇Ws[1]...))
 end
 
 function ∇xbagconv(Δ, x, bags, W...)
