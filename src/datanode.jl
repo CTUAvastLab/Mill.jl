@@ -166,6 +166,7 @@ _lastcat(::Nothing) = nothing
 ################################################################################
 
 Base.getindex(x::T, i::VecOrRange) where T <: AbstractNode = T(subset(x.data, i), subset(x.metadata, i))
+Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
 
 function Base.getindex(x::BagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
