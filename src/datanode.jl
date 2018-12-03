@@ -46,9 +46,14 @@ end
 ArrayNode(data::AbstractArray) = ArrayNode(data, nothing)
 ArrayNode(data::AbstractNode) = data
 ArrayNode(data::AbstractNode, metadata::Nothing) = data
-function ArrayNode(data::AbstractNode, metadata)
+function ArrayNode(data::BagNode, metadata)
     metadata = data.metadata == nothing ? metadata : hcat(data.metadata, metadata) 
-    typeof(data)(data.data, metadata)
+    BagNode(data.data, data.bags, metadata)
+end
+
+function ArrayNode(data::ArrayNode, metadata)
+    metadata = data.metadata == nothing ? metadata : hcat(data.metadata, metadata) 
+    ArrayNode(data.data, metadata)
 end
 
 BagNode(x::T, b::Union{Bags, Vector}, metadata::C=nothing) where {T <: AbstractNode, C} =

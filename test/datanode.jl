@@ -1,5 +1,5 @@
 using Mill: ArrayNode, BagNode, TreeNode, WeightedBagNode
-using SparseArrays
+using SparseArrays, DataFrames
 
 import Mill: sparsify, mapdata
 import LearnBase: nobs
@@ -228,4 +228,10 @@ let
         @test all(xs.data[1].data[1].data .== x.data[1].data[1].data)
     end
 
+    @testset "testing superfluous ArrayNode" begin 
+        x = BagNode(ArrayNode([1 2 3]), [1:2, 3:3], nothing)
+
+        @test typeof(ArrayNode(x, DataFrame(x = [1, 2]))) <: BagNode
+        @test ArrayNode(x, DataFrame(x = [1, 2])).metadata == DataFrame(x = [1, 2])
+    end
 end
