@@ -51,6 +51,11 @@ function ArrayNode(data::BagNode, metadata)
     BagNode(data.data, data.bags, metadata)
 end
 
+function ArrayNode(data::TreeNode, metadata)
+    metadata = data.metadata == nothing ? metadata : hcat(data.metadata, metadata) 
+    TreeNode(data.data, metadata)
+end
+
 function ArrayNode(data::ArrayNode, metadata)
     metadata = data.metadata == nothing ? metadata : hcat(data.metadata, metadata) 
     ArrayNode(data.data, metadata)
