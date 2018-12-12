@@ -151,7 +151,7 @@ reduce(::typeof(catobs), A::Array{T}) where {T <: AbstractNode} = _catobs(A[:])
 # remove to make cat unavailable instead of deprecated
 for s in [:ArrayNode, :BagNode, :WeightedBagNode, :TreeNode]
     @eval catobs(as::$s...) = _catobs(collect(as))
-    @eval cat(a::$s...) catobs(a...)
+    @eval cat(a::$s...) = catobs(a...)
 end
 
 lastcat(a::AbstractArray...) = hcat(a...)
