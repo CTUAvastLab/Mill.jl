@@ -5,6 +5,10 @@ include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 
+# backward compatibility for models trained on previous versions of Mill
+_segmented_mean = segmented_mean
+_segmented_max = segmented_max
+
 const AGGF = [:segmented_max, :segmented_mean]
 # generic code, for pnorm, situation is more complicated
 for s in AGGF
