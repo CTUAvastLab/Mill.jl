@@ -11,6 +11,8 @@ mutable struct ArrayNode{A,C} <: AbstractNode
     metadata::C
 end
 
+Base.ndims(x::ArrayNode) = 0
+
 mutable struct BagNode{T, C} <: AbstractBagNode{T, C}
     data::T
     bags::Bags
@@ -20,6 +22,8 @@ mutable struct BagNode{T, C} <: AbstractBagNode{T, C}
         new(data, bag(bags), metadata)
     end
 end
+
+Base.ndims(x::BagNode) = 0
 
 mutable struct WeightedBagNode{T, W, C} <: AbstractBagNode{T, C}
     data::T
@@ -33,6 +37,8 @@ mutable struct WeightedBagNode{T, W, C} <: AbstractBagNode{T, C}
     end
 end
 
+Base.ndims(x::WeightedBagNode) = 0
+
 mutable struct TreeNode{T,C} <: AbstractTreeNode{T, C}
     data::T
     metadata::C
@@ -42,6 +48,8 @@ mutable struct TreeNode{T,C} <: AbstractTreeNode{T, C}
         new(data, metadata)
     end
 end
+
+Base.ndims(x::TreeNode) = 0
 
 ArrayNode(data::AbstractArray) = ArrayNode(data, nothing)
 ArrayNode(data::AbstractNode) = data
@@ -151,7 +159,7 @@ reduce(::typeof(catobs), A::Array{T}) where {T <: AbstractNode} = _catobs(A[:])
 # remove to make cat unavailable instead of deprecated
 for s in [:ArrayNode, :BagNode, :WeightedBagNode, :TreeNode]
     @eval catobs(as::$s...) = _catobs(collect(as))
-    @eval cat(a::$s...) = catobs(a...)
+    @eval cat(a::$s, b ::$s ; dims = 0) = catobs([a, b])
 end
 
 lastcat(a::AbstractArray...) = hcat(a...)
