@@ -12,6 +12,21 @@ function segmented_max(x::Matrix, bags::Bags)
     o
 end
 
+function segmented_max(x::Matrix, bags::Bags, mask::Vector{Bool})
+    o = similar(x, size(x,1), length(bags))
+    fill!(o, typemin(eltype(x)))
+    for (j,b) in enumerate(bags)
+        for bi in b
+            !mask[bi] && continue
+            for i in 1:size(x, 1)
+                o[i, j] = max(o[i, j], x[i, bi])
+            end
+        end
+    end
+    o[o.== typemin(eltype(x))] .= 0
+    o
+end
+
 segmented_max(x::Matrix, bags::Bags, w::Vector) = segmented_max(x, bags)
 
 function segmented_max_back(Δ, x::TrackedMatrix, bags::Bags)

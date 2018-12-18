@@ -23,6 +23,20 @@ function segmented_mean(x::Matrix, bags::Bags, w::Vector)
     o
 end
 
+function segmented_mean(x::Matrix, bags::Bags, mask::Vector{Bool})
+    o = zeros(eltype(x), size(x, 1), length(bags))
+    @inbounds for (j,b) in enumerate(bags)
+        ws = sum(@view mask[b])
+        for bi in b
+            !mask[bi] && continue
+            for i in 1:size(x, 1)
+                o[i,j] += x[i,bi] / ws
+            end
+        end
+    end
+    o
+end
+
 function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags)
     x = Flux.data(x)
     Δ = Flux.data(Δ)

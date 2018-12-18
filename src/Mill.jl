@@ -47,6 +47,9 @@ export bagconv, BagConv
 include("ngrams.jl")
 export NGramIterator, string2ngrams, NGramMatrix, ngrams, ngrams!
 
+include("replacein.jl")
+export replacein
+
 include("bagchain.jl")
 export BagChain
 end
