@@ -32,7 +32,7 @@ include("threadfuns.jl")
 include("datanode.jl")
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
-export catobs
+export catobs, removeinstances
 
 include("aggregation.jl")
 # agg. types exported in aggregation.jl
@@ -47,9 +47,11 @@ export bagconv, BagConv
 include("ngrams.jl")
 export NGramIterator, string2ngrams, NGramMatrix, ngrams, ngrams!
 
-include("replacein.jl")
-export replacein
 
 include("bagchain.jl")
 export BagChain
+
+include("replacein.jl")
+export replacein
+
 end

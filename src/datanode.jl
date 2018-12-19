@@ -191,6 +191,9 @@ function Base.getindex(x::BagNode, i::VecOrRange)
     BagNode(subset(x.data,ii), nb, subset(x.metadata, i))
 end
 
+removeinstances(a::BagNode, mask) = BagNode(a.data[mask], adjustbags(a.bags, mask), a.metadata)
+adjustbags(bags::Vector{UnitRange{Int64}}, mask) = Mill.length2bags(map(b -> sum(@view mask[b]), bags))
+
 function Base.getindex(x::WeightedBagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
     WeightedBagNode(subset(x.data,ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
