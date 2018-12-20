@@ -35,7 +35,7 @@ function catobs end;
 include("util.jl")
 include("threadfuns.jl")
 
-include("datanode.jl")
+include("datanodes/datanodes.jl")
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
 export catobs, removeinstances
@@ -49,10 +49,6 @@ export MillModel, ArrayModel, BagModel, ProductModel
 
 include("conv.jl")
 export bagconv, BagConv
-
-include("ngrams.jl")
-export NGramIterator, string2ngrams, NGramMatrix, ngrams, ngrams!
-
 
 include("bagchain.jl")
 export BagChain

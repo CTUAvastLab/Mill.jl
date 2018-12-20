@@ -1,6 +1,4 @@
-using Test
-using Mill
-using Flux
+using Test, Mill, Flux
 
 @testset "length2bags" begin
     @test all(Mill.length2bags([1,3,2]) .== [1:1,2:4,5:6])
