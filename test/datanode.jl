@@ -22,18 +22,19 @@ let
         @test all(Mill.remapbag([1:2,0:-1,3:4],[2,3])[2] .== [3,4])
     end
 
-    a = BagNode(ArrayNode(rand(3,4)),[1:4], ["metadata", "metadata", "metadata", "metadata"])
-    b = BagNode(ArrayNode(rand(3,4)),[1:2,3:4])
-    c = BagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], ["metadata", "metadata", "metadata", "metadata"])
-    d = BagNode(ArrayNode(rand(3,4)),[1:4,0:-1])
-    wa = WeightedBagNode(ArrayNode(rand(3,4)),[1:4], rand(1:4, 4))
-    wb = WeightedBagNode(ArrayNode(rand(3,4)),[1:2,3:4], rand(1:4, 4), ["metadata", "metadata", "metadata", "metadata"])
-    wc = WeightedBagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], rand(1:4, 4))
-    wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4), ["metadata", "metadata", "metadata", "metadata"])
+    metadata = fill("metadata", 4)
+    a = BagNode(ArrayNode(rand(3,4)),[1:4], metadata)
+    b = BagNode(ArrayNode(rand(3,4)),[1:2,3:4], metadata)
+    c = BagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], metadata)
+    d = BagNode(ArrayNode(rand(3,4)),[1:4,0:-1], metadata)
+    wa = WeightedBagNode(ArrayNode(rand(3,4)),[1:4], rand(1:4, 4), metadata)
+    wb = WeightedBagNode(ArrayNode(rand(3,4)),[1:2,3:4], rand(1:4, 4), metadata)
+    wc = WeightedBagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], rand(1:4, 4), metadata)
+    wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4), metadata)
     e = ArrayNode(rand(2, 2))
 
     f = TreeNode((wb,b))
-    g = TreeNode((c,wc))
+    g = TreeNode((c, wc))
     h = TreeNode((wc,c))
     i = TreeNode((
                   b,
@@ -226,12 +227,5 @@ let
         @test typeof(xs.data[2].data) <: SparseMatrixCSC
         @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC
         @test all(xs.data[1].data[1].data .== x.data[1].data[1].data)
-    end
-
-    @testset "testing superfluous ArrayNode" begin 
-        x = BagNode(ArrayNode([1 2 3]), [1:2, 3:3], nothing)
-
-        @test typeof(ArrayNode(x, DataFrame(x = [1, 2]))) <: BagNode
-        @test ArrayNode(x, DataFrame(x = [1, 2])).metadata == DataFrame(x = [1, 2])
     end
 end

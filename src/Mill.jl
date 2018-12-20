@@ -25,6 +25,12 @@ const Bags = Vector{UnitRange{Int64}}
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
+"""
+	catobs(xs...)
+
+	concatenates all observations from all xs together
+"""
+function catobs end;
 
 include("util.jl")
 include("threadfuns.jl")
