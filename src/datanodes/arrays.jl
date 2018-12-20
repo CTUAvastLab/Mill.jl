@@ -1,0 +1,38 @@
+using LearnBase
+using DataFrames
+import Base: cat, vcat, hcat
+
+"""
+
+
+"""
+mutable struct ArrayNode{A,C} <: AbstractNode
+    data::A
+    metadata::C
+end
+
+ArrayNode(data::AbstractArray) = ArrayNode(data, nothing)
+ArrayNode(data::AbstractNode, a...) = data
+
+mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
+
+Base.ndims(x::ArrayNode) = 0
+LearnBase.nobs(a::ArrayNode) = size(a.data, 2)
+LearnBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
+
+function reduce(::typeof(catobs), as::Vector{T}) where {T<:ArrayNode}
+    data = reduce(catobs, [x.data for x in as])
+    metadata = reduce(catobs, [a.metadata for a in as])
+    ArrayNode(data, metadata)
+end
+
+# hcat and vcat only for ArrayNode
+function Base.vcat(as::ArrayNode...)
+    data = vcat([a.data for a in as]...)
+    metadata = as[1].metadata == nothing ? nothing : as[1].metadata
+    ArrayNode(data, metadata)
+end
+
+Base.hcat(as::ArrayNode...) = reduce(catobs, collect(as))
+
+Base.getindex(x::ArrayNode, i::VecOrRange) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
