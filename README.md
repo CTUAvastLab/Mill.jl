@@ -17,7 +17,7 @@ using Flux: throttle
 using Mill: reflectinmodel
 ```
  Loading a dataset from file and folding it in Mill's data-structures is done in the following function. `musk.jld2` contains matrix with features, `fMat`, the id of sample (called bag in MIL terminology) to which each instance (column in `fMat`) belongs to, and finally a label of each instance in `y`. 
-`BagNode` is a structure which holds feature matrix and ranges of columns of each bag. ~~Note that the library requires instances of each bag to be next to each other~~ (next to each other???) . Finally, `BagNode` can be concatenated (use `catobs`), you can get subset using `getindex`, and the library is compatible with a popular `MLDataPattern` package,
+`BagNode` is a structure which holds feature matrix and ranges of columns of each bag. Finally, `BagNode` can be concatenated (use `catobs`), you can get subset using `getindex`, and the library is compatible with a popular `MLDataPattern` package,
 ```julia
 function loaddata()
   fMat = load("musk.jld2","fMat");               # matrix with instances, each column is one sample
