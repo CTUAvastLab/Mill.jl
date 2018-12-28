@@ -40,11 +40,11 @@ export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
 export catobs, removeinstances
 
-include("aggregation.jl")
+include("aggregations/aggregation.jl")
 # agg. types exported in aggregation.jl
 export Aggregation
 
-include("modelnode.jl")
+include("modelnodes/modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 
 include("conv.jl")
