@@ -15,4 +15,4 @@ end
 
 `ArrayNode` had overloaded a `getindex` to support indexing. But the `getindex` just calls `subset(x::ArrayNode, idxs)`, which is used to correctly slice arrays according to the last dimension. 
 
-**This mean that if you want to define your own DataNode, in order to be compatible with the rest of the library it has to implement `subset` and `reduce(::typeof{catobs}, Vector{T}) where {T<:YourType}**
+**This mean that if you want to define your own DataNode, in order to be compatible with the rest of the library it has to implement `subset` and `reduce(::typeof{catobs}, Vector{T}) where {T<:YourType}`**
