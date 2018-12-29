@@ -1,18 +1,17 @@
 
-mutable struct WeightedBagNode{T, W, C} <: AbstractBagNode{T, C}
+mutable struct WeightedBagNode{T, B <: AbstractBags, W, C} <: AbstractBagNode{T, C}
     data::T
-    bags::Bags
+    bags::B
     weights::Vector{W}
     metadata::C
 
-    function WeightedBagNode{T, W, C}(
-                                      data::T, bags::Union{Bags, Vector}, weights::Vector{W}, metadata::C) where {T <: AbstractNode, W, C}
-        new(data, bag(bags), weights, metadata)
+    function WeightedBagNode(data::T, b::B, weights::Vector{W}, metadata::C) where {T <: AbstractNode, B <: AbstractBags, W, C}
+        new{T, B, W, C}(data, b, weights, metadata)
     end
 end
 
-WeightedBagNode(x::T, b::Union{Bags, Vector}, weights::Vector{W}, metadata::C=nothing) where {T <: AbstractNode, W, C} =
-WeightedBagNode{T, W, C}(x, b, weights, metadata)
+WeightedBagNode(x::T, b::Union{AbstractBags, Vector}, weights::Vector{W}, metadata::C=nothing) where {T <: AbstractNode, W, C} =
+WeightedBagNode(x, bags(b), weights, metadata)
 
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 
@@ -21,7 +20,7 @@ Base.ndims(x::WeightedBagNode) = 0
 function reduce(::typeof(catobs), as::Vector{T}) where {T<:WeightedBagNode}
     data = reduce(catobs, [x.data for x in as])
     metadata = reduce(catobs, [a.metadata for a in as])
-    bags = _catbags([d.bags for d in as])
+    bags = vcat((d.bags for d in as)...)
     weights = reduce(catobs, [d.weights for d in as])
     WeightedBagNode(data, bags, weights, metadata)
 end

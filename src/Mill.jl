@@ -21,9 +21,7 @@ function powerset(x::Vector{T}) where T
     result
 end
 
-const Bags = Vector{UnitRange{Int64}}
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
-const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
 """
 	catobs(xs...)
@@ -31,6 +29,9 @@ const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 	concatenates all observations from all xs together
 """
 function catobs end;
+
+include("bags.jl")
+export AlignedBags, ScatteredBags
 
 include("util.jl")
 include("threadfuns.jl")

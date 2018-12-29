@@ -1,5 +1,6 @@
 abstract type MillModel end
-const TupleOfModels = NTuple{N, MillModel} where {N}
+
+const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
 Base.show(io::IO, m::MillModel) = modelprint(io, m)
 modelprint(io::IO, m::MillModel; pad=[]) = paddedprint(io, m, "\n")

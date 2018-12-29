@@ -37,6 +37,8 @@ let
             length2bags([5, 5]),
             length2bags([10]),
             length2bags([3, 4, 3]),
+            ScatteredBags([collect(1:3), collect(7:10), collect(4:6)]),
+            ScatteredBags([collect(1:10)])
            ]
 
     @testset "aggregation grad check" begin
@@ -118,9 +120,9 @@ let
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
-        bags = [1:2, 3:4]
-        bags2 = [1:1, 2:4]
-        bags3 = [1:1, 2:2, 3:6, 7:8]
+        bags = AlignedBags([1:2, 3:4])
+        bags2 = AlignedBags([1:1, 2:4])
+        bags3 = AlignedBags([1:1, 2:2, 3:6, 7:8])
 
         n = ArrayNode(x)
         m = reflectinmodel(n, layerbuilder)[1]
@@ -171,9 +173,9 @@ let
         w = abs.(randn(4)) .+ 0.01
         w2 = abs.(randn(4)) .+ 0.01
         w3 = abs.(randn(8)) .+ 0.01
-        bags = [1:2, 3:4]
-        bags2 = [1:1, 2:4]
-        bags3 = [1:1, 2:2, 3:6, 7:8]
+        bags = AlignedBags([1:2, 3:4])
+        bags2 = AlignedBags([1:1, 2:4])
+        bags3 = AlignedBags([1:1, 2:2, 3:6, 7:8])
 
         bn = BagNode(ArrayNode(x), bags, w)
         abuilder = d -> SegmentedPNormLSE(d)

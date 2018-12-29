@@ -7,19 +7,7 @@ let
 
     @testset "creating bags" begin
         k = [2, 2, 2, 1, 1, 3]
-        @test all(Mill.bag(k) .== [1:3,4:5,6:6])
-    end
-
-    @testset "testing remapping for subsets" begin
-        @test all(Mill.remapbag([1:1,2:3,4:5],[2,3])[1] .== [1:2,3:4])
-        @test all(Mill.remapbag([1:1,2:3,4:5],[2,3])[2] .== [2,3,4,5])
-        @test all(Mill.remapbag([1:2,3:3,4:5],[1,3])[1] .== [1:2,3:4])
-        @test all(Mill.remapbag([1:2,3:3,4:5],[1,3])[2] .== [1,2,4,5])
-        @test all(Mill.remapbag([1:2,3:3,4:5],[2,3])[1] .== [1:1,2:3])
-        @test all(Mill.remapbag([1:2,3:3,4:5],[2,3])[2] .== [3,4,5])
-
-        @test all(Mill.remapbag([1:2,0:-1,3:4],[2,3])[1] .== [0:-1,1:2])
-        @test all(Mill.remapbag([1:2,0:-1,3:4],[2,3])[2] .== [3,4])
+        @test Mill.bags(k).bags == [1:3,4:5,6:6]
     end
 
     metadata = fill("metadata", 4)
@@ -74,55 +62,55 @@ let
     @testset "testing BagNode hcat" begin
         @test all(catobs(a, b, c).data.data .== hcat(a.data.data, b.data.data, c.data.data))
         @test all(reduce(catobs, [a, b, c]).data.data .== hcat(a.data.data, b.data.data, c.data.data))
-        @test all(catobs(a, b, c).bags .== [1:4, 5:6, 7:8, 9:9, 10:10, 11:12])
-        @test all(reduce(catobs, [a, b, c]).bags .== [1:4, 5:6, 7:8, 9:9, 10:10, 11:12])
+        @test catobs(a, b, c).bags.bags == vcat(a.bags, b.bags, c.bags).bags
+        @test reduce(catobs, [a, b, c]).bags.bags == vcat(a.bags, b.bags, c.bags).bags
         @test all(catobs(c, a).data.data .== hcat(c.data.data, a.data.data))
         @test all(reduce(catobs, [c, a]).data.data .== hcat(c.data.data, a.data.data))
-        @test all(catobs(c, a).bags .== [1:1, 2:2, 3:4, 5:8])
-        @test all(reduce(catobs, [c, a]).bags .== [1:1, 2:2, 3:4, 5:8])
+        @test catobs(c, a).bags.bags == vcat(c.bags, a.bags).bags
+        @test reduce(catobs, [c, a]).bags.bags == vcat(c.bags, a.bags).bags
         @test all(catobs(a, c).data.data .== hcat(a.data.data, c.data.data))
         @test all(reduce(catobs, [a, c]).data.data .== hcat(a.data.data, c.data.data))
-        @test all(catobs(a, c).bags .== [1:4, 5:5, 6:6, 7:8])
-        @test all(reduce(catobs, [a, c]).bags .== [1:4, 5:5, 6:6, 7:8])
+        @test catobs(a, c).bags.bags == vcat(a.bags, c.bags).bags
+        @test reduce(catobs, [a, c]).bags.bags == vcat(a.bags, c.bags).bags
         @test all(catobs(a, d).data.data .== hcat(a.data.data, d.data.data))
         @test all(reduce(catobs, [a, d]).data.data .== hcat(a.data.data, d.data.data))
-        @test all(catobs(a, d).bags .== [1:4, 5:8, 0:-1])
-        @test all(reduce(catobs, [a, d]).bags .== [1:4, 5:8, 0:-1])
+        @test catobs(a, d).bags.bags == vcat(a.bags, d.bags).bags
+        @test reduce(catobs, [a, d]).bags.bags == vcat(a.bags, d.bags).bags
         @test all(catobs(d, a).data.data .== hcat(d.data.data, a.data.data))
         @test all(reduce(catobs, [d, a]).data.data .== hcat(d.data.data, a.data.data))
-        @test all(catobs(d, a).bags .== [1:4, 0:-1, 5:8])
-        @test all(reduce(catobs, [d, a]).bags .== [1:4, 0:-1, 5:8])
+        @test catobs(d, a).bags.bags == vcat(d.bags, a.bags).bags
+        @test reduce(catobs, [d, a]).bags.bags == vcat(d.bags, a.bags).bags
         @test all(catobs(d).data.data .== hcat(d.data.data))
         @test all(reduce(catobs, [d]).data.data .== hcat(d.data.data))
-        @test all(catobs(d).bags .== [1:4, 0:-1])
-        @test all(reduce(catobs, [d]).bags .== [1:4, 0:-1])
+        @test catobs(d).bags.bags == vcat(d.bags).bags
+        @test reduce(catobs, [d]).bags.bags == vcat(d.bags).bags
     end
 
     @testset "testing WeightedBagNode hcat" begin
         @test all(catobs(wa, wb, wc).data.data .== hcat(wa.data.data, wb.data.data, wc.data.data))
         @test all(reduce(catobs, [wa, wb, wc]).data.data .== hcat(wa.data.data, wb.data.data, wc.data.data))
-        @test all(catobs(wa, wb, wc).bags .== [1:4, 5:6, 7:8, 9:9, 10:10, 11:12])
-        @test all(reduce(catobs, [wa, wb, wc]).bags .== [1:4, 5:6, 7:8, 9:9, 10:10, 11:12])
+        @test catobs(wa, wb, wc).bags.bags == vcat(wa.bags, wb.bags, wc.bags).bags
+        @test reduce(catobs, [wa, wb, wc]).bags.bags == vcat(wa.bags, wb.bags, wc.bags).bags
         @test all(catobs(wc, wa).data.data .== hcat(wc.data.data, wa.data.data))
         @test all(reduce(catobs, [wc, wa]).data.data .== hcat(wc.data.data, wa.data.data))
-        @test all(catobs(wc, wa).bags .== [1:1, 2:2, 3:4, 5:8])
-        @test all(reduce(catobs, [wc, wa]).bags .== [1:1, 2:2, 3:4, 5:8])
+        @test catobs(wc, wa).bags.bags == vcat(wc.bags, wa.bags).bags
+        @test reduce(catobs, [wc, wa]).bags.bags == vcat(wc.bags, wa.bags).bags
         @test all(catobs(wa, wc).data.data .== hcat(wa.data.data, wc.data.data))
         @test all(reduce(catobs, [wa, wc]).data.data .== hcat(wa.data.data, wc.data.data))
-        @test all(catobs(wa, wc).bags .== [1:4, 5:5, 6:6, 7:8])
-        @test all(reduce(catobs, [wa, wc]).bags .== [1:4, 5:5, 6:6, 7:8])
+        @test catobs(wa, wc).bags.bags == vcat(wa.bags, wc.bags).bags
+        @test reduce(catobs, [wa, wc]).bags.bags == vcat(wa.bags, wc.bags).bags
         @test all(catobs(wa, wd).data.data .== hcat(wa.data.data, wd.data.data))
         @test all(reduce(catobs, [wa, wd]).data.data .== hcat(wa.data.data, wd.data.data))
-        @test all(catobs(wa, wd).bags .== [1:4, 5:8, 0:-1])
-        @test all(reduce(catobs, [wa, wd]).bags .== [1:4, 5:8, 0:-1])
+        @test catobs(wa, wd).bags.bags == vcat(wa.bags, wd.bags).bags
+        @test reduce(catobs, [wa, wd]).bags.bags == vcat(wa.bags, wd.bags).bags
         @test all(catobs(wd, wa).data.data .== hcat(wd.data.data, wa.data.data))
         @test all(reduce(catobs, [wd, wa]).data.data .== hcat(wd.data.data, wa.data.data))
-        @test all(catobs(wd, wa).bags .== [1:4, 0:-1, 5:8])
-        @test all(reduce(catobs, [wd, wa]).bags .== [1:4, 0:-1, 5:8])
+        @test catobs(wd, wa).bags.bags == vcat(wd.bags, wa.bags).bags
+        @test reduce(catobs, [wd, wa]).bags.bags == vcat(wd.bags, wa.bags).bags
         @test all(catobs(wd).data.data .== hcat(wd.data.data))
         @test all(reduce(catobs, [wd]).data.data .== hcat(wd.data.data))
-        @test all(catobs(wd).bags .== [1:4, 0:-1])
-        @test all(reduce(catobs, [wd]).bags .== [1:4, 0:-1])
+        @test catobs(wd).bags.bags == vcat(wd.bags).bags
+        @test reduce(catobs, [wd]).bags.bags == vcat(wd.bags).bags
     end
 
 
@@ -146,61 +134,61 @@ let
 
     @testset "testing BagNode indexing" begin
         @test all(a[1].data.data .== a.data.data)
-        @test all(a[1].bags .== [1:4])
+        @test a[1].bags.bags == [1:4]
         @test all(b[1:2].data.data .== b.data.data)
-        @test all(b[1:2].bags .== [1:2,3:4])
+        @test b[1:2].bags.bags == [1:2,3:4]
         @test all(b[2].data.data .== b.data.data[:,3:4])
-        @test all(b[2].bags .== [1:2])
+        @test b[2].bags.bags == [1:2]
         @test all(b[1].data.data .== b.data.data[:,1:2])
-        @test all(b[1].bags .== [1:2])
+        @test b[1].bags.bags == [1:2]
         @test all(c[1].data.data .== c.data.data[:,1:1])
-        @test all(c[1].bags .== [1:1])
+        @test c[1].bags.bags == [1:1]
         @test all(c[[1,2]].data.data .== c.data.data[:,1:2])
-        @test all(c[[1,2]].bags .== [1:1,2:2])
+        @test c[[1,2]].bags.bags == [1:1,2:2]
         @test all(c[[2,1]].data.data .== c.data.data[:,[2,1]])
-        @test all(c[[2,1]].bags .== [1:1,2:2])
+        @test c[[2,1]].bags.bags == [1:1,2:2]
         @test all(d[[2,1]].data.data .== d.data.data)
-        @test all(d[[2,1]].bags .== [0:-1,1:4])
+        @test d[[2,1]].bags.bags == [0:-1,1:4]
         @test all(d[1:2].data.data .== d.data.data)
-        @test all(d[1:2].bags .== [1:4,0:-1])
+        @test d[1:2].bags.bags == [1:4,0:-1]
         @test all(d[2].data.data .== d.data.data[:,0:-1])
-        @test all(d[2].bags .== [0:-1])
-        @test isempty(a[2:1].bags)
+        @test d[2].bags.bags == [0:-1]
+        @test isempty(a[2:1].bags.bags)
         @test isempty(a[2:1].data.data)
     end
 
     @testset "testing WeightedBagNode indexing" begin
         @test all(wa[1].data.data .== wa.data.data)
-        @test all(wa[1].bags .== [1:4])
+        @test wa[1].bags.bags == [1:4]
         @test all(wb[1:2].data.data .== wb.data.data)
-        @test all(wb[1:2].bags .== [1:2,3:4])
+        @test wb[1:2].bags.bags == [1:2,3:4]
         @test all(wb[2].data.data .== wb.data.data[:,3:4])
-        @test all(wb[2].bags .== [1:2])
+        @test wb[2].bags.bags == [1:2]
         @test all(wb[1].data.data .== wb.data.data[:,1:2])
-        @test all(wb[1].bags .== [1:2])
+        @test wb[1].bags.bags == [1:2]
         @test all(wc[1].data.data .== wc.data.data[:,1:1])
-        @test all(wc[1].bags .== [1:1])
+        @test wc[1].bags.bags == [1:1]
         @test all(wc[[1,2]].data.data .== wc.data.data[:,1:2])
-        @test all(wc[[1,2]].bags .== [1:1,2:2])
+        @test wc[[1,2]].bags.bags == [1:1,2:2]
         @test all(wc[[2,1]].data.data .== wc.data.data[:,[2,1]])
-        @test all(wc[[2,1]].bags .== [1:1,2:2])
+        @test wc[[2,1]].bags.bags == [1:1,2:2]
         @test all(wd[[2,1]].data.data .== wd.data.data)
-        @test all(wd[[2,1]].bags .== [0:-1,1:4])
+        @test wd[[2,1]].bags.bags == [0:-1,1:4]
         @test all(wd[1:2].data.data .== wd.data.data)
-        @test all(wd[1:2].bags .== [1:4,0:-1])
+        @test wd[1:2].bags.bags == [1:4,0:-1]
         @test all(wd[2].data.data .== wd.data.data[:,0:-1])
-        @test all(wd[2].bags .== [0:-1])
+        @test wd[2].bags.bags == [0:-1]
     end
 
     @testset "testing nested ragged array" begin
         x = BagNode(ArrayNode(rand(3,10)),[1:2,3:3,0:-1,4:5,6:6,7:10])
         y = BagNode(x,[1:2,3:3,4:5,6:6])
         @test all(y[1].data.data.data .== x.data.data[:,1:3])
-        @test all(y[1].data.bags .== [1:2,3:3])
+        @test y[1].data.bags.bags == [1:2,3:3]
         @test all(y[1:2].data.data.data .== x.data.data[:,1:3])
-        @test all(y[1:2].data.bags .== [1:2,3:3,0:-1])
+        @test y[1:2].data.bags.bags == [1:2,3:3,0:-1]
         @test all(y[2:3].data.data.data .== x.data.data[:,4:6])
-        @test all(y[2:3].data.bags .== [0:-1,1:2,3:3])
+        @test y[2:3].data.bags.bags == [0:-1,1:2,3:3]
     end
 
 

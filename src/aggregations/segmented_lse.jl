@@ -8,7 +8,7 @@ Flux.@treelike LSE
 
 Base.show(io::IO, n::LSE) = print(io, "LogSumExp($(length(n.p)))")
 
-function _segmented_lse(x::Matrix, p::Vector, bags::Bags)
+function _segmented_lse(x::Matrix, p::Vector, bags::AbstractBags)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j, b) in enumerate(bags)
         for bi in b
@@ -21,9 +21,9 @@ function _segmented_lse(x::Matrix, p::Vector, bags::Bags)
     o ./ p
 end
 
-_segmented_lse(x::Matrix, p::Vector, bags::Bags, w::Vector) = _segmented_lse(x, p, bags)
+_segmented_lse(x::Matrix, p::Vector, bags::AbstractBags, w::Vector) = _segmented_lse(x, p, bags)
 
-function _segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::Bags, n::Matrix)
+function _segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::AbstractBags, n::Matrix)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = zero(x)
@@ -42,9 +42,9 @@ function _segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::Bags, n::Mat
     dx, nothing, nothing
 end
 
-_segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::Bags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
+_segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::AbstractBags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
 
-function _segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::Bags, n::Matrix)
+function _segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::AbstractBags, n::Matrix)
     x = Flux.data(x)
     p = Flux.data(p)
     Δ = Flux.data(Δ)
@@ -68,9 +68,9 @@ function _segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::Bags,
     dx, dp ./ p, nothing
 end
 
-_segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::Bags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
+_segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
 
-function _segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::Bags, n::Matrix)
+function _segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::AbstractBags, n::Matrix)
     p = Flux.data(p)
     Δ = Flux.data(Δ)
     dp = zero(p)
@@ -90,7 +90,7 @@ function _segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::Bags, n::Mat
     nothing, dp ./ p, nothing, nothing
 end
 
-_segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::Bags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
+_segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix) = tuple(_segmented_lse_back(Δ, x, p, bags, n)..., nothing)
 
 (n::LSE)(x, args...) = let m = maximum(x, dims=2)
     m .+ _segmented_lse(x .- m, n.p, args...)

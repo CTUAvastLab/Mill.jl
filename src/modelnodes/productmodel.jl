@@ -1,3 +1,5 @@
+const TupleOfModels = NTuple{N, MillModel} where {N}
+
 """
     struct ProductModel{N, T <: MillFunction} <: MillModel
         ms::NTuple{N, MillModel}

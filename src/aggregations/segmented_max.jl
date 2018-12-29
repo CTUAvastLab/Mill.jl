@@ -1,4 +1,4 @@
-function segmented_max(x::Matrix, bags::Bags)
+function segmented_max(x::Matrix, bags::AbstractBags)
     o = similar(x, size(x,1), length(bags))
     fill!(o, typemin(eltype(x)))
     for (j,b) in enumerate(bags)
@@ -12,7 +12,7 @@ function segmented_max(x::Matrix, bags::Bags)
     o
 end
 
-function segmented_max(x::Matrix, bags::Bags, mask::Vector{Bool})
+function segmented_max(x::Matrix, bags::AbstractBags, mask::Vector{Bool})
     o = similar(x, size(x,1), length(bags))
     fill!(o, typemin(eltype(x)))
     for (j,b) in enumerate(bags)
@@ -27,9 +27,9 @@ function segmented_max(x::Matrix, bags::Bags, mask::Vector{Bool})
     o
 end
 
-segmented_max(x::Matrix, bags::Bags, w::Vector) = segmented_max(x, bags)
+segmented_max(x::Matrix, bags::AbstractBags, w::Vector) = segmented_max(x, bags)
 
-function segmented_max_back(Δ, x::TrackedMatrix, bags::Bags)
+function segmented_max_back(Δ, x::TrackedMatrix, bags::AbstractBags)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = zero(x)
@@ -53,6 +53,6 @@ function segmented_max_back(Δ, x::TrackedMatrix, bags::Bags)
     dx, nothing
 end
 
-segmented_max_back(Δ, x::TrackedMatrix, bags::Bags, w::Vector) = tuple(segmented_max_back(Δ, x, bags)..., nothing)
-segmented_max_back(Δ, x::Matrix, bags::Bags, w::TrackedVector) = (nothing, nothing, zero(w))
-segmented_max_back(Δ, x::TrackedMatrix, bags::Bags, w::TrackedVector) = tuple(segmented_max_back(Δ, x, bags)..., zero(w))
+segmented_max_back(Δ, x::TrackedMatrix, bags::AbstractBags, w::Vector) = tuple(segmented_max_back(Δ, x, bags)..., nothing)
+segmented_max_back(Δ, x::Matrix, bags::AbstractBags, w::TrackedVector) = (nothing, nothing, zero(w))
+segmented_max_back(Δ, x::TrackedMatrix, bags::AbstractBags, w::TrackedVector) = tuple(segmented_max_back(Δ, x, bags)..., zero(w))

@@ -1,4 +1,4 @@
-function segmented_mean(x::Matrix, bags::Bags)
+function segmented_mean(x::Matrix, bags::AbstractBags)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j,b) in enumerate(bags)
         for bi in b
@@ -10,7 +10,7 @@ function segmented_mean(x::Matrix, bags::Bags)
     o
 end
 
-function segmented_mean(x::Matrix, bags::Bags, w::Vector)
+function segmented_mean(x::Matrix, bags::AbstractBags, w::Vector)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j,b) in enumerate(bags)
         ws = sum(@view w[b])
@@ -23,7 +23,7 @@ function segmented_mean(x::Matrix, bags::Bags, w::Vector)
     o
 end
 
-function segmented_mean(x::Matrix, bags::Bags, mask::Vector{Bool})
+function segmented_mean(x::Matrix, bags::AbstractBags, mask::Vector{Bool})
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j,b) in enumerate(bags)
         ws = sum(@view mask[b])
@@ -37,7 +37,7 @@ function segmented_mean(x::Matrix, bags::Bags, mask::Vector{Bool})
     o
 end
 
-function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags)
+function segmented_mean_back(Δ, x::TrackedMatrix, bags::AbstractBags)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = similar(x)
@@ -51,7 +51,7 @@ function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags)
     dx, nothing
 end
 
-function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::Vector)
+function segmented_mean_back(Δ, x::TrackedMatrix, bags::AbstractBags, w::Vector)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = similar(x)
@@ -66,7 +66,7 @@ function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::Vector)
     dx, nothing, nothing
 end
 
-function segmented_mean_back(Δ, x::Matrix, bags::Bags, w::TrackedVector)
+function segmented_mean_back(Δ, x::Matrix, bags::AbstractBags, w::TrackedVector)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     w = Flux.data(w)
@@ -83,7 +83,7 @@ function segmented_mean_back(Δ, x::Matrix, bags::Bags, w::TrackedVector)
     nothing, nothing, dw
 end
 
-function segmented_mean_back(Δ, x::TrackedMatrix, bags::Bags, w::TrackedVector)
+function segmented_mean_back(Δ, x::TrackedMatrix, bags::AbstractBags, w::TrackedVector)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     w = Flux.data(w)
