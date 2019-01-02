@@ -1,7 +1,7 @@
 name = "Mill"
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
 authors = ["Tomas Pevny <pevnak@protonmail.ch>", "Simon Mandlik <simon.mandlik@gmail.com>"]
-version = "1.4.0"
+version = "1.5.0"
 
 [deps]
 Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
