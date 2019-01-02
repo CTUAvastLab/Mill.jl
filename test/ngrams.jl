@@ -1,6 +1,6 @@
 using Test
-using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NGramMatrix
-using BenchmarkTools, SparseArrays, Random
+using Mill, BenchmarkTools, SparseArrays, Random, Flux
+using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NGramMatrix, catobs
 @testset "ngrams" begin
 	x = [1,3,5,2,6,8,3]
 	b = 8 + 1
@@ -36,29 +36,36 @@ using BenchmarkTools, SparseArrays, Random
 	end
 
 	@testset "ngrams" begin
-		all(collect(NGramIterator(codeunits("hello"), 3, 257)) .== ngrams("hello", 3, 257))
+		@test all(collect(NGramIterator(codeunits("hello"), 3, 257)) .== ngrams("hello", 3, 257))
 
 		A = randn(4, 10)
+		n = size(A, 2)
 		s = ["hello", "world", "!!!"]
-		B = NGramMatrix(s, 3, 256)
-		@test all(A * B .≈ A*string2ngrams(s, 3, size(A, 2)))
+		si = map(i -> Int.(codeunits(i)), s)
+		B = NGramMatrix(s, 3, 256, n)
+		Bi = NGramMatrix(si, 3, 256, n)
+		@test all(A * B ≈ A*string2ngrams(s, 3, n))
+		@test all(A * Bi ≈ A * B)
 		A = randn(5,3)
-		@test all(multrans(A , B) .≈ A*transpose(string2ngrams(s, 3, size(A, 2))))
+		@test all(multrans(A , B) ≈ A*transpose(string2ngrams(s, 3, n)))
+		@test all(multrans(A , B) ≈ multrans(A , B))
 	end
 
 	@testset "integration with MILL & Flux" begin
 		s = ["hello", "world", "!!!"]
-		a = NGramMatrix(s, 3, 256, 2057)
-		@test all(reduce(catobs, [a, a]).s .== vcat(s,s))
-		@test all(cat(a,a).s .== vcat(s,s))
+		si = map(i -> Int.(codeunits(i)), s)
+		for (a, s) in [(NGramMatrix(s, 3, 256, 2057), s), (NGramMatrix(si, 3, 256, 2057), si)]
+			@test all(reduce(catobs, [a, a]).s .== vcat(s,s))
+			@test all(cat(a,a).s .== vcat(s,s))
 
-		W = param(randn(2057, 40))
-		@test Flux.back!(W * a, ones(size(W * a))) == nothing
+			W = param(randn(40, 2057))
+			@test Flux.back!(W * a, ones(size(W * a))) == nothing
 
-		a = ArrayNode(a, nothing)
-		@test all(reduce(catobs, [a, a]).data.s .== vcat(s,s))
-		a = BagNode(a,[1:3], nothing)
-		@test all(reduce(catobs, [a, a]).data.data.s .== vcat(s,s))
+			a = ArrayNode(a, nothing)
+			@test all(reduce(catobs, [a, a]).data.s .== vcat(s,s))
+			a = BagNode(a,[1:3], nothing)
+			@test all(reduce(catobs, [a, a]).data.data.s .== vcat(s,s))
+		end
 	end
 end
 
@@ -68,9 +75,9 @@ begin
 	#begin block body
 	A = randn(80,2053);
 	s = [randstring(10) for i in 1:1000];
-	B = NGramMatrix(s, 3, 256)
+	B = NGramMatrix(s, 3, 256, 2053)
 	C = sparse(string2ngrams(s, 3, size(A, 2)));
-	println("A * B::NGramMatrix"); 
+	println("A * B::NGramMatrix (This should be the fastest)"); 
 	@btime A*B;																	# 526.456 μs (2002 allocations: 671.95 KiB)
 	println("A * string2ngrams(s, 3, size(A, 2))")
 	@btime A*string2ngrams(s, 3, size(A, 2)); 					# 154.646 ms (3013 allocations: 16.38 MiB)

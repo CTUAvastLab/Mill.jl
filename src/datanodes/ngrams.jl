@@ -109,15 +109,21 @@ struct NGramMatrix{T} <: AbstractMatrix{T}
   m :: Int
 end
 
-NGramIterator(a::NGramMatrix, i) = NGramIterator(codeunits(a.s[i]), a.n, a.b)
+Base.show(io::IO, n::NGramMatrix) = (print(io, "NGramMatrix($(n.b), $(n.m))"); show(io, n.s))
+Base.show(io::IO, ::MIME{Symbol("text/plain")}, n::NGramMatrix) = Base.show(io, n)
+
+NGramIterator(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramIterator(codeunits(a.s[i]), a.n, a.b)
+NGramIterator(a::NGramMatrix{T}, i) where {T<:Vector{U}} where {U<:Integer} = NGramIterator(a.s[i], a.n, a.b)
 
 Base.length(a::NGramMatrix) = length(a.s)
 Base.size(a::NGramMatrix) = (a.m, length(a.s))
 Base.size(a::NGramMatrix, d) = (d == 1) ? a.m : length(a.s)
 subset(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramMatrix(a.s[i], a.n, a.b, a.m)
 Base.getindex(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramMatrix(a.s[i], a.n, a.b, a.m)
-Base.reduce(::typeof(catobs), a::AbstractArray{S}) where {S<:NGramMatrix} = _catobs(a[:])
-Base.reduce(::typeof(hcat), a::AbstractArray{S}) where {S<:NGramMatrix} = _catobs(a[:])
+Base.reduce(::typeof(catobs), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:])
+Base.reduce(::typeof(catobs), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
+Base.reduce(::typeof(hcat), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:])
+Base.reduce(::typeof(hcat), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
 Base.cat(a::NGramMatrix...) = _catobs(collect(a))
 _lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
 _catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
@@ -132,8 +138,9 @@ function mulkernel!(C, A, jB, mA, nA, idxs)
   end
 end
 
-function mul(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
+function mul(A::Matrix, B::NGramMatrix)
   mA, nA = size(A)
+  @assert nA == size(B,1)
   nB = length(B)
   C = zeros(eltype(A), mA, nB)
   for jB in 1:length(B)
@@ -151,7 +158,7 @@ function multkernel!(C, A, jB, mA, bm, idxs)
   end
 end
 
-function multrans(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
+function multrans(A::Matrix, B::NGramMatrix)
   mA, nA = size(A)
   mB = length(B)
   C = zeros(eltype(A), mA, B.m)
@@ -161,8 +168,8 @@ function multrans(A::Matrix, B::NGramMatrix{T}) where {T<:AbstractString}
   return C
 end
 
-a::Flux.Tracker.TrackedMatrix * b::NGramMatrix{S} where {S<:AbstractString} = Flux.Tracker.track(mul, a, b)
-a::Matrix * b::NGramMatrix{S} where {S<:AbstractString} = mul(a, b)
-Flux.Tracker.@grad function mul(a::Flux.Tracker.TrackedMatrix, b::NGramMatrix{S}) where {S<:AbstractString}
+a::Flux.Tracker.TrackedMatrix * b::NGramMatrix = Flux.Tracker.track(mul, a, b)
+a::Matrix * b::NGramMatrix = mul(a, b)
+Flux.Tracker.@grad function mul(a::Flux.Tracker.TrackedMatrix, b::NGramMatrix)
   return mul(Flux.data(a),b) , Δ -> (multrans(Δ, b),nothing)
 end
