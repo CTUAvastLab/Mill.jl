@@ -67,7 +67,7 @@ function _addvecvect!(W::Matrix, Δ::Matrix, i, x::SparseMatrixCSC, j)
 	end
 end
 
-function bagconv!(o, x, bags, W...)
+function bagconv!(o, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
 	offsets = _convshift(length(W))
 	for b in bags
 		for ri in b 
@@ -82,6 +82,22 @@ function bagconv!(o, x, bags, W...)
 	o
 end
 
+function bagconv!(o, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
+	offsets = _convshift(length(W))
+	for b in bags
+		for (bi, ri) in enumerate(b) 
+			o[:, ri] .= 0
+			for (i, k) in enumerate(offsets)
+				if 0 < k + bi  <= length(b)
+					_addmatvec!(o, ri, W[i], x, b[k+bi])
+				end
+			end
+		end
+	end
+	o
+end
+
+
 function bagconv(x, bags, W...)
 	o = similar(W[1], size(W[1], 1), size(x, 2))
 	Threads.@threads for i in 1:Threads.nthreads()
@@ -90,7 +106,7 @@ function bagconv(x, bags, W...)
 	o
 end
 
-function ∇wbagconv!(∇W, Δ, x, bags, W...)
+function ∇wbagconv!(∇W, Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
 	offsets = _convshift(length(W))
 	foreach(w -> w .= 0, ∇W)
 	for b in bags
@@ -98,6 +114,20 @@ function ∇wbagconv!(∇W, Δ, x, bags, W...)
 			for (i, k) in enumerate(offsets)
 				if first(b) <= k + ri  <= last(b)
 					_addvecvect!(∇W[i], Δ, ri, x, k + ri)
+				end
+			end
+		end
+	end
+end
+
+function ∇wbagconv!(∇W, Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
+	offsets = _convshift(length(W))
+	foreach(w -> w .= 0, ∇W)
+	for b in bags
+		for (bi, ri) in enumerate(b) 
+			for (i, k) in enumerate(offsets)
+				if 0 < k + bi  <= length(b)
+					_addvecvect!(∇W[i], Δ, ri, x, b[k+bi])
 				end
 			end
 		end
@@ -113,7 +143,7 @@ function ∇wbagconv(Δ, x, bags, W...)
 	return(tuple(∇Ws[1]...))
 end
 
-function ∇xbagconv(Δ, x, bags, W...)
+function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
 	offsets = _convshift(length(W))
 	∇x = similar(W[1], size(x)) .= 0
 	for b in bags
@@ -128,7 +158,22 @@ function ∇xbagconv(Δ, x, bags, W...)
 	∇x
 end
 
-function ∇xwbagconv(Δ, x, bags, W...)
+function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
+	offsets = _convshift(length(W))
+	∇x = similar(W[1], size(x)) .= 0
+	for b in bags
+		for (bi, ri) in enumerate(b) 
+			for (i, k) in enumerate(offsets)
+				if 0 < k + bi  <= length(b)
+					_addmattvec!(∇x, b[k+bi], W[i], Δ, ri)
+				end
+			end
+		end
+	end
+	∇x
+end
+
+function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
 	offsets = _convshift(length(W))
 	∇x = similar(W[1], size(x)) .= 0
 	∇W = [similar(w) .= 0 for w in W]
@@ -138,6 +183,23 @@ function ∇xwbagconv(Δ, x, bags, W...)
 				if first(b) <= k + ri  <= last(b)
 					_addmattvec!(∇x, k + ri, W[i], Δ, ri)
 					_addvecvect!(∇W[i], Δ, ri, x, k + ri)
+				end
+			end
+		end
+	end
+	∇x, tuple(∇W...)
+end
+
+function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
+	offsets = _convshift(length(W))
+	∇x = similar(W[1], size(x)) .= 0
+	∇W = [similar(w) .= 0 for w in W]
+	for b in bags
+		for (bi, ri) in enumerate(b) 
+			for (i, k) in enumerate(offsets)
+				if first(b) <= k + ri  <= last(b)
+					_addmattvec!(∇x, b[k+bi], W[i], Δ, ri)
+					_addvecvect!(∇W[i], Δ, ri, x, b[k+bi])
 				end
 			end
 		end
@@ -189,7 +251,7 @@ end
 
 (m::BagConv{T,F} where {T<:Tuple,F})(x, bags) = m.σ.(bagconv(x, bags, m.W...))
 (m::BagConv{T,F} where {T<:AbstractMatrix,F})(x, bags) = m.σ.(m.W * x)
-(m::BagConv)(x::ArrayNode, bags) = ArrayNode(bagconv(x.data, bags, m.W...))
+(m::BagConv)(x::ArrayNode, bags::AbstractBags) = ArrayNode(bagconv(x.data, bags, m.W...))
 (m::BagConv)(x::BagNode) = ArrayNode(bagconv(x.data.data, x.bags, m.W...))
 
 
