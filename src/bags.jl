@@ -16,11 +16,11 @@ end
 
 AlignedBags() = AlignedBags(Vector{UnitRange{Int}}())
 AlignedBags(ks::UnitRange{Int}...) = AlignedBags(collect(ks))
-function AlignedBags(k::Vector{Int})
+function AlignedBags(k::Vector{T}) where {T<:Integer}
     b = AlignedBags()
     !isempty(k) || return b
     a, v = 1, k[1]
-    s = Set{Int}(v)
+    s = Set{T}(v)
     for (i, x) in enumerate(k[2:end])
         if x != v
             !(x in s) || error("Scattered bags")
@@ -40,9 +40,9 @@ struct ScatteredBags <: AbstractBags
 end
 
 ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
-function ScatteredBags(k::Vector{Int})
+function ScatteredBags(k::Vector{T}) where {T<:Integer}
     !isempty(k) || return ScatteredBags()
-    d = SortedDict{Int, Vector{Int}}()
+    d = SortedDict{T, Vector{Int}}()
     for (i, x) in enumerate(k)
         if !(x in keys(d))
             d[x] = Int[]
@@ -66,7 +66,7 @@ end
 # """
 bags(b::AbstractBags) = b
 bags(b::Vector{UnitRange{Int}}) = AlignedBags(b)
-function bags(k::Vector{Int})
+function bags(k::Vector{T}) where {T<:Integer}
     try
         return AlignedBags(k)
     catch ErrorException

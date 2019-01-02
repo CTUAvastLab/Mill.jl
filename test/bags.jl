@@ -7,6 +7,7 @@ using Mill: AlignedBags, ScatteredBags, bags, length2bags, remapbag
     @test AlignedBags([1, 1, 2, 2, 2, 3]).bags == [1:2, 3:5, 6:6]
     @test AlignedBags([3, 3, 1, 1, 1, 2]).bags == [1:2, 3:5, 6:6]
     @test AlignedBags([2, 2, 3, 3, 3, 1]).bags == [1:2, 3:5, 6:6]
+    @test AlignedBags(UInt64.([2, 2, 3, 3, 3, 1])).bags == [1:2, 3:5, 6:6]
     @test_throws ErrorException AlignedBags([1, 1, 1, 2, 2, 1])
     @test_throws ErrorException AlignedBags([2, 1, 1, 1, 1, 2])
 
@@ -16,6 +17,7 @@ using Mill: AlignedBags, ScatteredBags, bags, length2bags, remapbag
     @test ScatteredBags([1, 2, 3, 1, 2, 3]).bags == [[1,4], [2,5], [3,6]]
     @test ScatteredBags([1, 1, 2, 2, 2, 3]).bags == [[1,2], [3,4,5], [6]]
     @test ScatteredBags([3, 3, 1, 1, 1, 2]).bags == [[3,4,5], [6], [1,2]]
+    @test ScatteredBags(UInt64.([3, 3, 1, 1, 1, 2])).bags == [[3,4,5], [6], [1,2]]
     @test ScatteredBags([2, 2, 3, 3, 3, 1]).bags == [[6], [1,2], [3,4,5]]
 end
 
