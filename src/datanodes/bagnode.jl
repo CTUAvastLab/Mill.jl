@@ -33,7 +33,8 @@ function Base.getindex(x::BagNode, i::VecOrRange)
 end
 
 removeinstances(a::BagNode, mask) = BagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), a.metadata)
-adjustbags(bags::Vector{UnitRange{Int}}, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}}} = Mill.length2bags(map(b -> sum(@view mask[b]), bags))
+
+adjustbags(bags::AlignedBags, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}}} = length2bags(map(b -> sum(@view mask[b]), bags))
 
 function dsprint(io::IO, n::BagNode{ArrayNode}; pad=[])
     c = COLORS[(length(pad)%length(COLORS))+1]
