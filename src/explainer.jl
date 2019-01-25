@@ -17,7 +17,7 @@ using Mill, Flux, Duff
 
 
 
-	The main function is `explain(root_data, root_model, ϕ,  explaining_fun)` 
+	The main function is `explain(root_data, root_model, ϕ,  explaining_fun, recurse)` 
 	where 
 
 	`root_data` is a root of a hierarchical explained sample
@@ -31,10 +31,10 @@ using Mill, Flux, Duff
 
 
 """
-explain(root_data, root_model, ϕ,  explaining_fun) = (d = deepcopy(root_data); explain!(d, root_model, d, root_model, ϕ,  explaining_fun); d)
-explain!(root_data, root_model, ϕ,  explaining_fun) = explain!(root_data, root_model, root_data, root_model, ϕ,  explaining_fun)
+explain(root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true) = (d = deepcopy(root_data); explain!(d, root_model, d, root_model, ϕ,  explaining_fun, recurse); d)
+explain!(root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true) = explain!(root_data, root_model, root_data, root_model, ϕ,  explaining_fun, recurse)
 
-function explain!(a::BagNode, m::BagModel, root_data, root_model, ϕ,  explaining_fun)
+function explain!(a::BagNode, m::BagModel, root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true)
 	println("explaining BagNode")
 	@show a
 	xim = m.im(a.data)
@@ -48,18 +48,18 @@ function explain!(a::BagNode, m::BagModel, root_data, root_model, ϕ,  explainin
 	# @show mask
 	sa = removeinstances(a, mask)
 	a.data, a.bags, a.metadata = sa.data, sa.bags, sa.metadata
-	explain!(a.data, m.im, root_data, root_model, ϕ,  explaining_fun)
+	recurse && explain!(a.data, m.im, root_data, root_model, ϕ,  explaining_fun, recurse)
 	nothing
 end
 
-function explain!(a::TreeNode, m::ProductModel, root_data, root_model, ϕ,  explaining_fun)
+function explain!(a::TreeNode, m::ProductModel, root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true)
 	for i in 1:length(m.ms)
-		explain!(a.data[i], m.ms[i], root_data, root_model, ϕ,  explaining_fun)
+		explain!(a.data[i], m.ms[i], root_data, root_model, ϕ,  explaining_fun, recurse)
 	end
 	nothing
 end
 
-explain!(a, m, root_data, root_model, ϕ,  explaining_fun) = nothing
+explain!(a, m, root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true) = nothing
 
 function onoff(mask, bagnode::WeightedBagNode, x, m, i)
 	fill!(bagnode.weights, false); 
