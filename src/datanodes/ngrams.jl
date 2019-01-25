@@ -131,7 +131,7 @@ _catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for 
 
 function SparseMatrix(x::Mill.NGramMatrix)
   xx = map(1:length(x)) do  i
-    t = zeros(Int, size(x,1))
+    t = zeros(Int, size(x,1),1)
     foreach(j -> t[mod(j, x.m) + 1] += 1,Mill.NGramIterator(x, i))
     sparse(t)
   end
