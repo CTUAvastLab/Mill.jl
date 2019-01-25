@@ -129,7 +129,7 @@ _lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
 _catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
 
 
-function SparseMatrix(x::Mill.NGramMatrix)
+function SparseArrays.SparseMatrixCSC(x::Mill.NGramMatrix)
   xx = map(1:length(x)) do  i
     t = zeros(Int, size(x,1),1)
     foreach(j -> t[mod(j, x.m) + 1] += 1,Mill.NGramIterator(x, i))

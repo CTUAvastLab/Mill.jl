@@ -54,11 +54,12 @@ using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NG
 	@testset "NGramMatrix to SparseMatrix" begin
 		A = randn(4, 10)
 		n = size(A, 2)
+		s = ["hello", "world", "!!!"]
 		si = map(i -> Int.(codeunits(i)), s)
 		B = NGramMatrix(s, 3, 256, n)
 		Bi = NGramMatrix(si, 3, 256, n)
-		@test all(A * B ≈  A * Mill.SparseMatrix(B))
-		@test all(A * B ≈  A * Mill.SparseMatrix(Bi))
+		@test all(A * B ≈  A * SparseMatrixCSC(B))
+		@test all(A * B ≈  A * SparseMatrixCSC(Bi))
 	end
 
 	@testset "integration with MILL & Flux" begin
