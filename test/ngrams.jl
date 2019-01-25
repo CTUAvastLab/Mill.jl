@@ -35,7 +35,7 @@ using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NG
 		@test size(string2ngrams(["","a"],3,2053)) == (2053,2)
 	end
 
-	@testset "ngrams" begin
+	@testset "NGramMatrix" begin
 		@test all(collect(NGramIterator(codeunits("hello"), 3, 257)) .== ngrams("hello", 3, 257))
 
 		A = randn(4, 10)
@@ -49,6 +49,16 @@ using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NG
 		A = randn(5,3)
 		@test all(multrans(A , B) ≈ A*transpose(string2ngrams(s, 3, n)))
 		@test all(multrans(A , B) ≈ multrans(A , B))
+	end
+
+	@testset "NGramMatrix to SparseMatrix" begin
+		A = randn(4, 10)
+		n = size(A, 2)
+		si = map(i -> Int.(codeunits(i)), s)
+		B = NGramMatrix(s, 3, 256, n)
+		Bi = NGramMatrix(si, 3, 256, n)
+		@test all(A * B ≈  A * Mill.SparseMatrix(B))
+		@test all(A * B ≈  A * Mill.SparseMatrix(Bi))
 	end
 
 	@testset "integration with MILL & Flux" begin
