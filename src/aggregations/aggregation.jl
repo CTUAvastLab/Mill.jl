@@ -4,6 +4,7 @@ include("segmented_mean.jl")
 include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
+export SegmentedMax, SegmentedMean, SegmentedMeanMax
 
 # backward compatibility for models trained on previous versions of Mill
 _segmented_mean = segmented_mean
@@ -38,10 +39,6 @@ Aggregation(a::Union{Function, ParamAgg}) = Aggregation((a,))
 SegmentedMax() = Aggregation(segmented_max)
 SegmentedMean() = Aggregation(segmented_mean)
 SegmentedMeanMax() = Aggregation((segmented_mean, segmented_max))
-for s in [:SegmentedMax, :SegmentedMean, :SegmentedMeanMax]
-    @eval $s(d::Int) = $s()
-    @eval export $s
-end
 
 # with parameters
 names = ["PNorm", "LSE", "Mean", "Max"]
@@ -52,9 +49,25 @@ for idxs in powerset(collect(1:length(fs)))
     @eval export $(Symbol("Segmented", names[idxs]...))
 end
 
-function modelprint(io::IO, a::Aggregation; pad=[])
+struct MissingAggregation{F}
+    input_dim::Int
+    fs::F
+end
+Flux.@treelike MissingAggregation
+
+SegmentedMeanMax(d) = MissingAggregation(d, (segmented_mean, segmented_max))
+SegmentedMean(d) = MissingAggregation(d, (segmented_mean,))
+SegmentedMax(d) = MissingAggregation(d, (segmented_max,))
+(a::MissingAggregation)(args...) = vcat([f(args...) for f in a.fs]...)
+function (a::MissingAggregation)(::Nothing, bags)
+    x = zeros(Float32, a.input_dim, 0)
+    ArrayNode(vcat([f(x, bags) for f in a.fs]...))
+end
+
+function modelprint(io::IO, a::A; pad=[]) where {A<:Union{Aggregation, MissingAggregation}}
     paddedprint(io, "Aggregation($(join(a.fs, ", ")))\n")
 end
+
 
 function modelprint(io::IO, f; pad=[])
     paddedprint(io, "$f\n")

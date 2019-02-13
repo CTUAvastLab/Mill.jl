@@ -151,10 +151,10 @@ let
         @test d[[2,1]].bags.bags == [0:-1,1:4]
         @test all(d[1:2].data.data .== d.data.data)
         @test d[1:2].bags.bags == [1:4,0:-1]
-        @test all(d[2].data.data .== d.data.data[:,0:-1])
+        @test d[2].data == nothing
         @test d[2].bags.bags == [0:-1]
         @test isempty(a[2:1].bags.bags)
-        @test isempty(a[2:1].data.data)
+        @test a[2:1].data == nothing
     end
 
     @testset "testing WeightedBagNode indexing" begin

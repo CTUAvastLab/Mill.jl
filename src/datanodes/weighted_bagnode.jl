@@ -1,5 +1,5 @@
 
-mutable struct WeightedBagNode{T, B <: AbstractBags, W, C} <: AbstractBagNode{T, C}
+mutable struct WeightedBagNode{T, B <: AbstractBags, W, C} <: AbstractBagNode
     data::T
     bags::B
     weights::Vector{W}

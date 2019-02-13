@@ -3,8 +3,8 @@ using DataFrames
 import Base: cat, vcat, hcat
 
 abstract type AbstractNode end
-abstract type AbstractTreeNode{T, C} <: AbstractNode end
-abstract type AbstractBagNode{T <: AbstractNode, C} <: AbstractNode end
+abstract type AbstractTreeNode <: AbstractNode end
+abstract type AbstractBagNode <: AbstractNode end
 
 
 # FIXME: this alias would better be Union{AbstractVector{T}, Tuple{Vararg{T}}}
