@@ -29,10 +29,29 @@ end
 @testset "testing cat & getindex operations missing values" begin
     a = BagNode(ArrayNode(rand(3,4)),[1:4], nothing)
     e = BagNode(nothing, AlignedBags([0:-1]), nothing)
-
-    x = reduce(catobs,[a, e])
     m = BagModel(ArrayModel(Dense(3,2)), SegmentedMean(2), ArrayModel(identity))
-    @test m(x).data[:,1] ≈ m(a).data
-    @test m(x).data[:,2] ≈ m(e).data
-    @test m(x).data ≈ hcat(m(a).data, m(e).data)
+
+    @testset "BagNode" begin
+        x = reduce(catobs,[a, e])
+        @test m(x).data[:,1] ≈ m(a).data
+        @test m(x).data[:,2] ≈ m(e).data
+        @test m(x).data ≈ hcat(m(a).data, m(e).data)
+    end
+
+    @testset "TreeNode" begin
+        t1 = TreeNode((a, a))
+        t2 = TreeNode((a, e))
+        t3 = TreeNode((e, a))
+        t4 = TreeNode((e, e))
+        tt = [t1, t2, t3, t4]
+        x  = reduce(catobs,tt)
+        tm = ProductModel((m,m))
+        o = tm(x).data
+        for i in 1:length(tt)
+            @test o[:,i] ≈ tm(tt[i]).data
+        end
+        for i in 1:length(tt)
+            @test o[:,i] ≈ tm(x[i]).data
+        end
+    end
 end
