@@ -49,20 +49,18 @@ for idxs in powerset(collect(1:length(fs)))
     @eval export $(Symbol("Segmented", names[idxs]...))
 end
 
-struct MissingAggregation{F}
-    input_dim::Int
+struct MissingAggregation{X,F}
+    x::X
     fs::F
 end
 Flux.@treelike MissingAggregation
 
-SegmentedMeanMax(d) = MissingAggregation(d, (segmented_mean, segmented_max))
-SegmentedMean(d) = MissingAggregation(d, (segmented_mean,))
-SegmentedMax(d) = MissingAggregation(d, (segmented_max,))
+SegmentedMeanMax(d) = MissingAggregation(ArrayNode(zeros(Float32, d, 1)), (segmented_mean, segmented_max))
+SegmentedMean(d) = MissingAggregation(ArrayNode(zeros(Float32, d, 1)), (segmented_mean,))
+SegmentedMax(d) = MissingAggregation(ArrayNode(zeros(Float32, d, 1)), (segmented_max,))
+
 (a::MissingAggregation)(args...) = vcat([f(args...) for f in a.fs]...)
-function (a::MissingAggregation)(::Nothing, bags)
-    x = zeros(Float32, a.input_dim, 0)
-    ArrayNode(vcat([f(x, bags) for f in a.fs]...))
-end
+(a::MissingAggregation)(::Nothing, bags) = ArrayNode(vcat([f(a.x, bags) for f in a.fs]...))
 
 function modelprint(io::IO, a::A; pad=[]) where {A<:Union{Aggregation, MissingAggregation}}
     paddedprint(io, "Aggregation($(join(a.fs, ", ")))\n")
