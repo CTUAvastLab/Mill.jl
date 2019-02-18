@@ -12,33 +12,10 @@ Base.ndims(x::BagNode) = 0
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 
-# function reduce(::typeof(catobs), as::Vector{T}) where {T<:BagNode}
-#     data = reduce(catobs, [x.data for x in as])
-#     metadata = reduce(catobs, [a.metadata for a in as])
-#     bags = vcat((d.bags for d in as)...)
-#     BagNode(data, bags, metadata)
-# end
-
 function Base.getindex(x::BagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
     isempty(ii) && return(BagNode(nothing, nb, nothing))
     BagNode(subset(x.data,ii), nb, subset(x.metadata, i))
-end
-
-removeinstances(a::BagNode, mask) = BagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), a.metadata)
-
-adjustbags(bags::AlignedBags, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}}} = length2bags(map(b -> sum(@view mask[b]), bags))
-
-function dsprint(io::IO, n::BagNode{T, B, C}; pad=[]) where {T <:AbstractNode, B, C}
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io,"BagNode with $(length(n.bags)) bag(s)\n", color=c)
-    paddedprint(io, "  └── ", color=c, pad=pad)
-    dsprint(io, n.data, pad = [pad; (c, "      ")])
-end
-
-function dsprint(io::IO, n::BagNode{T, B, C}; pad=[]) where {T <:Nothing, B, C}
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io,"BagNode with $(length(n.bags)) empty bag(s)\n", color=c)
 end
 
 
@@ -71,3 +48,19 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T<:BagNode}
 end
 
 Base.cat(a::BagNode, b::BagNode; dims = Colon) = reduce(catobs, [a, b])
+
+removeinstances(a::BagNode, mask) = BagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), a.metadata)
+
+adjustbags(bags::AlignedBags, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}}} = length2bags(map(b -> sum(@view mask[b]), bags))
+
+function dsprint(io::IO, n::BagNode{T, B, C}; pad=[]) where {T <:AbstractNode, B, C}
+    c = COLORS[(length(pad)%length(COLORS))+1]
+    paddedprint(io,"BagNode with $(length(n.bags)) bag(s)\n", color=c)
+    paddedprint(io, "  └── ", color=c, pad=pad)
+    dsprint(io, n.data, pad = [pad; (c, "      ")])
+end
+
+function dsprint(io::IO, n::BagNode{T, B, C}; pad=[]) where {T <:Nothing, B, C}
+    c = COLORS[(length(pad)%length(COLORS))+1]
+    paddedprint(io,"BagNode with $(length(n.bags)) empty bag(s)\n", color=c)
+end
