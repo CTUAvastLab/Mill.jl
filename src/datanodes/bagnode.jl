@@ -12,12 +12,12 @@ Base.ndims(x::BagNode) = 0
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 
-function reduce(::typeof(catobs), as::Vector{T}) where {T<:BagNode}
-    data = reduce(catobs, [x.data for x in as])
-    metadata = reduce(catobs, [a.metadata for a in as])
-    bags = vcat((d.bags for d in as)...)
-    BagNode(data, bags, metadata)
-end
+# function reduce(::typeof(catobs), as::Vector{T}) where {T<:BagNode}
+#     data = reduce(catobs, [x.data for x in as])
+#     metadata = reduce(catobs, [a.metadata for a in as])
+#     bags = vcat((d.bags for d in as)...)
+#     BagNode(data, bags, metadata)
+# end
 
 function Base.getindex(x::BagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
@@ -43,11 +43,31 @@ end
 
 
 # additional stuff to handle empty bags 
-function reduce(::typeof(catobs), as::U) where {U<:Vector{BagNode{T,AlignedBags,Nothing} where T}}
-    nonmissing_as = filter(x -> x.data != nothing, as)
-    data = reduce(catobs, [x.data for x in nonmissing_as])
-    nonmissing_meta = filter(x -> x.metadata != nothing, as)
-    metadata = isempty(nonmissing_meta) ? nothing : reduce(catobs, [a.metadata for a in nonmissing_meta])
+"""
+    verifymissing(a)
+
+    verify that if a is nothing than only empty bags are present
+
+"""
+function verifymissing(a)
+    a.data != nothing && return(true)
+    any(len.(a.bags.bags) .!= 0) && @error "a missing data has non-empty bag "
+    return(true)
+end
+
+len(a::UnitRange) = max(a.stop - a.start + 1, 0)
+
+function reducenonmissing(a, key) 
+    o = filter(!isnothing, [getproperty(x, key) for x in a])
+    isempty(o) ? nothing : reduce(catobs, o)
+end
+
+function reduce(::typeof(catobs), as::Vector{T}) where {T<:BagNode}
+    all(verifymissing.(as))
+    data = reducenonmissing(as, :data)
+    metadata = reducenonmissing(as, :metadata)
     bags = vcat((d.bags for d in as)...)
     BagNode(data, bags, metadata)
 end
+
+Base.cat(a::BagNode, b::BagNode; dims = Colon) = reduce(catobs, [a, b])

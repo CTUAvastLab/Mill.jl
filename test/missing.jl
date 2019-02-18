@@ -24,6 +24,14 @@ using Mill: ArrayNode, BagNode, TreeNode, catobs
 
     @test  x[1].data.data == a.data.data
     @test  x[1].bags.bags == [1:4]
+
+    @test cat(a, e).data.data == a.data.data
+    @test cat(a, e).bags.bags == [1:4, 0:-1]
+
+    a = BagNode(a, [1:1], nothing)
+    @test cat(a, e).bags.bags == [1:1, 0:-1]
+    @test cat(e, a).bags.bags == [0:-1, 1:1]
+    @test cat(e, a).data.data.data == a.data.data.data
 end
 
 @testset "testing cat & getindex operations missing values" begin
