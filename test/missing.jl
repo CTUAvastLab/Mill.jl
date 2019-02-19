@@ -32,6 +32,9 @@ using Mill: ArrayNode, BagNode, TreeNode, catobs
     @test cat(a, e).bags.bags == [1:1, 0:-1]
     @test cat(e, a).bags.bags == [0:-1, 1:1]
     @test cat(e, a).data.data.data == a.data.data.data
+
+    @test_throws ErrorException BagNode(nothing, AlignedBags([1:3]), nothing)
+    @test_throws ErrorException BagNode(nothing, Mill.ScatteredBags([[1,2,3]]), nothing)
 end
 
 @testset "testing cat & getindex operations missing values" begin

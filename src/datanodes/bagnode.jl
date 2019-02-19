@@ -1,10 +1,17 @@
-mutable struct BagNode{T, B <: AbstractBags, C} <: AbstractBagNode
+mutable struct BagNode{T <: Union{Nothing, Mill.AbstractNode}, B <: AbstractBags, C} <: AbstractBagNode
     data::T
     bags::B
     metadata::C
+    function BagNode(d::T, b::B, m::M) where {T <: Union{Nothing, Mill.AbstractNode}, B <: AbstractBags, M}
+        isnothing(d) && any(_len.(b.bags) .!= 0) && error("BagNode with nothing in data cannot have a non-empty bag")
+        new{T,B,M}(d, b, m)
+    end
 end
 
-BagNode(data, b::Vector, metadata = nothing) = BagNode(data, bags(b), metadata)
+_len(a::UnitRange) = max(a.stop - a.start + 1, 0)
+_len(a::Vector) = length(a)
+
+BagNode(data::T, b::Vector, metadata::M = nothing) where {T, M} = BagNode(data, bags(b), metadata)
 
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 
@@ -20,27 +27,12 @@ end
 
 
 # additional stuff to handle empty bags 
-"""
-    verifymissing(a)
-
-    verify that if a is nothing than only empty bags are present
-
-"""
-function verifymissing(a)
-    a.data != nothing && return(true)
-    any(len.(a.bags.bags) .!= 0) && @error "a missing data has non-empty bag "
-    return(true)
-end
-
-len(a::UnitRange) = max(a.stop - a.start + 1, 0)
-
 function reducenonmissing(a, key) 
     o = filter(!isnothing, [getproperty(x, key) for x in a])
     isempty(o) ? nothing : reduce(catobs, o)
 end
 
 function reduce(::typeof(catobs), as::Vector{T}) where {T<:BagNode}
-    all(verifymissing.(as))
     data = reducenonmissing(as, :data)
     metadata = reducenonmissing(as, :metadata)
     bags = vcat((d.bags for d in as)...)
