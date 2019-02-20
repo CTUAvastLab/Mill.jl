@@ -1,6 +1,5 @@
-__precompile__()
 module Mill
-using JSON, Flux, MLDataPattern, SparseArrays, Statistics
+using Flux, MLDataPattern, SparseArrays, Statistics
 import Base.reduce
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 

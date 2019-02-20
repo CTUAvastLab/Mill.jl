@@ -26,7 +26,7 @@ data(x) = x
 
     concatenates `as...` into a single datanode while preserving their structure
 """
-catobs(as::T...) where {T<:AbstractNode} = reduce(catobs, collect(as))
+catobs(as...) = reduce(catobs, collect(as))
 cat(a::T, b::T; dims = 0) where {T<:AbstractNode} = reduce(catobs, [a, b])
 
 # reduction of common datatypes the way we like it
