@@ -30,14 +30,14 @@ function Base.getindex(x::WeightedBagNode, i::VecOrRange)
     WeightedBagNode(subset(x.data,ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
 end
 
-function dsprint(io::IO, n::WeightedBagNode{ArrayNode}; pad=[])
+function dsprint(io::IO, n::WeightedBagNode{ArrayNode}, pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "WeightedNode$(size(n.data)) with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n", color=c)
+    paddedprint(io, "WeightedNode$(size(n.data)) with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))$(repr(s, tr))\n", color=c)
 end
 
-function dsprint(io::IO, n::WeightedBagNode; pad=[])
+function dsprint(io::IO, n::WeightedBagNode; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))\n", color=c)
+    paddedprint(io, "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))$(repr(s, tr))\n", color=c)
     paddedprint(io, "  └── ", color=c, pad=pad)
-    dsprint(io, n.data, pad = [pad; (c, "      ")])
+    dsprint(io, n.data, pad = [pad; (c, "      ")], s=encode(s, 1, 1), tr=tr)
 end

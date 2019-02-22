@@ -25,14 +25,13 @@ BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
 (m::BagModel)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
 (m::BagModel)(x::WeightedBagNode) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
 
-function modelprint(io::IO, m::BagModel; pad=[])
+function modelprint(io::IO, m::BagModel; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "BagModel\n", color=c)
+    paddedprint(io, "BagModel$(repr(s, tr))\n", color=c)
     paddedprint(io, "  ├── ", color=c, pad=pad)
-    modelprint(io, m.im, pad=[pad; (c, "  │   ")])
+    modelprint(io, m.im, pad=[pad; (c, "  │   ")], s=encode(s, 1, 1), tr=tr)
     paddedprint(io, "  ├── ", color=c, pad=pad)
     modelprint(io, m.a, pad=[pad; (c, "  │   ")])
     paddedprint(io, "  └── ", color=c, pad=pad)
     modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
 end
-
