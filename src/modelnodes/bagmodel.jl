@@ -27,9 +27,9 @@ BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
 
 function modelprint(io::IO, m::BagModel; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "BagModel$(repr(s, tr))\n", color=c)
+    paddedprint(io, "BagModel$(tr_repr(s, tr))\n", color=c)
     paddedprint(io, "  ├── ", color=c, pad=pad)
-    modelprint(io, m.im, pad=[pad; (c, "  │   ")], s=encode(s, 1, 1), tr=tr)
+    modelprint(io, m.im, pad=[pad; (c, "  │   ")], s=s * encode(1, 1), tr=tr)
     paddedprint(io, "  ├── ", color=c, pad=pad)
     modelprint(io, m.a, pad=[pad; (c, "  │   ")])
     paddedprint(io, "  └── ", color=c, pad=pad)

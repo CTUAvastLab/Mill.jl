@@ -27,13 +27,13 @@ Base.getindex(x::TreeNode, i::VecOrRange) = TreeNode(subset(x.data, i), subset(x
 
 function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "TreeNode{$(length(n.data))}$(repr(s, tr))\n", color=c)
+    paddedprint(io, "TreeNode$(tr_repr(s, tr))\n", color=c)
 
     m = length(n.data)
     for i in 1:(m-1)
         paddedprint(io, "  ├── ", color=c, pad=pad)
-        dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=encode(s, i, m), tr=tr)
+        dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
     end
     paddedprint(io, "  └── ", color=c, pad=pad)
-    dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=encode(s, m, m), tr=tr)
+    dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
 end

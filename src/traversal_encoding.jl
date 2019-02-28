@@ -1,17 +1,33 @@
-_segment_width(l::Integer) = ceil(Int, log2(l+1))
-encode(c::AbstractString, i::Integer, l::Integer) = c * string(i, base=2, pad=_segment_width(l))
-decode(c::AbstractString, l::Integer) = (parse(Int, c[1:_segment_width(l)], base=2), c[1+_segment_width(l):end])
-
 const ALPHABET = [Char(x) for x in vcat(collect.([48:57, 65:90, 97:122, 63:63, 33:33])...)]
 const INV_ALPHABET = Dict(ALPHABET[i] => i for i in 1:length(ALPHABET))
 
+_segment_width(l::Integer) = ceil(Int, log2(l+1))
+encode(i::Integer, l::Integer) = string(i, base=2, pad=_segment_width(l))
+decode(c::AbstractString, l::Integer) = (parse(Int, c[1:_segment_width(l)], base=2), c[1+_segment_width(l):end])
+
 function stringify(c::AbstractString)
-    c = c * '0'^(6 - (length(c) % 6))
+    if length(c) % 6 != 0
+        c = c * '0'^(6 - (length(c) % 6))
+    end
     join(ALPHABET[parse(Int, x, base=2) + 1] for x in [c[i:i+5] for i in 1:6:(length(c)-1)])
 end
 
 function destringify(c::AbstractString)
     join(string(INV_ALPHABET[x] - 1, base=2, pad=6) for x in c)
+end
+
+descendants(m::BagModel) = [m.im]
+descendants(n::AbstractBagNode) = [n.data]
+descendants(m::ProductModel) = m.ms
+descendants(n::AbstractTreeNode) = n.data
+descendants_n(m) = length(descendants(m))
+
+function ith_child(m::T, i::Integer) where T
+    try
+        return descendants(m)[i]
+    catch
+        error("Invalid index into $T: $i")
+    end
 end
 
 function _walk(m::Union{ArrayModel, ArrayNode}, c::AbstractString)
@@ -44,4 +60,14 @@ show_traversal(n::AbstractNode) = dsprint(Base.stdout, n, tr=true)
 show_traversal(m::MillModel) = modelprint(Base.stdout, m, tr=true)
 Base.getindex(n::AbstractNode, i::AbstractString) = _walk(n, destringify(i))
 Base.getindex(m::MillModel, i::AbstractString) = _walk(m, destringify(i))
-repr(s::AbstractString, traversal::Bool) = traversal ? " [$(stringify(s))]" : ""
+
+tr_repr(s::AbstractString, traversal::Bool) = traversal ? " [$(stringify(s))]" : ""
+
+encode_traversal(m::AbstractNode, idxs::Integer...) = stringify(_encode_traversal(m, idxs...))
+
+function _encode_traversal(m, idxs...)
+    isempty(idxs) && return ""
+    n = ith_child(m, idxs[1])
+    return encode(idxs[1], descendants_n(m)) * _encode_traversal(n, idxs[2:end]...)
+end
+

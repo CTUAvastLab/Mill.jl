@@ -22,15 +22,15 @@ ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
 function modelprint(io::IO, m::ProductModel; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "ProductModel$(repr(s, tr)) (\n", color=c)
+    paddedprint(io, "ProductModel$(tr_repr(s, tr)) (\n", color=c)
 
     n = length(m.ms)
     for i in 1:(n-1)
         paddedprint(io, "  ├── ", color=c, pad=pad)
-        modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")], s=encode(s, i, n), tr=tr)
+        modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")], s=s * encode(i, n), tr=tr)
     end
     paddedprint(io, "  └── ", color=c, pad=pad)
-    modelprint(io, m.ms[end], pad=[pad; (c, "      ")], s=encode(s, n, n), tr=tr)
+    modelprint(io, m.ms[end], pad=[pad; (c, "      ")], s=s * encode(n, n), tr=tr)
 
     paddedprint(io, ") ↦  ", color=c, pad=pad)
     modelprint(io, m.m, pad=[pad; (c, "")])

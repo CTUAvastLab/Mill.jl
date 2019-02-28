@@ -37,4 +37,4 @@ Base.hcat(as::ArrayNode...) = reduce(catobs, collect(as))
 
 Base.getindex(x::ArrayNode, i::VecOrRange) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
 
-dsprint(io::IO, n::ArrayNode; pad=[], s="", tr=false) = paddedprint(io, "ArrayNode$(size(n.data))$(repr(s, tr))\n")
+dsprint(io::IO, n::ArrayNode; pad=[], s="", tr=false) = paddedprint(io, "ArrayNode$(size(n.data))$(tr_repr(s, tr))\n")

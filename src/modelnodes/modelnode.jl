@@ -15,7 +15,7 @@ reflectinmodel(x, def_builder, builder_dict) = reflectinmodel(x, def_builder, bu
 reflectinmodel(x, def_builder, builder_dict, def_agg) = reflectinmodel(x, def_builder, builder_dict, def_agg, Dict())
 
 function reflectinmodel(x::AbstractBagNode, b, bd, a, ad, s="")
-    im, d = reflectinmodel(x.data, b, bd, a, ad, encode(s, 1, 1))
+    im, d = reflectinmodel(x.data, b, bd, a, ad, s * encode(1, 1))
     c = stringify(s)
     agg = c in keys(ad) ? ad[c](d) : a(d)
     bm, d = reflectinmodel(BagModel(im, agg)(x), b, bd, a, ad, s)
@@ -24,7 +24,7 @@ end
 
 function reflectinmodel(x::AbstractTreeNode, b, bd, a, ad, s="")
     n = length(x.data)
-    mm = [reflectinmodel(xx, b, bd, a, ad, encode(s, i, n)) for (i, xx) in enumerate(x.data)]
+    mm = [reflectinmodel(xx, b, bd, a, ad, s * encode(i, n)) for (i, xx) in enumerate(x.data)]
     im = tuple([i[1] for i in mm]...)
     tm, d = reflectinmodel(ProductModel(im)(x), b, bd, a, ad, s)
     ProductModel(im, tm), d

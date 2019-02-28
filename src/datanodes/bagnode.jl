@@ -38,14 +38,14 @@ adjustbags(bags::AlignedBags, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}
 
 function dsprint(io::IO, n::BagNode{ArrayNode}; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io,"BagNode$(size(n.data)) with $(length(n.bags)) bag(s)$(repr(s, tr))\n", color=c)
+    paddedprint(io,"BagNode$(size(n.data)) with $(length(n.bags)) bag(s)$(tr_repr(s, tr))\n", color=c)
     paddedprint(io, "  └── ", color=c, pad=pad)
-    dsprint(io, n.data, pad = [pad; (c, "      ")], s=encode(s, 1, 1), tr=tr)
+    dsprint(io, n.data, pad = [pad; (c, "      ")], s=s * encode(1, 1), tr=tr)
 end
 
 function dsprint(io::IO, n::BagNode; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io,"BagNode with $(length(n.bags)) bag(s)$(repr(s, tr))\n", color=c)
+    paddedprint(io,"BagNode with $(length(n.bags)) bag(s)$(tr_repr(s, tr))\n", color=c)
     paddedprint(io, "  └── ", color=c, pad=pad)
-    dsprint(io, n.data, pad = [pad; (c, "      ")], s=encode(s, 1, 1), tr=tr)
+    dsprint(io, n.data, pad = [pad; (c, "      ")], s=s * encode(1, 1), tr=tr)
 end

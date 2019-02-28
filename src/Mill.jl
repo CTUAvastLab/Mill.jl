@@ -49,7 +49,7 @@ include("modelnodes/modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 
 include("traversal_encoding.jl")
-export show_traversal
+export show_traversal, encode_traversal
 
 include("conv.jl")
 export bagconv, BagConv
