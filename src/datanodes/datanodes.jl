@@ -22,7 +22,7 @@ data(x::AbstractNode) = x.data
 data(x) = x
 
 """
-    catobs(as::T...)
+    catobs(as...)
 
     concatenates `as...` into a single datanode while preserving their structure
 """
@@ -36,7 +36,6 @@ reduce(::typeof(catobs), as::Vector{T}) where {T<:DataFrame} = reduce(vcat, as)
 reduce(::typeof(catobs), as::Vector{T}) where {T<:Nothing} = nothing
 
 _cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1:length(as[1]))...)
-
 
 # functions to make datanodes compatible with getindex and with MLDataPattern
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
