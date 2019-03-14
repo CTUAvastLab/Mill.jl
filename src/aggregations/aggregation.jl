@@ -6,10 +6,6 @@ include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 export SegmentedMax, SegmentedMean, SegmentedMeanMax
 
-# backward compatibility for models trained on previous versions of Mill
-_segmented_mean = segmented_mean
-_segmented_max = segmented_max
-
 const AGGF = [:segmented_max, :segmented_mean]
 # generic code, for pnorm, situation is more complicated
 for s in AGGF
@@ -65,7 +61,6 @@ SegmentedMax(d) = MissingAggregation(ArrayNode(zeros(Float32, d, 1)), (segmented
 function modelprint(io::IO, a::A; pad=[]) where {A<:Union{Aggregation, MissingAggregation}}
     paddedprint(io, "Aggregation($(join(a.fs, ", ")))\n")
 end
-
 
 function modelprint(io::IO, f; pad=[])
     paddedprint(io, "$f\n")
