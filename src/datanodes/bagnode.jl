@@ -3,7 +3,7 @@ mutable struct BagNode{T <: Union{Nothing, Mill.AbstractNode}, B <: AbstractBags
     bags::B
     metadata::C
 
-    function BagNode(d::T, b::B, m::C) where {T <: Union{Nothing, Mill.AbstractNode}, B <: AbstractBags, M}
+    function BagNode(d::T, b::B, m::C) where {T <: Union{Nothing, Mill.AbstractNode}, B <: AbstractBags, C}
         isnothing(d) && any(_len.(b.bags) .!= 0) && error("BagNode with nothing in data cannot have a non-empty bag")
         new{T, B, C}(d, b, m)
     end
