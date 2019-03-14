@@ -17,12 +17,13 @@ mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.w
 
 Base.ndims(x::WeightedBagNode) = 0
 
-function reduce(::typeof(catobs), as::Vector{T}) where {T<:WeightedBagNode}
-    data = reduce(catobs, [x.data for x in as])
-    metadata = reduce(catobs, [a.metadata for a in as])
+function reduce(::typeof(catobs), as::Vector{T}) where {T <: WeightedBagNode}
+    data = filter(!ismissing, [x.data for x in as])
+    metadata = filter(!isnothing, [x.metadata for x in as])
     bags = vcat((d.bags for d in as)...)
-    weights = reduce(catobs, [d.weights for d in as])
-    WeightedBagNode(data, bags, weights, metadata)
+    WeightedBagNode(isempty(data) ? missing : reduce(catobs, data),
+            bags, weights,
+            isempty(metadata) ? nothing : reduce(catobs, metadata))
 end
 
 function Base.getindex(x::WeightedBagNode, i::VecOrRange)

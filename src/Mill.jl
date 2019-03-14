@@ -3,7 +3,7 @@ using Flux, MLDataPattern, SparseArrays, Statistics
 import Base.reduce
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
-MLDataPattern.nobs(::Nothing) = nothing
+MLDataPattern.nobs(::Missing) = nothing
 
 function paddedprint(io, s...; color=:default, pad=[])
     for (c, p) in pad

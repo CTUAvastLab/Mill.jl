@@ -27,13 +27,14 @@ data(x) = x
     concatenates `as...` into a single datanode while preserving their structure
 """
 catobs(as...) = reduce(catobs, collect(as))
-cat(a::T, b::T; dims = 0) where {T<:AbstractNode} = reduce(catobs, [a, b])
+Base.cat(a::T, b::T) where {T <: AbstractNode} = reduce(catobs, [a, b])
 
 # reduction of common datatypes the way we like it
-reduce(::typeof(catobs), as::Vector{T}) where {T<:AbstractMatrix} = reduce(hcat, as)
-reduce(::typeof(catobs), as::Vector{T}) where {T<:AbstractVector} = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{T}) where {T<:DataFrame} = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{T}) where {T<:Nothing} = nothing
+reduce(::typeof(catobs), as::Vector{<: AbstractMatrix}) = reduce(hcat, as)
+reduce(::typeof(catobs), as::Vector{<: AbstractVector}) = reduce(vcat, as)
+reduce(::typeof(catobs), as::Vector{<: DataFrame}) = reduce(vcat, as)
+reduce(::typeof(catobs), as::Vector{<: Missing}) = missing
+reduce(::typeof(catobs), as::Vector{<: Nothing}) = nothing
 
 _cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1:length(as[1]))...)
 
@@ -50,7 +51,8 @@ subset(x::AbstractMatrix, i) = x[:, i]
 subset(x::AbstractVector, i) = x[i]
 subset(x::AbstractNode, i) = x[i]
 subset(x::DataFrame, i) = x[i, :]
-subset(x::Nothing, i) = nothing
+subset(::Missing, i) = missing
+subset(::Nothing, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 
 

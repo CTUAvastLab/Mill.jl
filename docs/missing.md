@@ -2,7 +2,7 @@
 
 At the moment, Mill.jl features an initial and naive approach to missing values. We assume that `ArrayNode` have missing values replaced by zeros, which is not optimal but in many situations it works reasonably well.
 
-BagNodes with missing features are indicated by Bags being set to `[0:-1]` with `nothing` as a data and metadata. This can be seamlessly concatenated or sub-set, if the operation makes sense.
+BagNodes with missing features are indicated by Bags being set to `[0:-1]` with `missing` as a data and metadata. This can be seamlessly concatenated or sub-set, if the operation makes sense.
 
 Couple examples from unit tests. Let's define full and empty BagNode
 ```
@@ -10,7 +10,7 @@ julia> a = BagNode(ArrayNode(rand(3,4)),[1:4], nothing)
 BagNode with 1 bag(s)
   └── ArrayNode(3, 4)
 
-julia> e = BagNode(nothing, AlignedBags([0:-1]), nothing)
+julia> e = BagNode(missing, AlignedBags([0:-1]), nothing)
 BagNode with 1 empty bag(s)
 ```
 

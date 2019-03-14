@@ -20,22 +20,6 @@ for s in AGGF
     end
 end
 
-const ParamAgg = Union{PNorm, LSE}
-
-struct Aggregation{F}
-    fs::F
-end
-Flux.@treelike Aggregation
-
-Aggregation(a::Union{Function, ParamAgg}) = Aggregation((a,))
-(a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
-
-# convenience definitions - nested Aggregations work, but call definitions directly to avoid overhead
-# without parameters
-SegmentedMax() = Aggregation(segmented_max)
-SegmentedMean() = Aggregation(segmented_mean)
-SegmentedMeanMax() = Aggregation((segmented_mean, segmented_max))
-
 # with parameters
 names = ["PNorm", "LSE", "Mean", "Max"]
 fs = [:(PNorm(d)), :(LSE(d)), :segmented_mean, :segmented_max]
@@ -45,20 +29,19 @@ for idxs in powerset(collect(1:length(fs)))
     @eval export $(Symbol("Segmented", names[idxs]...))
 end
 
-struct MissingAggregation{X,F}
-    x::X
+const ParamAgg = Union{PNorm, LSE}
+
+struct Aggregation{F}
     fs::F
 end
-Flux.@treelike MissingAggregation
+Flux.@treelike Aggregation
 
-SegmentedMeanMax(d) = MissingAggregation(ArrayNode(zeros(Float32, d, 1)), (segmented_mean, segmented_max))
-SegmentedMean(d) = MissingAggregation(ArrayNode(zeros(Float32, d, 1)), (segmented_mean,))
-SegmentedMax(d) = MissingAggregation(ArrayNode(zeros(Float32, d, 1)), (segmented_max,))
+Aggregation(a::Union{Function, ParamAgg}) = Aggregation((a,))
+Aggregation(as::Union{Function, ParamAgg}...) = Aggregation(as)
 
-(a::MissingAggregation)(args...) = vcat([f(args...) for f in a.fs]...)
-(a::MissingAggregation)(::Nothing, bags) = ArrayNode(vcat([f(a.x, bags) for f in a.fs]...))
+(a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 
-function modelprint(io::IO, a::A; pad=[]) where {A<:Union{Aggregation, MissingAggregation}}
+function modelprint(io::IO, a::Aggregation; pad=[])
     paddedprint(io, "Aggregation($(join(a.fs, ", ")))\n")
 end
 

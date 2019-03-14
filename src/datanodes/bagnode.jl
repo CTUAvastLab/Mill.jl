@@ -1,10 +1,10 @@
-mutable struct BagNode{T <: Union{Nothing, Mill.AbstractNode}, B <: AbstractBags, C} <: AbstractBagNode
+mutable struct BagNode{T <: Union{Missing, Mill.AbstractNode}, B <: AbstractBags, C} <: AbstractBagNode
     data::T
     bags::B
     metadata::C
 
-    function BagNode(d::T, b::B, m::C) where {T <: Union{Nothing, Mill.AbstractNode}, B <: AbstractBags, C}
-        isnothing(d) && any(_len.(b.bags) .!= 0) && error("BagNode with nothing in data cannot have a non-empty bag")
+    function BagNode(d::T, b::B, m::C) where {T <: Union{Missing, Mill.AbstractNode}, B <: AbstractBags, C}
+        ismissing(d) && any(_len.(b.bags) .!= 0) && error("BagNode with nothing in data cannot have a non-empty bag")
         new{T, B, C}(d, b, m)
     end
 end
@@ -22,22 +22,17 @@ LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 
 function Base.getindex(x::BagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
-    isempty(ii) && return(BagNode(nothing, nb, nothing))
+    isempty(ii) && return(BagNode(missing, nb, nothing))
     BagNode(subset(x.data,ii), nb, subset(x.metadata, i))
 end
 
-
-# additional stuff to handle empty bags 
-function reducenonmissing(a, key) 
-    o = filter(!isnothing, [getproperty(x, key) for x in a])
-    isempty(o) ? nothing : reduce(catobs, o)
-end
-
-function reduce(::typeof(catobs), as::Vector{T}) where {T<:BagNode}
-    data = reducenonmissing(as, :data)
-    metadata = reducenonmissing(as, :metadata)
+function reduce(::typeof(catobs), as::Vector{T}) where {T <: BagNode}
+    data = filter(!ismissing, [x.data for x in as])
+    metadata = filter(!isnothing, [x.metadata for x in as])
     bags = vcat((d.bags for d in as)...)
-    BagNode(data, bags, metadata)
+    BagNode(isempty(data) ? missing : reduce(catobs, data),
+            bags,
+            isempty(metadata) ? nothing : reduce(catobs, metadata))
 end
 
 Base.cat(a::BagNode, b::BagNode; dims = Colon) = reduce(catobs, [a, b])
@@ -53,7 +48,7 @@ function dsprint(io::IO, n::BagNode{T, B, C}; pad=[]) where {T <:AbstractNode, B
     dsprint(io, n.data, pad = [pad; (c, "      ")])
 end
 
-function dsprint(io::IO, n::BagNode{T, B, C}; pad=[]) where {T <:Nothing, B, C}
+function dsprint(io::IO, n::BagNode{T, B, C}; pad=[]) where {T <: Missing, B, C}
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io,"BagNode with $(length(n.bags)) empty bag(s)\n", color=c)
+    paddedprint(io,"BagNode with $(length(n.bags)) missing bag(s)\n", color=c)
 end
