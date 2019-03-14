@@ -33,7 +33,7 @@ using Mill: ArrayNode, BagNode, TreeNode, catobs
     @test cat(e, a).bags.bags == [0:-1, 1:1]
     @test cat(e, a).data.data.data == a.data.data.data
 
-    @test catobs(a,e,a,e).data.data == catobs(a,a).data.data
+    @test catobs(a,e,a,e).data.data.data == catobs(a,a).data.data
     @test catobs(a,e,a,e).bags.bags == [1:4, 0:-1, 5:8, 0:-1]
 
     @test_throws ErrorException BagNode(nothing, AlignedBags([1:3]), nothing)
