@@ -19,10 +19,10 @@ function Base.iterate(it::NGramIterator, s = (0, 1))
   b, n = it.b, it.n 
   if i <= length(it.s)
     idx = idx * b + it.s[i]
-    idx = (i>n) ? mod(idx,b^n) : idx 
+    idx = (i>n) ? idx - it.s[i - n]*b^n : idx 
     return(idx, (idx, i + 1))
   elseif i < length(it.s) + n
-    idx = mod(idx,b^(n - (i - length(it.s))))
+    idx = (i>n) ? idx - it.s[i - n]*b^(n - (i - length(it.s))) : idx
     return(idx, (idx, i + 1))
   else 
     return(nothing)
