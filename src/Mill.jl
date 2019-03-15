@@ -36,7 +36,7 @@ export AlignedBags, ScatteredBags
 include("util.jl")
 include("threadfuns.jl")
 
-include("datanodes/datanodes.jl")
+include("datanodes/datanode.jl")
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
 export catobs, removeinstances

@@ -9,30 +9,27 @@ include("arraymodel.jl")
 include("bagmodel.jl")
 include("productmodel.jl")
 
-reflectinmodel(x) = reflectinmodel(x, d->Flux.Dense(d, 10), Dict(), d->SegmentedMean(), Dict())
-reflectinmodel(x, def_builder) = reflectinmodel(x, def_builder, Dict(), d->SegmentedMean(), Dict())
-reflectinmodel(x, def_builder, builder_dict) = reflectinmodel(x, def_builder, builder_dict, d->SegmentedMean(), Dict())
-reflectinmodel(x, def_builder, builder_dict, def_agg) = reflectinmodel(x, def_builder, builder_dict, def_agg, Dict())
+reflectinmodel(x, db, da = d->SegmentedMean(); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")
 
-function reflectinmodel(x::AbstractBagNode, b, bd, a, ad, s="")
-    im, d = reflectinmodel(x.data, b, bd, a, ad, s * encode(1, 1))
+function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
+    im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1))
     c = stringify(s)
-    agg = c in keys(ad) ? ad[c](d) : a(d)
-    bm, d = reflectinmodel(BagModel(im, agg)(x), b, bd, a, ad, s)
+    agg = c in keys(a) ? a[c](d) : da(d)
+    bm, d = _reflectinmodel(BagModel(im, agg)(x), db, da, b, a, s)
     BagModel(im, agg, bm), d
 end
 
-function reflectinmodel(x::AbstractTreeNode, b, bd, a, ad, s="")
+function _reflectinmodel(x::AbstractTreeNode, db, da, b, a, s)
     n = length(x.data)
-    mm = [reflectinmodel(xx, b, bd, a, ad, s * encode(i, n)) for (i, xx) in enumerate(x.data)]
+    mm = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n)) for (i, xx) in enumerate(x.data)]
     im = tuple([i[1] for i in mm]...)
-    tm, d = reflectinmodel(ProductModel(im)(x), b, bd, a, ad, s)
+    tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s)
     ProductModel(im, tm), d
 end
 
-function reflectinmodel(x::ArrayNode, b, bd, a, ad, s="")
+function _reflectinmodel(x::ArrayNode, db, da, b, a, s)
     c = stringify(s)
-    t = c in keys(bd) ? bd[c](size(x.data, 1)) : b(size(x.data, 1))
+    t = c in keys(b) ? b[c](size(x.data, 1)) : db(size(x.data, 1))
     m = ArrayModel(t)
     m, size(m(x).data, 1)
 end
