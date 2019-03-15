@@ -55,12 +55,10 @@ subset(::Missing, i) = missing
 subset(::Nothing, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 
-
-Base.show(io::IO, n::AbstractNode) = dsprint(io, n)
+Base.show(io::IO, n::AbstractNode) = dsprint(io, n, tr=false)
 
 include("arrays.jl")
 include("bagnode.jl")
 include("weighted_bagnode.jl")
 include("ngrams.jl")
 include("treenode.jl")
-

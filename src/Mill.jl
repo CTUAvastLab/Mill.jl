@@ -35,7 +35,7 @@ export AlignedBags, ScatteredBags
 include("util.jl")
 include("threadfuns.jl")
 
-include("datanodes/datanodes.jl")
+include("datanodes/datanode.jl")
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
 export catobs, removeinstances
@@ -46,6 +46,9 @@ export Aggregation
 
 include("modelnodes/modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
+
+include("traversal_encoding.jl")
+export show_traversal, encode_traversal
 
 include("conv.jl")
 export bagconv, BagConv
