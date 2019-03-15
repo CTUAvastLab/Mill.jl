@@ -27,7 +27,6 @@ data(x) = x
     concatenates `as...` into a single datanode while preserving their structure
 """
 catobs(as...) = reduce(catobs, collect(as))
-Base.cat(a::T, b::T; dims=Colon) where {T <: AbstractNode} = reduce(catobs, [a, b])
 
 # reduction of common datatypes the way we like it
 reduce(::typeof(catobs), as::Vector{<: AbstractMatrix}) = reduce(hcat, as)
@@ -58,7 +57,25 @@ subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 Base.show(io::IO, n::AbstractNode) = dsprint(io, n, tr=false)
 
 include("arrays.jl")
+
+# definitions needed for all types of bag nodes
+_len(a::UnitRange) = max(a.stop - a.start + 1, 0)
+_len(a::Vector) = length(a)
+LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
+LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
+Base.ndims(x::AbstractBagNode) = 0
+dsprint(io::IO, ::Missing; pad=[], s="", tr=false) where T = paddedprint(io, " ∅ ")
+
 include("bagnode.jl")
 include("weighted_bagnode.jl")
+
 include("ngrams.jl")
 include("treenode.jl")
+
+Base.cat(a::BagNode, b::BagNode; dims = Colon) = reduce(catobs, [a, b])
+@deprecate cat(a::BagNode, b::BagNode; dims = Colon) catobs(a, b)
+function Base.cat(a::T, b::T) where {T <: AbstractNode}
+    reduce(catobs, [a, b])
+end
+@deprecate cat(a::T, b::T) where {T <: AbstractNode} catobs(a, b)
+

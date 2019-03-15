@@ -25,13 +25,13 @@ using Mill: ArrayNode, BagNode, TreeNode, catobs
     @test  x[1].data.data == a.data.data
     @test  x[1].bags.bags == [1:4]
 
-    @test cat(a, e).data.data == a.data.data
-    @test cat(a, e).bags.bags == [1:4, 0:-1]
+    @test catobs(a, e).data.data == a.data.data
+    @test catobs(a, e).bags.bags == [1:4, 0:-1]
 
     a = BagNode(a, [1:1], missing)
-    @test cat(a, e).bags.bags == [1:1, 0:-1]
-    @test cat(e, a).bags.bags == [0:-1, 1:1]
-    @test cat(e, a).data.data.data == a.data.data.data
+    @test catobs(a, e).bags.bags == [1:1, 0:-1]
+    @test catobs(e, a).bags.bags == [0:-1, 1:1]
+    @test catobs(e, a).data.data.data == a.data.data.data
 
     @test catobs(a,e,a,e).data.data.data == catobs(a,a).data.data.data
     @test catobs(a,e,a,e).bags.bags == [1:1, 0:-1, 2:2, 0:-1]

@@ -124,7 +124,7 @@ Base.reduce(::typeof(catobs), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:
 Base.reduce(::typeof(catobs), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
 Base.reduce(::typeof(hcat), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:])
 Base.reduce(::typeof(hcat), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
-Base.cat(a::NGramMatrix...) = _catobs(collect(a))
+catobs(a::NGramMatrix...) = _catobs(collect(a))
 _lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
 _catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
 
