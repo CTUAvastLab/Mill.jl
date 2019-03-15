@@ -22,7 +22,7 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T <: WeightedBagNode}
     metadata = filter(!isnothing, [x.metadata for x in as])
     bags = vcat((d.bags for d in as)...)
     WeightedBagNode(isempty(data) ? missing : reduce(catobs, data),
-            bags, weights,
+                bags, vcat(a.weights for a in as),
             isempty(metadata) ? nothing : reduce(catobs, metadata))
 end
 
@@ -36,9 +36,10 @@ function dsprint(io::IO, n::WeightedBagNode{ArrayNode}, pad=[], s="", tr=false)
     paddedprint(io, "WeightedNode$(size(n.data)) with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))$(tr_repr(s, tr))\n", color=c)
 end
 
-function dsprint(io::IO, n::WeightedBagNode; pad=[], s="", tr=false)
+function dsprint(io::IO, n::WeightedBagNode{T}; pad=[], s="", tr=false) where T
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))$(tr_repr(s, tr))\n", color=c)
+    m = T <: Nothing ? " missing " : ""
+    paddedprint(io, "WeightedNode with $(length(n.bags))$(m)bag(s) and weights Σw = $(sum(n.weights))$(tr_repr(s, tr))\n", color=c)
     paddedprint(io, "  └── ", color=c, pad=pad)
     dsprint(io, n.data, pad = [pad; (c, "      ")], s=s * encode(1, 1), tr=tr)
 end
