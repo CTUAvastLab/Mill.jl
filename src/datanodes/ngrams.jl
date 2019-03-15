@@ -1,5 +1,53 @@
 import Base.*
 # struct NGramIterator{T} where {T<:Union{Base.CodeUnits{UInt8,S} where S,Vector{I} where I<:Integer}}
+"""
+  struct NGramIterator{T}
+    s::T
+    n::Int
+    b::Int
+  end
+
+  Iterates and enumerates ngrams of collection of integers `s::T` with zero padding. Enumeration is computed as in positional number systems, where items of `s` are digits and `b` is the base. 
+  
+  In order to reduce collisions when mixing ngrams of different order one should avoid zeros and negative integers in `s` and should set base `b` to be equal to the expected number of unique tokkens in `s`.
+  
+  # Examples
+  ```jldoctest
+julia> it = Mill.NGramIterator(collect(1:10), 3, 10)
+Mill.NGramIterator{Array{Int64,1}}([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 10)
+
+julia> [gram for gram in it]
+12-element Array{Int64,1}:
+   1
+  12
+ 123
+ 234
+ 345
+ 456
+ 567
+ 678
+ 789
+ 900
+ 100
+  10
+
+julia> sit = Mill.NGramIterator(codeunits("deadbeef"), 3, 256)    # creates collisions as codeunits returns tokens from 0x00:0xff
+Mill.NGramIterator{Base.CodeUnits{UInt8,String}}(UInt8[0x64, 0x65, 0x61, 0x64, 0x62, 0x65, 0x65, 0x66], 3, 256)
+
+julia> [gram for gram in sit]
+10-element Array{Int64,1}:
+     100
+   25701
+ 6579553
+ 6644068
+ 6382690
+ 6578789
+ 6448485
+ 6645094
+   25958
+     102
+```
+"""
 struct NGramIterator{T}
   s::T
   n::Int
