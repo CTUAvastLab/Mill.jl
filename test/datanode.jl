@@ -176,7 +176,7 @@ let
         @test wd[[2,1]].bags.bags == [0:-1,1:4]
         @test all(wd[1:2].data.data .== wd.data.data)
         @test wd[1:2].bags.bags == [1:4,0:-1]
-        @test all(wd[2].data.data .== wd.data.data[:,0:-1])
+        @test ismissing(wd[2].data)
         @test wd[2].bags.bags == [0:-1]
     end
 

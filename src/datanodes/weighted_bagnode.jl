@@ -4,13 +4,13 @@ mutable struct WeightedBagNode{T <: Union{Missing, AbstractNode}, B <: AbstractB
     weights::Vector{W}
     metadata::C
 
-    function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C) where {T <: AbstractNode, B <: AbstractBags, W, C}
+    function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C=nothing) where {T <: Union{Missing, AbstractNode}, B <: AbstractBags, W, C}
         ismissing(d) && any(_len.(b.bags) .!= 0) && error("WeightedBagNode with nothing in data cannot have a non-empty bag")
         new{T, B, W, C}(d, b, w, m)
     end
 end
 
-WeightedBagNode(x::T, b::Union{AbstractBags, Vector}, weights::Vector{W}, metadata::C=nothing) where {T, W, C} =
+WeightedBagNode(x::T, b::Vector, weights::Vector{W}, metadata::C=nothing) where {T, W, C} =
 WeightedBagNode(x, bags(b), weights, metadata)
 
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)

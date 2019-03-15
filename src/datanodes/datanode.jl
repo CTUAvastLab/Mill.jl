@@ -72,10 +72,11 @@ include("weighted_bagnode.jl")
 include("ngrams.jl")
 include("treenode.jl")
 
-Base.cat(a::BagNode, b::BagNode; dims = Colon) = reduce(catobs, [a, b])
-@deprecate cat(a::BagNode, b::BagNode; dims = Colon) catobs(a, b)
-function Base.cat(a::T, b::T) where {T <: AbstractNode}
-    reduce(catobs, [a, b])
+Base.cat(a::BagNode, b::BagNode; dims=:) = _cat(a, b, dims)
+Base.cat(a::WeightedBagNode, b::WeightedBagNode; dims=:) = _cat(a, b, dims)
+function Base.cat(a::T, b::T, dims=:) where {T <: AbstractNode}
+    _cat(a, b, dims)
 end
-@deprecate cat(a::T, b::T) where {T <: AbstractNode} catobs(a, b)
+
+_cat(a, b, ::Colon) = reduce(catobs, [a, b])
 

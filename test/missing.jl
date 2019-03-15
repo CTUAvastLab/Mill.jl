@@ -1,7 +1,7 @@
 using Mill, Test, Flux
 using Mill: ArrayNode, BagNode, TreeNode, catobs
 
-@testset "testing cat & getindex operations missing values" begin
+@testset "testing catobs & getindex operations missing values" begin
     a = BagNode(ArrayNode(rand(3,4)), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
 
@@ -38,6 +38,35 @@ using Mill: ArrayNode, BagNode, TreeNode, catobs
 
     @test_throws ErrorException BagNode(missing, AlignedBags([1:3]), nothing)
     @test_throws ErrorException BagNode(missing, Mill.ScatteredBags([[1,2,3]]), nothing)
+end
+
+@testset "testing catobs & getindex operations missing values for weighted" begin
+    a = WeightedBagNode(ArrayNode(rand(3,4)), [1:4], [1.0], nothing)
+    e = WeightedBagNode(missing, AlignedBags([0:-1]), [2.0], nothing)
+
+    x = reduce(catobs, [a, e])
+    @test x.data.data == a.data.data
+    @test x.bags.bags == [1:4, 0:-1]
+    @test x.weights == [1.0, 2.0]
+
+    x = reduce(catobs, [e, a])
+    @test x.data.data == a.data.data
+    @test x.bags.bags == [0:-1, 1:4]
+    @test x.weights == [2.0, 1.0]
+
+    x = reduce(catobs, [e, e])
+    @test ismissing(x.data)
+    @test x.bags.bags == [0:-1, 0:-1]
+    @test x.weights == [2.0, 2.0]
+
+    x = reduce(catobs, [a, e])
+    @test  isnothing(x[2].metadata)
+    @test  ismissing(x[2].data)
+    @test  x[2].bags.bags == [0:-1]
+    @test x[1].weights == [1.0]
+    @test x[2].weights == [2.0]
+    @test  x[1].data.data == a.data.data
+    @test  x[1].bags.bags == [1:4]
 end
 
 @testset "testing model operations missing values" begin
