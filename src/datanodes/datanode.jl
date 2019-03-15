@@ -27,7 +27,7 @@ data(x) = x
     concatenates `as...` into a single datanode while preserving their structure
 """
 catobs(as...) = reduce(catobs, collect(as))
-Base.cat(a::T, b::T) where {T <: AbstractNode} = reduce(catobs, [a, b])
+Base.cat(a::T, b::T; dims=Colon) where {T <: AbstractNode} = reduce(catobs, [a, b])
 
 # reduction of common datatypes the way we like it
 reduce(::typeof(catobs), as::Vector{<: AbstractMatrix}) = reduce(hcat, as)

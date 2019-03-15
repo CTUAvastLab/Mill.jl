@@ -35,8 +35,6 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T <: BagNode}
             isempty(metadata) ? nothing : reduce(catobs, metadata))
 end
 
-Base.cat(a::BagNode, b::BagNode; dims = Colon) = reduce(catobs, [a, b])
-
 removeinstances(a::BagNode, mask) = BagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), a.metadata)
 
 adjustbags(bags::AlignedBags, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}}} = length2bags(map(b -> sum(@view mask[b]), bags))
