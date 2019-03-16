@@ -1,18 +1,75 @@
-function segmented_mean(x::Matrix, bags::AbstractBags)
+struct Mean{T} <: AggregationFunction
+    C::T
+end
+
+Mean(d::Int) = Mean(param(zeros(Float32, d)))
+Flux.@treelike Mean
+
+modelprint(io::IO, sm::Mean{T}; pad=[]) where T = paddedprint(io, "Mean{$(T)}($(length(sm.C)))")
+# FORWARD PASS
+(m::Mean)(x, args...) = segmented_mean(x, m.c, args...)
+(m::Mean)(x::ArrayNode, args...) = mapdata(x -> m(x, m.c, args...), x)
+(m::Mean{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, m.c, args...), x)
+
+function segmented_mean(x::Matrix, c::Vector, bags::AbstractBags)
     o = zeros(eltype(x), size(x, 1), length(bags))
-    @inbounds for (j,b) in enumerate(bags)
-        for bi in b
+    for (j, b) in enumerate(bags)
+        if isempty(b)
             for i in 1:size(x, 1)
-                o[i,j] += x[i,bi] / length(b)
+                @inbounds o[i, j] = C[i]
+            end
+        else
+            for bi in b
+                for i in 1:size(x, 1)
+                    @inbounds o[i,j] += x[i,bi] / length(b)
+                end
             end
         end
     end
     o
 end
 
-function segmented_mean(x::Matrix, bags::AbstractBags, w::Vector)
+function segmented_mean(x::Matrix, c::Vector, bags::AbstractBags, w::Vector)
     o = zeros(eltype(x), size(x, 1), length(bags))
-    @inbounds for (j,b) in enumerate(bags)
+    for (j, b) in enumerate(bags)
+        if isempty(b)
+            for i in 1:size(x, 1)
+                @inbounds o[i, j] = C[i]
+            end
+        else
+            ws = sum(@view w[b])
+            for bi in b
+                for i in 1:size(x, 1)
+                    @inbounds o[i,j] += w[bi] * x[i,bi] / ws
+                end
+            end
+        end
+    end
+    o
+end
+
+function segmented_mean(x::Matrix, c::Vector, bags::AbstractBags, mask::Vector{Bool})
+    o = zeros(eltype(x), size(x, 1), length(bags))
+    for (j, b) in enumerate(bags)
+        if isempty(b)
+            for i in 1:size(x, 1)
+                @inbounds o[i, j] = C[i]
+            end
+        else
+            for bi in b
+                @inbounds !mask[bi] && continue
+                for i in 1:size(x, 1)
+                    @inbounds o[i,j] += x[i,bi] / length(b)
+                end
+            end
+        end
+    end
+    o
+end
+
+function segmented_mean(x::Matrix, c::Vector, bags::AbstractBags, w::Vector, mask::Vector{Bool})
+    o = zeros(eltype(x), size(x, 1), length(bags))
+    @inbounds for (j, b) in enumerate(bags)
         ws = sum(@view w[b])
         for bi in b
             for i in 1:size(x, 1)
@@ -23,25 +80,11 @@ function segmented_mean(x::Matrix, bags::AbstractBags, w::Vector)
     o
 end
 
-function segmented_mean(x::Matrix, bags::AbstractBags, mask::Vector{Bool})
-    o = zeros(eltype(x), size(x, 1), length(bags))
-    @inbounds for (j,b) in enumerate(bags)
-        ws = sum(@view mask[b])
-        for bi in b
-            !mask[bi] && continue
-            for i in 1:size(x, 1)
-                o[i,j] += x[i,bi] / ws
-            end
-        end
-    end
-    o
-end
-
 function segmented_mean_back(Δ, x::TrackedMatrix, bags::AbstractBags)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = similar(x)
-    @inbounds for (j,b) in enumerate(bags)
+    @inbounds for (j, b) in enumerate(bags)
         for bi in b
             for i in 1:size(x,1)
                 dx[i,bi] = Δ[i,j] / length(b)

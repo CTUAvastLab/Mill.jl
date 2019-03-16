@@ -4,15 +4,15 @@ struct PNorm{T}
     c::T
 end
 
-PNorm(d::Int) = PNorm(param(randn(d)), param(randn(d)))
+PNorm(d::Int) = PNorm(param(randn(Float32, d)), param(randn(Float32, d)))
 Flux.@treelike PNorm
 
 p_map(ρ) = 1 .+ log.(1 .+ exp.(ρ))
 inv_p_map(p) = log.(exp.(p-1) .- 1)
 
-Base.show(io::IO, n::PNorm) = print(io, "PNorm($(length(n.ρ)))")
+modelprint(io::IO, n::PNorm{T}; pad=[]) where T = paddedprint(io, "PNorm{$(T)}($(length(n.ρ)))")
 
-function _segmented_pnorm(x::Matrix, p::Vector, c::Vector, bags::AbstractBags)
+function segmented_pnorm(x::Matrix, p::Vector, c::Vector, bags::AbstractBags)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j, b) in enumerate(bags)
         for bi in b
@@ -25,7 +25,7 @@ function _segmented_pnorm(x::Matrix, p::Vector, c::Vector, bags::AbstractBags)
     o
 end
 
-function _segmented_pnorm(x::Matrix, p::Vector, c::Vector, bags::AbstractBags, w::Vector)
+function segmented_pnorm(x::Matrix, p::Vector, c::Vector, bags::AbstractBags, w::Vector)
     @assert all(w .> 0)
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j, b) in enumerate(bags)
@@ -40,7 +40,7 @@ function _segmented_pnorm(x::Matrix, p::Vector, c::Vector, bags::AbstractBags, w
     o
 end
 
-function _segmented_pnorm_back(Δ, x::TrackedMatrix, p::Vector, ρ::Vector, c::Vector, bags::AbstractBags, n::Matrix)
+function segmented_pnorm_back(Δ, x::TrackedMatrix, p::Vector, ρ::Vector, c::Vector, bags::AbstractBags, n::Matrix)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = zero(x)
@@ -56,7 +56,7 @@ function _segmented_pnorm_back(Δ, x::TrackedMatrix, p::Vector, ρ::Vector, c::V
     dx, nothing, nothing , nothing
 end
 
-function _segmented_pnorm_back(Δ, x::TrackedMatrix, p::Vector, ρ::Vector, c::Vector, bags::AbstractBags, w::Vector, n::Matrix)
+function segmented_pnorm_back(Δ, x::TrackedMatrix, p::Vector, ρ::Vector, c::Vector, bags::AbstractBags, w::Vector, n::Matrix)
     x = Flux.data(x)
     Δ = Flux.data(Δ)
     dx = zero(x)
@@ -73,7 +73,7 @@ function _segmented_pnorm_back(Δ, x::TrackedMatrix, p::Vector, ρ::Vector, c::V
     dx, nothing, nothing , nothing, nothing
 end
 
-function _segmented_pnorm_back(Δ, x::TrackedMatrix, p::TrackedVector, ρ::TrackedVector, c::TrackedVector, bags::AbstractBags, n::Matrix)
+function segmented_pnorm_back(Δ, x::TrackedMatrix, p::TrackedVector, ρ::TrackedVector, c::TrackedVector, bags::AbstractBags, n::Matrix)
     x = Flux.data(x)
     p = Flux.data(p)
     ρ = Flux.data(ρ)
@@ -112,7 +112,7 @@ function _segmented_pnorm_back(Δ, x::TrackedMatrix, p::TrackedVector, ρ::Track
 
 end
 
-function _segmented_pnorm_back(Δ, x::TrackedMatrix, p::TrackedVector, ρ::TrackedVector, c::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix)
+function segmented_pnorm_back(Δ, x::TrackedMatrix, p::TrackedVector, ρ::TrackedVector, c::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix)
     x = Flux.data(x)
     p = Flux.data(p)
     ρ = Flux.data(ρ)
@@ -151,7 +151,7 @@ function _segmented_pnorm_back(Δ, x::TrackedMatrix, p::TrackedVector, ρ::Track
     dx, dρ, dc, nothing, nothing
 end
 
-function _segmented_pnorm_back(Δ, x::Matrix, p::TrackedVector, ρ::TrackedVector, c::TrackedVector, bags::AbstractBags, n::Matrix)
+function segmented_pnorm_back(Δ, x::Matrix, p::TrackedVector, ρ::TrackedVector, c::TrackedVector, bags::AbstractBags, n::Matrix)
     p = Flux.data(p)
     ρ = Flux.data(ρ)
     c = Flux.data(c)
@@ -184,7 +184,7 @@ function _segmented_pnorm_back(Δ, x::Matrix, p::TrackedVector, ρ::TrackedVecto
     nothing, dρ, dc, nothing
 end
 
-function _segmented_pnorm_back(Δ, x::Matrix, p::TrackedVector, ρ::TrackedVector, c::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix)
+function segmented_pnorm_back(Δ, x::Matrix, p::TrackedVector, ρ::TrackedVector, c::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix)
     p = Flux.data(p)
     ρ = Flux.data(ρ)
     c = Flux.data(c)
@@ -218,7 +218,7 @@ function _segmented_pnorm_back(Δ, x::Matrix, p::TrackedVector, ρ::TrackedVecto
     nothing, dρ, dc, nothing, nothing
 end
 
-(n::PNorm)(x, args...) = _segmented_pnorm(x, p_map(Flux.data(n.ρ)), Flux.data(n.c), args...)
+(n::PNorm)(x, args...) = segmented_pnorm(x, p_map(Flux.data(n.ρ)), Flux.data(n.c), args...)
 (n::PNorm)(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
 
 (n::PNorm{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
@@ -230,7 +230,7 @@ end
 
 _pnorm_grad(x, ρ, c, args...) = Flux.Tracker.track(_pnorm_grad, x, ρ, c, args...)
 Flux.Tracker.@grad function _pnorm_grad(x, ρ, c, args...)
-    n = _segmented_pnorm(Flux.data(x), p_map(Flux.data(ρ)), Flux.data(c), Flux.data.(args)...)
-    grad = Δ -> _segmented_pnorm_back(Δ, x, p_map(ρ), ρ, c, args..., n)
+    n = segmented_pnorm(Flux.data(x), p_map(Flux.data(ρ)), Flux.data(c), Flux.data.(args)...)
+    grad = Δ -> segmented_pnorm_back(Δ, x, p_map(ρ), ρ, c, args..., n)
     n, grad
 end
