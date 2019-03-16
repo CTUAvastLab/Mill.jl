@@ -176,14 +176,23 @@ Base.cat(a::NGramMatrix...) = _catobs(collect(a))
 _lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
 _catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
 
+# default element type for SparseMatrixCSC is Float32
+SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Float32, Int}(x)
 
-function SparseArrays.SparseMatrixCSC(x::Mill.NGramMatrix)
-  xx = map(1:length(x)) do  i
-    t = zeros(Int, size(x,1),1)
-    foreach(j -> t[mod(j, x.m) + 1] += 1,Mill.NGramIterator(x, i))
-    sparse(t)
+function SparseArrays.SparseMatrixCSC{Tv,Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}
+  l = sum(map(i -> length(NGramIterator(x, i)), 1:length(x)))
+  I = zeros(Ti, l)
+  J = zeros(Ti, l)
+  V = ones(Tv, l)
+  vid = 1
+  for j in 1:length(x)
+    for i in NGramIterator(x, j)
+      I[vid] = mod(i, x.m) + 1
+      J[vid] = j
+      vid += one(Tv)
+    end
   end
-  reduce(hcat, xx)
+  sparse(I, J, V)
 end
 
 function mulkernel!(C, A, jB, mA, nA, idxs)
