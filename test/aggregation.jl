@@ -1,5 +1,5 @@
 using Flux.Tracker: istracked
-import Mill: _segmented_pnorm, _segmented_lse, PNorm, LSE
+import Mill: segmented_pnorm, segmented_lse, PNorm, LSE
 
 let 
     X = Matrix{Float64}(reshape(1:12, 2, 6))
@@ -7,28 +7,28 @@ let
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 
     @testset "aggregation functionality" begin
-        @test SegmentedMean()(X, BAGS) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0]
-        @test SegmentedMax()(X, BAGS) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0]
-        @test SegmentedMeanMax()(X, BAGS) ≈ cat(SegmentedMean()(X, BAGS), SegmentedMax()(X, BAGS), dims=1)
-        @test SegmentedMean()(X, BAGS, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
-        @test SegmentedMax()(X, BAGS, W) ≈ SegmentedMax()(X, BAGS)
-        @test SegmentedMeanMax()(X, BAGS, W) ≈ cat(SegmentedMean()(X, BAGS, W), SegmentedMax()(X, BAGS, W), dims=1)
+        @test SegmentedMean(2)(X, BAGS) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0]
+        @test SegmentedMax(2)(X, BAGS) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0]
+        @test SegmentedMeanMax(2)(X, BAGS) ≈ cat(SegmentedMean(2)(X, BAGS), SegmentedMax(2)(X, BAGS), dims=1)
+        @test SegmentedMean(2)(X, BAGS, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
+        @test SegmentedMax(2)(X, BAGS, W) ≈ SegmentedMax(2)(X, BAGS)
+        @test SegmentedMeanMax(2)(X, BAGS, W) ≈ cat(Mean()(X, BAGS, W), SegmentedMax(2)(X, BAGS, W), dims=1)
 
         for t = 1:10
             a, b, c, d, p1, p2, c1, c2, w1, w2 = randn(10)
             w1 = abs(w1)
             w2 = abs(w2)
-            @test _segmented_pnorm([a b; c d], [p1, p2], [c1, c2], ScatteredBags([[1,2]])) ≈ [
+            @test segmented_pnorm([a b; c d], [p1, p2], [c1, c2], ScatteredBags([[1,2]])) ≈ [
                     (1/2*(abs(a-c1)^p1 + abs(b-c1)^p1))^(1/p1);
                     (1/2*(abs(c-c2)^p2 + abs(d-c2)^p2))^(1/p2)
                 ]
-            @test _segmented_pnorm([a b; c d], [p1, p2], [c1, c2], ScatteredBags([[1,2]]), [w1, w2]) ≈ [
+            @test segmented_pnorm([a b; c d], [p1, p2], [c1, c2], ScatteredBags([[1,2]]), [w1, w2]) ≈ [
                     (1/(w1+w2)*(w1*abs(a-c1)^p1 + w2*abs(b-c1)^p1))^(1/p1);
                     (1/(w1+w2)*(w1*abs(c-c2)^p2 + w2*abs(d-c2)^p2))^(1/p2)
                 ]
             x = randn(2, 6)
-            @test _segmented_pnorm(x, [1, 1], [0, 0], BAGS) ≈ SegmentedMean()(abs.(x), BAGS)
-            @test _segmented_pnorm(x, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(x[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
+            @test segmented_pnorm(x, [1, 1], [0, 0], BAGS) ≈ SegmentedMean()(abs.(x), BAGS)
+            @test segmented_pnorm(x, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(x[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
         end
 
         for t = 1:10

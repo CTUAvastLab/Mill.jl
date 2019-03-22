@@ -1,12 +1,12 @@
 # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4908336/
-struct LSE{T}
+struct SegmentedLSE{T} <: AggregationFunction
     p::T
 end
 
-LSE(d::Int) = LSE(param(randn(Float32, d)))
-Flux.@treelike LSE
+SegmentedLSE(d::Int) = SegmentedLSE(param(randn(Float32, d)))
+Flux.@treelike SegmentedLSE
 
-Base.show(io::IO, n::LSE) = print(io, "LogSumExp($(length(n.p)))")
+Base.show(io::IO, n::SegmentedLSE) = print(io, "LogSumExp($(length(n.p)))")
 
 function segmented_lse(x::Matrix, p::Vector, bags::AbstractBags)
     o = zeros(eltype(x), size(x, 1), length(bags))
@@ -92,17 +92,17 @@ end
 
 segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix) = tuple(segmented_lse_back(Δ, x, p, bags, n)..., nothing)
 
-(n::LSE)(x, args...) = let m = maximum(x, dims=2)
+(n::SegmentedLSE)(x, args...) = let m = maximum(x, dims=2)
     m .+ segmented_lse(x .- m, n.p, args...)
 end
-(n::LSE)(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
+(n::SegmentedLSE)(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
 
-(n::LSE{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
+(n::SegmentedLSE{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
 
 # both x and p can be params
-(n::LSE{<:AbstractVector})(x::TrackedMatrix, args...) = _lse_grad(x, n.p, args...)
-(n::LSE{<:TrackedVector})(x, args...) = _lse_grad(x, n.p, args...)
-(n::LSE{<:TrackedVector})(x::TrackedMatrix, args...) = _lse_grad(x, n.p, args...)
+(n::SegmentedLSE{<:AbstractVector})(x::TrackedMatrix, args...) = _lse_grad(x, n.p, args...)
+(n::SegmentedLSE{<:TrackedVector})(x, args...) = _lse_grad(x, n.p, args...)
+(n::SegmentedLSE{<:TrackedVector})(x::TrackedMatrix, args...) = _lse_grad(x, n.p, args...)
 
 _lse_grad(x, p, args...) = let m = maximum(x, dims=2)
     m .+ Flux.Tracker.track(_lse_grad, x .- m, p, args...)

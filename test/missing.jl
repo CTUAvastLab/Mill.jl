@@ -1,4 +1,4 @@
-using Mill, Test, Flux
+using Mill, Flux
 using Mill: ArrayNode, BagNode, TreeNode, catobs
 
 @testset "testing catobs & getindex operations missing values" begin
@@ -41,30 +41,30 @@ using Mill: ArrayNode, BagNode, TreeNode, catobs
 end
 
 @testset "testing catobs & getindex operations missing values for weighted" begin
-    a = WeightedBagNode(ArrayNode(rand(3,4)), [1:4], [1.0], nothing)
-    e = WeightedBagNode(missing, AlignedBags([0:-1]), [2.0], nothing)
+    a = WeightedBagNode(ArrayNode(rand(3,4)), [1:4], [1.0, 0.0, 1.0, 0.5], nothing)
+    e = WeightedBagNode(missing, AlignedBags([0:-1]), [], nothing)
 
     x = reduce(catobs, [a, e])
     @test x.data.data == a.data.data
     @test x.bags.bags == [1:4, 0:-1]
-    @test x.weights == [1.0, 2.0]
+    @test x.weights == [1.0, 0.0, 1.0, 0.5]
 
     x = reduce(catobs, [e, a])
     @test x.data.data == a.data.data
     @test x.bags.bags == [0:-1, 1:4]
-    @test x.weights == [2.0, 1.0]
+    @test x.weights == [1.0, 0.0, 1.0, 0.5]
 
     x = reduce(catobs, [e, e])
     @test ismissing(x.data)
     @test x.bags.bags == [0:-1, 0:-1]
-    @test x.weights == [2.0, 2.0]
+    @test x.weights == []
 
     x = reduce(catobs, [a, e])
     @test  isnothing(x[2].metadata)
     @test  ismissing(x[2].data)
     @test  x[2].bags.bags == [0:-1]
-    @test x[1].weights == [1.0]
-    @test x[2].weights == [2.0]
+    @test x[1].weights == [1.0, 0.0, 1.0, 0.5]
+    @test x[2].weights == []
     @test  x[1].data.data == a.data.data
     @test  x[1].bags.bags == [1:4]
 end
@@ -76,8 +76,8 @@ end
 
     @testset "BagNode" begin
         x = reduce(catobs, [a, e])
-        @test m(x).data[:,1] ≈ m(a).data
-        @test m(x).data[:,2] ≈ m(e).data
+        @test m(x).data[:, 1] ≈ m(a).data
+        @test m(x).data[:, 2] ≈ m(e).data
         @test m(x).data ≈ hcat(m(a).data, m(e).data)
     end
 

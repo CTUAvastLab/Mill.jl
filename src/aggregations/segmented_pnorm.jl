@@ -1,16 +1,16 @@
 # https://arxiv.org/pdf/1311.1780.pdf
-struct PNorm{T}
+struct SegmentedPNorm{T} <: AggregationFunction
     ρ::T
     c::T
 end
 
-PNorm(d::Int) = PNorm(param(randn(Float32, d)), param(randn(Float32, d)))
-Flux.@treelike PNorm
+SegmentedPNorm(d::Int) = SegmentedPNorm(param(randn(Float32, d)), param(randn(Float32, d)))
+Flux.@treelike SegmentedPNorm
 
 p_map(ρ) = 1 .+ log.(1 .+ exp.(ρ))
 inv_p_map(p) = log.(exp.(p-1) .- 1)
 
-modelprint(io::IO, n::PNorm{T}; pad=[]) where T = paddedprint(io, "PNorm{$(T)}($(length(n.ρ)))")
+modelprint(io::IO, n::SegmentedPNorm; pad=[]) = paddedprint(io, "SegmentedPNorm($(length(n.ρ)))")
 
 function segmented_pnorm(x::Matrix, p::Vector, c::Vector, bags::AbstractBags)
     o = zeros(eltype(x), size(x, 1), length(bags))
@@ -218,15 +218,15 @@ function segmented_pnorm_back(Δ, x::Matrix, p::TrackedVector, ρ::TrackedVector
     nothing, dρ, dc, nothing, nothing
 end
 
-(n::PNorm)(x, args...) = segmented_pnorm(x, p_map(Flux.data(n.ρ)), Flux.data(n.c), args...)
-(n::PNorm)(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
+(n::SegmentedPNorm)(x, args...) = segmented_pnorm(x, p_map(Flux.data(n.ρ)), Flux.data(n.c), args...)
+(n::SegmentedPNorm)(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
 
-(n::PNorm{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
+(n::SegmentedPNorm{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
 
 # both x and (ρ, c) can be params
-(n::PNorm{<:AbstractVector})(x::TrackedMatrix, args...) = _pnorm_grad(x, n.ρ, n.c, args...)
-(n::PNorm{<:TrackedVector})(x, args...) = _pnorm_grad(x, n.ρ, n.c, args...)
-(n::PNorm{<:TrackedVector})(x::TrackedMatrix, args...) = _pnorm_grad(x, n.ρ, n.c, args...)
+(n::SegmentedPNorm{<:AbstractVector})(x::TrackedMatrix, args...) = _pnorm_grad(x, n.ρ, n.c, args...)
+(n::SegmentedPNorm{<:TrackedVector})(x, args...) = _pnorm_grad(x, n.ρ, n.c, args...)
+(n::SegmentedPNorm{<:TrackedVector})(x::TrackedMatrix, args...) = _pnorm_grad(x, n.ρ, n.c, args...)
 
 _pnorm_grad(x, ρ, c, args...) = Flux.Tracker.track(_pnorm_grad, x, ρ, c, args...)
 Flux.Tracker.@grad function _pnorm_grad(x, ρ, c, args...)

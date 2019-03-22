@@ -3,7 +3,7 @@ using FluxExtensions
 
 @testset "testing simple matrix model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    x = ArrayNode(randn(4, 5))
+    x = ArrayNode(randn(Float32, 4, 5))
     x32 = ArrayNode(randn(Float32, 4, 5))
     m = reflectinmodel(x, layerbuilder)[1]
     @test size(m(x).data) == (2, 5)
@@ -13,7 +13,7 @@ end
 
 @testset "testing simple aggregation model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    x = BagNode(ArrayNode(randn(4, 4)), [1:2, 3:4])
+    x = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:2, 3:4])
     x32 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:2, 3:4])
     m = reflectinmodel(x, layerbuilder)[1]
     @test size(m(x).data) == (2, 2)
@@ -23,7 +23,7 @@ end
 
 @testset "testing simple tuple models" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    x = TreeNode((ArrayNode(randn(3, 4)), ArrayNode(randn(4, 4))))
+    x = TreeNode((ArrayNode(randn(Float32, 3, 4)), ArrayNode(randn(Float32, 4, 4))))
     x32 = TreeNode((ArrayNode(randn(Float32, 3, 4)), ArrayNode(randn(Float32, 4, 4))))
     m = reflectinmodel(x, layerbuilder)[1]
 
@@ -32,7 +32,8 @@ end
     @test typeof(m) <: ProductModel
     @test typeof(m.ms[1]) <: ArrayModel
     @test typeof(m.ms[2]) <: ArrayModel
-    x = TreeNode((BagNode(ArrayNode(randn(3, 4)), [1:2, 3:4]), BagNode(ArrayNode(randn(4, 4)), [1:1, 2:4])))
+    x = TreeNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
+                  BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)[1]
     @test size(m(x).data) == (2, 2)
     @test typeof(m) <: ProductModel
@@ -46,7 +47,7 @@ end
 
 @testset "testing nested bag model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    bn = BagNode(ArrayNode(randn(2, 8)), [1:1, 2:2, 3:6, 7:8])
+    bn = BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8])
     x = BagNode(bn, [1:2, 3:4])
     x32 = BagNode(BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8]), [1:2, 3:4])
     m = reflectinmodel(x, layerbuilder)[1]
