@@ -7,12 +7,20 @@ Flux.@treelike SegmentedMean
 
 modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($(length(sm.C)))")
 
-# FORWARD PASS
 (m::SegmentedMean)(x, args...) = segmented_mean(x, m.C, args...)
 (m::SegmentedMean)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedMean{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
+(m::SegmentedMean)(x::TrackedMatrix, args...) = _mean_grad(x, m.C, args...)
+(m::SegmentedMean{<:TrackedVector})(x::TrackedMatrix, args...) = _mean_grad(x, m.C, args...)
+(m::SegmentedMean{<:TrackedVector})(x::AbstractMatrix, args...) = _mean_grad(x, m.C, args...)
 
-@generated function segmented_mean(x::MaybeMatrix, C::Vector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
+_mean_grad(args...) = Flux.Tracker.track(_mean_grad, args...)
+Flux.Tracker.@grad function _mean_grad(args...)
+    n = segmented_mean(Flux.data.(args)...)
+    grad = Δ -> segmented_mean_back(Δ, n, args...)
+    n, grad
+end
+
+@generated function segmented_mean(x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     init_rule = Expr(:block, quote 
                          o = zeros(eltype(x), size(x, 1), length(bags))
                      end)
@@ -34,19 +42,7 @@ modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($
               bag_update_rule, after_bag_rule, return_rule)
 end
 
-# BACKWARD
-(m::SegmentedMean{<:AbstractVector})(x::TrackedMatrix, args...) = _mean_grad(x, m.C, args...)
-(m::SegmentedMean{<:TrackedVector})(x, args...) = _mean_grad(x, m.C, args...)
-(m::SegmentedMean{<:TrackedVector})(x::TrackedMatrix, args...) = _mean_grad(x, m.C, args...)
-
-_mean_grad(x, C, args...) = Flux.Tracker.track(_mean_grad, x, C, args...)
-Flux.Tracker.@grad function _mean_grad(x, C, args...)
-    n = segmented_mean(Flux.data(x), Flux.data(C), Flux.data.(args)...)
-    grad = Δ -> segmented_mean_back(Δ, n, x, C, args...)
-    n, grad
-end
-
-@generated function segmented_mean_back(Δ, n::Matrix, x::MaybeInputMatrix, C::InputVector, bags::AbstractBags, w::MaybeInputVector=nothing, mask::MaybeMask=nothing) 
+@generated function segmented_mean_back(Δ, n::Matrix, x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     init_rule = quote Δ = Flux.data(Δ) end
     empty_bag_update_rule = Expr(:block)
     bag_update_rule = Expr(:block)

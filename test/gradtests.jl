@@ -69,30 +69,24 @@ let
 
     @testset "aggregation grad check w.r.t. input" begin
         for bags in BAGS
-            w = randn(10)
+            # only positive weights allowed in pnorm and lse
+            w = abs.(randn(Float32, 10)) .+ Float32(0.01)
             d = rand(1:10)
             x = randn(d, 10)
 
             # generate all combinations of aggregations
             as = []
-            # TODO
-            # names = ["Mean", "Max", "PNorm", "LSE"]
-            names = ["Mean", "Max"]
+            names = ["Mean", "Max", "PNorm", "LSE"]
             for idxs in powerset(collect(1:length(names)))
                 isempty(idxs) && continue
                 for p in permutations(idxs)
-                    push!(as, @eval $(Symbol("Segmented", names[idxs]...))($((randn(d) for _ in length(idxs))...)))
-                    # push!(as, @eval $(Symbol("Segmented", names[idxs]...))($((d for _ in length(idxs))...)))
+                    s = Symbol("Segmented", names[p]...)
+                    push!(as, @eval $s($d))
                 end
             end
             # both weighted and unweighted versions
-            @show w
-            @show d
-            @show x
-            for g in map(a -> x->sum(a(x, bags)), as)
-                @test mgradcheck(g, x)
-            end
-            for g in map(a -> x->sum(a(x, bags, w)), as)
+            for g in vcat(map(a -> x->sum(a(x, bags)), as),
+                          map(a -> x->sum(a(x, bags, w)), as))
                 @test mgradcheck(g, x)
             end
         end

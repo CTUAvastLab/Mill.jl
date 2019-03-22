@@ -7,12 +7,20 @@ Flux.@treelike SegmentedMax
 
 modelprint(io::IO, sm::SegmentedMax; pad=[]) = paddedprint(io, "SegmentedMax($(length(sm.C)))")
 
-# FORWARD PASS
 (m::SegmentedMax)(x, args...) = segmented_max(x, m.C, args...)
 (m::SegmentedMax)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedMax{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
+(m::SegmentedMax)(x::TrackedMatrix, args...) = _max_grad(x, m.C, args...)
+(m::SegmentedMax{<:TrackedVector})(x::TrackedMatrix, args...) = _max_grad(x, m.C, args...)
+(m::SegmentedMax{<:TrackedVector})(x::AbstractMatrix, args...) = _max_grad(x, m.C, args...)
 
-@generated function segmented_max(x::MaybeMatrix, C::Vector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
+_max_grad(args...) = Flux.Tracker.track(_max_grad, args...)
+Flux.Tracker.@grad function _max_grad(args...)
+    n = segmented_max(Flux.data.(args)...)
+    grad = Δ -> segmented_max_back(Δ, n, args...)
+    n, grad
+end
+
+@generated function segmented_max(x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     init_rule = Expr(:block, quote 
                          o = fill(typemin(eltype(x)), size(x, 1), length(bags))
                      end)
@@ -30,19 +38,7 @@ modelprint(io::IO, sm::SegmentedMax; pad=[]) = paddedprint(io, "SegmentedMax($(l
                          bag_update_rule, after_bag_rule, return_rule)
 end
 
-# BACKWARD
-(m::SegmentedMax{<:AbstractVector})(x::TrackedMatrix, args...) = _max_grad(x, m.C, args...)
-(m::SegmentedMax{<:TrackedVector})(x, args...) = _max_grad(x, m.C, args...)
-(m::SegmentedMax{<:TrackedVector})(x::TrackedMatrix, args...) = _max_grad(x, m.C, args...)
-
-_max_grad(x, C, args...) = Flux.Tracker.track(_max_grad, x, C, args...)
-Flux.Tracker.@grad function _max_grad(x, C, args...)
-    n = segmented_max(Flux.data(x), Flux.data(C), Flux.data.(args)...)
-    grad = Δ -> segmented_max_back(Δ, n, x, C, args...)
-    n, grad
-end
-
-@generated function segmented_max_back(Δ, n::Matrix, x::MaybeInputMatrix, C::InputVector, bags::AbstractBags, w::MaybeInputVector=nothing, mask::MaybeMask=nothing) 
+@generated function segmented_max_back(Δ, n::Matrix, x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     init_rule = quote Δ = Flux.data(Δ) end
 
     empty_bag_update_rule = Expr(:block)
@@ -63,13 +59,13 @@ end
         push!(init_bag_rule.args, :(fill!(v, typemin(eltype(x)))))
         push!(bag_update_rule.args, quote
                   if v[i] < x[i, bi]
-                      @inbounds idxs[i] = bi
-                      @inbounds v[i] = x[i, bi]
+                      idxs[i] = bi
+                      v[i] = x[i, bi]
                   end
               end)
         push!(after_bag_rule.args, quote
                   for i in 1:size(x, 1)
-                      @inbounds dx[i, idxs[i]] = Δ[i, j]
+                      dx[i, idxs[i]] = Δ[i, j]
                   end
               end)
         return_tuple.args[1] = :dx

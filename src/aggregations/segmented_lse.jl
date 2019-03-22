@@ -1,115 +1,109 @@
 # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4908336/
-struct SegmentedLSE{T} <: AggregationFunction
+struct SegmentedLSE{T, U} <: AggregationFunction
     p::T
+    C::U
 end
 
-SegmentedLSE(d::Int) = SegmentedLSE(param(randn(Float32, d)))
+SegmentedLSE(d::Int) = SegmentedLSE(param(randn(Float32, d)), param(randn(Float32, d)))
 Flux.@treelike SegmentedLSE
 
 Base.show(io::IO, n::SegmentedLSE) = print(io, "LogSumExp($(length(n.p)))")
 
-function segmented_lse(x::Matrix, p::Vector, bags::AbstractBags)
-    o = zeros(eltype(x), size(x, 1), length(bags))
-    @inbounds for (j, b) in enumerate(bags)
-        for bi in b
-            for i in 1:size(x, 1)
-                o[i, j] += exp(p[i] * x[i, bi])
-            end
-        end
-        o[:, j] .= (log.(o[:, j]) .- log(length(b)))
-    end
-    o ./ p
+# FORWARD PASS
+(m::SegmentedLSE)(x, args...) = let d = maximum(x, dims=2)
+    d .+ segmented_lse(x .- d, m.C, m.p, args...)
+end
+(m::SegmentedLSE)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
+(m::SegmentedLSE)(x::TrackedMatrix, args...) = _lse_grad(x, m.C, m.p, args...)
+(m::SegmentedLSE{TrackedVector, U})(x::TrackedMatrix, args...) where U = _lse_grad(x, m.C, m.p, args...)
+(m::SegmentedLSE{T, TrackedVector})(x::TrackedMatrix, args...) where T = _lse_grad(x, m.C, m.p, args...)
+(m::SegmentedLSE{TrackedVector, TrackedVector})(x::TrackedMatrix, args...) where T = _lse_grad(x, m.C, m.p, args...)
+(m::SegmentedLSE{TrackedVector, U})(x::AbstractMatrix, args...) where U = _lse_grad(x, m.C, m.p, args...)
+(m::SegmentedLSE{T, TrackedVector})(x::AbstractMatrix, args...) where T = _lse_grad(x, m.C, m.p, args...)
+(m::SegmentedLSE{TrackedVector, TrackedVector})(x::AbstractMatrix, args...) where T = _lse_grad(x, m.C, m.p, args...)
+
+_lse_grad(x, args...) = let m = maximum(x, dims=2)
+    m .+ Flux.Tracker.track(_lse_grad, x .- m, args...)
 end
 
-segmented_lse(x::Matrix, p::Vector, bags::AbstractBags, w::Vector) = segmented_lse(x, p, bags)
-
-function segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::AbstractBags, n::Matrix)
-    x = Flux.data(x)
-    Δ = Flux.data(Δ)
-    dx = zero(x)
-    ss = zero(p)
-    @inbounds for (j, b) in enumerate(bags)
-        ss .= 0
-        for bi in b
-            for i in 1:size(x,1)
-                e = exp(p[i] * x[i, bi])
-                dx[i, bi] = Δ[i, j] * e
-                ss[i] += e
-            end
-        end
-        dx[:, b] ./= ss
-    end
-    dx, nothing, nothing
-end
-
-segmented_lse_back(Δ, x::TrackedMatrix, p::Vector, bags::AbstractBags, w::Vector, n::Matrix) = tuple(segmented_lse_back(Δ, x, p, bags, n)..., nothing)
-
-function segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::AbstractBags, n::Matrix)
-    x = Flux.data(x)
-    p = Flux.data(p)
-    Δ = Flux.data(Δ)
-    dx = zero(x)
-    dp = zero(p)
-    ss1 = zero(p)
-    ss2 = zero(p)
-    @inbounds for (j, b) in enumerate(bags)
-        ss1 .= ss2 .= 0
-        for bi in b
-            for i in 1:size(x,1)
-                e = exp(p[i] * x[i, bi])
-                dx[i, bi] = Δ[i, j] * e
-                ss1[i] += e
-                ss2[i] += x[i, bi] * e
-            end
-        end
-        dx[:, b] ./= ss1
-        dp .+= Δ[:, j] .* (ss2 ./ ss1 - n[:, j])
-    end
-    dx, dp ./ p, nothing
-end
-
-segmented_lse_back(Δ, x::TrackedMatrix, p::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix) = tuple(segmented_lse_back(Δ, x, p, bags, n)..., nothing)
-
-function segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::AbstractBags, n::Matrix)
-    p = Flux.data(p)
-    Δ = Flux.data(Δ)
-    dp = zero(p)
-    ss1 = zero(p)
-    ss2 = zero(p)
-    @inbounds for (j, b) in enumerate(bags)
-        ss1 .= ss2 .= 0
-        for bi in b
-            for i in 1:size(x,1)
-                e = exp(p[i] * x[i, bi])
-                ss1[i] += e
-                ss2[i] += x[i, bi] * e
-            end
-        end
-        dp .+= Δ[:, j] .* (ss2 ./ ss1 - n[:, j])
-    end
-    nothing, dp ./ p, nothing, nothing
-end
-
-segmented_lse_back(Δ, x::Matrix, p::TrackedVector, bags::AbstractBags, w::Vector, n::Matrix) = tuple(segmented_lse_back(Δ, x, p, bags, n)..., nothing)
-
-(n::SegmentedLSE)(x, args...) = let m = maximum(x, dims=2)
-    m .+ segmented_lse(x .- m, n.p, args...)
-end
-(n::SegmentedLSE)(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
-
-(n::SegmentedLSE{<:TrackedVector})(x::ArrayNode, args...) = mapdata(x -> n(x, args...), x)
-
-# both x and p can be params
-(n::SegmentedLSE{<:AbstractVector})(x::TrackedMatrix, args...) = _lse_grad(x, n.p, args...)
-(n::SegmentedLSE{<:TrackedVector})(x, args...) = _lse_grad(x, n.p, args...)
-(n::SegmentedLSE{<:TrackedVector})(x::TrackedMatrix, args...) = _lse_grad(x, n.p, args...)
-
-_lse_grad(x, p, args...) = let m = maximum(x, dims=2)
-    m .+ Flux.Tracker.track(_lse_grad, x .- m, p, args...)
-end
-
-Flux.Tracker.@grad function _lse_grad(x, p, args...)
-    n = segmented_lse(Flux.data(x), Flux.data(p), Flux.data.(args)...)
-    grad = Δ -> segmented_lse_back(Δ, x, p, args..., n)
+Flux.Tracker.@grad function _lse_grad(args...)
+    n = segmented_lse(Flux.data.(args)...)
+    grad = Δ -> segmented_lse_back(Δ, n, args...)
     n, grad
+end
+
+@generated function segmented_lse(x::MaybeMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
+    init_rule = Expr(:block, quote 
+                         o = zeros(eltype(x), size(x, 1), length(bags))
+                     end)
+    empty_bag_update_rule = :(o[i, j] = C[i])
+    mask_rule = @mask_rule mask
+    init_bag_rule = @do_nothing
+    bag_update_rule = :(o[i, j] += exp(p[i] * x[i, bi]))
+    after_bag_rule = :(o[:, j] .= (log.(o[:, j]) .- log(length(b))))
+    return_rule = :(return o ./ p)
+    return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
+              bag_update_rule, after_bag_rule, return_rule)
+end
+
+@generated function segmented_lse_back(Δ, n::Matrix, x::MaybeMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing)
+    init_rule = quote Δ = Flux.data(Δ) end
+    empty_bag_update_rule = Expr(:block)
+    bag_update_rule = Expr(:block)
+    after_bag_rule = @do_nothing
+    mask_rule = @mask_rule mask
+    return_tuple = Expr(:tuple)
+    return_tuple.args = fill(nothing, 6)
+    init_bag_rule = @do_nothing
+
+
+    if (x <: Tracked)
+        push!(init_rule.args, quote
+                  x = Flux.data(x)
+                  dx = similar(x)
+                  ss1 = zero(p)
+              end)
+        push!(init_bag_rule.args, :(ss1 .= 0))
+        push!(bag_update_rule.args, quote
+                  e = exp(p[i] * x[i, bi])
+                  dx[i, bi] = Δ[i, j] * e
+                  ss1[i] += e
+              end)
+        push!(after_bag_rule.args, :(dx[:, b] ./= ss1))
+        return_tuple.args[1] = :dx
+    end
+
+    if (C <: Tracked)
+        push!(init_rule.args, quote 
+                  C = Flux.data(C)
+                  dC = zero(C)
+              end)
+        push!(empty_bag_update_rule.args, :(dC[i] += Δ[i, j]))
+        return_tuple.args[2] = :dC
+    end
+
+    if (p <: Tracked) 
+        push!(init_rule.args, quote
+                  p = Flux.data(p)
+                  dp = zero(p)
+                  ss2 = zero(p)
+              end)
+        if !(x <: Tracked)
+            push!(init_rule.args, :(ss1 = zero(p)))
+        end
+        push!(init_bag_rule.args, :(ss2 .= 0))
+        push!(bag_update_rule.args, :(ss2[i] += x[i, bi] * e))
+        push!(after_bag_rule.args, :(dp .+= Δ[:, j] .* (ss2 ./ ss1 - n[:, j])))
+        return_tuple.args[3] = :(dp ./ p)
+    end
+
+    if (w <: Tracked)
+        push!(init_rule.args, :(w = Flux.data(w)))
+        push!(init_rule.args, :(dw = zero(w)))
+        return_tuple.args[4] = :dw
+    end
+
+    return_rule = Expr(:return, return_tuple)
+    return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
+              bag_update_rule, after_bag_rule, return_rule)
 end
