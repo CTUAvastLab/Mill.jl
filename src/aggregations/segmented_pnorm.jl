@@ -60,9 +60,7 @@ end
     if w <: Nothing
         init_bag_rule = @do_nothing
     else
-        init_bag_rule = quote
-            ws = sum(@view w[b])
-        end
+        init_bag_rule = quote ws = sum(@view w[b]) end
     end
 
     if x <: Tracked
@@ -134,6 +132,14 @@ end
     end
 
     return_rule = Expr(:return, return_tuple)
+    return_rule = quote
+        @show dc
+        @show dp .* σ.(ρ)
+        $return_rule
+    end
+    x =  complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
+                         bag_update_rule, after_bag_rule, return_rule)
+    @show x
     return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
                          bag_update_rule, after_bag_rule, return_rule)
 end
