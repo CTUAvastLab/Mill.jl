@@ -1,5 +1,6 @@
 using Mill: reflectinmodel, length2bags
 using Combinatorics
+using Random
 
 # working with tracked output - now it is possible to test whole models
 # suitable for situations where the output of the model is TrackedArray
@@ -66,7 +67,6 @@ let
     end
 
     @testset "aggregation grad check w.r.t. agg params" begin
-        # for bags in BAGS[1:5]
         for bags in BAGS
             # only positive weights allowed in pnorm and lse
             d = rand(1:20)
@@ -97,12 +97,12 @@ let
                     n = Aggregation($(cs...))
                     sum(n(x, bags))
                 end
-                @test f(x, bags)
+                # @test f(x, bags)
                 @eval g = (x, bags, w) -> mgradcheck($(map(eval, rs)...)) do $(as...)
                     n = Aggregation($(cs...))
                     sum(n(x, bags, w))
                 end
-                # @test g(x, bags, w)
+                @test g(x, bags, w)
             end
         end
     end
