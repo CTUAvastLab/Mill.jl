@@ -5,13 +5,11 @@ end
 SegmentedMax(d::Int) = SegmentedMax(param(zeros(Float32, d)))
 Flux.@treelike SegmentedMax
 
+Base.show(io::IO, sm::SegmentedMax) = print(io, "SegmentedMax($(length(sm.C)))")
 modelprint(io::IO, sm::SegmentedMax; pad=[]) = paddedprint(io, "SegmentedMax($(length(sm.C)))")
 
-(m::SegmentedMax)(x, args...) = segmented_max(x, m.C, args...)
 (m::SegmentedMax)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedMax)(x::TrackedMatrix, args...) = _max_grad(x, m.C, args...)
-(m::SegmentedMax{<:TrackedVector})(x::TrackedMatrix, args...) = _max_grad(x, m.C, args...)
-(m::SegmentedMax{<:TrackedVector})(x::AbstractMatrix, args...) = _max_grad(x, m.C, args...)
+(m::SegmentedMax)(x, args...) = _max_grad(x, m.C, args...)
 
 _max_grad(args...) = Flux.Tracker.track(_max_grad, args...)
 Flux.Tracker.@grad function _max_grad(args...)
@@ -27,10 +25,10 @@ end
     empty_bag_update_rule = :(o[i, j] = C[i])
     init_bag_rule = @do_nothing
     mask_rule = @mask_rule mask
-    if !(x <: Nothing)
-        bag_update_rule = :(o[i, j] = max(o[i, j], x[i, bi]))
-    else
+    if x <: Nothing
         bag_update_rule = @do_nothing
+    else
+        bag_update_rule = :(o[i, j] = max(o[i, j], x[i, bi]))
     end
     after_bag_rule = @do_nothing
     return_rule = :(return o)
@@ -40,16 +38,15 @@ end
 
 @generated function segmented_max_back(Δ, n::Matrix, x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     init_rule = quote Δ = Flux.data(Δ) end
-
-    empty_bag_update_rule = Expr(:block)
-    init_bag_rule = Expr(:block)
-    bag_update_rule = Expr(:block)
+    empty_bag_update_rule = @do_nothing
+    init_bag_rule = @do_nothing
+    bag_update_rule = @do_nothing
     after_bag_rule = @do_nothing
     mask_rule = @mask_rule mask
     return_tuple = Expr(:tuple)
     return_tuple.args = fill(nothing, 5)
 
-    if (x <: Tracked)
+    if x <: Tracked
         push!(init_rule.args, :(x = Flux.data(x)))
         push!(init_rule.args, :(dx = zero(x)))
         push!(init_rule.args, quote
@@ -71,14 +68,14 @@ end
         return_tuple.args[1] = :dx
     end
 
-    if (C <: Tracked)
+    if C <: Tracked
         push!(init_rule.args, :(C = Flux.data(C)))
         push!(init_rule.args, :(dC = zero(C)))
         push!(empty_bag_update_rule.args, :(dC[i] += Δ[i, j]))
         return_tuple.args[2] = :dC
     end
 
-    if (w <: Tracked)
+    if w <: Tracked
         push!(init_rule.args, :(dw = zero(w)))
         return_tuple.args[4] = :dw
     end
