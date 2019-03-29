@@ -1,32 +1,6 @@
 using Mill: reflectinmodel, length2bags
 using Combinatorics
 
-# using Flux.Tracker: gradcheck
-function ngradient(f, xs::AbstractArray...)
-  grads = zero.(xs)
-  for (x, Δ) in zip(xs, grads), i in 1:length(x)
-    δ = sqrt(eps())
-    tmp = x[i]
-    x[i] = tmp - δ/2
-    y1 = f(xs...)
-    x[i] = tmp + δ/2
-    y2 = f(xs...)
-    x[i] = tmp
-    Δ[i] = (y2-y1)/δ
-  end
-  return grads
-end
-
-function gradcheck(f, xs...)
-    ret = all(isapprox.(ngradient(f, xs...),
-                        Flux.data.(Flux.Tracker.gradient(f, xs...)), rtol = 1e-4, atol = 1e-4))
-    if !ret
-        @show ngradient(f, xs...)
-        @show Flux.Tracker.gradient(f, xs...)
-    end
-    return ret
-end
-
 # working with tracked output - now it is possible to test whole models
 # suitable for situations where the output of the model is TrackedArray
 # native gradcheck in Flux tests only operations and not models
@@ -56,7 +30,6 @@ function mgradcheck(f, xs...)
 end
 
 let
-
     BAGS = [
             length2bags([1 for _ in 1:10]),
             length2bags([2 for _ in 1:5]),
@@ -70,15 +43,15 @@ let
     @testset "aggregation grad check w.r.t. input" begin
         for bags in BAGS
             # only positive weights allowed in pnorm and lse
-            w = abs.(randn(Float32, 10)) .+ Float32(0.01)
-            d = rand(1:10)
+            d = rand(1:20)
             x = randn(d, 10)
+            w = abs.(randn(size(x, 2))) .+ 0.01
 
             # generate all combinations of aggregations
             as = []
             names = ["Mean", "Max", "PNorm", "LSE"]
             for idxs in powerset(collect(1:length(names)))
-                isempty(idxs) && continue
+                !isempty(idxs) || continue
                 for p in permutations(idxs)
                     s = Symbol("Segmented", names[p]...)
                     push!(as, @eval $s($d))
@@ -87,7 +60,49 @@ let
             # both weighted and unweighted versions
             for g in vcat(map(a -> x->sum(a(x, bags)), as),
                           map(a -> x->sum(a(x, bags, w)), as))
-                @test mgradcheck(g, x)
+                # @test mgradcheck(g, x)
+            end
+        end
+    end
+
+    @testset "aggregation grad check w.r.t. agg params" begin
+        # for bags in BAGS[1:5]
+        for bags in BAGS
+            # only positive weights allowed in pnorm and lse
+            d = rand(1:20)
+            x = randn(d, 10)
+            w = abs.(randn(size(x, 2))) .+ 0.01
+            
+            # Random.seed!(0)
+            # d = 1
+            # x = reshape(collect(1.0:10.0), 1, 10)
+            # w = [1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0]
+
+            fs = [:SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
+            # TODO test Cs with empty bags
+            params = [(:C1,), (:C2,), (:ρ, :c, :C3), (:p, :C4)]
+
+            fs = fs[3:3]
+            params = params[3:3]
+
+            for idxs in powerset(collect(1:length(fs)))
+                !isempty(idxs) || continue;
+                rs = []; as = []; cs = []; 
+                for (f, ps) in zip(fs[idxs], params[idxs])
+                    push!(rs, (:(randn($d)) for _ in ps)...)
+                    push!(as, ps...)
+                    push!(cs, Expr(:call, f, map(p -> :(param($p)), ps)...))
+                end
+                @eval f = (x, bags) -> mgradcheck($(map(eval, rs)...)) do $(as...)
+                    n = Aggregation($(cs...))
+                    sum(n(x, bags))
+                end
+                @test f(x, bags)
+                @eval g = (x, bags, w) -> mgradcheck($(map(eval, rs)...)) do $(as...)
+                    n = Aggregation($(cs...))
+                    sum(n(x, bags, w))
+                end
+                # @test g(x, bags, w)
             end
         end
     end

@@ -7,20 +7,11 @@ end
 SegmentedLSE(d::Int) = SegmentedLSE(param(randn(Float32, d)), param(randn(Float32, d)))
 Flux.@treelike SegmentedLSE
 
-Base.show(io::IO, n::SegmentedLSE) = print(io, "LogSumExp($(length(n.p)))")
+Base.show(io::IO, n::SegmentedLSE) = print(io, "SegmentedLSE($(length(n.p)))")
+modelprint(io::IO, n::SegmentedLSE; pad=[]) = paddedprint(io, "SegmentedLSE($(length(n.p)))")
 
-# FORWARD PASS
-(m::SegmentedLSE)(x, args...) = let d = maximum(x, dims=2)
-    d .+ segmented_lse(x .- d, m.C, m.p, args...)
-end
 (m::SegmentedLSE)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedLSE)(x::TrackedMatrix, args...) = _lse_grad(x, m.C, m.p, args...)
-(m::SegmentedLSE{TrackedVector, U})(x::TrackedMatrix, args...) where U = _lse_grad(x, m.C, m.p, args...)
-(m::SegmentedLSE{T, TrackedVector})(x::TrackedMatrix, args...) where T = _lse_grad(x, m.C, m.p, args...)
-(m::SegmentedLSE{TrackedVector, TrackedVector})(x::TrackedMatrix, args...) where T = _lse_grad(x, m.C, m.p, args...)
-(m::SegmentedLSE{TrackedVector, U})(x::AbstractMatrix, args...) where U = _lse_grad(x, m.C, m.p, args...)
-(m::SegmentedLSE{T, TrackedVector})(x::AbstractMatrix, args...) where T = _lse_grad(x, m.C, m.p, args...)
-(m::SegmentedLSE{TrackedVector, TrackedVector})(x::AbstractMatrix, args...) where T = _lse_grad(x, m.C, m.p, args...)
+(m::SegmentedLSE)(x, args...) = _lse_grad(x, m.C, m.p, args...)
 
 _lse_grad(x, args...) = let m = maximum(x, dims=2)
     m .+ Flux.Tracker.track(_lse_grad, x .- m, args...)
@@ -43,13 +34,15 @@ end
     after_bag_rule = :(o[:, j] .= (log.(o[:, j]) .- log(length(b))))
     return_rule = :(return o ./ p)
     return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
-              bag_update_rule, after_bag_rule, return_rule)
+                         bag_update_rule, after_bag_rule, return_rule)
 end
 
 @generated function segmented_lse_back(Δ, n::Matrix, x::MaybeMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing)
     init_rule = quote Δ = Flux.data(Δ) end
-    empty_bag_update_rule = Expr(:block)
-    bag_update_rule = Expr(:block)
+    empty_bag_update_rule = @do_nothing
+    bag_update_rule = quote
+        e = exp(p[i] * x[i, bi])
+    end
     after_bag_rule = @do_nothing
     mask_rule = @mask_rule mask
     return_tuple = Expr(:tuple)
@@ -57,7 +50,7 @@ end
     init_bag_rule = @do_nothing
 
 
-    if (x <: Tracked)
+    if x <: Tracked
         push!(init_rule.args, quote
                   x = Flux.data(x)
                   dx = similar(x)
@@ -65,7 +58,6 @@ end
               end)
         push!(init_bag_rule.args, :(ss1 .= 0))
         push!(bag_update_rule.args, quote
-                  e = exp(p[i] * x[i, bi])
                   dx[i, bi] = Δ[i, j] * e
                   ss1[i] += e
               end)
@@ -73,7 +65,7 @@ end
         return_tuple.args[1] = :dx
     end
 
-    if (C <: Tracked)
+    if C <: Tracked
         push!(init_rule.args, quote 
                   C = Flux.data(C)
                   dC = zero(C)
@@ -82,7 +74,7 @@ end
         return_tuple.args[2] = :dC
     end
 
-    if (p <: Tracked) 
+    if p <: Tracked
         push!(init_rule.args, quote
                   p = Flux.data(p)
                   dp = zero(p)
@@ -90,6 +82,8 @@ end
               end)
         if !(x <: Tracked)
             push!(init_rule.args, :(ss1 = zero(p)))
+            push!(init_bag_rule.args, :(ss1 .= 0))
+            push!(bag_update_rule.args, :(ss1[i] += e))
         end
         push!(init_bag_rule.args, :(ss2 .= 0))
         push!(bag_update_rule.args, :(ss2[i] += x[i, bi] * e))
@@ -97,13 +91,14 @@ end
         return_tuple.args[3] = :(dp ./ p)
     end
 
-    if (w <: Tracked)
-        push!(init_rule.args, :(w = Flux.data(w)))
-        push!(init_rule.args, :(dw = zero(w)))
-        return_tuple.args[4] = :dw
+    if w <: Tracked
+        error("Gradient w.r.t. w not defined")
+        # push!(init_rule.args, :(w = Flux.data(w)))
+        # push!(init_rule.args, :(dw = zero(w)))
+        # return_tuple.args[4] = :dw
     end
 
     return_rule = Expr(:return, return_tuple)
     return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
-              bag_update_rule, after_bag_rule, return_rule)
+                         bag_update_rule, after_bag_rule, return_rule)
 end

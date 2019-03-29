@@ -46,18 +46,6 @@ macro mask_rule(mask_type)
     end
 end
 
-macro unpack(t, s)
-    return quote
-        $(esc(t)) <: Tracked ? :($$s = Flux.data($$s)) : $(@do_nothing)
-    end
-end
-
-macro define_derivative(t, s)
-    return quote
-        $(esc(t)) <: Tracked ? :($(Symbol("d" * string($s))) = zeros($$s)) : $(@do_nothing)
-    end
-end
-
 complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
               bag_update_rule, after_bag_rule, return_rule) = quote
     $init_rule
@@ -93,6 +81,7 @@ for idxs in powerset(collect(1:length(names)))
     for p in permutations(idxs)
         s = Symbol("Segmented", names[p]...)
         # generates calls like
+        # SegmentedMeanMax(d::Int) = Aggregation(SegmentedMean(d), SegmentedMax(d))
         # SegmentedMeanMax(d::Int) = Aggregation(SegmentedMean(d), SegmentedMax(d))
         @eval function $s(d::Int)
             Aggregation($(
