@@ -30,7 +30,7 @@ function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
 end
 
 const Tracked = Union{TrackedMatrix, TrackedVector}
-const MaybeMatrix = Union{AbstractMatrix, Nothing}
+const MaybeMatrix = Union{AbstractMatrix, Missing}
 const MaybeVector = Union{AbstractVector, Nothing}
 const MaybeMask = Union{Vector{Bool}, Nothing}
 
@@ -42,6 +42,10 @@ macro mask_rule(mask_type)
     quote
         $(esc(mask_type)) <: Nothing ? $(@do_nothing) : :(!mask[bi] && continue)
     end
+end
+
+macro fill_missing()
+    quote quote return repeat(C, 1, length(bags)) end end
 end
 
 complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,

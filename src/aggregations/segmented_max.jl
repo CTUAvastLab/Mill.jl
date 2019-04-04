@@ -19,9 +19,10 @@ Flux.Tracker.@grad function _max_grad(args...)
 end
 
 @generated function segmented_max(x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
-    init_rule = Expr(:block, quote 
-                         o = fill(typemin(eltype(x)), size(x, 1), length(bags))
-                     end)
+    x <: Missing && return @fill_missing
+    init_bag_rule = begin
+        o = fill(typemin(eltype(x)), size(x, 1), length(bags))
+    end
     empty_bag_update_rule = :(o[i, j] = C[i])
     init_bag_rule = @do_nothing
     mask_rule = @mask_rule mask

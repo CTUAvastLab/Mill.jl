@@ -62,9 +62,14 @@ let
         @test SegmentedLSE([1,1], C)([-1e15 -1e15; -1e15 -1e15], b2, [2, 2]) ≈ [-1e15; -1e15]
     end
 
-    # @testset "missing values" begin
-    #     bags = AlignedBags([0:-1])
-    #     @test SegmentedMean(C)(nothing, bags) == C
-    # end
+    @testset "missing values" begin
+        dummy = randn(2)
+        for bags in [AlignedBags([0:-1]), AlignedBags([0:-1, 0:-1, 0:-1])]
+            @test SegmentedMean(C)(missing, bags).data == repeat(C, 1, length(bags))
+            @test SegmentedMax(C)(missing, bags).data == repeat(C, 1, length(bags))
+            @test SegmentedLSE(dummy, C)(missing, bags).data == repeat(C, 1, length(bags))
+            @test SegmentedPNorm(dummy, dummy, C)(missing, bags).data == repeat(C, 1, length(bags)) 
+        end
+    end
 
 end

@@ -19,7 +19,8 @@ Flux.Tracker.@grad function _mean_grad(args...)
 end
 
 @generated function segmented_mean(x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
-    init_rule = quote 
+    x <: Missing && return @fill_missing
+    init_bag_rule = begin
         o = zeros(eltype(x), size(x, 1), length(bags))
     end
     empty_bag_update_rule = :(o[i, j] = C[i])
@@ -33,6 +34,9 @@ end
     mask_rule = @mask_rule mask
     after_bag_rule = @do_nothing
     return_rule = :(return o)
+    x= complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
+                         bag_update_rule, after_bag_rule, return_rule)
+    @show x
     return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
                          bag_update_rule, after_bag_rule, return_rule)
 end

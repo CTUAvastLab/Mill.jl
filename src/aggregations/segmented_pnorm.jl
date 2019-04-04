@@ -26,12 +26,13 @@ end
 
 @generated function segmented_pnorm(x::MaybeMatrix, C::AbstractVector, p::AbstractVector,
                                     c::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
-    init_rule = quote 
+    x <: Missing && return @fill_missing
+    init_bag_rule = begin
         o = zeros(eltype(x), size(x, 1), length(bags))
     end
     empty_bag_update_rule = quote o[i, j] = C[i] end
     mask_rule = @mask_rule mask
-    if (w <: Nothing)
+    if w <: Nothing
         init_bag_rule = @do_nothing
         bag_update_rule = :(o[i, j] += abs(x[i, bi] - c[i]) ^ p[i] / length(b))
     else

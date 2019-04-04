@@ -13,6 +13,7 @@ modelprint(io::IO, n::SegmentedLSE; pad=[]) = paddedprint(io, "SegmentedLSE($(le
 (m::SegmentedLSE)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedLSE)(x, args...) = _lse_grad(x, m.C, m.p, args...)
 
+_lse_grad(x::Missing, args...) = Flux.Tracker.track(_lse_grad, x, args...)
 _lse_grad(x, args...) = let m = maximum(x, dims=2)
     m .+ Flux.Tracker.track(_lse_grad, x .- m, args...)
 end
@@ -24,9 +25,10 @@ Flux.Tracker.@grad function _lse_grad(args...)
 end
 
 @generated function segmented_lse(x::MaybeMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
-    init_rule = Expr(:block, quote 
-                         o = zeros(eltype(x), size(x, 1), length(bags))
-                     end)
+    x <: Missing && return @fill_missing
+    init_bag_rule = begin
+        o = zeros(eltype(x), size(x, 1), length(bags))
+    end
     empty_bag_update_rule = :(o[i, j] = C[i])
     mask_rule = @mask_rule mask
     init_bag_rule = @do_nothing
