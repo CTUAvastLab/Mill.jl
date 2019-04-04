@@ -4,8 +4,6 @@ import Base: show
 #     # TODO what if the input is just Nothing in case of only empty bags? - reseno v BagNode
 #     # TODO write tests na C
 #     # TODO write tests for nothing input
-#     # TODO smazit masked verze?
-#     # TODO vytahnout empty bag update rule???, zkratit, zprehlednit
 #
 abstract type AggregationFunction end
 
