@@ -1,5 +1,5 @@
 using Flux.Tracker: istracked
-using Mill
+using Mill: segmented_pnorm, segmented_lse
 
 let 
     X = Matrix{Float64}(reshape(1:12, 2, 6))
@@ -13,7 +13,7 @@ let
         @test SegmentedMeanMax(2)(X, BAGS) ≈ cat(SegmentedMean(2)(X, BAGS), SegmentedMax(2)(X, BAGS), dims=1)
         @test SegmentedMean(2)(X, BAGS, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
         @test SegmentedMax(2)(X, BAGS, W) ≈ SegmentedMax(2)(X, BAGS)
-        @test SegmentedMeanMax(2)(X, BAGS, W) ≈ cat(Mean()(X, BAGS, W), SegmentedMax(2)(X, BAGS, W), dims=1)
+        @test SegmentedMeanMax(2)(X, BAGS, W) ≈ cat(SegmentedMean(2)(X, BAGS, W), SegmentedMax(2)(X, BAGS, W), dims=1)
     end
 
     @testset "pnorm functionality" begin

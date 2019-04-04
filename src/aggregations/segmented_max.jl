@@ -5,11 +5,12 @@ end
 SegmentedMax(d::Int) = SegmentedMax(param(zeros(Float32, d)))
 Flux.@treelike SegmentedMax
 
-Base.show(io::IO, sm::SegmentedMax) = print(io, "SegmentedMax($(length(sm.C)))")
+Base.show(io::IO, sm::SegmentedMax) = print(io, "SegmentedMax($(length(sm.C)))\n")
 modelprint(io::IO, sm::SegmentedMax; pad=[]) = paddedprint(io, "SegmentedMax($(length(sm.C)))")
 
 (m::SegmentedMax)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedMax)(x, args...) = _max_grad(x, m.C, args...)
+(m::SegmentedMax)(::Missing, args...) = _max_grad(missing, m.C, args...)
 
 _max_grad(args...) = Flux.Tracker.track(_max_grad, args...)
 Flux.Tracker.@grad function _max_grad(args...)
@@ -20,7 +21,7 @@ end
 
 @generated function segmented_max(x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     x <: Missing && return @fill_missing
-    init_bag_rule = begin
+    init_rule = quote
         o = fill(typemin(eltype(x)), size(x, 1), length(bags))
     end
     empty_bag_update_rule = :(o[i, j] = C[i])

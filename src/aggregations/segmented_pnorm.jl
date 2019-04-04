@@ -11,11 +11,12 @@ Flux.@treelike SegmentedPNorm
 p_map(ρ) = 1 .+ log.(1 .+ exp.(ρ))
 inv_p_map(p) = log.(exp.(p-1) .- 1)
 
-Base.show(io::IO, n::SegmentedPNorm) = print(io, "SegmentedPNorm($(length(n.ρ)))")
+Base.show(io::IO, n::SegmentedPNorm) = print(io, "SegmentedPNorm($(length(n.ρ)))\n")
 modelprint(io::IO, n::SegmentedPNorm; pad=[]) = paddedprint(io, "SegmentedPNorm($(length(n.ρ)))")
 
 (m::SegmentedPNorm)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedPNorm)(x, args...) = _pnorm_grad(x, m.C, m.ρ, m.c, args...)
+(m::SegmentedPNorm)(::Missing, args...) = _pnorm_grad(missing, m.C, m.ρ, m.c, args...)
 
 _pnorm_grad(args...) = Flux.Tracker.track(_pnorm_grad, args...)
 Flux.Tracker.@grad function _pnorm_grad(x, C, ρ, c, args...)
@@ -27,7 +28,7 @@ end
 @generated function segmented_pnorm(x::MaybeMatrix, C::AbstractVector, p::AbstractVector,
                                     c::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     x <: Missing && return @fill_missing
-    init_bag_rule = begin
+    init_rule = quote
         o = zeros(eltype(x), size(x, 1), length(bags))
     end
     empty_bag_update_rule = quote o[i, j] = C[i] end

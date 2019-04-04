@@ -38,6 +38,7 @@ export Aggregation
 
 include("modelnodes/modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
+export reflectinmodel
 
 include("traversal_encoding.jl")
 export show_traversal, encode_traversal

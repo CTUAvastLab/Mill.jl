@@ -5,11 +5,12 @@ end
 SegmentedMean(d::Int) = SegmentedMean(param(zeros(Float32, d)))
 Flux.@treelike SegmentedMean
 
-Base.show(io::IO, sm::SegmentedMean) = print(io, "SegmentedMean($(length(sm.C)))")
+Base.show(io::IO, sm::SegmentedMean) = print(io, "SegmentedMean($(length(sm.C)))\n")
 modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($(length(sm.C)))")
 
 (m::SegmentedMean)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedMean)(x, args...) = _mean_grad(x, m.C, args...)
+(m::SegmentedMean)(::Missing, args...) = _mean_grad(missing, m.C, args...)
 
 _mean_grad(args...) = Flux.Tracker.track(_mean_grad, args...)
 Flux.Tracker.@grad function _mean_grad(args...)
@@ -20,7 +21,7 @@ end
 
 @generated function segmented_mean(x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     x <: Missing && return @fill_missing
-    init_bag_rule = begin
+    init_rule = quote
         o = zeros(eltype(x), size(x, 1), length(bags))
     end
     empty_bag_update_rule = :(o[i, j] = C[i])
@@ -34,9 +35,6 @@ end
     mask_rule = @mask_rule mask
     after_bag_rule = @do_nothing
     return_rule = :(return o)
-    x= complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
-                         bag_update_rule, after_bag_rule, return_rule)
-    @show x
     return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
                          bag_update_rule, after_bag_rule, return_rule)
 end

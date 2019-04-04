@@ -7,11 +7,12 @@ end
 SegmentedLSE(d::Int) = SegmentedLSE(param(randn(Float32, d)), param(randn(Float32, d)))
 Flux.@treelike SegmentedLSE
 
-Base.show(io::IO, n::SegmentedLSE) = print(io, "SegmentedLSE($(length(n.p)))")
+Base.show(io::IO, n::SegmentedLSE) = print(io, "SegmentedLSE($(length(n.p)))\n")
 modelprint(io::IO, n::SegmentedLSE; pad=[]) = paddedprint(io, "SegmentedLSE($(length(n.p)))")
 
 (m::SegmentedLSE)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedLSE)(x, args...) = _lse_grad(x, m.C, m.p, args...)
+(m::SegmentedLSE)(::Missing, args...) = _lse_grad(missing, m.C, m.p, args...)
 
 _lse_grad(x::Missing, args...) = Flux.Tracker.track(_lse_grad, x, args...)
 _lse_grad(x, args...) = let m = maximum(x, dims=2)
@@ -26,7 +27,7 @@ end
 
 @generated function segmented_lse(x::MaybeMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     x <: Missing && return @fill_missing
-    init_bag_rule = begin
+    init_rule = quote
         o = zeros(eltype(x), size(x, 1), length(bags))
     end
     empty_bag_update_rule = :(o[i, j] = C[i])

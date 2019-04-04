@@ -1,10 +1,8 @@
 import Base: show
 
-# TODO Float32 x Float64
-#     # TODO what if the input is just Nothing in case of only empty bags? - reseno v BagNode
-#     # TODO write tests na C
-#     # TODO write tests for nothing input
-#
+# TODO Float32 x Float64 in tsting
+#     # TODO write gradtests na C
+
 abstract type AggregationFunction end
 
 struct Aggregation{N} <: AggregationFunction
