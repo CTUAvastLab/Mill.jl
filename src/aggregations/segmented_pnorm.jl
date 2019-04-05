@@ -82,10 +82,8 @@ end
     end
 
     if C <: Tracked
-        push!(init_rule.args, quote 
-                  C = Flux.data(C)
-                  dC = zero(C)
-              end)
+        push!(init_rule.args, :(C = Flux.data(C)))
+        push!(init_rule.args, :(dC = zero(C)))
         push!(empty_bag_update_rule.args, :(dC[i] += Δ[i, j]))
         return_tuple.args[2] = :dC
     end

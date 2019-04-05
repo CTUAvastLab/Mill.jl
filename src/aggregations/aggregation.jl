@@ -1,7 +1,4 @@
-import Base: show
-
-# TODO Float32 x Float64 in tsting
-#     # TODO write gradtests na C
+import Base: show, getindex
 
 abstract type AggregationFunction end
 
@@ -16,6 +13,7 @@ Flux.@treelike Aggregation
 (a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 
 Base.show(io::IO, a::AggregationFunction) = modelprint(io, a)
+Base.getindex(a::AggregationFunction, i) = a.fs[i]
 
 function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
     paddedprint(io, N == 1 ? "" : "⟨")
@@ -81,7 +79,6 @@ for idxs in powerset(collect(1:length(names)))
     for p in permutations(idxs)
         s = Symbol("Segmented", names[p]...)
         # generates calls like
-        # SegmentedMeanMax(d::Int) = Aggregation(SegmentedMean(d), SegmentedMax(d))
         # SegmentedMeanMax(d::Int) = Aggregation(SegmentedMean(d), SegmentedMax(d))
         @eval function $s(d::Int)
             Aggregation($(

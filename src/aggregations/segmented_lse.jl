@@ -34,8 +34,8 @@ end
     mask_rule = @mask_rule mask
     init_bag_rule = @do_nothing
     bag_update_rule = :(o[i, j] += exp(p[i] * x[i, bi]))
-    after_bag_rule = :(o[:, j] .= (log.(o[:, j]) .- log(length(b))))
-    return_rule = :(return o ./ p)
+    after_bag_rule = :(o[:, j] .= (log.(o[:, j]) .- log(length(b))) ./ p)
+    return_rule = :(return o)
     return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
                          bag_update_rule, after_bag_rule, return_rule)
 end
@@ -69,10 +69,8 @@ end
     end
 
     if C <: Tracked
-        push!(init_rule.args, quote 
-                  C = Flux.data(C)
-                  dC = zero(C)
-              end)
+        push!(init_rule.args, :(C = Flux.data(C)))
+        push!(init_rule.args, :(dC = zero(C)))
         push!(empty_bag_update_rule.args, :(dC[i] += Δ[i, j]))
         return_tuple.args[2] = :dC
     end
