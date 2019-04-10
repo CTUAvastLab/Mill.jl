@@ -16,7 +16,7 @@ ArrayNode(data::AbstractNode, a...) = data
 
 mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 
-Base.ndims(x::ArrayNode) = 0
+Base.ndims(x::ArrayNode) = :
 LearnBase.nobs(a::ArrayNode) = size(a.data, 2)
 LearnBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
 
@@ -34,6 +34,7 @@ function Base.vcat(as::ArrayNode...)
 end
 
 Base.hcat(as::ArrayNode...) = reduce(catobs, collect(as))
+Base.cat(as::ArrayNode...; dims = :) = reduce(catobs, collect(as))
 
 Base.getindex(x::ArrayNode, i::VecOrRange) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
 

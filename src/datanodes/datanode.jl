@@ -63,7 +63,7 @@ _len(a::UnitRange) = max(a.stop - a.start + 1, 0)
 _len(a::Vector) = length(a)
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
-Base.ndims(x::AbstractBagNode) = 0
+Base.ndims(x::AbstractBagNode) = :
 dsprint(io::IO, ::Missing; pad=[], s="", tr=false) where T = paddedprint(io, " ∅ ")
 
 include("bagnode.jl")
