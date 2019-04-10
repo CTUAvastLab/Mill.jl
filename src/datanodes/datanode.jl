@@ -63,7 +63,7 @@ _len(a::UnitRange) = max(a.stop - a.start + 1, 0)
 _len(a::Vector) = length(a)
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
-Base.ndims(x::AbstractBagNode) = :
+Base.ndims(x::AbstractBagNode) = Colon
 dsprint(io::IO, ::Missing; pad=[], s="", tr=false) where T = paddedprint(io, " ∅ ")
 
 include("bagnode.jl")
@@ -72,9 +72,9 @@ include("weighted_bagnode.jl")
 include("ngrams.jl")
 include("treenode.jl")
 
-Base.cat(a::BagNode, b::BagNode; dims=:) = _cat(a, b, dims)
-Base.cat(a::WeightedBagNode, b::WeightedBagNode; dims=:) = _cat(a, b, dims)
-function Base.cat(a::T, b::T, dims=:) where {T <: AbstractNode}
+Base.cat(a::BagNode, b::BagNode; dims = Colon) = _cat(a, b, dims)
+Base.cat(a::WeightedBagNode, b::WeightedBagNode; dims = :) = _cat(a, b, dims)
+function Base.cat(a::T, b::T, dims = Colon) where {T <: AbstractNode}
     _cat(a, b, dims)
 end
 
