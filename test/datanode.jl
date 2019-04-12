@@ -57,6 +57,7 @@ let
         x = ArrayNode(randn(2,3),rand(3))
         @test typeof(catobs(x,x[0:-1])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
         @test typeof(reduce(catobs, [x, x[0:-1]])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
+        @test all(cat(e, e, dims = ndims(e)).data .== hcat(e.data, e.data))
     end
 
     @testset "testing BagNode hcat" begin
@@ -84,6 +85,7 @@ let
         @test all(reduce(catobs, [d]).data.data .== hcat(d.data.data))
         @test catobs(d).bags.bags == vcat(d.bags).bags
         @test reduce(catobs, [d]).bags.bags == vcat(d.bags).bags
+        @test all(cat(a, b, dims = ndims(a)).data.data .== hcat(a.data.data, b.data.data))
     end
 
     @testset "testing WeightedBagNode hcat" begin
@@ -201,6 +203,7 @@ let
         @test all(reduce(catobs, [x,y]).data[2].data .== hcat(x.data[2].data,y.data[2].data))
         @test all(catobs(x,y).data[3].data .== hcat(x.data[3].data,y.data[3].data))
         @test all(reduce(catobs, [x,y]).data[3].data .== hcat(x.data[3].data,y.data[3].data))
+        @test all(cat(x,y, dims = ndims(x)).data[3].data .== hcat(x.data[3].data,y.data[3].data))
     end
 
     @testset "testing sparsify" begin

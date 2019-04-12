@@ -16,7 +16,7 @@ ArrayNode(data::AbstractNode, a...) = data
 
 mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 
-Base.ndims(x::ArrayNode) = Colon
+Base.ndims(x::ArrayNode) = Colon()
 LearnBase.nobs(a::ArrayNode) = size(a.data, 2)
 LearnBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
 
