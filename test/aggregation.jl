@@ -1,3 +1,4 @@
+using Test, Mill, Flux
 using Flux.Tracker: istracked
 using Mill: segmented_pnorm, segmented_lse
 
@@ -17,7 +18,8 @@ let
 
         @test typeof(SegmentedMean(randn(2))(X, BAGS)) <: Matrix
         @test typeof(SegmentedMax(rand(2))(X, BAGS)) <: Matrix
-        @test typeof(SegmentedMeanMax(2)(X, BAGS)) <: Matrix
+        @test typeof(SegmentedMean(randn(2))(Flux.param(X), BAGS)) <: Matrix
+        @test typeof(SegmentedMax(rand(2))(Flux.param(X), BAGS)) <: Matrix
     end
 
     @testset "pnorm functionality" begin
@@ -75,5 +77,21 @@ let
             @test SegmentedPNorm(dummy, dummy, C)(missing, bags).data == repeat(C, 1, length(bags)) 
         end
     end
+
+    @testset "testing stability with respect to tracker and non-tracked arrays" begin
+            @test !istracked(SegmentedMean(C)(X, BAGS))
+            @test !istracked(SegmentedMax(C)(X, BAGS))
+            @test !istracked(SegmentedMean(C)(X, BAGS, W))
+            @test !istracked(SegmentedMax(C)(X, BAGS, W))
+
+            @test istracked(SegmentedMean(C)(param(X), BAGS))
+            @test istracked(SegmentedMax(C)((param(X), BAGS))
+            @test istracked(SegmentedMean(C)(X, BAGS, param(W)))
+            @test istracked(SegmentedMax(C)(X, BAGS, param(W)))
+            
+            @test istracked(SegmentedMax(rand(2))(X, BAGS)) <: Matrix
+            @test istracked(SegmentedMean(randn(2))(Flux.param(X), BAGS)) <: Matrix
+            @test istracked(SegmentedMax(rand(2))(Flux.param(X), BAGS)) <: Matrix
+        end
 
 end
