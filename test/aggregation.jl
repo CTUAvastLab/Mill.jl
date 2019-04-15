@@ -15,8 +15,8 @@ let
         @test SegmentedMax(2)(X, BAGS, W) ≈ SegmentedMax(2)(X, BAGS)
         @test SegmentedMeanMax(2)(X, BAGS, W) ≈ cat(SegmentedMean(2)(X, BAGS, W), SegmentedMax(2)(X, BAGS, W), dims=1)
 
-        @test typeof(SegmentedMean(2)(X, BAGS)) <: Matrix
-        @test typeof(SegmentedMax(2)(X, BAGS)) <: Matrix
+        @test typeof(SegmentedMean(randn(2))(X, BAGS)) <: Matrix
+        @test typeof(SegmentedMax(rand(2))(X, BAGS)) <: Matrix
         @test typeof(SegmentedMeanMax(2)(X, BAGS)) <: Matrix
     end
 

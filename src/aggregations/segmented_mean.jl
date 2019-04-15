@@ -13,6 +13,9 @@ modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($
 (m::SegmentedMean)(::Missing, args...) = _mean_grad(missing, m.C, args...)
 
 _mean_grad(args...) = Flux.Tracker.track(_mean_grad, args...)
+_mean_grad(x::Matrix, c::Vector, bags) = segmented_mean(x, c, bags)
+_mean_grad(x::Matrix, c::Vector, bags, w::Vector) = segmented_mean(x, c, bags, w)
+_mean_grad(x::Matrix, c::Vector, bags, w::Vector, mask::Vector) = segmented_mean(x, c, bags, w, mask)
 Flux.Tracker.@grad function _mean_grad(args...)
     n = segmented_mean(Flux.data.(args)...)
     grad = Δ -> segmented_mean_back(Δ, n, args...)
