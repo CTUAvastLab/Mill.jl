@@ -14,6 +14,10 @@ let
         @test SegmentedMean(2)(X, BAGS, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
         @test SegmentedMax(2)(X, BAGS, W) ≈ SegmentedMax(2)(X, BAGS)
         @test SegmentedMeanMax(2)(X, BAGS, W) ≈ cat(SegmentedMean(2)(X, BAGS, W), SegmentedMax(2)(X, BAGS, W), dims=1)
+
+        @test typeof(SegmentedMean(2)(X, BAGS)) <: Matrix
+        @test typeof(SegmentedMax(2)(X, BAGS)) <: Matrix
+        @test typeof(SegmentedMeanMax(2)(X, BAGS)) <: Matrix
     end
 
     @testset "pnorm functionality" begin
