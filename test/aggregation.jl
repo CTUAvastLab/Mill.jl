@@ -15,11 +15,6 @@ let
         @test SegmentedMean(2)(X, BAGS, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
         @test SegmentedMax(2)(X, BAGS, W) ≈ SegmentedMax(2)(X, BAGS)
         @test SegmentedMeanMax(2)(X, BAGS, W) ≈ cat(SegmentedMean(2)(X, BAGS, W), SegmentedMax(2)(X, BAGS, W), dims=1)
-
-        @test typeof(SegmentedMean(randn(2))(X, BAGS)) <: Matrix
-        @test typeof(SegmentedMax(rand(2))(X, BAGS)) <: Matrix
-        @test typeof(SegmentedMean(randn(2))(Flux.param(X), BAGS)) <: Matrix
-        @test typeof(SegmentedMax(rand(2))(Flux.param(X), BAGS)) <: Matrix
     end
 
     @testset "pnorm functionality" begin
@@ -79,19 +74,10 @@ let
     end
 
     @testset "testing stability with respect to tracker and non-tracked arrays" begin
-            @test !istracked(SegmentedMean(C)(X, BAGS))
-            @test !istracked(SegmentedMax(C)(X, BAGS))
-            @test !istracked(SegmentedMean(C)(X, BAGS, W))
-            @test !istracked(SegmentedMax(C)(X, BAGS, W))
-
-            @test istracked(SegmentedMean(C)(param(X), BAGS))
-            @test istracked(SegmentedMax(C)((param(X), BAGS))
-            @test istracked(SegmentedMean(C)(X, BAGS, param(W)))
-            @test istracked(SegmentedMax(C)(X, BAGS, param(W)))
-            
-            @test istracked(SegmentedMax(rand(2))(X, BAGS)) <: Matrix
-            @test istracked(SegmentedMean(randn(2))(Flux.param(X), BAGS)) <: Matrix
-            @test istracked(SegmentedMax(rand(2))(Flux.param(X), BAGS)) <: Matrix
+        for (c, x, w) in Iterators.product([C, param(C)], [X, param(X)], [nothing, W, param(W)])
+            @test istracked(SegmentedMean(c)(x, BAGS, w)) == any(istracked.((c, x, w)))
+            @test istracked(SegmentedMax(c)(x, BAGS, w)) == any(istracked.((c, x, w)))
         end
+    end
 
 end
