@@ -159,14 +159,6 @@ git-tree-sha1 = "dec0ebacfbc3a2126c614ab5e903c9ef063688d0"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
 version = "0.17.0"
 
-[[Duff]]
-deps = ["HypothesisTests", "Printf", "Statistics", "StatsBase"]
-git-tree-sha1 = "823364ef93bbcbca936187b68eb37bae23400b50"
-repo-rev = "master"
-repo-url = "https://github.com/pevnak/Duff.jl"
-uuid = "3e2ffa6a-ba38-11e8-0a1c-7b69309e1c72"
-version = "0.1.0"
-
 [[FileIO]]
 deps = ["Pkg", "Random", "Test"]
 git-tree-sha1 = "1a114d08094e7267ba8d4d684f930d5a722184de"
@@ -202,12 +194,6 @@ version = "0.10.3"
 [[Future]]
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
-
-[[HypothesisTests]]
-deps = ["Combinatorics", "Distributions", "LinearAlgebra", "Random", "Rmath", "Roots", "Statistics", "StatsBase", "Test"]
-git-tree-sha1 = "0fe2b78bd7cadcaed2071aab7ed12b40d220c392"
-uuid = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
-version = "0.8.0"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -408,12 +394,6 @@ deps = ["BinaryProvider", "Libdl", "Random", "Statistics", "Test"]
 git-tree-sha1 = "9a6c758cdf73036c3239b0afbea790def1dabff9"
 uuid = "79098fc4-a85e-5d69-aa6a-4863f24498fa"
 version = "0.5.0"
-
-[[Roots]]
-deps = ["Printf", "Statistics", "Test"]
-git-tree-sha1 = "c25321e281c2aa5c8ea965bfa5fa27b98a5f4601"
-uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
-version = "0.8.0"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
