@@ -8,9 +8,9 @@ version = "0.2.1"
 
 [[Adapt]]
 deps = ["LinearAlgebra", "Test"]
-git-tree-sha1 = "04d15700419b6949d76be1428ab6e0277ff43b06"
+git-tree-sha1 = "53d8fec4f662088c1202530e338a11a919407f3b"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "0.4.1"
+version = "0.4.2"
 
 [[Arpack]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "Random", "SparseArrays", "Test"]
@@ -101,9 +101,9 @@ version = "2.1.0"
 
 [[DataFrames]]
 deps = ["CategoricalArrays", "CodecZlib", "Compat", "DataStreams", "Dates", "InteractiveUtils", "IteratorInterfaceExtensions", "LinearAlgebra", "Missings", "Printf", "Random", "Reexport", "SortingAlgorithms", "Statistics", "StatsBase", "TableTraits", "Tables", "Test", "TranscodingStreams", "Unicode", "WeakRefStrings"]
-git-tree-sha1 = "41ec35bcf49a860706924b9b3e322eed03164c83"
+git-tree-sha1 = "9cfed75401d25d281076eb5d82de148ac2933f9e"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "0.15.2"
+version = "0.17.1"
 
 [[DataStreams]]
 deps = ["Dates", "Missings", "Test", "WeakRefStrings"]
@@ -113,9 +113,9 @@ version = "0.4.1"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections", "Random", "Serialization", "Test"]
-git-tree-sha1 = "8fc6e166e24fda04b2b648d4260cdad241788c54"
+git-tree-sha1 = "ca971f03e146cf144a9e2f2ce59674f5bf0e8038"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.14.0"
+version = "0.15.0"
 
 [[Dates]]
 deps = ["Printf"]
@@ -169,9 +169,9 @@ version = "0.1.0"
 
 [[FileIO]]
 deps = ["Pkg", "Random", "Test"]
-git-tree-sha1 = "1a114d08094e7267ba8d4d684f930d5a722184de"
+git-tree-sha1 = "da32159d4a2e526338506685e280e39ed2f18961"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.0.4"
+version = "1.0.6"
 
 [[FixedPointNumbers]]
 deps = ["Test"]
@@ -181,13 +181,13 @@ version = "0.5.3"
 
 [[Flux]]
 deps = ["AbstractTrees", "Adapt", "CodecZlib", "Colors", "DelimitedFiles", "Juno", "LinearAlgebra", "MacroTools", "NNlib", "Pkg", "Random", "Reexport", "Requires", "SHA", "Statistics", "StatsBase", "Test", "Tracker", "ZipFile"]
-git-tree-sha1 = "0c4473ee0f1109e8eaddea972aa28bac3bd1a99e"
+git-tree-sha1 = "75e5a6850ad9d6129773171d9ba66be899a515ec"
 uuid = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-version = "0.8.1"
+version = "0.8.2"
 
 [[FluxExtensions]]
 deps = ["Adapt", "CSV", "DataFrames", "Distances", "Distributions", "Flux", "LinearAlgebra", "MLDataPattern", "NNlib", "Optim", "Printf", "Random", "Serialization", "SparseArrays", "Statistics", "StatsBase", "Test"]
-git-tree-sha1 = "51519621fda48b812eba33c623f1f8614e5d6183"
+git-tree-sha1 = "731d158321c71044e3d3d9cb0d793f0e28414b1a"
 repo-rev = "master"
 repo-url = "https://github.com/pevnak/FluxExtensions.jl"
 uuid = "76425322-8995-11e8-0106-93ec95767fb2"
