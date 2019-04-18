@@ -1,6 +1,6 @@
 using LearnBase
 using DataFrames
-import Base: cat, vcat, hcat, _cat
+import Base: cat, vcat, hcat, _cat, lastindex, getindex
 
 abstract type AbstractNode end
 abstract type AbstractTreeNode <: AbstractNode end
@@ -41,9 +41,11 @@ _cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where 
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
 Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractNode = x[findall(i)]
 Base.getindex(x::AbstractNode, i::Int) = x[i:i]
+Base.lastindex(ds::AbstractNode) = nobs(ds)
 MLDataPattern.getobs(x::AbstractNode, i) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Undefined) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Last) = x[i]
+
 
 #subset of common datatypes the way we like them
 subset(x::AbstractMatrix, i) = x[:, i]
@@ -72,7 +74,6 @@ include("weighted_bagnode.jl")
 include("ngrams.jl")
 include("treenode.jl")
 
-Base.cat(a::AbstractNode, b::AbstractNode; dims = Colon) = _cat(a, b, dims)
 Base.cat(a::AbstractNode, b::AbstractNode; dims = :) = _cat(a, b, dims)
 function Base.cat(a::T, b::T, dims = Colon) where {T <: AbstractNode}
     _cat(a, b, dims)
