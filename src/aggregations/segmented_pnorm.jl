@@ -5,7 +5,7 @@ struct SegmentedPNorm{T, U, V} <: AggregationFunction
     C::V
 end
 
-SegmentedPNorm(d::Int) = SegmentedPNorm(param(randn(Float32, d)), param(randn(Float32, d)), param(randn(Float32, d)))
+SegmentedPNorm(d::Int) = SegmentedPNorm(param(randn(Float32, d)), param(randn(Float32, d)), param(zeros(Float32, d)))
 Flux.@treelike SegmentedPNorm
 
 p_map(ρ) = 1 .+ log.(1 .+ exp.(ρ))

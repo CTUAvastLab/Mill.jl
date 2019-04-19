@@ -4,7 +4,7 @@ struct SegmentedLSE{T, U} <: AggregationFunction
     C::U
 end
 
-SegmentedLSE(d::Int) = SegmentedLSE(param(randn(Float32, d)), param(randn(Float32, d)))
+SegmentedLSE(d::Int) = SegmentedLSE(param(randn(Float32, d)), param(zeros(Float32, d)))
 Flux.@treelike SegmentedLSE
 
 Base.show(io::IO, n::SegmentedLSE) = print(io, "SegmentedLSE($(length(n.p)))\n")
