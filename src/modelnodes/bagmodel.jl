@@ -24,11 +24,11 @@ BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
 
 (m::BagModel)(x::WeightedBagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
 # if the data is missing, we do not use the mapping
-(m::BagModel)(x::WeightedBagNode{<: Nothing}) = m.bm(ArrayNode(m.a(x.data, x.bags, x.weights)))
+(m::BagModel)(x::WeightedBagNode{<: Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags, x.weights)))
 
-(m::BagModel)(x::BagNode{T, B, C}) where {T <: AbstractNode, B, C} = m.bm(m.a(m.im(x.data), x.bags))
+(m::BagModel)(x::BagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags))
 # if the data is missing, we do not use the mapping
-(m::BagModel)(x::BagNode{T, B, C}) where {T <: Missing, B, C} = m.bm(ArrayNode(m.a(x.data, x.bags)))
+(m::BagModel)(x::BagNode{<: Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags)))
 
 function modelprint(io::IO, m::BagModel; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]

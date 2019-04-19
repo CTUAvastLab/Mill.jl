@@ -10,12 +10,12 @@ modelprint(io::IO, sm::SegmentedMax; pad=[]) = paddedprint(io, "SegmentedMax($(l
 
 (m::SegmentedMax)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedMax)(x, args...) = _max_grad(x, m.C, args...)
-(m::SegmentedMax)(::Missing, args...) = _max_grad(missing, m.C, args...)
 
 _max_grad(args...) = Flux.Tracker.track(_max_grad, args...)
-_max_grad(x::Matrix, c::Vector, bags) = segmented_max(x, c, bags)
-_max_grad(x::Matrix, c::Vector, bags, w::Union{Vector, Nothing}) = segmented_max(x, c, bags, w)
-_max_grad(x::Matrix, c::Vector, bags, w::Union{Vector, Nothing}, mask::Union{Vector, Nothing}) = segmented_max(x, c, bags, w, mask)
+_max_grad(x::Union{Matrix, Missing}, C::Vector, bags) = segmented_max(x, C, bags)
+_max_grad(x::Union{Matrix, Missing}, C::Vector, bags, w::Union{Vector, Nothing}) = segmented_max(x, C, bags, w)
+_max_grad(x::Union{Matrix, Missing}, C::Vector, bags, w::Union{Vector, Nothing}, mask::Union{Vector, Nothing}) = segmented_max(x, C, bags, w, mask)
+
 Flux.Tracker.@grad function _max_grad(args...)
     n = segmented_max(Flux.data.(args)...)
     grad = Δ -> segmented_max_back(Δ, n, args...)

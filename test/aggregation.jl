@@ -7,6 +7,9 @@ let
     BAGS = AlignedBags([1:1, 2:3, 4:6])
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
     C = [1, 2]
+    ρ = [-2, 2]
+    cc = [3, -2]
+    p = [1/2, 3]
 
     @testset "basic aggregation functionality" begin
         @test SegmentedMean(2)(X, BAGS) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0]
@@ -66,17 +69,23 @@ let
     @testset "missing values" begin
         dummy = randn(2)
         for bags in [AlignedBags([0:-1]), AlignedBags([0:-1, 0:-1, 0:-1])]
-            @test SegmentedMean(C)(missing, bags).data == repeat(C, 1, length(bags))
-            @test SegmentedMax(C)(missing, bags).data == repeat(C, 1, length(bags))
-            @test SegmentedLSE(dummy, C)(missing, bags).data == repeat(C, 1, length(bags))
-            @test SegmentedPNorm(dummy, dummy, C)(missing, bags).data == repeat(C, 1, length(bags)) 
+            @test SegmentedMean(C)(missing, bags) == repeat(C, 1, length(bags))
+            @test SegmentedMax(C)(missing, bags) == repeat(C, 1, length(bags))
+            @test SegmentedLSE(dummy, C)(missing, bags) == repeat(C, 1, length(bags))
+            @test SegmentedPNorm(dummy, dummy, C)(missing, bags) == repeat(C, 1, length(bags)) 
         end
     end
 
     @testset "testing stability with respect to tracker and non-tracked arrays" begin
-        for (c, x, w) in Iterators.product([C, param(C)], [X, param(X)], [nothing, W, param(W)])
+        for (c, x, w) in Iterators.product([C, param(C)], [missing, X, param(X)], [nothing, W, param(W)])
             @test istracked(SegmentedMean(c)(x, BAGS, w)) == any(istracked.((c, x, w)))
             @test istracked(SegmentedMax(c)(x, BAGS, w)) == any(istracked.((c, x, w)))
+        end
+        for (r, s, c, x, w) in Iterators.product([ρ, param(ρ)], [cc, param(cc)], [C, param(C)], [missing, X, param(X)], [nothing, W, param(W)])
+            @test istracked(SegmentedPNorm(r, s, c)(x, BAGS, w)) == any(istracked.((r, s, c, x, w)))
+        end
+        for (p, c, x, w) in Iterators.product([p, param(p)], [C, param(C)], [missing, X, param(X)], [nothing, W, param(W)])
+            @test istracked(SegmentedLSE(p, c)(x, BAGS, w)) == any(istracked.((p, c, x, w)))
         end
     end
 

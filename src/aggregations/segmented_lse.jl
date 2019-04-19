@@ -11,13 +11,16 @@ Base.show(io::IO, n::SegmentedLSE) = print(io, "SegmentedLSE($(length(n.p)))\n")
 modelprint(io::IO, n::SegmentedLSE; pad=[]) = paddedprint(io, "SegmentedLSE($(length(n.p)))")
 
 (m::SegmentedLSE)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedLSE)(x, args...) = _lse_grad(x, m.C, m.p, args...)
-(m::SegmentedLSE)(::Missing, args...) = _lse_grad(missing, m.C, m.p, args...)
+(m::SegmentedLSE)(x, args...) = __lse_grad(x, m.C, m.p, args...)
 
-_lse_grad(x::Missing, args...) = Flux.Tracker.track(_lse_grad, x, args...)
-_lse_grad(x, args...) = let m = maximum(x, dims=2)
-    m .+ Flux.Tracker.track(_lse_grad, x .- m, args...)
+__lse_grad(x::Missing, args...) = _lse_grad(x, args...)
+__lse_grad(x, args...) = let m = maximum(x, dims=2)
+    m .+ _lse_grad(x .- m, args...)
 end
+_lse_grad(args...) = Flux.Tracker.track(_lse_grad, args...)
+_lse_grad(x::Union{Matrix, Missing}, C::Vector, p::Vector, bags) = segmented_lse(x, C, p, bags)
+_lse_grad(x::Union{Matrix, Missing}, C::Vector, p::Vector, bags, w::Union{Vector, Nothing}) = segmented_lse(x, C, p, bags, w)
+_lse_grad(x::Union{Matrix, Missing}, C::Vector, p::Vector, bags, w::Union{Vector, Nothing}, mask::Union{Vector, Nothing}) = segmented_lse(x, C, p, bags, w, mask)
 
 Flux.Tracker.@grad function _lse_grad(args...)
     n = segmented_lse(Flux.data.(args)...)
