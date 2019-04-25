@@ -61,7 +61,7 @@ show_traversal(m::MillModel) = modelprint(Base.stdout, m, tr=true)
 Base.getindex(n::AbstractNode, i::AbstractString) = _walk(n, destringify(i))
 Base.getindex(m::MillModel, i::AbstractString) = _walk(m, destringify(i))
 
-tr_repr(s::AbstractString, traversal::Bool) = traversal ? " [\"$(stringify(s))\"]" : ""
+tr_repr(s::AbstractString, traversal::Bool) = traversal ? " [$(stringify(s))]" : ""
 
 encode_traversal(m::AbstractNode, idxs::Integer...) = stringify(_encode_traversal(m, idxs...))
 

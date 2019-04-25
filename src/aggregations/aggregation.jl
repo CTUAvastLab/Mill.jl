@@ -22,7 +22,7 @@ function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
         paddedprint(io, ", ")
     end
     modelprint(io, a.fs[end], pad=pad)
-    paddedprint(io, (N == 1 ? "" : "⟩") * '\n')
+    paddedprint(io, (N == 1 ? "" : "⟩"))
 end
 
 const Tracked = Union{TrackedMatrix, TrackedVector}
