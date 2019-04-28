@@ -57,6 +57,7 @@ let
         x = ArrayNode(randn(2,3),rand(3))
         @test typeof(catobs(x,x[0:-1])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
         @test typeof(reduce(catobs, [x, x[0:-1]])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
+        @test all(cat(e, e, dims = ndims(e)).data .== hcat(e.data, e.data))
     end
 
     @testset "testing BagNode hcat" begin
@@ -84,6 +85,7 @@ let
         @test all(reduce(catobs, [d]).data.data .== hcat(d.data.data))
         @test catobs(d).bags.bags == vcat(d.bags).bags
         @test reduce(catobs, [d]).bags.bags == vcat(d.bags).bags
+        @test all(cat(a, b, dims = ndims(a)).data.data .== hcat(a.data.data, b.data.data))
     end
 
     @testset "testing WeightedBagNode hcat" begin
@@ -151,10 +153,10 @@ let
         @test d[[2,1]].bags.bags == [0:-1,1:4]
         @test all(d[1:2].data.data .== d.data.data)
         @test d[1:2].bags.bags == [1:4,0:-1]
-        @test all(d[2].data.data .== d.data.data[:,0:-1])
+        @test ismissing(d[2].data)
         @test d[2].bags.bags == [0:-1]
         @test isempty(a[2:1].bags.bags)
-        @test isempty(a[2:1].data.data)
+        @test ismissing(a[2:1].data)
     end
 
     @testset "testing WeightedBagNode indexing" begin
@@ -176,7 +178,7 @@ let
         @test wd[[2,1]].bags.bags == [0:-1,1:4]
         @test all(wd[1:2].data.data .== wd.data.data)
         @test wd[1:2].bags.bags == [1:4,0:-1]
-        @test all(wd[2].data.data .== wd.data.data[:,0:-1])
+        @test ismissing(wd[2].data)
         @test wd[2].bags.bags == [0:-1]
     end
 
@@ -201,6 +203,7 @@ let
         @test all(reduce(catobs, [x,y]).data[2].data .== hcat(x.data[2].data,y.data[2].data))
         @test all(catobs(x,y).data[3].data .== hcat(x.data[3].data,y.data[3].data))
         @test all(reduce(catobs, [x,y]).data[3].data .== hcat(x.data[3].data,y.data[3].data))
+        @test all(cat(x,y, dims = ndims(x)).data[3].data .== hcat(x.data[3].data,y.data[3].data))
     end
 
     @testset "testing sparsify" begin

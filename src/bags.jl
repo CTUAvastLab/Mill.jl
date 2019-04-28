@@ -98,6 +98,7 @@ function remapbag(b::ScatteredBags, idcs::VecOrRange)
     rb, collect(keys(m))
 end
 
+adjustbags(bags::AlignedBags, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}}} = length2bags(map(b -> sum(@view mask[b]), bags))
 
 Base.vcat(bs::AbstractBags...) = _catbags(bs...)
 

@@ -1,10 +1,10 @@
 using LearnBase
 using DataFrames
-import Base: cat, vcat, hcat
+import Base: cat, vcat, hcat, _cat, lastindex, getindex
 
 abstract type AbstractNode end
-abstract type AbstractTreeNode{T, C} <: AbstractNode end
-abstract type AbstractBagNode{T <: AbstractNode, C} <: AbstractNode end
+abstract type AbstractTreeNode <: AbstractNode end
+abstract type AbstractBagNode <: AbstractNode end
 
 
 # FIXME: this alias would better be Union{AbstractVector{T}, Tuple{Vararg{T}}}
@@ -22,42 +22,62 @@ data(x::AbstractNode) = x.data
 data(x) = x
 
 """
-    catobs(as::T...)
+    catobs(as...)
 
     concatenates `as...` into a single datanode while preserving their structure
 """
-catobs(as::T...) where {T<:AbstractNode} = reduce(catobs, collect(as))
-cat(a::T, b::T; dims = 0) where {T<:AbstractNode} = reduce(catobs, [a, b])
+catobs(as...) = reduce(catobs, collect(as))
 
 # reduction of common datatypes the way we like it
-reduce(::typeof(catobs), as::Vector{T}) where {T<:AbstractMatrix} = reduce(hcat, as)
-reduce(::typeof(catobs), as::Vector{T}) where {T<:AbstractVector} = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{T}) where {T<:DataFrame} = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{T}) where {T<:Nothing} = nothing
+reduce(::typeof(catobs), as::Vector{<: AbstractMatrix}) = reduce(hcat, as)
+reduce(::typeof(catobs), as::Vector{<: AbstractVector}) = reduce(vcat, as)
+reduce(::typeof(catobs), as::Vector{<: DataFrame}) = reduce(vcat, as)
+reduce(::typeof(catobs), as::Vector{<: Missing}) = missing
+reduce(::typeof(catobs), as::Vector{<: Nothing}) = nothing
 
 _cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1:length(as[1]))...)
-
 
 # functions to make datanodes compatible with getindex and with MLDataPattern
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
 Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractNode = x[findall(i)]
 Base.getindex(x::AbstractNode, i::Int) = x[i:i]
+Base.lastindex(ds::AbstractNode) = nobs(ds)
 MLDataPattern.getobs(x::AbstractNode, i) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Undefined) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Last) = x[i]
+
 
 #subset of common datatypes the way we like them
 subset(x::AbstractMatrix, i) = x[:, i]
 subset(x::AbstractVector, i) = x[i]
 subset(x::AbstractNode, i) = x[i]
 subset(x::DataFrame, i) = x[i, :]
-subset(x::Nothing, i) = nothing
+subset(::Missing, i) = missing
+subset(::Nothing, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 
 Base.show(io::IO, n::AbstractNode) = dsprint(io, n, tr=false)
 
 include("arrays.jl")
+
+# definitions needed for all types of bag nodes
+_len(a::UnitRange) = max(a.stop - a.start + 1, 0)
+_len(a::Vector) = length(a)
+LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
+LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
+Base.ndims(x::AbstractBagNode) = Colon()
+dsprint(io::IO, ::Missing; pad=[], s="", tr=false) where T = paddedprint(io, " ∅ ")
+
 include("bagnode.jl")
 include("weighted_bagnode.jl")
+
 include("ngrams.jl")
 include("treenode.jl")
+
+Base.cat(a::AbstractNode, b::AbstractNode; dims = :) = _cat(a, b, dims)
+function Base.cat(a::T, b::T, dims = Colon) where {T <: AbstractNode}
+    _cat(a, b, dims)
+end
+
+_cat(a, b, ::Colon) = reduce(catobs, [a, b])
+

@@ -1,61 +1,108 @@
-import Base: show
+import Base: show, getindex
+
+abstract type AggregationFunction end
+
+struct Aggregation{N} <: AggregationFunction
+    fs::NTuple{N, AggregationFunction}
+    Aggregation(fs::Vararg{AggregationFunction, N}) where N = new{N}(fs)
+    Aggregation(fs::NTuple{N, AggregationFunction}) where N = new{N}(fs)
+end
+
+Flux.@treelike Aggregation
+
+(a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
+
+Base.show(io::IO, a::AggregationFunction) = modelprint(io, a)
+Base.getindex(a::AggregationFunction, i) = a.fs[i]
+
+function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
+    paddedprint(io, N == 1 ? "" : "⟨")
+    for f in a.fs[1:end-1]
+        modelprint(io, f, pad=pad)
+        paddedprint(io, ", ")
+    end
+    modelprint(io, a.fs[end], pad=pad)
+    paddedprint(io, (N == 1 ? "" : "⟩"))
+end
+
+const Tracked = Union{TrackedMatrix, TrackedVector}
+const MaybeMatrix = Union{AbstractMatrix, Missing}
+const MaybeVector = Union{AbstractVector, Nothing}
+const MaybeMask = Union{Vector{Bool}, Nothing}
+
+macro do_nothing()
+    quote quote end end
+end
+
+macro mask_rule(mask_type) 
+    quote
+        $(esc(mask_type)) <: Nothing ? $(@do_nothing) : :(!mask[bi] && continue)
+    end
+end
+
+macro fill_missing()
+    quote quote return repeat(C, 1, length(bags)) end end
+end
+
+complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
+              bag_update_rule, after_bag_rule, return_rule) = quote
+    $init_rule
+    for (j, b) in enumerate(bags)
+        if isempty(b)
+            for i in 1:size(x, 1)
+                @inbounds $empty_bag_update_rule
+            end
+        else
+            @inbounds $init_bag_rule
+            for bi in b
+                @inbounds $mask_rule
+                for i in 1:size(x, 1)
+                    @inbounds $bag_update_rule
+                end
+            end
+            @inbounds $after_bag_rule
+        end
+    end
+    $return_rule
+end
 
 include("segmented_mean.jl")
 include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 
-# backward compatibility for models trained on previous versions of Mill
-_segmented_mean = segmented_mean
-_segmented_max = segmented_max
+export SegmentedMax, SegmentedMean, SegmentedPNorm, SegmentedLSE
 
-const AGGF = [:segmented_max, :segmented_mean]
-# generic code, for pnorm, situation is more complicated
-for s in AGGF
-    @eval $s(x::TrackedMatrix, args...) = Flux.Tracker.track($s, x, args...)
-    @eval $s(x, bags, w::TrackedVector) = Flux.Tracker.track($s, x, bags, w)
-    @eval $s(x::TrackedMatrix, bags, w::TrackedVector) = Flux.Tracker.track($s, x, bags, w)
-
-    @eval $s(x::ArrayNode, args...) = mapdata(x -> $s(x, args...), x)
-
-    @eval Flux.Tracker.@grad function $s(args...)
-        $s(Flux.data.(args)...), Δ -> $(Symbol(string(s, "_back")))(Δ, args...)
+const names = ["Mean", "Max", "PNorm", "LSE"]
+for idxs in powerset(collect(1:length(names)))
+    length(idxs) > 1 || continue
+    for p in permutations(idxs)
+        s = Symbol("Segmented", names[p]...)
+        # generates calls like
+        # SegmentedMeanMax(d::Int) = Aggregation(SegmentedMean(d), SegmentedMax(d))
+        @eval function $s(d::Int)
+            Aggregation($(
+                          (
+                           map(names[p]) do n
+                               s_call = Symbol("Segmented" * n)
+                               :($s_call(d))
+                           end
+                          )
+                          ...))
+        end
+        # generates calls like
+        # SegmentedMeanMax(d1::Int, d2::Int) = Aggregation(SegmentedMean(d1), SegmentedMax(d2))
+        @eval function $s(D::Vararg{Int, $(length(p))})
+            Aggregation($(
+                          (
+                           map(enumerate(names[p])) do (i, n)
+                               s_call = Symbol("Segmented" * n)
+                               :($s_call(D[$i]))
+                           end
+                          )
+                          ...))
+        end
+        @eval export $s
     end
 end
 
-const ParamAgg = Union{PNorm, LSE}
-
-struct Aggregation{F}
-    fs::F
-end
-Flux.@treelike Aggregation
-
-Aggregation(a::Union{Function, ParamAgg}) = Aggregation((a,))
-(a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
-
-# convenience definitions - nested Aggregations work, but call definitions directly to avoid overhead
-# without parameters
-SegmentedMax() = Aggregation(segmented_max)
-SegmentedMean() = Aggregation(segmented_mean)
-SegmentedMeanMax() = Aggregation((segmented_mean, segmented_max))
-for s in [:SegmentedMax, :SegmentedMean, :SegmentedMeanMax]
-    @eval $s(d::Int) = $s()
-    @eval export $s
-end
-
-# with parameters
-names = ["PNorm", "LSE", "Mean", "Max"]
-fs = [:(PNorm(d)), :(LSE(d)), :segmented_mean, :segmented_max]
-for idxs in powerset(collect(1:length(fs)))
-    1 in idxs || 2 in idxs || continue
-    @eval $(Symbol("Segmented", names[idxs]...))(d::Int) = Aggregation(tuple($(fs[idxs]...)))
-    @eval export $(Symbol("Segmented", names[idxs]...))
-end
-
-function modelprint(io::IO, a::Aggregation; pad=[])
-    paddedprint(io, "Aggregation($(join(a.fs, ", ")))\n")
-end
-
-function modelprint(io::IO, f; pad=[])
-    paddedprint(io, "$f\n")
-end

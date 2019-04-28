@@ -9,7 +9,7 @@ include("arraymodel.jl")
 include("bagmodel.jl")
 include("productmodel.jl")
 
-reflectinmodel(x, db, da = d->SegmentedMean(); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")
+reflectinmodel(x, db, da = d->SegmentedMean(d); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")[1]
 
 function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
     im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1))
@@ -33,21 +33,3 @@ function _reflectinmodel(x::ArrayNode, db, da, b, a, s)
     m = ArrayModel(t)
     m, size(m(x).data, 1)
 end
-
-# function reflectinmodel(x::AbstractBagNode, layerbuilder, a = d -> SegmentedMean())
-#     im, d = reflectinmodel(x.data, layerbuilder, a)
-#     bm, d = reflectinmodel(BagModel(im, a(d))(x), layerbuilder, a)
-#     BagModel(im, a(d), bm), d
-# end
-
-# function reflectinmodel(x::AbstractTreeNode, layerbuilder, a = d -> SegmentedMean())
-#     mm = [reflectinmodel(xx, layerbuilder, a) for xx in  x.data]
-#     im = tuple([i[1] for i in mm]...)
-#     tm, d = reflectinmodel(ProductModel(im)(x), layerbuilder, a)
-#     ProductModel(im, tm), d
-# end
-
-# function reflectinmodel(x::ArrayNode, layerbuilder, a = d -> SegmentedMean())
-#     m = ArrayModel(layerbuilder(size(x.data, 1)))
-#     m, size(m(x).data, 1)
-# end

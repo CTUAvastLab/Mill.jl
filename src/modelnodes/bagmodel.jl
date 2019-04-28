@@ -22,8 +22,13 @@ BagModel(im::MillFunction, a, bm::MillModel) = BagModel(ArrayModel(im), a, bm)
 BagModel(im::MillFunction, a) = BagModel(im, a, identity)
 BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
 
-(m::BagModel)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
-(m::BagModel)(x::WeightedBagNode) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
+(m::BagModel)(x::WeightedBagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
+# if the data is missing, we do not use the mapping
+(m::BagModel)(x::WeightedBagNode{<: Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags, x.weights)))
+
+(m::BagModel)(x::BagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags))
+# if the data is missing, we do not use the mapping
+(m::BagModel)(x::BagNode{<: Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags)))
 
 function modelprint(io::IO, m::BagModel; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
@@ -32,6 +37,7 @@ function modelprint(io::IO, m::BagModel; pad=[], s="", tr=false)
     modelprint(io, m.im, pad=[pad; (c, "  │   ")], s=s * encode(1, 1), tr=tr)
     paddedprint(io, "  ├── ", color=c, pad=pad)
     modelprint(io, m.a, pad=[pad; (c, "  │   ")])
+    eltype(m.a) == Aggregation || paddedprint(io, '\n', color=c)
     paddedprint(io, "  └── ", color=c, pad=pad)
     modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
 end

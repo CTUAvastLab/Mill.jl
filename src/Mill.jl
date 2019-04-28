@@ -1,24 +1,15 @@
-__precompile__()
 module Mill
-using JSON, Flux, MLDataPattern, SparseArrays, Statistics
+using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics
 import Base.reduce
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
-MLDataPattern.nobs(::Nothing) = nothing
+MLDataPattern.nobs(::Missing) = nothing
 
 function paddedprint(io, s...; color=:default, pad=[])
     for (c, p) in pad
         printstyled(io, p, color=c)
     end
     printstyled(io, s..., color=color)
-end
-
-function powerset(x::Vector{T}) where T
-    result = Vector{T}[[]]
-    for elem in x, j in eachindex(result)
-        push!(result, [result[j] ; elem])
-    end
-    result
 end
 
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
@@ -47,6 +38,7 @@ export Aggregation
 
 include("modelnodes/modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
+export reflectinmodel
 
 include("traversal_encoding.jl")
 export show_traversal, encode_traversal
