@@ -24,8 +24,8 @@ end
 
 #create the model
 model = BagModel(
-    ArrayModel(Dense(166, 10, Flux.relu)),   # model on the level of Flows
-    SegmentedMeanMax(),
+    ArrayModel(Dense(166, 10, Flux.relu)),   # model on the level of instances
+    SegmentedMeanMax(10),
     ArrayModel(Chain(Dense(20, 10, Flux.relu), Dense(10, 2))))         # model on the level of bags
 
 #define loss function
