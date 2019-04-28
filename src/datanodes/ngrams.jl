@@ -189,7 +189,7 @@ function SparseArrays.SparseMatrixCSC{Tv,Ti}(x::NGramMatrix) where {Tv, Ti <: In
     for i in NGramIterator(x, j)
       I[vid] = mod(i, x.m) + 1
       J[vid] = j
-      vid += one(Tv)
+      vid += 1
     end
   end
   sparse(I, J, V)
