@@ -35,8 +35,8 @@ loss(x,y) = Flux.logitcrossentropy(model(getobs(x)).data, Flux.onehotbatch(y, 1:
 data, y = loaddata()
 dataset = RandomBatches((data,y), 100, 2000)
 evalcb = () -> @show(loss(data, y))
-opt = Flux.ADAM(params(model))
-Flux.train!(loss, dataset, opt, cb = throttle(evalcb, 10))
+opt = Flux.ADAM()
+Flux.train!(loss, params(model), dataset, opt, cb = throttle(evalcb, 10))
 
  # calculate the error on the training set (no testing set right now)
 Statistics.mean(mapslices(argmax, model(data).data, dims=1)' .!= y)
