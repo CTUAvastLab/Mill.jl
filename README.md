@@ -190,7 +190,8 @@ BagModel []
   └── ArrayModel(Dense(6, 3, NNlib.relu))
 ```
 
-This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree. The following two approaches give the same result:
+This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree. All tree nodes are accessible by indexing with the traversal code:.
+
 ```julia
 julia> m["k"]
 
@@ -198,13 +199,13 @@ BagModel
   ├── ArrayModel(Dense(2, 3, NNlib.relu))
   ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
   └── ArrayModel(Dense(6, 3, NNlib.relu))
+```
 
-julia> m.im.ms[3].im
+The following two approaches give the same result:
+```julia
+julia> m["k"] === m.im.ms[3].im
 
-BagModel
-  ├── ArrayModel(Dense(2, 3, NNlib.relu))
-  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  └── ArrayModel(Dense(6, 3, NNlib.relu))
+true
 ```
 
 ## Default aggregation values
