@@ -98,19 +98,7 @@ julia> m, d = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d
   └── ArrayModel(Dense(10, 5, NNlib.relu))
 , 5)
 ```
-Note that the function returns an output dimension of resulting model. This aimed to facilitate adding the last output linear layer. At this moment, this is slightly cumbersome, as we need to reconstruct the last model node.
-```julia
-julia> m = BagModel(m.im, m.a, Chain(Dense(10, 5, relu), Dense(5, 2)))
-
-BagModel
-  ├── BagModel
-  │     ├── ArrayModel(Dense(4, 5, NNlib.relu))
-  │     ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
-  │     └── ArrayModel(Dense(10, 5, NNlib.relu))
-  ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
-  └── ArrayModel(Chain(Dense(10, 5, NNlib.relu), Dense(5, 2)))
-```
- Let's test the model
+Let's test the model
 ```julia
 julia> m(ds).data
 Tracked 2×3 Array{Float64,2}:
