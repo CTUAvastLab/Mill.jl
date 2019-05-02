@@ -32,7 +32,7 @@ end
 ```julia
 model = BagModel(
     ArrayModel(Dense(166, 10, Flux.relu)),   # model on the level of Flows
-    SegmentedMeanMax(),
+    SegmentedMeanMax(10),
     ArrayModel(Chain(Dense(20, 10, Flux.relu), Dense(10, 2))))         # model on the level of bags
 ```
  The loss function is classical `cross-entropy`. Note the use of `getobs` before passing the data to the model. This is an artifact of lazy sub-setting  of `MLDataPattern` library
@@ -44,11 +44,11 @@ loss(x,y) = Flux.logitcrossentropy(model(getobs(x)).data, Flux.onehotbatch(y, 1:
 data, y = loaddata()
 dataset = RandomBatches((data,y), 100, 2000)
 evalcb = () -> @show(loss(data, y))
-opt = Flux.ADAM(params(model))
-Flux.train!(loss, dataset, opt, cb = throttle(evalcb, 10))
+opt = Flux.ADAM()
+Flux.train!(loss, params(model), dataset, opt, cb = throttle(evalcb, 10))
 ```
  
-Because we did not leave any data for validation, we can only calculate error on the training data, which should be not so surprisingly 0.
+Because we did not leave any data for validation, we can only calculate error on the training data, which should be not so surprisingly low.
  ```julia
 mean(Flux.onecold( model(data).data) .!= y)
 ```
@@ -66,44 +66,49 @@ BagNode with 3 bag(s)
 julia> m = BagModel(
     BagModel(
         ArrayModel(Dense(4, 3, Flux.relu)),   
-        SegmentedMeanMax(),
+        SegmentedMeanMax(3),
         ArrayModel(Dense(6, 3, Flux.relu))),
-    SegmentedMeanMax(),
+    SegmentedMeanMax(3),
     ArrayModel(Chain(Dense(6, 3, Flux.relu), Dense(3,2))))
+
 BagModel
   ├── BagModel
-  │     ├── Dense(4, 3, NNlib.relu)
-  │     ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  │     └── Dense(6, 3, NNlib.relu)
-  ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  └── Chain(Dense(6, 3, NNlib.relu), Dense(3, 2))
+  │     ├── ArrayModel(Dense(4, 3, NNlib.relu))
+  │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  │     └── ArrayModel(Dense(6, 3, NNlib.relu))
+  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  └── ArrayModel(Chain(Dense(6, 3, NNlib.relu), Dense(3, 2)))
 ```
 and we can apply the model as
 ```julia
 julia> m(ds)
+
 ArrayNode(2, 3)
 ```
  Since constructions of large models can be a process prone to errors, there is a function `reflectinmodel` which tries to automatize it keeping track of dimensions. It accepts a first parameter a sample `ds`, the second is a function returning layer (or set of layers) with input dimension `d`, and the third function is a function returning aggregation functions for `BagModel`. Using the function on the above example creates a model
 ```julia
-julia> m, k = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax())
-BagModel
+julia> m, d = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d))
+
+(BagModel
   ├── BagModel
-  │     ├── Dense(4, 5, NNlib.relu)
-  │     ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  │     └── Dense(10, 5, NNlib.relu)
-  ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  └── Dense(10, 5, NNlib.relu)
+  │     ├── ArrayModel(Dense(4, 5, NNlib.relu))
+  │     ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
+  │     └── ArrayModel(Dense(10, 5, NNlib.relu))
+  ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
+  └── ArrayModel(Dense(10, 5, NNlib.relu))
+, 5)
 ```
 Note that the function returns an output dimension of resulting model. This aimed to facilitate adding the last output linear layer. At this moment, this is slightly cumbersome, as we need to reconstruct the last model node.
 ```julia
 julia> m = BagModel(m.im, m.a, Chain(Dense(10, 5, relu), Dense(5, 2)))
+
 BagModel
   ├── BagModel
-  │     ├── Dense(4, 5, NNlib.relu)
-  │     ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  │     └── Dense(10, 5, NNlib.relu)
-  ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  └── Chain(Dense(10, 5, NNlib.relu), Dense(5, 2))
+  │     ├── ArrayModel(Dense(4, 5, NNlib.relu))
+  │     ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
+  │     └── ArrayModel(Dense(10, 5, NNlib.relu))
+  ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
+  └── ArrayModel(Chain(Dense(10, 5, NNlib.relu), Dense(5, 2)))
 ```
  Let's test the model
 ```julia
@@ -124,38 +129,86 @@ julia> ds = BagNode(
             [1:3,4:6,7:9,10:12,13:15]),
         ArrayNode(randn(2,5)))),
     [1:1,2:3,4:5])
- BagNode with 3 bag(s)
-  └── TreeNode{4}
+
+BagNode with 3 bag(s)
+  └── TreeNode
         ├── BagNode with 5 bag(s)
-        │     └── ArrayNode(4, 10)
+        │     └── ArrayNode(4, 10)
         ├── ArrayNode(3, 5)
         ├── BagNode with 5 bag(s)
-        │     └── BagNode with 15 bag(s)
-        │           └── ArrayNode(2, 30)
+        │     └── BagNode with 15 bag(s)
+        │           └── ArrayNode(2, 30)
         └── ArrayNode(2, 5)
 ```
 For this, we really want to create model automatically despite it being sub-optimal.
 ```julia
-julia>  m, k = reflectinmodel(ds, d -> Dense(d, 3, relu), d -> SegmentedMeanMax())
-BagModel
-  ├── ProductModel(
-  │     ├── BagModel
-  │     │     ├── Dense(4, 3, NNlib.relu)
-  │     │     ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  │     │     └── Dense(6, 3, NNlib.relu)
-  │     ├── Dense(3, 3, NNlib.relu)
-  │     ├── BagModel
-  │     │     ├── BagModel
-  │     │     │     ├── Dense(2, 3, NNlib.relu)
-  │     │     │     ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  │     │     │     └── Dense(6, 3, NNlib.relu)
-  │     │     ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  │     │     └── Dense(6, 3, NNlib.relu)
-  │     └── Dense(2, 3, NNlib.relu)
-  │   ) ↦  Dense(12, 3, NNlib.relu)
-  ├── Aggregation((Mill._segmented_mean, Mill._segmented_max))
-  └── Dense(6, 3, NNlib.relu)
+julia>  m, k = reflectinmodel(ds, d -> Dense(d, 3, relu), d -> SegmentedMeanMax(d))
+
+(BagModel
+  ├── ProductModel (
+  │     ├── BagModel
+  │     │     ├── ArrayModel(Dense(4, 3, NNlib.relu))
+  │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
+  │     ├── ArrayModel(Dense(3, 3, NNlib.relu))
+  │     ├── BagModel
+  │     │     ├── BagModel
+  │     │     │     ├── ArrayModel(Dense(2, 3, NNlib.relu))
+  │     │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  │     │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
+  │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
+  │     └── ArrayModel(Dense(2, 3, NNlib.relu))
+  │   ) ↦  ArrayModel(Dense(12, 3, NNlib.relu))
+  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  └── ArrayModel(Dense(6, 3, NNlib.relu))
+, 3)
 ```
+
+## Tree traversals
+The latest version also includes a convenient traversal functionality:
+```julia
+julia>  show_traversal(m)
+
+BagModel []
+  ├── ProductModel [W] (
+  │     ├── BagModel [a]
+  │     │     ├── ArrayModel(Dense(4, 3, NNlib.relu)) [c]
+  │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
+  │     ├── ArrayModel(Dense(3, 3, NNlib.relu)) [e]
+  │     ├── BagModel [i]
+  │     │     ├── BagModel [k]
+  │     │     │     ├── ArrayModel(Dense(2, 3, NNlib.relu)) [l]
+  │     │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  │     │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
+  │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
+  │     └── ArrayModel(Dense(2, 3, NNlib.relu)) [m]
+  │   ) ↦  ArrayModel(Dense(12, 3, NNlib.relu))
+  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  └── ArrayModel(Dense(6, 3, NNlib.relu))
+```
+
+This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree. The following two approaches give the same result:
+```julia
+julia> m["k"]
+
+BagModel
+  ├── ArrayModel(Dense(2, 3, NNlib.relu))
+  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  └── ArrayModel(Dense(6, 3, NNlib.relu))
+
+julia> m.im.ms[3].im
+
+BagModel
+  ├── ArrayModel(Dense(2, 3, NNlib.relu))
+  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
+  └── ArrayModel(Dense(6, 3, NNlib.relu))
+```
+
+## Default aggregation values
+With the latest version of Mill, it is also possible to work with missing data, replacing a missing bag with a default constant value, and even to learn this value as well.
 
 ## References
  <a name="cit1"><b>1</b></a> *Discriminative models for multi-instance problems with tree-structure, Tomáš Pevný, Petr Somol, 2016*, https://arxiv.org/abs/1703.02868

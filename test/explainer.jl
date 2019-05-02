@@ -1,7 +1,7 @@
 using Mill
 
 root_node = BagNode(BagNode(ArrayNode(rand(3,4)),[1:2, 3:4]), [1:2])
-root_model = Mill.reflectinmodel(root_node, d -> Dense(d, 4), d -> SegmentedMeanMax())
+root_model = Mill.reflectinmodel(root_node, d -> Dense(d, 4), d -> SegmentedMeanMax())[1]
 a, m = root_node.data, root_model.im
 ϕ = (x...) -> Mill.onoff(x..., 1)
 
