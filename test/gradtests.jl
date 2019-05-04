@@ -234,7 +234,7 @@ let
             z = randn(2, 8)
 
             n = ArrayNode(x)
-            m = f64(reflectinmodel(n, layerbuilder)[1])
+            m = f64(reflectinmodel(n, layerbuilder))
             @test mgradtest(Flux.data.(params(m))...) do W, b
                 m = ArrayModel(Dense(W, b, relu))
                 m(n).data
