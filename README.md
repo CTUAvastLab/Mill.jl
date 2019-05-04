@@ -85,9 +85,9 @@ julia> m(ds)
 
 ArrayNode(2, 3)
 ```
- Since constructions of large models can be a process prone to errors, there is a function `reflectinmodel` which tries to automatize it keeping track of dimensions. It accepts a first parameter a sample `ds`, the second is a function returning layer (or set of layers) with input dimension `d`, and the third function is a function returning aggregation functions for `BagModel`. Using the function on the above example creates a model
+ Since constructions of large models can be a process prone to errors, there is a function `reflectinmodel` which tries to automatize it keeping track of dimensions. It accepts a first parameter a sample `ds`, the second is a function returning layer (or set of layers) with input dimension `d`, and the third function is a function returning aggregation functions for `BagModel`. Using the function on the above example creates a model:
 ```julia
-julia> m, d = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d))
+julia> m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d))
 
 (BagModel
   ├── BagModel
@@ -130,7 +130,7 @@ BagNode with 3 bag(s)
 ```
 For this, we really want to create model automatically despite it being sub-optimal.
 ```julia
-julia>  m, k = reflectinmodel(ds, d -> Dense(d, 3, relu), d -> SegmentedMeanMax(d))
+julia> m = reflectinmodel(ds, d -> Dense(d, 3, relu), d -> SegmentedMeanMax(d))
 
 (BagModel
   ├── ProductModel (

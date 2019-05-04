@@ -147,7 +147,7 @@ let
             z = randn(2, 8)
 
             n = ArrayNode(x)
-            m = f64(reflectinmodel(n, layerbuilder)[1])
+            m = f64(reflectinmodel(n, layerbuilder))
             @test mgradtest(x) do x
                 n = ArrayNode(x)
                 m(n).data
@@ -155,14 +155,14 @@ let
 
             bn = BagNode(ArrayNode(x), bags1)
             abuilder = d -> SegmentedPNormLSE(d)
-            m = f64(reflectinmodel(bn, layerbuilder)[1])
+            m = f64(reflectinmodel(bn, layerbuilder))
             @test mgradtest(x) do x
                 bn = BagNode(ArrayNode(x), bags1)
                 m(bn).data
             end
 
             tn = TreeNode((ArrayNode(x), ArrayNode(y)))
-            m = f64(reflectinmodel(tn, layerbuilder)[1])
+            m = f64(reflectinmodel(tn, layerbuilder))
             @test mgradtest(x, y) do x, y
                 tn = TreeNode((ArrayNode(x), ArrayNode(y)))
                 m(tn).data
@@ -170,7 +170,7 @@ let
 
             tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
             abuilder = d -> SegmentedMeanMax(d)
-            m = f64(reflectinmodel(tn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(tn, layerbuilder, abuilder))
             @test mgradtest(x, y) do x, y
                 tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
                 m(tn).data
@@ -179,7 +179,7 @@ let
             bn = BagNode(ArrayNode(z), bags3)
             bnn = BagNode(bn, bags1)
             abuilder = d -> SegmentedPNormLSEMeanMax(d)
-            m = f64(reflectinmodel(bnn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
             @test mgradtest(z) do z
                 bn = BagNode(ArrayNode(z), bags3)
                 bnn = BagNode(bn, bags1)
@@ -200,7 +200,7 @@ let
 
             bn = BagNode(ArrayNode(x), bags1, w)
             abuilder = d -> SegmentedPNormLSE(d)
-            m = f64(reflectinmodel(bn, layerbuilder)[1])
+            m = f64(reflectinmodel(bn, layerbuilder))
             @test mgradtest(x) do x
                 bn = BagNode(ArrayNode(x), bags1, w)
                 m(bn).data
@@ -208,7 +208,7 @@ let
 
             tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
             abuilder = d -> SegmentedMeanMax(d)
-            m = f64(reflectinmodel(tn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(tn, layerbuilder, abuilder))
             @test mgradtest(x, y) do x, y
                 tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
                 m(tn).data
@@ -217,7 +217,7 @@ let
             bn = BagNode(ArrayNode(z), bags3, w3)
             bnn = BagNode(bn, bags1)
             abuilder = d -> SegmentedPNormLSEMeanMax(d)
-            m = f64(reflectinmodel(bnn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
             @test mgradtest(z) do z
                 bn = BagNode(ArrayNode(z), bags3, w3)
                 bnn = BagNode(bn, bags1, w)
@@ -242,7 +242,7 @@ let
 
             bn = BagNode(ArrayNode(x), bags1)
             abuilder = d -> SegmentedPNormLSE(d)
-            m = f64(reflectinmodel(bn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(bn, layerbuilder, abuilder))
             @test mgradtest(Flux.data.(params(m))...) do W1, b1, ρ, c, C1, p, C2, W2, b2
                 m = BagModel(Dense(W1, b1, relu),
                              Aggregation(
@@ -254,7 +254,7 @@ let
             end
 
             tn = TreeNode((ArrayNode(x), ArrayNode(y)))
-            m = f64(reflectinmodel(tn, layerbuilder)[1])
+            m = f64(reflectinmodel(tn, layerbuilder))
             @test mgradtest(Flux.data.(params(m))...) do W1, b1, W2, b2, W3, b3
                 m = ProductModel(ArrayModel.((
                                               Dense(W1, b1, σ),
@@ -265,7 +265,7 @@ let
 
             tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
             abuilder = d -> SegmentedPNormLSEMeanMax(d)
-            m = f64(reflectinmodel(tn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(tn, layerbuilder, abuilder))
             @test mgradtest(Flux.data.(params(m))...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
                 W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
                 m = ProductModel((
@@ -296,7 +296,7 @@ let
             bn = BagNode(ArrayNode(z), bags3)
             bnn = BagNode(bn, bags1)
             abuilder = d -> SegmentedMeanMax(d)
-            m = f64(reflectinmodel(bnn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
             @test mgradtest(Flux.data.(params(m))...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
                 m = BagModel(
                              BagModel(
@@ -330,7 +330,7 @@ let
 
             bn = BagNode(ArrayNode(x), bags1, w)
             abuilder = d -> SegmentedPNormLSE(d)
-            m = f64(reflectinmodel(bn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(bn, layerbuilder, abuilder))
             @test mgradtest(Flux.data.(params(m))...) do W1, b1, ρ, c, C1, p, C2, W2, b2
                 m = BagModel(Dense(W1, b1, relu),
                              Aggregation(
@@ -343,7 +343,7 @@ let
 
             tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
             abuilder = d -> SegmentedPNormLSEMeanMax(d)
-            m = f64(reflectinmodel(tn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(tn, layerbuilder, abuilder))
             @test mgradtest(Flux.data.(params(m))...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
                 W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
                 m = ProductModel((
@@ -374,7 +374,7 @@ let
             bn = BagNode(ArrayNode(z), bags3, w3)
             bnn = BagNode(bn, bags1, w)
             abuilder = d -> SegmentedMeanMax(d)
-            m = f64(reflectinmodel(bnn, layerbuilder, abuilder)[1])
+            m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
             @test mgradtest(Flux.data.(params(m))...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
                 m = BagModel(
                              BagModel(
