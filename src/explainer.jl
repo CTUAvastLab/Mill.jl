@@ -17,7 +17,7 @@ using Mill, Flux, Duff
 
 
 
-	The main function is `explain(root_data, root_model, ϕ,  explaining_fun, recurse)` 
+	The main function is `explain(root_data, root_model, ϕ,  explaining_fun, recurse_depth)` 
 	where 
 
 	`root_data` is a root of a hierarchical explained sample
@@ -31,10 +31,10 @@ using Mill, Flux, Duff
 
 
 """
-explain(root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true) = (d = deepcopy(root_data); explain!(d, root_model, d, root_model, ϕ,  explaining_fun, recurse); d)
-explain!(root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true) = explain!(root_data, root_model, root_data, root_model, ϕ,  explaining_fun, recurse)
+explain(root_data, root_model, ϕ,  explaining_fun, recurse_depth::Int = typemax(Int)) = (d = deepcopy(root_data); explain!(d, root_model, d, root_model, ϕ,  explaining_fun, recurse_depth); d)
+explain!(root_data, root_model, ϕ,  explaining_fun, recurse_depth::Int = typemax(Int)) = explain!(root_data, root_model, root_data, root_model, ϕ,  explaining_fun, recurse_depth)
 
-function explain!(a::BagNode, m::BagModel, root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true)
+function explain!(a::BagNode, m::BagModel, root_data, root_model, ϕ,  explaining_fun, recurse_depth::Int = typemax(Int))
 	println("explaining BagNode")
 	@show a
 	xim = m.im(a.data)
@@ -48,18 +48,18 @@ function explain!(a::BagNode, m::BagModel, root_data, root_model, ϕ,  explainin
 	# @show mask
 	sa = removeinstances(a, mask)
 	a.data, a.bags, a.metadata = sa.data, sa.bags, sa.metadata
-	recurse && explain!(a.data, m.im, root_data, root_model, ϕ,  explaining_fun, recurse)
+	recurse_depth > 0 && explain!(a.data, m.im, root_data, root_model, ϕ,  explaining_fun, recurse_depth - 1)
 	nothing
 end
 
-function explain!(a::TreeNode, m::ProductModel, root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true)
+function explain!(a::TreeNode, m::ProductModel, root_data, root_model, ϕ,  explaining_fun, recurse_depth::Int = typemax(Int))
 	for i in 1:length(m.ms)
-		explain!(a.data[i], m.ms[i], root_data, root_model, ϕ,  explaining_fun, recurse)
+		explain!(a.data[i], m.ms[i], root_data, root_model, ϕ,  explaining_fun, recurse_depth)
 	end
 	nothing
 end
 
-explain!(a, m, root_data, root_model, ϕ,  explaining_fun, recurse::Bool = true) = nothing
+explain!(a, m, root_data, root_model, ϕ,  explaining_fun, recurse_depth::Int = typemax(Int)) = nothing
 
 function onoff(mask, bagnode::WeightedBagNode, x, m, i)
 	fill!(bagnode.weights, false); 
@@ -81,17 +81,23 @@ function explaining_fun(d, f, p, nprobes)
 	daf = Duff.onlinedaf(d, f, p, nprobes)
 	scores = Duff.meanscore(daf)
 	I = sortperm(scores)
+	# @show scores
 	mask = trues(d)
-	println("all features / instances kept ", f(mask))
+	if f(mask) <= 0.5 
+		@info "nothing to explain"
+		return(mask)
+	end
+	@info "before removing feature / intances $(f(mask))" 
 	for i in 1:d 
 		mask[I[i]] = false 
-		@show f(mask)
+		# @show f(mask)
 		if f(mask) <=0.5
 			mask[I[i]] = true 
 			break
 		end 
 	end
-	println("after removing superfluous instances ", f(mask))
-	@show mask
+	# @show mask
+	@info "after removing feature / intances $(f(mask))"
+	isnan(f(mask)) && @error "f(mask) is nan"
 	mask
 end
