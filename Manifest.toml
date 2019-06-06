@@ -167,11 +167,11 @@ version = "0.20.0"
 
 [[Duff]]
 deps = ["HypothesisTests", "Printf", "Statistics", "StatsBase"]
-git-tree-sha1 = "45b28745e2572eaa9ac48e6fc10811406ebe5521"
+git-tree-sha1 = "815a5b4ff14c63367618e5a16306ed5329e4396d"
 repo-rev = "master"
 repo-url = "https://github.com/pevnak/Duff.jl"
 uuid = "3e2ffa6a-ba38-11e8-0a1c-7b69309e1c72"
-version = "0.1.0"
+version = "0.2.0"
 
 [[FileIO]]
 deps = ["Pkg", "Random", "Test"]
@@ -454,10 +454,10 @@ uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
 version = "0.7.2"
 
 [[StaticArrays]]
-deps = ["InteractiveUtils", "LinearAlgebra", "Random", "Statistics", "Test"]
-git-tree-sha1 = "3841b39ed5f047db1162627bf5f80a9cd3e39ae2"
+deps = ["LinearAlgebra", "Random", "Statistics"]
+git-tree-sha1 = "db23bbf50064c582b6f2b9b043c8e7e98ea8c0c6"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "0.10.3"
+version = "0.11.0"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
