@@ -26,47 +26,84 @@ function ith_child(m::T, i::Integer) where T
     try
         return descendants(m)[i]
     catch
-        error("Invalid index into $T: $i")
+        @error "Invalid index!"
     end
 end
 
 function _walk(m::Union{ArrayModel, ArrayNode}, c::AbstractString)
-    i, _ = decode(c, length(c))
-    return i == 0 ? m : error("Invalid index!")
+    !isempty(c) || return m
+    i, nc = decode(c, length(c))
+    if i == 0 && Set(nc) ⊆ ['0']
+        return m
+    else
+        @error "Invalid index!"
+    end
 end
     
 function _walk(m::BagModel, c::AbstractString)
+    !isempty(c) || return m
     i, nc = decode(c, 1)
-    return i == 0 ? m : _walk(m.im, nc)
+    if i == 0
+        if Set(nc) ⊆ ['0']
+            return m
+        else
+            @error "Invalid index!"
+        end
+    end
+    _walk(m.im, nc)
 end
 
 function _walk(n::AbstractBagNode, c::AbstractString)
+    !isempty(c) || return n
     i, nc = decode(c, 1)
-    return i == 0 ? n : _walk(n.data, nc)
+    if i == 0
+        if Set(nc) ⊆ ['0']
+            return n
+        else
+            @error "Invalid index!"
+        end
+    end
+    _walk(n.data, nc)
 end
 
 function _walk(m::ProductModel, c::AbstractString)
+    !isempty(c) || return m
     i, nc = decode(c, length(m.ms))
-    return i == 0 ? m : _walk(m.ms[i], nc)
+    if i == 0
+        if Set(nc) ⊆ ['0']
+            return m
+        else
+            @error "Invalid index!"
+        end
+    end
+    _walk(m.ms[i], nc)
 end
 
 function _walk(n::AbstractTreeNode, c::AbstractString)
+    !isempty(c) || return n
     i, nc = decode(c, length(n.data))
-    0 <= i <= length(n.data) || error("Invalid index!")
-    return i == 0 ? n : _walk(n.data[i], nc)
+    0 <= i <= length(n.data) || @error "Invalid index!"
+    if i == 0
+        if length(Set(nc)) <= 1
+            return n
+        else
+            @error "Invalid index!"
+        end
+    end
+    _walk(n.data[i], nc)
 end
 
 show_traversal(n::AbstractNode) = dsprint(Base.stdout, n, tr=true)
 show_traversal(m::MillModel) = modelprint(Base.stdout, m, tr=true)
-Base.getindex(n::AbstractNode, i::AbstractString) = _walk(n, destringify(i))
-Base.getindex(m::MillModel, i::AbstractString) = _walk(m, destringify(i))
+Base.getindex(n::AbstractNode, i::AbstractString) = i == "" ? n : _walk(n, destringify(i))
+Base.getindex(m::MillModel, i::AbstractString) = i == "" ? m : _walk(m, destringify(i))
 
 tr_repr(s::AbstractString, traversal::Bool) = traversal ? " [$(stringify(s))]" : ""
 
 encode_traversal(m::AbstractNode, idxs::Integer...) = stringify(_encode_traversal(m, idxs...))
 
 function _encode_traversal(m, idxs...)
-    isempty(idxs) && return ""
+    !isempty(idxs) || return ""
     n = ith_child(m, idxs[1])
     return encode(idxs[1], descendants_n(m)) * _encode_traversal(n, idxs[2:end]...)
 end
