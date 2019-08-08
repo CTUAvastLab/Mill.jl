@@ -66,7 +66,7 @@ _len(a::Vector) = length(a)
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 Base.ndims(x::AbstractBagNode) = Colon()
-dsprint(io::IO, ::Missing; pad=[], s="", tr=false) where T = paddedprint(io, " ∅ ")
+dsprint(io::IO, ::Missing; pad=[], s="", tr=false) where T = paddedprint(io, " ∅\n")
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")
