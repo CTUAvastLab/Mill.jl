@@ -49,7 +49,7 @@ complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
     $init_rule
     for (j, b) in enumerate(bags)
         if isempty(b)
-            for i in 1:size(x, 1)
+            for i in eachindex(C)
                 @inbounds $empty_bag_update_rule
             end
         else
