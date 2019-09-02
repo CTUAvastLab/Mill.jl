@@ -100,9 +100,10 @@ end
 
 adjustbags(bags::AlignedBags, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}}} = length2bags(map(b -> sum(@view mask[b]), bags))
 
-Base.vcat(bs::AbstractBags...) = _catbags(bs...)
+Base.vcat(b1::AbstractBags, b2::AbstractBags) = _catbags([b1, b2])
+Base.vcat(bs::AbstractBags...) = _catbags(collect(bs))
 
-function _catbags(bs::AlignedBags...)
+function _catbags(bs::Vector{AlignedBags})
     nbs = AlignedBags()
     offset = 0
     for b in bs
@@ -117,7 +118,7 @@ function _catbags(bs::AlignedBags...)
     nbs
 end
 
-function _catbags(bs::ScatteredBags...)
+function _catbags(bs::Vector{ScatteredBags})
     nbs = ScatteredBags()
     offset = 0
     for b in bs
