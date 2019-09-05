@@ -172,6 +172,7 @@ Base.reduce(::typeof(catobs), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:
 Base.reduce(::typeof(catobs), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
 Base.reduce(::typeof(hcat), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:])
 Base.reduce(::typeof(hcat), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
+Base.hcat(a::NGramMatrix...) = reduce(catobs, collect(a))
 catobs(a::NGramMatrix...) = _catobs(collect(a))
 _lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
 _catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
@@ -204,7 +205,8 @@ function mulkernel!(C, A, jB, mA, nA, idxs)
   end
 end
 
-function mul(A::Matrix, B::NGramMatrix)
+*(A::Matrix, B::NGramMatrix) = mul(A, B)
+function mul(A::AbstractMatrix, B::NGramMatrix)
   mA, nA = size(A)
   @assert nA == size(B,1)
   nB = length(B)
@@ -224,7 +226,7 @@ function multkernel!(C, A, jB, mA, bm, idxs)
   end
 end
 
-function multrans(A::Matrix, B::NGramMatrix)
+function multrans(A::AbstractMatrix, B::NGramMatrix)
   mA, nA = size(A)
   mB = length(B)
   C = zeros(eltype(A), mA, B.m)
@@ -234,8 +236,10 @@ function multrans(A::Matrix, B::NGramMatrix)
   return C
 end
 
-a::Flux.Tracker.TrackedMatrix * b::NGramMatrix = Flux.Tracker.track(mul, a, b)
-a::Matrix * b::NGramMatrix = mul(a, b)
-Flux.Tracker.@grad function mul(a::Flux.Tracker.TrackedMatrix, b::NGramMatrix)
-  return mul(Flux.data(a),b) , Δ -> (multrans(Δ, b),nothing)
+Zygote.@adjoint function mul(a::AbstractMatrix, b::NGramMatrix)
+  return mul(a,b) , Δ -> (multrans(Δ, b),nothing)
+end
+
+Zygote.@adjoint function *(a::AbstractMatrix, b::NGramMatrix)
+  return mul(a,b) , Δ -> (multrans(Δ, b),nothing)
 end

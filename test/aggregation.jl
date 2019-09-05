@@ -1,5 +1,4 @@
 using Test, Mill, Flux
-using Flux.Tracker: istracked
 using Mill: segmented_pnorm, segmented_lse
 
 let 
@@ -73,19 +72,6 @@ let
             @test SegmentedMax(C)(missing, bags) == repeat(C, 1, length(bags))
             @test SegmentedLSE(dummy, C)(missing, bags) == repeat(C, 1, length(bags))
             @test SegmentedPNorm(dummy, dummy, C)(missing, bags) == repeat(C, 1, length(bags)) 
-        end
-    end
-
-    @testset "testing stability with respect to tracker and non-tracked arrays" begin
-        for (c, x, w) in Iterators.product([C, param(C)], [missing, X, param(X)], [nothing, W, param(W)])
-            @test istracked(SegmentedMean(c)(x, BAGS, w)) == any(istracked.((c, x, w)))
-            @test istracked(SegmentedMax(c)(x, BAGS, w)) == any(istracked.((c, x, w)))
-        end
-        for (r, s, c, x, w) in Iterators.product([ρ, param(ρ)], [cc, param(cc)], [C, param(C)], [missing, X, param(X)], [nothing, W, param(W)])
-            @test istracked(SegmentedPNorm(r, s, c)(x, BAGS, w)) == any(istracked.((r, s, c, x, w)))
-        end
-        for (p, c, x, w) in Iterators.product([p, param(p)], [C, param(C)], [missing, X, param(X)], [nothing, W, param(W)])
-            @test istracked(SegmentedLSE(p, c)(x, BAGS, w)) == any(istracked.((p, c, x, w)))
         end
     end
 

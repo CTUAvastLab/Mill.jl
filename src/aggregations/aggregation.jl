@@ -25,7 +25,6 @@ function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
     paddedprint(io, (N == 1 ? "" : "⟩"))
 end
 
-const Tracked = Union{TrackedMatrix, TrackedVector}
 const MaybeMatrix = Union{AbstractMatrix, Missing}
 const MaybeVector = Union{AbstractVector, Nothing}
 const MaybeMask = Union{Vector{Bool}, Nothing}

@@ -34,8 +34,11 @@ reduce(::typeof(catobs), as::Vector{<: AbstractVector}) = reduce(vcat, as)
 reduce(::typeof(catobs), as::Vector{<: DataFrame}) = reduce(vcat, as)
 reduce(::typeof(catobs), as::Vector{<: Missing}) = missing
 reduce(::typeof(catobs), as::Vector{<: Nothing}) = nothing
+reduce(::typeof(catobs), as::Vector{<: Any}) = @error "cannot reduce Any"
+reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, Nothing}} = nothing
+reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, B}} where {B<: AbstractNode} = reduce(catobs, Vector{B}(as))
 
-_cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple(map(i -> reduce(catobs, [a[i] for a in as]), 1:length(as[1]))...)
+_cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple([reduce(catobs, [a[i] for a in as]) for i in 1:length(as[1])]...)
 
 # functions to make datanodes compatible with getindex and with MLDataPattern
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]

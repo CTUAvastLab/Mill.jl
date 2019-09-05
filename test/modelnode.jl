@@ -4,7 +4,7 @@
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 5)
     @test typeof(m) <: ArrayModel
-    @test eltype(Flux.data(m(x).data)) == Float32
+    @test eltype(m(x).data) == Float32
 end
 
 @testset "testing simple aggregation model" begin
@@ -13,7 +13,7 @@ end
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 2)
     @test typeof(m) <: BagModel
-    @test eltype(Flux.data(m(x).data)) == Float32
+    @test eltype(m(x).data) == Float32
 end
 
 @testset "testing simple tuple models" begin
@@ -21,7 +21,7 @@ end
     x = TreeNode((ArrayNode(randn(Float32, 3, 4)), ArrayNode(randn(Float32, 4, 4))))
     m = reflectinmodel(x, layerbuilder)
 
-    @test eltype(Flux.data(m(x).data)) == Float32
+    @test eltype(m(x).data) == Float32
     @test size(m(x).data) == (2, 4)
     @test typeof(m) <: ProductModel
     @test typeof(m.ms[1]) <: ArrayModel
@@ -50,5 +50,5 @@ end
     @test typeof(m.im.im) <: ArrayModel
     @test typeof(m.im.bm) <: ArrayModel
     @test typeof(m.bm) <: ArrayModel
-    @test eltype(Flux.data(m(x).data)) == Float32
+    @test eltype(m(x).data) == Float32
 end

@@ -2,25 +2,14 @@ struct SegmentedMean{T} <: AggregationFunction
     C::T
 end
 
-SegmentedMean(d::Int) = SegmentedMean(param(zeros(Float32, d)))
+SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 Flux.@treelike SegmentedMean
 
 Base.show(io::IO, sm::SegmentedMean) = print(io, "SegmentedMean($(length(sm.C)))\n")
 modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($(length(sm.C)))")
 
 (m::SegmentedMean)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedMean)(x, args...) = _mean_grad(x, m.C, args...)
-
-_mean_grad(args...) = Flux.Tracker.track(_mean_grad, args...)
-_mean_grad(x::Union{Matrix, Missing}, C::Vector, bags) = segmented_mean(x, C, bags)
-_mean_grad(x::Union{Matrix, Missing}, C::Vector, bags, w::Union{Vector, Nothing}) = segmented_mean(x, C, bags, w)
-_mean_grad(x::Union{Matrix, Missing}, C::Vector, bags, w::Union{Vector, Nothing}, mask::Union{Vector, Nothing}) = segmented_mean(x, C, bags, w, mask)
-
-Flux.Tracker.@grad function _mean_grad(args...)
-    n = segmented_mean(Flux.data.(args)...)
-    grad = Δ -> segmented_mean_back(Δ, n, args...)
-    n, grad
-end
+(m::SegmentedMean)(x, args...) = segmented_mean(x, m.C, args...)
 
 @generated function segmented_mean(x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
     x <: Missing && return @fill_missing
@@ -42,47 +31,39 @@ end
                          bag_update_rule, after_bag_rule, return_rule)
 end
 
-@generated function segmented_mean_back(Δ, n::Matrix, x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
-    init_rule = quote Δ = Flux.data(Δ) end
-    empty_bag_update_rule = @do_nothing
-    bag_update_rule = @do_nothing
-    after_bag_rule = @do_nothing
-    mask_rule = @mask_rule mask
-    return_tuple = Expr(:tuple)
-    return_tuple.args = fill(nothing, 5)
-
-    if w <: Nothing
-        init_bag_rule = @do_nothing
-    else
-        init_bag_rule = :(ws = sum(@view w[b]))
+function segmented_mean_back(Δ, n, x, C, bags, w = nothing) 
+    dx = similar(x)
+    dC = zero(C)
+    dw = (w == nothing) ? nothing : zero(w)
+    for (j, b) in enumerate(bags)
+        if isempty(b)
+            dC .+= @view Δ[:, j]
+        else
+            ws = bagnormalization(w, b)
+            @inbounds for bi in b
+                for i in 1:size(x, 1)
+                    dx[i, bi] = ∇dx_segmented_mean(Δ, bi, i, j, w, ws)
+                    ∇dx_segmented_mean!(dw, bi, x, Δ, n, i, j, w, ws)
+                end
+            end
+        end
     end
-
-    if x <: Tracked
-        push!(init_rule.args, :(x = Flux.data(x)))
-        push!(init_rule.args, :(dx = similar(x)))
-        push!(bag_update_rule.args, w <: Nothing ?
-              :(dx[i, bi] = Δ[i, j] / length(b))
-              :
-              :(dx[i, bi] = w[bi] * Δ[i, j] / ws)
-             )
-        return_tuple.args[1] = :dx
-    end
-
-    if C <: Tracked
-        push!(init_rule.args, :(C = Flux.data(C)))
-        push!(init_rule.args, :(dC = zero(C)))
-        push!(empty_bag_update_rule.args, :(dC[i] += Δ[i, j]))
-        return_tuple.args[2] = :dC
-    end
-
-    if w <: Tracked
-        push!(init_rule.args, :(w = Flux.data(w)))
-        push!(init_rule.args, :(dw = zero(w)))
-        push!(bag_update_rule.args, :(dw[bi] += Δ[i, j] * (x[i, bi] - n[i, j]) / ws))
-        return_tuple.args[4] = :dw
-    end
-
-    return_rule = Expr(:return, return_tuple)
-    return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
-              bag_update_rule, after_bag_rule, return_rule)
+    (dx, dC, nothing, dw)
 end
+
+Zygote.@adjoint function segmented_mean(args...)
+    n = segmented_mean(args...)
+    grad = Δ -> segmented_mean_back(Δ, n, args...)
+    n, grad
+end
+
+bagnormalization(w::Nothing, b) = length(b)
+bagnormalization(w, b) = sum(w[i] for i in b)
+
+∇dx_segmented_mean(Δ, bi, i, j, w::Nothing, ws) = Δ[i, j] / ws
+∇dx_segmented_mean(Δ, bi, i, j, w::AbstractVector, ws) = w[bi] * Δ[i, j] / ws
+∇dx_segmented_mean(Δ, bi, i, j, w::AbstractMatrix, ws) = w[i, bi] * Δ[i, j] / ws
+
+∇dx_segmented_mean!(dw::Nothing, bi, x, Δ, n, i, j, w::Nothing, ws) = nothing
+∇dx_segmented_mean!(dw::Vector, bi, x, Δ, n, i, j, w::Vector, ws) = dw[bi] += Δ[i, j] * (x[i, bi] - n[i, j]) / ws
+

@@ -74,8 +74,6 @@ explaining_fun(d, f) = explaining_fun(d, f, 0.5, 100)
 
 
 		d 
-
-
 """
 function explaining_fun(d, f, p, nprobes)
 	daf = Duff.onlinedaf(d, f, p, nprobes)
