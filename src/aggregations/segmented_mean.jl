@@ -15,14 +15,14 @@ modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($
 segmented_mean(x::Missing, C::AbstractVector, bags::AbstractBags, w = nothing, mask = nothing)   = repeat(C, 1, length(bags))
 function segmented_mean(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w = Fill(true, size(x,2)), mask = Fill(true, size(x,2))) 
     o = zeros(eltype(x), size(x, 1), length(bags))
-    for (j, b) in enumerate(bags)
+    @inbounds for (j, b) in enumerate(bags)
         if isempty(b)
-            @inbounds for i in 1:size(x, 1)
+            for i in 1:size(x, 1)
                 o[i, j] = C[i]
             end
         else
             for bi in b
-                @inbounds for i in 1:size(x, 1)
+               for i in 1:size(x, 1)
                     o[i, j] += w[bi] * x[i, bi]
                 end
             end

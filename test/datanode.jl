@@ -37,6 +37,9 @@ let
                                    )
                            ))
                  ))
+    k = TreeNode((a = wb, b = b))
+    l = TreeNode((a = wc, b = c))
+
 
     @testset "testing nobs" begin
         @test nobs(a) == nobs(wa) == 1
@@ -44,8 +47,8 @@ let
         @test nobs(c) == nobs(wc) == 3
         @test nobs(d) == nobs(wd) == 2
         @test nobs(e) == 2
-        @test nobs(f) == nobs(wb) == nobs(b)
-        @test nobs(g) == nobs(c) == nobs(wc)
+        @test nobs(f) == nobs(wb) == nobs(b) == nobs(k)
+        @test nobs(g) == nobs(c) == nobs(wc) == nobs(l)
         @test nobs(h) == nobs(wc) == nobs(c)
         @test nobs(i) == nobs(b)
     end
@@ -123,6 +126,10 @@ let
         @test all(reduce(catobs, [f, h]).data[2].data.data .== hcat(b.data.data, c.data.data))
         @test all(catobs(f, h, f).data[1].data.data .== hcat(wb.data.data, wc.data.data, wb.data.data))
         @test all(reduce(catobs, [f, h, f]).data[1].data.data .== hcat(wb.data.data, wc.data.data, wb.data.data))
+
+        @test all(catobs(k, l).data[1].data.data .== hcat(wb.data.data, wc.data.data))
+        @test all(catobs(k, l).data[2].data.data .== hcat(b.data.data, c.data.data))
+        @test nobs(catobs(k,l)) == nobs(k) + nobs(l)
 
         # different tuple length
         @test_throws Exception catobs(f, i)
@@ -204,6 +211,10 @@ let
         @test all(catobs(x,y).data[3].data .== hcat(x.data[3].data,y.data[3].data))
         @test all(reduce(catobs, [x,y]).data[3].data .== hcat(x.data[3].data,y.data[3].data))
         @test all(cat(x,y, dims = ndims(x)).data[3].data .== hcat(x.data[3].data,y.data[3].data))
+
+        @test all(k[1].data[1].data.data .==  wb[1].data.data)
+        @test all(k[2].data[1].data.data .==  wb[2].data.data)
+        @test all(l[2:3].data[1].data.data .==  wc[2:3].data.data)
     end
 
     @testset "testing sparsify" begin

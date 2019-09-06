@@ -6,7 +6,6 @@ abstract type AbstractNode end
 abstract type AbstractTreeNode <: AbstractNode end
 abstract type AbstractBagNode <: AbstractNode end
 
-
 # FIXME: this alias would better be Union{AbstractVector{T}, Tuple{Vararg{T}}}
 # and method signatures should do AbstractVecOrTuple{<:T} when they want covariance,
 # but that solution currently fails (see #27188 and #27224)
@@ -39,6 +38,12 @@ reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, Nothing}} =
 reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, B}} where {B<: AbstractNode} = reduce(catobs, Vector{B}(as))
 
 _cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple([reduce(catobs, [a[i] for a in as]) for i in 1:length(as[1])]...)
+function _cattuples(as::Vector{T}) where {T <: NamedTuple}
+	ks = keys(as[1])
+	vs = [k => reduce(catobs, [a[k] for a in as]) for k in ks]
+	(;vs...)
+end
+
 
 # functions to make datanodes compatible with getindex and with MLDataPattern
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
@@ -58,6 +63,7 @@ subset(x::DataFrame, i) = x[i, :]
 subset(::Missing, i) = missing
 subset(::Nothing, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
+subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
 
 Base.show(io::IO, n::AbstractNode) = dsprint(io, n, tr=false)
 
@@ -76,11 +82,3 @@ include("weighted_bagnode.jl")
 
 include("ngrams.jl")
 include("treenode.jl")
-
-Base.cat(a::AbstractNode, b::AbstractNode; dims = :) = _cat(a, b, dims)
-function Base.cat(a::T, b::T, dims = Colon) where {T <: AbstractNode}
-    _cat(a, b, dims)
-end
-
-_cat(a, b, ::Colon) = reduce(catobs, [a, b])
-
