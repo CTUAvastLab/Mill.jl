@@ -18,7 +18,10 @@ Flux.@treelike ProductModel
 ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, ArrayModel(identity))
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
-(m::ProductModel)(x::TreeNode) = m.m(ArrayNode(vcat(map(f -> f[1](f[2]).data, zip(m.ms, x.data))...)))
+function (m::ProductModel)(x::TreeNode) 
+    xx = vcat([m.ms[i](x.data[i]) for i in 1:length(m.ms)]...)
+    m.m(xx)
+end
 
 function modelprint(io::IO, m::ProductModel{TT,T}; pad=[], s="", tr=false) where {TT<:Tuple, T}
     c = COLORS[(length(pad)%length(COLORS))+1]
