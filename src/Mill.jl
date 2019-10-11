@@ -1,5 +1,5 @@
 module Mill
-using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote, FillArrays
+using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote
 import Base.reduce
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 

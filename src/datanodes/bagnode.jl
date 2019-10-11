@@ -13,8 +13,6 @@ BagNode(data::T, b::Vector, metadata::C=nothing) where {T, C} = BagNode(data, ba
 
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 
-Base.ndims(x::BagNode) = Colon()
-
 function Base.getindex(x::BagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
     isempty(ii) && return(BagNode(missing, nb, nothing))

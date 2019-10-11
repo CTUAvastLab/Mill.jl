@@ -13,7 +13,7 @@ TreeNode(data::T, metadata::C) where {T, C} = TreeNode{T, C}(data, metadata)
 
 mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
-Base.ndims(x::TreeNode) = Colon()
+Base.ndims(x::AbstractTreeNode) = Colon()
 LearnBase.nobs(a::AbstractTreeNode) = nobs(a.data[1], ObsDim.Last)
 LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 

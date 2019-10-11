@@ -10,11 +10,10 @@ struct BagChain{T<:Tuple}
   BagChain(xs...) = new{typeof(xs)}(xs)
 end
 
+Flux.@treelike BagChain
+
 Flux.@forward BagChain.layers Base.getindex, Base.first, Base.last, Base.lastindex
 Flux.@forward BagChain.layers Base.iterate
-
-Flux.children(c::BagChain) = c.layers
-Flux.mapchildren(f, c::BagChain) = BagChain(f.(c.layers)...)
 
 applychain(::Tuple{}, x, bags) = x
 applychain(fs::Tuple, x, bags) = applychain(Base.tail(fs), first(fs)(x, bags), bags)
