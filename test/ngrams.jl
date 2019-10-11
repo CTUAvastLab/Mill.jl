@@ -67,10 +67,10 @@ using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NG
         si = map(i -> Int.(codeunits(i)), s)
         for (a, s) in [(NGramMatrix(s, 3, 256, 2057), s), (NGramMatrix(si, 3, 256, 2057), si)]
             @test all(reduce(catobs, [a, a]).s .== vcat(s,s))
-            @test all(cat(a,a, dims = :).s .== vcat(s,s))
+            @test all(hcat(a,a).s .== vcat(s,s))
 
-            W = param(randn(40, 2057))
-            @test Flux.back!(W * a, ones(size(W * a))) == nothing
+            W = randn(40, 2057)
+            @test gradcheck(x -> sum(x * a), W)
 
             a = ArrayNode(a, nothing)
             @test all(reduce(catobs, [a, a]).data.s .== vcat(s,s))

@@ -33,7 +33,7 @@ end
 	add a product of a transposed matrix `W` with a j-th column of `x` to i-th columns of `o`
 
 """
-function _addmattvec!(o::Matrix, i, W::Matrix, x::Matrix, j)
+function _addmattvec!(o::Matrix, i, W::Matrix, x::AbstractMatrix, j)
 	@inbounds for s in 1:size(W, 1)
 		for r in 1:size(W, 2)
 			o[r, i] += W[s, r] * x[s, j]
@@ -47,7 +47,7 @@ end
 	add an outer product of i-th column of `Δ` and transposed `j`-th columns of `x` to `W`
 
 """
-function _addvecvect!(W::Matrix, Δ::Matrix, i, x::Matrix, j)
+function _addvecvect!(W::Matrix, Δ::Matrix, i, x::AbstractMatrix, j)
 	@inbounds for r in 1:size(W, 2)
 		for s in 1:size(W, 1)
 			W[s, r] += Δ[s, i] * x[r, j]
@@ -100,7 +100,7 @@ end
 
 function bagconv(x, bags, W...)
 	o = similar(W[1], size(W[1], 1), size(x, 2))
-	Threads.@threads for i in 1:Threads.nthreads()
+	for i in 1:Threads.nthreads()
 		bagconv!(o, x, subsetof(bags), W...)
 	end
 	o
@@ -135,8 +135,8 @@ function ∇wbagconv!(∇W, Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,
 end
 
 function ∇wbagconv(Δ, x, bags, W...)
-	∇Ws = [[similar(w) for w in W] for i in 1:Threads.nthreads()]
-	Threads.@threads for i in 1:Threads.nthreads()
+	∇Ws = [[zero(w) for w in W] for i in 1:Threads.nthreads()]
+	for i in 1:Threads.nthreads()
 		∇wbagconv!(∇Ws[i], Δ, x, subsetof(bags), W...)
 	end
 	foreach(i -> foreach(x -> x[1] .+= x[2], zip(∇Ws[1], ∇Ws[i])), 2:Threads.nthreads())
@@ -145,7 +145,7 @@ end
 
 function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
 	offsets = _convshift(length(W))
-	∇x = similar(W[1], size(x)) .= 0
+	∇x = fill(zero(eltype(x)), size(x))
 	for b in bags
 		for ri in b 
 			for (i, k) in enumerate(offsets)
@@ -160,7 +160,7 @@ end
 
 function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
 	offsets = _convshift(length(W))
-	∇x = similar(W[1], size(x)) .= 0
+	∇x = fill(zero(eltype(x)), size(x))
 	for b in bags
 		for (bi, ri) in enumerate(b) 
 			for (i, k) in enumerate(offsets)
@@ -175,8 +175,8 @@ end
 
 function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
 	offsets = _convshift(length(W))
-	∇x = similar(W[1], size(x)) .= 0
-	∇W = [similar(w) .= 0 for w in W]
+	∇x = fill(zero(eltype(x)), size(x))
+	∇W = [zero(w) for w in W]
 	for b in bags
 		for ri in b 
 			for (i, k) in enumerate(offsets)
@@ -192,8 +192,8 @@ end
 
 function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
 	offsets = _convshift(length(W))
-	∇x = similar(W[1], size(x)) .= 0
-	∇W = [similar(w) .= 0 for w in W]
+	∇x = zero(W[1])
+	∇W = [zero(w) for w in W]
 	for b in bags
 		for (bi, ri) in enumerate(b) 
 			for (i, k) in enumerate(offsets)
@@ -207,17 +207,8 @@ function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector
 	∇x, tuple(∇W...)
 end
 
-bagconv(x, bags, fs::TrackedMatrix...) = Flux.Tracker.track(bagconv, x, bags, fs...)
-bagconv(x::TrackedMatrix, bags, fs::TrackedMatrix...) = Flux.Tracker.track(bagconv, x, bags, fs...)
-bagconv(x::TrackedMatrix, bags, fs::Matrix...) = Flux.Tracker.track(bagconv, x, bags, fs...)
-Flux.Tracker.@grad function bagconv(x, bags, fs::TrackedMatrix...)
-  bagconv(x, bags, Flux.data.(fs)...), Δ -> (nothing, nothing,  ∇wbagconv(Flux.data(Δ), x, bags,  Flux.data.(fs)...)...)
-end
-Flux.Tracker.@grad function bagconv(x::TrackedMatrix, bags, fs::TrackedMatrix...)
-  bagconv(Flux.data(x), bags, Flux.data.(fs)...), Δ -> ((∇x, ∇W) = ∇xwbagconv(Flux.data(Δ), Flux.data(x), bags,  Flux.data.(fs)...); (∇x, nothing, ∇W...))
-end
-Flux.Tracker.@grad function bagconv(x::TrackedMatrix, bags, fs::Matrix...)
-  bagconv(Flux.data(x), bags, fs...), Δ -> (∇xbagconv(Flux.data(Δ), Flux.data(x), bags,  Flux.data.(fs)...), nothing,  fill(nothing, length(fs))...)
+Zygote.@adjoint function bagconv(x, bags, fs::Matrix...)
+  bagconv(x, bags, fs...), Δ -> (∇xbagconv(Δ, x, bags,  fs...), nothing,  ∇wbagconv(Δ, x, bags,  fs...)...)
 end
 
 """
@@ -245,7 +236,7 @@ end
 Flux.@treelike BagConv
 
 function BagConv(d::Int, o::Int, n::Int, σ = identity)
-	W = (n > 1) ? tuple([param(randn(o, d) .* sqrt(2.0/(o + d))) for _ in 1:n]...) : param(randn(o, d) .* sqrt(2.0/(o + d)))
+	W = (n > 1) ? tuple([randn(o, d) .* sqrt(2.0/(o + d)) for _ in 1:n]...) : randn(o, d) .* sqrt(2.0/(o + d))
 	BagConv(W, σ)
 end
 
@@ -279,7 +270,7 @@ end
 
 function ∇convsum(Δ, bags, n)
 	offsets = _convshift(n)
-	o = [similar(Δ) .= 0 for i in 1:n]
+	o = [zero(Δ) for i in 1:n]
 	for b in bags
 		for ri in b 
 			for (i, k) in enumerate(offsets)
@@ -293,9 +284,8 @@ function ∇convsum(Δ, bags, n)
 end
 
 
-convsum(bags, xs::TrackedMatrix...) = Flux.Tracker.track(convsum, bags, xs...)
-Flux.Tracker.@grad function convsum(bags, xs::TrackedMatrix...)
-  convsum(bags, Flux.data.(xs)...), Δ -> (nothing,  ∇convsum(Flux.data(Δ), bags, length(xs))...)
+Zygote.@adjoint function convsum(bags, xs...)
+  convsum(bags, xs...), Δ -> (nothing,  ∇convsum(Δ, bags, length(xs))...)
 end
 
 legacy_bagconv(x, bags, f::AbstractArray{T, 3}) where {T} = convsum(bags, [f[:, :, i]*x for i in 1:size(f, 3)]...)

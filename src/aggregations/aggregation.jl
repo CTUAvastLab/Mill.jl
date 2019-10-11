@@ -25,10 +25,14 @@ function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
     paddedprint(io, (N == 1 ? "" : "⟩"))
 end
 
-const Tracked = Union{TrackedMatrix, TrackedVector}
 const MaybeMatrix = Union{AbstractMatrix, Missing}
 const MaybeVector = Union{AbstractVector, Nothing}
 const MaybeMask = Union{Vector{Bool}, Nothing}
+
+
+bagnormalization(w::Nothing, b) = length(b)
+bagnormalization(w::AbstractVector, b) = sum(w[i] for i in b)
+bagnormalization(w::AbstractMatrix, b) = [sum(w[i,j] for j in b) for i in 1:size(w,1)]
 
 macro do_nothing()
     quote quote end end

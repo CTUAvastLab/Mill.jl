@@ -1,8 +1,6 @@
+using Flux, Test, Mill
 using Mill: reflectinmodel, length2bags
 using Combinatorics
-
-using Flux.Tracker: gradient
-using Flux: param, params
 
 function mngradient(f, xs::AbstractArray...)
     grads = zero.(xs)
@@ -10,9 +8,9 @@ function mngradient(f, xs::AbstractArray...)
         δ = sqrt(eps())
         tmp = x[i]
         x[i] = tmp - δ/2
-        y1 = Flux.data(f(xs...))
+        y1 = f(xs...)
         x[i] = tmp + δ/2
-        y2 = Flux.data(f(xs...))
+        y2 = f(xs...)
         x[i] = tmp
         Δ[i] = (y2-y1)/δ
     end
@@ -21,7 +19,7 @@ end
 
 function mgradcheck(f, xs...)
     num_grad = mngradient(f, xs...)
-    ana_grad = Flux.data.(gradient(f, xs...))
+    ana_grad = gradient(f, xs...)
     grad_dif = [abs.(x) for x in (num_grad .- ana_grad)]
     if !all(isapprox.(num_grad, ana_grad, rtol = 1e-4, atol = 1e-4))
         @show grad_dif
@@ -60,18 +58,14 @@ let
             w = abs.(randn(size(x, 2))) .+ 0.1
 
             # generate all combinations of aggregations
-            as = []
-            names = ["Mean", "Max", "PNorm", "LSE"]
-            for idxs in powerset(collect(1:length(names)))
+            anames = ["Mean", "Max", "PNorm", "LSE"]
+            for idxs in powerset(collect(1:length(anames)))
                 !isempty(idxs) || continue
                 # not a thorough testing of all functions, but fast enough
                 # for idxs in permutations(idxs)
-                s = Symbol("Segmented", names[idxs]...)
-                push!(as, @eval f64($s($d)))
-                # end
-            end
-            # both weighted and unweighted versions
-            for a in as
+                
+                s = Symbol("Segmented", anames[idxs]...)
+                a = @eval $s($d)
                 @test mgradtest(x) do x
                     a(x, bags)
                 end
@@ -89,7 +83,7 @@ let
             w = abs.(randn(size(x, 2))) .+ 0.1
 
             fs = [:SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
-            params = [(:C1,), (:C2,), (:ρ, :c, :C3), (:p, :C4)]
+            params = (:C1,), (:C2,), (:ρ, :c, :C3), (:p, :C4)
 
             for idxs in powerset(collect(1:length(fs)))
                 !isempty(idxs) || continue;

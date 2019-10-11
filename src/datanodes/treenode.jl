@@ -2,7 +2,7 @@ mutable struct TreeNode{T,C} <: AbstractTreeNode
     data::T
     metadata::C
 
-    function TreeNode{T,C}(data::T, metadata::C) where {T <: NTuple{N, AbstractNode} where N, C}
+    function TreeNode{T,C}(data::T, metadata::C) where {T, C}
         @assert length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data)
         new(data, metadata)
     end
@@ -35,5 +35,19 @@ function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
         dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
     end
     paddedprint(io, "  └── ", color=c, pad=pad)
+    dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
+end
+
+function dsprint(io::IO, n::TreeNode{T,C}; pad=[], s="", tr=false) where {T<:NamedTuple, C}
+    c = COLORS[(length(pad)%length(COLORS))+1]
+    paddedprint(io, "TreeNode$(tr_repr(s, tr))\n", color=c)
+
+    m = length(n.data)
+    ks = keys(n.data)
+    for i in 1:(m-1)
+        paddedprint(io, "  ├── $(ks[i]): ", color=c, pad=pad)
+        dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
+    end
+    paddedprint(io, "  └── $(ks[end]): ", color=c, pad=pad)
     dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
 end
