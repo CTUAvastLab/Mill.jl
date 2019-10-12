@@ -29,25 +29,28 @@ const MaybeMatrix = Union{AbstractMatrix, Missing}
 const MaybeVector = Union{AbstractVector, Nothing}
 const MaybeMask = Union{Vector{Bool}, Nothing}
 
+bagnorm(w::Nothing, b) = length(b)
+bagnorm(w::AbstractVector, b) = sum(view(w, b))
+bagnorm(w::AbstractMatrix, b) = sum(view(w, :, b), dims=2)
 
-bagnormalization(w::Nothing, b) = length(b)
-bagnormalization(w::AbstractVector, b) = sum(w[i] for i in b)
-bagnormalization(w::AbstractMatrix, b) = [sum(w[i,j] for j in b) for i in 1:size(w,1)]
-
+# TODO delete
 macro do_nothing()
     quote quote end end
 end
 
+# TODO delete
 macro mask_rule(mask_type) 
     quote
         $(esc(mask_type)) <: Nothing ? $(@do_nothing) : :(!mask[bi] && continue)
     end
 end
 
+# TODO delete
 macro fill_missing()
     quote quote return repeat(C, 1, length(bags)) end end
 end
 
+# TODO delete
 complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
               bag_update_rule, after_bag_rule, return_rule) = quote
     $init_rule
@@ -82,31 +85,14 @@ for idxs in powerset(collect(1:length(names)))
     length(idxs) > 1 || continue
     for p in permutations(idxs)
         s = Symbol("Segmented", names[p]...)
-        # generates calls like
-        # SegmentedMeanMax(d::Int) = Aggregation(SegmentedMean(d), SegmentedMax(d))
         @eval function $s(d::Int)
-            Aggregation($(
-                          (
-                           map(names[p]) do n
-                               s_call = Symbol("Segmented" * n)
-                               :($s_call(d))
-                           end
-                          )
-                          ...))
+            Aggregation($((Expr(:call, Symbol("Segmented" * n), :d)
+                           for n in names[p])...))
         end
-        # generates calls like
-        # SegmentedMeanMax(d1::Int, d2::Int) = Aggregation(SegmentedMean(d1), SegmentedMax(d2))
         @eval function $s(D::Vararg{Int, $(length(p))})
-            Aggregation($(
-                          (
-                           map(enumerate(names[p])) do (i, n)
-                               s_call = Symbol("Segmented" * n)
-                               :($s_call(D[$i]))
-                           end
-                          )
-                          ...))
+            Aggregation($((Expr(:call, Symbol("Segmented" * n), :(D[$i]))
+                           for (i,n) in enumerate(names[p]))...))
         end
         @eval export $s
     end
 end
-
