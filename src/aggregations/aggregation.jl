@@ -33,7 +33,7 @@ const AggregationWeights = Union{Nothing, Vector{T} where T <: Real, Matrix{T} w
 
 bagnorm(w::Nothing, b) = length(b)
 bagnorm(w::AbstractVector, b) = @views sum(w[b])
-bagnorm(w::AbstractMatrix, b) = @views sum(w[:, b], dims=2)
+bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))
 
 weight(w::Nothing, _, _) = 1
 weight(w::AbstractVector, _, j) = w[j]
