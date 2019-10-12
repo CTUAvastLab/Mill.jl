@@ -2,8 +2,9 @@ struct SegmentedMean{T} <: AggregationFunction
     C::T
 end
 
-SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 Flux.@treelike SegmentedMean
+
+SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
 Base.show(io::IO, sm::SegmentedMean) = print(io, "SegmentedMean($(length(sm.C)))\n")
 modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($(length(sm.C)))")
@@ -11,8 +12,10 @@ modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($
 (m::SegmentedMean)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedMean)(x, args...) = segmented_mean(x, m.C, args...)
 
+function segmented_mean(x::Missing, C::AbstractVector, bags::AbstractBags, w = nothing, mask = nothing)
+    repeat(C, 1, length(bags))
+end
 
-segmented_mean(x::Missing, C::AbstractVector, bags::AbstractBags, w = nothing, mask = nothing)   = repeat(C, 1, length(bags))
 function segmented_mean(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w = Fill(true, size(x,2)), mask = Fill(true, size(x,2))) 
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j, b) in enumerate(bags)

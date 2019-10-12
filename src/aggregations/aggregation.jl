@@ -30,8 +30,8 @@ const MaybeVector = Union{AbstractVector, Nothing}
 const MaybeMask = Union{Vector{Bool}, Nothing}
 
 bagnorm(w::Nothing, b) = length(b)
-bagnorm(w::AbstractVector, b) = sum(view(w, b))
-bagnorm(w::AbstractMatrix, b) = sum(view(w, :, b), dims=2)
+bagnorm(w::AbstractVector, b) = @views sum(w[b])
+bagnorm(w::AbstractMatrix, b) = @views sum(w[:, b], dims=2)
 
 # TODO delete
 macro do_nothing()
