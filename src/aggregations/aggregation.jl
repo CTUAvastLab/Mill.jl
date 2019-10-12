@@ -29,9 +29,15 @@ const MaybeMatrix = Union{AbstractMatrix, Missing}
 const MaybeVector = Union{AbstractVector, Nothing}
 const MaybeMask = Union{Vector{Bool}, Nothing}
 
+const AggregationWeights = Union{Nothing, Vector{T} where T <: Real, Matrix{T} where T <: Real}
+
 bagnorm(w::Nothing, b) = length(b)
 bagnorm(w::AbstractVector, b) = @views sum(w[b])
 bagnorm(w::AbstractMatrix, b) = @views sum(w[:, b], dims=2)
+
+weight(w::Nothing, _, _) = 1
+weight(w::AbstractVector, _, j) = w[j]
+weight(w::AbstractMatrix, i, j) = w[i, j]
 
 # TODO delete
 macro do_nothing()

@@ -4,6 +4,7 @@ using Mill: segmented_pnorm, segmented_lse
 X = Matrix{Float64}(reshape(1:12, 2, 6))
 BAGS = AlignedBags([1:1, 2:3, 4:6])
 W = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
+W_mat = vcat(W, 2*W)
 C = [1, 2]
 ρ = [-2, 2]
 cc = [3, -2]
@@ -16,6 +17,10 @@ p = [1/2, 3]
     @test SegmentedMean(2)(X, BAGS, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
     @test SegmentedMax(2)(X, BAGS, W) ≈ SegmentedMax(2)(X, BAGS)
     @test SegmentedMeanMax(2)(X, BAGS, W) ≈ cat(SegmentedMean(2)(X, BAGS, W), SegmentedMax(2)(X, BAGS, W), dims=1)
+end
+
+@testset "matrix functionality" begin
+    @test SegmentedMean(2)(X, BAGS, W_mat) ≈ SegmentedMean(2)(X, BAGS, W)
 end
 
 @testset "pnorm functionality" begin

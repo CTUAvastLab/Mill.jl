@@ -56,6 +56,7 @@ let
             d = rand(1:20)
             x = randn(d, 10)
             w = abs.(randn(size(x, 2))) .+ 0.1
+            w_mat = abs.(randn(size(x))) .+ 0.1
 
             # generate all combinations of aggregations
             anames = ["Mean", "Max", "PNorm", "LSE"]
@@ -72,6 +73,9 @@ let
                 @test mgradtest(x) do x
                     a(x, bags, w)
                 end
+                @test mgradtest(x) do x
+                    a(x, bags, w_mat)
+                end
             end
         end
     end
@@ -81,6 +85,7 @@ let
             d = rand(1:20)
             x = randn(d, 10)
             w = abs.(randn(size(x, 2))) .+ 0.1
+            w_mat = abs.(randn(size(x))) .+ 0.1
 
             fs = [:SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
             params = (:C1,), (:C2,), (:ρ, :c, :C3), (:p, :C4)
@@ -102,6 +107,10 @@ let
                         a = Aggregation($(cs...))
                         a($x, $bags, $w)
                     end
+                    @test mgradtest($(map(eval, rs)...)) do $(as...)
+                        a = Aggregation($(cs...))
+                        a($x, $bags, $w_mat)
+                    end
                 end
             end
         end
@@ -113,6 +122,8 @@ let
             d = rand(1:20)
             x = randn(d, 10)
             w = abs.(randn(size(x, 2))) .+ 0.1
+            w_mat = abs.(randn(size(x))) .+ 0.1
+
             a1 = f64(SegmentedMean(d))
             a2 = f64(SegmentedMax(d))
             a3 = f64(SegmentedPNorm(d))
@@ -124,11 +135,24 @@ let
                 @test mgradtest(g, w)
             end
             for g in [
-                      w -> a3(x, bags, w),
-                      w -> a4(x, bags, w)
+                      w_mat -> a1(x, bags, w_mat),
+                      w_mat -> a2(x, bags, w_mat)
+                     ]
+                @test mgradtest(g, w_mat)
+            end
+            for g in [
+                      w -> a3(x, bags, w_mat),
+                      w -> a4(x, bags, w_mat)
                      ]
                 # NOT IMPLEMENTED YET
-                @test_throws Exception mgradtest(g, w)
+                @test_throws Exception mgradtest(g, w_mat)
+            end
+            for g in [
+                      w -> a3(x, bags, w_mat),
+                      w -> a4(x, bags, w_mat)
+                     ]
+                # NOT IMPLEMENTED YET
+                @test_throws Exception mgradtest(g, w_mat)
             end
         end
     end
