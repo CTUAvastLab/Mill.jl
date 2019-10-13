@@ -27,27 +27,18 @@ Base.getindex(x::TreeNode, i::VecOrRange) = TreeNode(subset(x.data, i), subset(x
 
 function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "TreeNode$(tr_repr(s, tr))\n", color=c)
-
+    paddedprint(io, "TreeNode$(tr_repr(s, tr))", color=c)
     m = length(n.data)
+    ks = key_labels(n.data)
     for i in 1:(m-1)
-        paddedprint(io, "  ├── ", color=c, pad=pad)
+        println()
+        paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
         dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
     end
-    paddedprint(io, "  └── ", color=c, pad=pad)
+    println()
+    paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
     dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
 end
 
-function dsprint(io::IO, n::TreeNode{T,C}; pad=[], s="", tr=false) where {T<:NamedTuple, C}
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "TreeNode$(tr_repr(s, tr))\n", color=c)
-
-    m = length(n.data)
-    ks = keys(n.data)
-    for i in 1:(m-1)
-        paddedprint(io, "  ├── $(ks[i]): ", color=c, pad=pad)
-        dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
-    end
-    paddedprint(io, "  └── $(ks[end]): ", color=c, pad=pad)
-    dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
-end
+key_labels(data::NamedTuple) = ["$k: " for k in keys(data)]
+key_labels(data) = ["" for _ in 1:length(data)]

@@ -23,35 +23,25 @@ function (m::ProductModel)(x::TreeNode)
     m.m(xx)
 end
 
-function modelprint(io::IO, m::ProductModel{TT,T}; pad=[], s="", tr=false) where {TT<:Tuple, T}
+function modelprint(io::IO, m::ProductModel; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "ProductModel$(tr_repr(s, tr)) (\n", color=c)
+    paddedprint(io, "ProductModel$(tr_repr(s, tr)) (", color=c)
 
     n = length(m.ms)
+    ks = key_labels(m.ms)
     for i in 1:(n-1)
-        paddedprint(io, "  ├── ", color=c, pad=pad)
+        println()
+        paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
         modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")], s=s * encode(i, n), tr=tr)
     end
-    paddedprint(io, "  └── ", color=c, pad=pad)
+    println()
+    paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
     modelprint(io, m.ms[end], pad=[pad; (c, "      ")], s=s * encode(n, n), tr=tr)
 
-    paddedprint(io, ") ↦  ", color=c, pad=pad)
+    println()
+    paddedprint(io, " ) ↦  ", color=c, pad=pad)
     modelprint(io, m.m, pad=[pad; (c, "")])
 end
 
-function modelprint(io::IO, m::ProductModel{TT,T}; pad=[], s="", tr=false) where {TT<:NamedTuple, T} 
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "ProductModel$(tr_repr(s, tr)) (\n", color=c)
-
-    n = length(m.ms)
-    ns = keys(m.ms)
-    for i in 1:(n-1)
-        paddedprint(io, "  ├── $(ns[i]): ", color=c, pad=pad)
-        modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")], s=s * encode(i, n), tr=tr)
-    end
-    paddedprint(io, "  └── $(ns[end]): ", color=c, pad=pad)
-    modelprint(io, m.ms[end], pad=[pad; (c, "      ")], s=s * encode(n, n), tr=tr)
-
-    paddedprint(io, ") ↦  ", color=c, pad=pad)
-    modelprint(io, m.m, pad=[pad; (c, "")])
-end
+key_labels(data::NamedTuple) = ["$k: " for k in keys(data)]
+key_labels(data) = ["" for _ in 1:length(data)]
