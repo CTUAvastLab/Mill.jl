@@ -12,45 +12,69 @@ Musk dataset is a classic problem of the field used in publication [[4](#cit4)],
  
  Let's start by importing all libraries
 ```julia
-using FileIO, JLD2, Flux, MLDataPattern, Mill, Statistics
-using Flux: throttle
-using Mill: reflectinmodel
+julia> using FileIO, JLD2, Flux, MLDataPattern, Mill, Statistics
+julia> using Flux: throttle, @epochs
+julia> using Mill: reflectinmodel
 ```
  Loading a dataset from file and folding it in Mill's data-structures is done in the following function. `musk.jld2` contains matrix with features, `fMat`, the id of sample (called bag in MIL terminology) to which each instance (column in `fMat`) belongs to, and finally a label of each instance in `y`. 
 `BagNode` is a structure which holds feature matrix and ranges of columns of each bag. Finally, `BagNode` can be concatenated (use `catobs`), you can get subset using `getindex`, and the library is compatible with a popular `MLDataPattern` package,
 ```julia
-function loaddata()
-  fMat = load("musk.jld2","fMat");               # matrix with instances, each column is one sample
-  bagids = load("musk.jld2","bagids");           # ties instances to bags
-  data = BagNode(ArrayNode(fMat), bagids)      # create BagDataset
-  y = load("musk.jld2","y");                     # load labels
-  y = map(i -> maximum(y[i]) + 1, data.bags)    # create labels on bags
-  return(data, y)
-end
+julia> fMat = load("example/musk.jld2", "fMat");      # matrix with instances, each column is one sample
+julia> bagids = load("example/musk.jld2", "bagids");  # ties instances to bags
+julia> x = BagNode(ArrayNode(fMat), bagids);          # create BagDataset
+julia> y = load("example/musk.jld2", "y");            # load labels
+julia> y = map(i -> maximum(y[i]) + 1, x.bags);       # create labels on bags
+julia> y_oh = Flux.onehotbatch(y, 1:2);               # one-hot encoding
 ```
  Once we have data, we can manually create a model. `BagModel` is designed to implement a basic multi-instance learning model as described above. Below, we use a simple model, where instances are first passed through a single layer with 10 neurons (input dimension is 166) with `relu` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `relu` nonlinearity followed by output linear layer with 2 neurons (output dimension).
 ```julia
-model = BagModel(
-    ArrayModel(Dense(166, 10, Flux.relu)),   # model on the level of Flows
+julia> model = BagModel(
+    ArrayModel(Dense(166, 10, Flux.relu)),                      # model on the level of Flows
     SegmentedMeanMax(10),
     ArrayModel(Chain(Dense(20, 10, Flux.relu), Dense(10, 2))))         # model on the level of bags
+
+BagModel
+  ├── ArrayModel(Dense(166, 10, NNlib.relu))
+  ├── ⟨SegmentedMean(10), SegmentedMax(10)⟩
+  └── ArrayModel(Chain(Dense(20, 10, NNlib.relu), Dense(10, 2)))
 ```
- The loss function is classical `cross-entropy`. Note the use of `getobs` before passing the data to the model. This is an artifact of lazy sub-setting  of `MLDataPattern` library
+ The loss function is standard `cross-entropy`:
 ```julia
-loss(x,y) = Flux.logitcrossentropy(model(getobs(x)).data, Flux.onehotbatch(y, 1:2));
+julia> loss(x, y_oh) = Flux.logitcrossentropy(model(x).data, y_oh);
 ```
- Finally, we put everything together. The below code should resemble an example from `Flux.jl` library. Note that the library is fully compatible with the training and also note the use of `RandomBatches` from MLDataPattern to train the model for 2000 steps, where each minibatch contains 100 samples.
+ Finally, we put everything together. The below code should resemble an example from `Flux.jl` library.
  ```julia
-data, y = loaddata()
-dataset = RandomBatches((data,y), 100, 2000)
-evalcb = () -> @show(loss(data, y))
-opt = Flux.ADAM()
-Flux.train!(loss, params(model), dataset, opt, cb = throttle(evalcb, 10))
+julia> evalcb = () -> @show(loss(x, y_oh));
+julia> opt = Flux.ADAM();
+julia> @epochs 10 Flux.train!(loss, params(model), repeated((x, y_oh), 100), opt, cb=throttle(evalcb, 1))
+
+[ Info: Epoch 1
+loss(x, y_oh) = 87.793724f0
+[ Info: Epoch 2
+loss(x, y_oh) = 4.3207192f0
+[ Info: Epoch 3
+loss(x, y_oh) = 4.2778687f0
+[ Info: Epoch 4
+loss(x, y_oh) = 0.662226f0
+[ Info: Epoch 5
+loss(x, y_oh) = 5.76351f-6
+[ Info: Epoch 6
+loss(x, y_oh) = 3.8146973f-6
+[ Info: Epoch 7
+loss(x, y_oh) = 2.8195589f-6
+[ Info: Epoch 8
+loss(x, y_oh) = 2.4878461f-6
+[ Info: Epoch 9
+loss(x, y_oh) = 2.1561332f-6
+[ Info: Epoch 10
+loss(x, y_oh) = 1.7414923f-6
 ```
  
 Because we did not leave any data for validation, we can only calculate error on the training data, which should be not so surprisingly low.
  ```julia
-mean(Flux.onecold( model(data).data) .!= y)
+mean(mapslices(argmax, model(x).data, dims=1)' .!= y)
+
+0.0
 ```
  ### More complicated models
 The main advantage of the Mill library is that it allows to arbitrarily nest and cross-product `BagModels`, as is described in Theorem 5 of [[3](#cit3)].
@@ -89,21 +113,24 @@ ArrayNode(2, 3)
 ```julia
 julia> m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d))
 
-(BagModel
+BagModel
   ├── BagModel
   │     ├── ArrayModel(Dense(4, 5, NNlib.relu))
   │     ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
   │     └── ArrayModel(Dense(10, 5, NNlib.relu))
   ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
   └── ArrayModel(Dense(10, 5, NNlib.relu))
-, 5)
 ```
 Let's test the model
 ```julia
 julia> m(ds).data
-Tracked 2×3 Array{Float64,2}:
-  0.0768481   0.5559    0.111104
- -0.207159   -1.78459  -0.00677607
+
+5×3 Array{Float32,2}:
+ 0.0542484   0.733629  0.553823
+ 0.062246    0.866254  1.03062 
+ 0.027454    1.04703   1.63135 
+ 0.00796955  0.36415   1.18108 
+ 0.034735    0.17383   0.0
 ```
  ### Even more complicated models
 As already mentioned above, the datasets can contain Cartesian products of MIL and normal (non-MIL) problems. Let's do a quick demo.
@@ -132,7 +159,7 @@ For this, we really want to create model automatically despite it being sub-opti
 ```julia
 julia> m = reflectinmodel(ds, d -> Dense(d, 3, relu), d -> SegmentedMeanMax(d))
 
-(BagModel
+BagModel
   ├── ProductModel (
   │     ├── BagModel
   │     │     ├── ArrayModel(Dense(4, 3, NNlib.relu))
@@ -150,7 +177,7 @@ julia> m = reflectinmodel(ds, d -> Dense(d, 3, relu), d -> SegmentedMeanMax(d))
   │   ) ↦  ArrayModel(Dense(12, 3, NNlib.relu))
   ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
   └── ArrayModel(Dense(6, 3, NNlib.relu))
-, 3)
+
 ```
 
 ## Tree traversals
