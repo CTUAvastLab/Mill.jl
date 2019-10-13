@@ -1,9 +1,6 @@
 using Test, Flux, SparseArrays, Mill
 using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇convsum, ArrayNode, BagNode, ∇wbagconv, ∇xbagconv
 
-
-include(joinpath(splitpath(pathof(Flux))[1:end-2]..., "test","gradients.jl"))
-
 @testset "testing convolution shift" begin
     @test _convshift(2) == 0:1
     @test _convshift(3) == -1:1
@@ -124,19 +121,13 @@ end
         @test length(params(m)) == 3
         @test size(m(x, bags)) == (4, 15)
         @test size(m(xs, bags)) == (4, 15)
-        # @test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
-        # @test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
-        # @test eltype(Flux.data(FluxExtensions.to32(m)(ds).data)) == Float32
 
         m = BagConv(3, 4, 1)
         @test size(m(x, bags)) == (4, 15)
         @test size(m(xs, bags)) == (4, 15)
-        # @test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
-        # @test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(xs), bags))) == Float32
 
         m = BagChain(BagConv(3, 4, 3, relu), BagConv(3, 4, 2))
         @test length(params(m)) == 5
-        # @test eltype(Flux.data(FluxExtensions.to32(m)(Float32.(x), bags))) == Float32
     end
 end
 

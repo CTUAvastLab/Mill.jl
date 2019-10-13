@@ -39,7 +39,7 @@ function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::Abstract
                     y[i, bi] += e[i, j]
                 end
             end
-            lb = log(length(b))
+            lb = log(max(1, length(b)))
             for i in 1:size(a, 1)
                 y[i, bi] = log(y[i, bi]) - lb
             end

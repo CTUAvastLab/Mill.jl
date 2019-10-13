@@ -2,42 +2,6 @@ using Flux, Test, Mill
 using Mill: reflectinmodel, length2bags
 using Combinatorics
 
-function mngradient(f, xs::AbstractArray...)
-    grads = zero.(xs)
-    for (x, Δ) in zip(xs, grads), i in eachindex(x)
-        δ = sqrt(eps())
-        tmp = x[i]
-        x[i] = tmp - δ/2
-        y1 = f(xs...)
-        x[i] = tmp + δ/2
-        y2 = f(xs...)
-        x[i] = tmp
-        Δ[i] = (y2-y1)/δ
-    end
-    return grads
-end
-
-function mgradcheck(f, xs...)
-    correct = true
-    for (ng, ag) in zip(mngradient(f, xs...), gradient(f, xs...))
-        if isnothing(ag)
-            if any(ng .!= 0)
-                correct = false
-                @show ng
-            end
-        elseif !all(isapprox.(ng, ag, rtol = 1e-4, atol = 1e-4))
-            correct = false
-            grad_dif = [abs.(x) for x in (ng .- ag)]
-            @show ng
-            @show ag
-            @show grad_dif
-        end
-    end
-    correct
-end
-
-mgradtest(f, xs::AbstractArray...) = mgradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
-
 BAGS = [
         length2bags([1 for _ in 1:10]),
         length2bags([2 for _ in 1:5]),
@@ -101,7 +65,8 @@ end
             !isempty(idxs) || continue;
             rs = []; as = []; cs = []; 
             for (f, ps) in zip(fs[idxs], params[idxs])
-                push!(rs, (:(randn($d)) for _ in ps)...)
+                # p too small causes numerical issues
+                push!(rs, (p == :p ? :(clamp.(randn($d), 0.1, Inf)) : :(randn($d)) for p in ps)...)
                 push!(as, ps...)
                 push!(cs, Expr(:call, f, ps...))
             end
@@ -267,7 +232,7 @@ end
 
         n = ArrayNode(x)
         m = f64(reflectinmodel(n, layerbuilder))
-        @test mgradtest(Flux.data.(params(m))...) do W, b
+        @test mgradtest(params(m)...) do W, b
             m = ArrayModel(Dense(W, b, relu))
             m(n).data
         end
@@ -275,11 +240,11 @@ end
         bn = BagNode(ArrayNode(x), bags1)
         abuilder = d -> SegmentedPNormLSE(d)
         m = f64(reflectinmodel(bn, layerbuilder, abuilder))
-        @test mgradtest(Flux.data.(params(m))...) do W1, b1, ρ, c, C1, p, C2, W2, b2
+        @test mgradtest(params(m)...) do W1, b1, ρ, c, C1, p, C2, W2, b2
             m = BagModel(Dense(W1, b1, relu),
                          Aggregation(
-                                     SegmentedPNorm(param(ρ), param(c), param(C1)),
-                                     SegmentedLSE(param(p), param(C2))
+                                     SegmentedPNorm(ρ, c, C1),
+                                     SegmentedLSE(p, C2)
                                     ),
                          Dense(W2, b2, σ))
             m(bn).data
@@ -287,7 +252,7 @@ end
 
         tn = TreeNode((ArrayNode(x), ArrayNode(y)))
         m = f64(reflectinmodel(tn, layerbuilder))
-        @test mgradtest(Flux.data.(params(m))...) do W1, b1, W2, b2, W3, b3
+        @test mgradtest(params(m)...) do W1, b1, W2, b2, W3, b3
             m = ProductModel(ArrayModel.((
                                           Dense(W1, b1, σ),
                                           Dense(W2, b2, relu)
@@ -298,26 +263,26 @@ end
         tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
         abuilder = d -> SegmentedPNormLSEMeanMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
-        @test mgradtest(Flux.data.(params(m))...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
+        @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
             W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, σ),
                                        Aggregation(
-                                                   SegmentedPNorm(param(ρ1), param(c1), param(C11)),
-                                                   SegmentedLSE(param(p1), param(C12)),
-                                                   SegmentedMean(param(C13)),
-                                                   SegmentedMax(param(C14))
+                                                   SegmentedPNorm(ρ1, c1, C11),
+                                                   SegmentedLSE(p1, C12),
+                                                   SegmentedMean(C13),
+                                                   SegmentedMax(C14)
                                                   ),
                                        Dense(W2, b2, relu)
                                       ),
                               BagModel(
                                        Dense(W3, b3, relu),
                                        Aggregation(
-                                                   SegmentedPNorm(param(ρ2), param(c2), param(C21)),
-                                                   SegmentedLSE(param(p2), param(C22)),
-                                                   SegmentedMean(param(C23)),
-                                                   SegmentedMax(param(C24))
+                                                   SegmentedPNorm(ρ2, c2, C21),
+                                                   SegmentedLSE(p2, C22),
+                                                   SegmentedMean(C23),
+                                                   SegmentedMax(C24)
                                                   ),
                                        Dense(W4, b4, σ)
                                       ),
@@ -329,19 +294,19 @@ end
         bnn = BagNode(bn, bags1)
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
-        @test mgradtest(Flux.data.(params(m))...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
+        @test mgradtest(params(m)...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
             m = BagModel(
                          BagModel(
                                   Dense(W1, b1),
                                   Aggregation(
-                                              SegmentedMean(param(C11)),
-                                              SegmentedMax(param(C12))
+                                              SegmentedMean(C11),
+                                              SegmentedMax(C12)
                                              ),
                                   Dense(W2, b2)
                                  ),
                          Aggregation(
-                                     SegmentedMean(param(C21)),
-                                     SegmentedMax(param(C22))
+                                     SegmentedMean(C21),
+                                     SegmentedMax(C22)
             ),
                          Dense(W3, b3)
                         )
@@ -363,11 +328,11 @@ end
         bn = BagNode(ArrayNode(x), bags1, w)
         abuilder = d -> SegmentedPNormLSE(d)
         m = f64(reflectinmodel(bn, layerbuilder, abuilder))
-        @test mgradtest(Flux.data.(params(m))...) do W1, b1, ρ, c, C1, p, C2, W2, b2
+        @test mgradtest(params(m)...) do W1, b1, ρ, c, C1, p, C2, W2, b2
             m = BagModel(Dense(W1, b1, relu),
                          Aggregation(
-                                     SegmentedPNorm(param(ρ), param(c), param(C1)),
-                                     SegmentedLSE(param(p), param(C2))
+                                     SegmentedPNorm(ρ, c, C1),
+                                     SegmentedLSE(p, C2)
                                     ),
                          Dense(W2, b2, σ))
             m(bn).data
@@ -376,26 +341,26 @@ end
         tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
         abuilder = d -> SegmentedPNormLSEMeanMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
-        @test mgradtest(Flux.data.(params(m))...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
+        @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
             W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, σ),
                                        Aggregation(
-                                                   SegmentedPNorm(param(ρ1), param(c1), param(C11)),
-                                                   SegmentedLSE(param(p1), param(C12)),
-                                                   SegmentedMean(param(C13)),
-                                                   SegmentedMax(param(C14))
+                                                   SegmentedPNorm(ρ1, c1, C11),
+                                                   SegmentedLSE(p1, C12),
+                                                   SegmentedMean(C13),
+                                                   SegmentedMax(C14)
                                                   ),
                                        Dense(W2, b2, relu)
                                       ),
                               BagModel(
                                        Dense(W3, b3, relu),
                                        Aggregation(
-                                                   SegmentedPNorm(param(ρ2), param(c2), param(C21)),
-                                                   SegmentedLSE(param(p2), param(C22)),
-                                                   SegmentedMean(param(C23)),
-                                                   SegmentedMax(param(C24))
+                                                   SegmentedPNorm(ρ2, c2, C21),
+                                                   SegmentedLSE(p2, C22),
+                                                   SegmentedMean(C23),
+                                                   SegmentedMax(C24)
                                                   ),
                                        Dense(W4, b4, σ)
                                       ),
@@ -407,19 +372,19 @@ end
         bnn = BagNode(bn, bags1, w)
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
-        @test mgradtest(Flux.data.(params(m))...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
+        @test mgradtest(params(m)...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
             m = BagModel(
                          BagModel(
                                   Dense(W1, b1),
                                   Aggregation(
-                                              SegmentedMean(param(C11)),
-                                              SegmentedMax(param(C12))
+                                              SegmentedMean(C11),
+                                              SegmentedMax(C12)
                                              ),
                                   Dense(W2, b2)
                                  ),
                          Aggregation(
-                                     SegmentedMean(param(C21)),
-                                     SegmentedMax(param(C22))
+                                     SegmentedMean(C21),
+                                     SegmentedMax(C22)
             ),
                          Dense(W3, b3)
                         )

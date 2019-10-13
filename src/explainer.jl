@@ -64,7 +64,7 @@ explain!(a, m, root_data, root_model, ϕ,  explaining_fun, recurse_depth::Int = 
 function onoff(mask, bagnode::WeightedBagNode, x, m, i)
 	fill!(bagnode.weights, false); 
 	bagnode.weights[mask] .= true; 
-	sum(Flux.data(m(x).data)[i,:])
+	sum(m(x).data[i,:])
 end
 
 explaining_fun(d, f) = explaining_fun(d, f, 0.5, 100)

@@ -1,14 +1,11 @@
 using Test, Mill, Flux
-using Mill: segmented_pnorm, segmented_lse
+using Mill: p_map, inv_p_map
 
 X = Matrix{Float64}(reshape(1:12, 2, 6))
 BAGS = AlignedBags([1:1, 2:3, 4:6])
 W = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
 W_mat = vcat(W, 2*W)
 C = [1, 2]
-ρ = [-2, 2]
-cc = [3, -2]
-p = [1/2, 3]
 
 @testset "basic aggregation functionality" begin
     @test SegmentedMean(2)(X, BAGS) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0]
@@ -25,21 +22,29 @@ end
 
 @testset "pnorm functionality" begin
     for t = 1:10
-        a, b, c, d, p1, p2, c1, c2, w1, w2 = randn(10)
+        a, b, c, d, ρ1, ρ2, c1, c2, w1, w2 = randn(10)
+        p1, p2 = p_map(ρ1), p_map(ρ2)
         w1 = abs(w1)
         w2 = abs(w2)
         bags = ScatteredBags([[1,2]])
-        @test segmented_pnorm([a b; c d], C, [p1, p2], [c1, c2], bags) ≈ [
-                                                                          (1/2*(abs(a-c1)^p1 + abs(b-c1)^p1))^(1/p1);
-                                                                          (1/2*(abs(c-c2)^p2 + abs(d-c2)^p2))^(1/p2)
-                                                                         ]
-        @test segmented_pnorm([a b; c d], C, [p1, p2], [c1, c2], bags, [w1, w2]) ≈ [
-                                                                                    (1/(w1+w2)*(w1*abs(a-c1)^p1 + w2*abs(b-c1)^p1))^(1/p1);
-                                                                                    (1/(w1+w2)*(w1*abs(c-c2)^p2 + w2*abs(d-c2)^p2))^(1/p2)
-                                                                                   ]
+        agg = SegmentedPNorm([ρ1, ρ2], [c1, c2], C)
+        @test agg([a b; c d], bags) ≈ [
+                                     (1/2*(abs(a-c1)^p1 + abs(b-c1)^p1))^(1/p1);
+                                     (1/2*(abs(c-c2)^p2 + abs(d-c2)^p2))^(1/p2)
+                                    ]
+        @test agg([a b; c d], bags) ≈ [
+                                     (1/2*(abs(a-c1)^p1 + abs(b-c1)^p1))^(1/p1);
+                                     (1/2*(abs(c-c2)^p2 + abs(d-c2)^p2))^(1/p2)
+                                    ]
+        @test agg([a b; c d], bags, [w1, w2]) ≈ [
+                                               (1/(w1+w2)*(w1*abs(a-c1)^p1 + w2*abs(b-c1)^p1))^(1/p1);
+                                               (1/(w1+w2)*(w1*abs(c-c2)^p2 + w2*abs(d-c2)^p2))^(1/p2)
+                                              ]
         x = randn(2, 6)
-        @test segmented_pnorm(x, C, [1, 1], [0, 0], BAGS) ≈ SegmentedMean(2)(abs.(x), BAGS)
-        @test segmented_pnorm(x, C, [2, 2], [0, 0], BAGS) ≈ hcat([sqrt.(sum(x[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
+        agg = SegmentedPNorm(inv_p_map.([1+1e-16, 1+1e-16]), [0, 0], C)
+        @test agg(x, BAGS) ≈ SegmentedMean(2)(abs.(x), BAGS)
+        agg = SegmentedPNorm(inv_p_map.([2, 2]), [0, 0], C)
+        @test agg(x, BAGS) ≈ hcat([sqrt.(sum(x[:, b] .^ 2, dims=2) ./ length(b)) for b in BAGS]...)
     end
 end
 

@@ -13,6 +13,7 @@ Base.show(io::IO, n::SegmentedPNorm) = print(io, "SegmentedPNorm($(length(n.ρ))
 modelprint(io::IO, n::SegmentedPNorm; pad=[]) = paddedprint(io, "SegmentedPNorm($(length(n.ρ)))")
 
 p_map(ρ) = 1 .+ softplus.(ρ)
+inv_p_map = (p) -> log.(exp.(p.-1) .- 1)
 
 (m::SegmentedPNorm)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedPNorm)(x::Missing, bags::AbstractBags, w::Nothing=nothing) = segmented_pnorm_forw(x, m.C, nothing, bags, nothing)
