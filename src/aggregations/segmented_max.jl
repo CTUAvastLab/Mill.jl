@@ -10,19 +10,13 @@ Base.show(io::IO, sm::SegmentedMax) = print(io, "SegmentedMax($(length(sm.C)))\n
 modelprint(io::IO, sm::SegmentedMax; pad=[]) = paddedprint(io, "SegmentedMax($(length(sm.C)))")
 
 (m::SegmentedMax)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedMax)(x, args...) = segmented_max(x, m.C, args...)
-
-segmented_max(x, C, bags) = segmented_max(x, C, bags, nothing)
-
-function segmented_max(x::Missing, C::AbstractVector, bags::AbstractBags, w, mask=nothing)
-    repeat(C, 1, length(bags))
+(m::SegmentedMax)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_max_forw(x, m.C, bags)
+function (m::SegmentedMax)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
+    segmented_max_forw(x .+ typemin(T) * mask', m.C, bags)
 end
 
-function segmented_max(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_max(x .* mask', C, bags, w, nothing)
-end
-
-function segmented_max(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
+segmented_max_forw(::Missing, C::AbstractVector, bags::AbstractBags) = repeat(C, 1, length(bags))
+function segmented_max_forw(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags) 
     y = fill(typemin(eltype(x)), size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
@@ -40,10 +34,9 @@ function segmented_max(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags,
     y
 end
 
-function segmented_max_back(Δ, y, x, C, bags, w=nothing) 
+function segmented_max_back(Δ, y, x, C, bags) 
     dx = zero(x)
     dC = zero(C)
-    dw = (w == nothing) ? nothing : zero(w)
     v = similar(x, size(x, 1))
     idxs = zeros(Int, size(x, 1))
     @inbounds for (bi, b) in enumerate(bags)
@@ -66,11 +59,21 @@ function segmented_max_back(Δ, y, x, C, bags, w=nothing)
             end
         end
     end
-    (dx, dC, nothing, dw)
+    dx, dC, nothing, nothing
 end
 
-Zygote.@adjoint function segmented_max(args...)
-    y = segmented_max(args...)
+function segmented_max_back(Δ, y, x::Missing, C, bags) 
+    dC = zero(C)
+    @inbounds for (bi, b) in enumerate(bags)
+        for i in eachindex(C)
+            dC[i] += Δ[i, bi]
+        end
+    end
+    nothing, dC, nothing, nothing
+end
+
+@adjoint function segmented_max_forw(args...)
+    y = segmented_max_forw(args...)
     grad = Δ -> segmented_max_back(Δ, y, args...)
     y, grad
 end

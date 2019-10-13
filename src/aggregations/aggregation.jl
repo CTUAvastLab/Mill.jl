@@ -25,11 +25,11 @@ function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
     paddedprint(io, (N == 1 ? "" : "⟩"))
 end
 
-const MaybeMatrix = Union{AbstractMatrix, Missing}
-const MaybeVector = Union{AbstractVector, Nothing}
-const MaybeMask = Union{Vector{Bool}, Nothing}
-
-const AggregationWeights = Union{Nothing, Vector{T} where T <: Real, Matrix{T} where T <: Real}
+const AggregationWeights = Union{Nothing,
+                                 AbstractVector{T} where T <: Real,
+                                 AbstractMatrix{T} where T <: Real}
+const MaybeMatrix = Union{Missing,
+                          AbstractMatrix{T} where T <: Real}
 
 bagnorm(w::Nothing, b) = length(b)
 bagnorm(w::AbstractVector, b) = @views sum(w[b])
@@ -39,45 +39,8 @@ weight(w::Nothing, _, _) = 1
 weight(w::AbstractVector, _, j) = w[j]
 weight(w::AbstractMatrix, i, j) = w[i, j]
 
-# TODO delete
-macro do_nothing()
-    quote quote end end
-end
-
-# TODO delete
-macro mask_rule(mask_type) 
-    quote
-        $(esc(mask_type)) <: Nothing ? $(@do_nothing) : :(!mask[bi] && continue)
-    end
-end
-
-# TODO delete
-macro fill_missing()
-    quote quote return repeat(C, 1, length(bags)) end end
-end
-
-# TODO delete
-complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
-              bag_update_rule, after_bag_rule, return_rule) = quote
-    $init_rule
-    for (j, b) in enumerate(bags)
-        if isempty(b)
-            for i in eachindex(C)
-                @inbounds $empty_bag_update_rule
-            end
-        else
-            @inbounds $init_bag_rule
-            for bi in b
-                @inbounds $mask_rule
-                for i in 1:size(x, 1)
-                    @inbounds $bag_update_rule
-                end
-            end
-            @inbounds $after_bag_rule
-        end
-    end
-    $return_rule
-end
+weightsum(ws::Real, _) = ws
+weightsum(ws::AbstractVector, i) = ws[i]
 
 include("segmented_mean.jl")
 include("segmented_max.jl")

@@ -12,21 +12,20 @@ Base.show(io::IO, n::SegmentedLSE) = print(io, "SegmentedLSE($(length(n.p)))\n")
 modelprint(io::IO, n::SegmentedLSE; pad=[]) = paddedprint(io, "SegmentedLSE($(length(n.p)))")
 
 (m::SegmentedLSE)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedLSE)(x, args...) = segmented_lse_optim(x, m.C, m.p, args...)
-(m::SegmentedLSE)(x, bags::AbstractBags) = segmented_lse_optim(x, m.C, m.p, bags, nothing)
+(m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_optim(x, m.C, m.p, bags)
 function (m::SegmentedLSE)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_lse_optim(x .+ typemin(T) * mask', m.C, m.p, bags, w)
+    segmented_lse_optim(x .+ typemin(T) * mask', m.C, m.p, bags)
 end
 
-segmented_lse_optim(x::Missing, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w) = segmented_lse_forw(x, C, bags, w)
-function segmented_lse_optim(x::AbstractMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w)
+segmented_lse_optim(x::Missing, C::AbstractVector, p::AbstractVector, bags::AbstractBags) = segmented_lse_forw(x, C, bags)
+function segmented_lse_optim(x::AbstractMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags)
     a = p .* x
     m = maximum(a, dims=2)
-    y = (m .+ segmented_lse_forw(a .- m, C, bags, w)) ./ p
+    y = (m .+ segmented_lse_forw(a .- m, C, bags)) ./ p
 end
 
-segmented_lse_forw(::Missing, C::AbstractVector, bags::AbstractBags, ::AggregationWeights) = repeat(C, 1, length(bags))
-function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::AbstractBags, ::AggregationWeights) 
+segmented_lse_forw(::Missing, C::AbstractVector, bags::AbstractBags) = repeat(C, 1, length(bags))
+function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::AbstractBags) 
     y = zeros(eltype(a), size(a, 1), length(bags))
     e = exp.(a)
     @inbounds for (bi, b) in enumerate(bags)
@@ -49,12 +48,11 @@ function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::Abstract
     y
 end
 
-function segmented_lse_back(Δ, y, a, C, bags, w)
+function segmented_lse_back(Δ, y, a, C, bags)
     da = zero(a)
     s = zero(C)
     dC = zero(C)
     e = exp.(a)
-    dw = isnothing(w) ? nothing : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(C)
@@ -71,10 +69,10 @@ function segmented_lse_back(Δ, y, a, C, bags, w)
             da[:, b] ./= s
         end
     end
-    da, dC, nothing, dw
+    da, dC, nothing, nothing
 end
 
-function segmented_lse_back(Δ, y, C, bags, w)
+function segmented_lse_back(Δ, C, bags)
     dC = zero(C)
     @inbounds for (bi, b) in enumerate(bags)
         for i in eachindex(C)
@@ -84,14 +82,14 @@ function segmented_lse_back(Δ, y, C, bags, w)
     nothing, dC, nothing, nothing
 end
 
-@adjoint function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w)
-    y = segmented_lse_forw(a, C, bags, w)
-    grad = Δ -> segmented_lse_back(Δ, y, a, C, bags, w)
+@adjoint function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::AbstractBags)
+    y = segmented_lse_forw(a, C, bags)
+    grad = Δ -> segmented_lse_back(Δ, y, a, C, bags)
     y, grad
 end
 
-@adjoint function segmented_lse_forw(x::Missing, C::AbstractVector, bags::AbstractBags, w)
-    y = segmented_lse_forw(x, C, bags, w)
-    grad = Δ -> segmented_lse_back(Δ, y, C, bags, w)
+@adjoint function segmented_lse_forw(a::Missing, C::AbstractVector, bags::AbstractBags)
+    y = segmented_lse_forw(a, C, bags)
+    grad = Δ -> segmented_lse_back(Δ, C, bags)
     y, grad
 end

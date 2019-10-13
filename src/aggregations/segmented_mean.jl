@@ -10,20 +10,13 @@ Base.show(io::IO, sm::SegmentedMean) = print(io, "SegmentedMean($(length(sm.C)))
 modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($(length(sm.C)))")
 
 (m::SegmentedMean)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedMean)(x, args...) = segmented_mean(x, m.C, args...)
-
-segmented_mean(x, C, bags) = segmented_mean(x, C, bags, nothing, nothing)
-segmented_mean(x, C, bags, w) = segmented_mean(x, C, bags, w, nothing)
-
-function segmented_mean(x::Missing, C::AbstractVector, bags::AbstractBags, w, mask::Nothing)
-    repeat(C, 1, length(bags))
+(m::SegmentedMean)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_mean_forw(x, m.C, bags, w)
+function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
+    segmented_mean_forw(x .* mask', m.C, bags, w)
 end
 
-function segmented_mean(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_mean(x .* mask', C, bags, w, nothing)
-end
-
-function segmented_mean(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w::AggregationWeights, mask::Nothing) 
+segmented_mean_forw(::Missing, C::AbstractVector, bags::AbstractBags, w) = repeat(C, 1, length(bags))
+function segmented_mean_forw(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
     y = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
@@ -42,31 +35,37 @@ function segmented_mean(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags
     y
 end
 
-function segmented_mean_back(Δ, y, x, C, bags, w=nothing) 
+function segmented_mean_back(Δ, y, x, C, bags, w) 
     dx = similar(x)
     dC = zero(C)
-    dw = (w == nothing) ? nothing : zero(w)
+    dw = isnothing(w) ? nothing : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(C)
-                dC[i] += C[i]
+                dC[i] += Δ[i, bi]
             end
         else
             ws = bagnorm(w, b)
             for j in b
                 for i in 1:size(x, 1)
-                    dx[i, j] = ∇dx_segmented_mean(Δ, w, ws, i, j, bi)
+                    dx[i, j] = weight(w, i, j) * Δ[i, bi] / weightsum(ws, i)
                     ∇dw_segmented_mean!(dw, Δ, x, y, w, ws, i, j, bi)
                 end
             end
         end
     end
-    (dx, dC, nothing, dw)
+    dx, dC, nothing, dw
 end
 
-∇dx_segmented_mean(Δ, w::Nothing, ws, i, j, bi) = Δ[i, bi] / ws
-∇dx_segmented_mean(Δ, w::AbstractVector, ws, i, j, bi) = w[j] * Δ[i, bi] / ws
-∇dx_segmented_mean(Δ, w::AbstractMatrix, ws, i, j, bi) = w[i, j] * Δ[i, bi] / ws[i]
+function segmented_mean_back(Δ, y, x::Missing, C, bags, w::Nothing) 
+    dC = zero(C)
+    @inbounds for (bi, b) in enumerate(bags)
+        for i in eachindex(C)
+            dC[i] += Δ[i, bi]
+        end
+    end
+    nothing, dC, nothing, nothing
+end
 
 ∇dw_segmented_mean!(dw::Nothing, Δ, x, y, w::Nothing, ws, i, j, bi) = nothing
 function ∇dw_segmented_mean!(dw::AbstractVector, Δ, x, y, w::AbstractVector, ws, i, j, bi) 
@@ -76,8 +75,8 @@ function ∇dw_segmented_mean!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, 
     dw[i, j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws[i]
 end
 
-Zygote.@adjoint function segmented_mean(args...)
-    y = segmented_mean(args...)
+@adjoint function segmented_mean_forw(args...)
+    y = segmented_mean_forw(args...)
     grad = Δ -> segmented_mean_back(Δ, y, args...)
     y, grad
 end

@@ -1,6 +1,8 @@
 module Mill
 using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote
+using Zygote: @adjoint
 import Base.reduce
+
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
 MLDataPattern.nobs(::Missing) = nothing
