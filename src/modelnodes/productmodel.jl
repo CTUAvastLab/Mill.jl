@@ -42,6 +42,3 @@ function modelprint(io::IO, m::ProductModel; pad=[], s="", tr=false)
     paddedprint(io, " ) ↦  ", color=c, pad=pad)
     modelprint(io, m.m, pad=[pad; (c, "")])
 end
-
-key_labels(data::NamedTuple) = ["$k: " for k in keys(data)]
-key_labels(data) = ["" for _ in 1:length(data)]

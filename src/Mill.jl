@@ -14,6 +14,9 @@ function paddedprint(io, s...; color=:default, pad=[])
     printstyled(io, s..., color=color)
 end
 
+key_labels(data::NamedTuple) = ["$k: " for k in keys(data)]
+key_labels(data) = ["" for _ in 1:length(data)]
+
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 
 """

@@ -40,5 +40,3 @@ function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
     dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
 end
 
-key_labels(data::NamedTuple) = ["$k: " for k in keys(data)]
-key_labels(data) = ["" for _ in 1:length(data)]
