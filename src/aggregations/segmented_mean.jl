@@ -2,7 +2,8 @@ struct SegmentedMean{T} <: AggregationFunction
     C::T
 end
 
-Flux.@functor SegmentedMean
+Flux.@treelike SegmentedMean
+# Flux.@functor SegmentedMean
 
 SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 

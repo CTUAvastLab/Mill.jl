@@ -2,7 +2,8 @@ struct SegmentedMax{T} <: AggregationFunction
     C::T
 end
 
-Flux.@functor SegmentedMax
+Flux.@treelike SegmentedMax
+# Flux.@functor SegmentedMax
 
 SegmentedMax(d::Int) = SegmentedMax(zeros(Float32, d))
 

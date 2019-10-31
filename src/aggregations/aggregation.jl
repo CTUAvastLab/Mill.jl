@@ -8,7 +8,8 @@ struct Aggregation{N} <: AggregationFunction
     Aggregation(fs::NTuple{N, AggregationFunction}) where N = new{N}(fs)
 end
 
-Flux.@functor Aggregation
+Flux.@treelike Aggregation
+# Flux.@functor Aggregation
 
 (a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 

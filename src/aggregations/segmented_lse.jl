@@ -4,7 +4,8 @@ struct SegmentedLSE{T, U} <: AggregationFunction
     C::U
 end
 
-Flux.@functor SegmentedLSE
+Flux.@treelike SegmentedLSE
+# Flux.@functor SegmentedLSE
 
 SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 
