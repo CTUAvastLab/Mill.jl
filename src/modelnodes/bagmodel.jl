@@ -14,7 +14,7 @@ struct BagModel{T <: MillModel, A, U <: MillModel} <: MillModel
     bm::U
 end
 
-Flux.@treelike BagModel
+Flux.@functor BagModel
 
 BagModel(im::MillFunction, a, bm::MillFunction) = BagModel(ArrayModel(im), a, ArrayModel(bm))
 BagModel(im::MillModel, a, bm::MillFunction) = BagModel(im, a, ArrayModel(bm))

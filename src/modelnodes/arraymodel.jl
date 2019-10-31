@@ -9,7 +9,7 @@ struct ArrayModel{T <: MillFunction} <: MillModel
     m::T
 end
 
-Flux.@treelike ArrayModel
+Flux.@functor ArrayModel
 
 (m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x)
 
