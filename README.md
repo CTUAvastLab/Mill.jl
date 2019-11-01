@@ -15,6 +15,7 @@ Musk dataset is a classic problem of the field used in publication [[4](#cit4)],
 julia> using FileIO, JLD2, Flux, MLDataPattern, Mill, Statistics
 julia> using Flux: throttle, @epochs
 julia> using Mill: reflectinmodel
+julia> using Base.Iterators: repeated
 ```
  Loading a dataset from file and folding it in Mill's data-structures is done in the following function. `musk.jld2` contains matrix with features, `fMat`, the id of sample (called bag in MIL terminology) to which each instance (column in `fMat`) belongs to, and finally a label of each instance in `y`. 
 `BagNode` is a structure which holds feature matrix and ranges of columns of each bag. Finally, `BagNode` can be concatenated (use `catobs`), you can get subset using `getindex`, and the library is compatible with a popular `MLDataPattern` package,

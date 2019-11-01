@@ -8,6 +8,7 @@ using Flux: throttle, @epochs
 using Mill
 using Mill: reflectinmodel
 using Statistics
+using Base.Iterators: repeated
 
 # load the musk dataset
 fMat = load("example/musk.jld2", "fMat");      # matrix with instances, each column is one sample
