@@ -31,15 +31,15 @@ function modelprint(io::IO, m::ProductModel; pad=[], s="", tr=false)
     n = length(m.ms)
     ks = key_labels(m.ms)
     for i in 1:(n-1)
-        println()
+        println(io)
         paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
         modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")], s=s * encode(i, n), tr=tr)
     end
-    println()
+    println(io)
     paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
     modelprint(io, m.ms[end], pad=[pad; (c, "      ")], s=s * encode(n, n), tr=tr)
 
-    println()
+    println(io)
     paddedprint(io, " ) ↦  ", color=c, pad=pad)
     modelprint(io, m.m, pad=[pad; (c, "")])
 end

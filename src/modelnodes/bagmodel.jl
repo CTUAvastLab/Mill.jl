@@ -36,11 +36,11 @@ function modelprint(io::IO, m::BagModel{T, A}; pad=[], s="", tr=false) where {T,
     paddedprint(io, "BagModel$(tr_repr(s, tr))\n", color=c)
     paddedprint(io, "  ├── ", color=c, pad=pad)
     modelprint(io, m.im, pad=[pad; (c, "  │   ")], s=s * encode(1, 1), tr=tr)
-    println();
+    println(io);
     paddedprint(io, "  ├── ", color=c, pad=pad)
     modelprint(io, m.a, pad=[pad; (c, "  │   ")])
     # A == Aggregation || paddedprint(io, '\n', color=c)
-    println();
+    println(io);
     paddedprint(io, "  └── ", color=c, pad=pad)
     modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
 end

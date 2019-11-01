@@ -31,11 +31,11 @@ function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
     m = length(n.data)
     ks = key_labels(n.data)
     for i in 1:(m-1)
-        println()
+        println(io)
         paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
         dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
     end
-    println()
+    println(io)
     paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
     dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
 end
