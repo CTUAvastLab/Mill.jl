@@ -14,13 +14,13 @@ y = load("example/musk.jld2", "y")             # load labels
 y = map(i -> maximum(y[i]) + 1, x.bags)        # create labels on bags
 y_oh = Flux.onehotbatch(y, 1:2)                # one-hot encoding
 
-#create the model
+# create the model
 model = BagModel(
     ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
     SegmentedMeanMax(10),                                       # aggregation
     ArrayModel(Chain(Dense(20, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
 
-#define loss function
+# define loss function
 loss(x, y_oh) = Flux.logitcrossentropy(model(x).data, y_oh)
 
 # the usual way of training
