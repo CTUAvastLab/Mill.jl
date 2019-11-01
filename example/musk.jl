@@ -24,11 +24,9 @@ model = BagModel(
 loss(x, y_oh) = Flux.logitcrossentropy(model(x).data, y_oh)
 
 # the usual way of training
-evalcb = () -> @show(loss(x, y_oh))
+evalcb = throttle(() -> @show(loss(x, y_oh)), 1)
 opt = Flux.ADAM()
-@show(loss(x, y_oh))
-@epochs 10 Flux.train!(loss, params(model), repeated((x, y_oh), 100), opt)
-@show(loss(x, y_oh))
+@epochs 10 Flux.train!(loss, params(model), repeated((x, y_oh), 100), opt, cb=evalcb)
 
 # calculate the error on the training set (no testing set right now)
 mean(mapslices(argmax, model(x).data, dims=1)' .!= y)
