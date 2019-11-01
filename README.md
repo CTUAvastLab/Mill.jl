@@ -12,13 +12,13 @@ Musk dataset is a classic problem of the field used in publication [[4](#cit4)],
  
  Let's start by importing all libraries
 ```julia
-julia> using FileIO, JLD2, Flux, MLDataPattern, Mill, Statistics
+julia> using FileIO, JLD2, Statistics, Mill, Flux
 julia> using Flux: throttle, @epochs
 julia> using Mill: reflectinmodel
 julia> using Base.Iterators: repeated
 ```
  Loading a dataset from file and folding it in Mill's data-structures is done in the following function. `musk.jld2` contains matrix with features, `fMat`, the id of sample (called bag in MIL terminology) to which each instance (column in `fMat`) belongs to, and finally a label of each instance in `y`. 
-`BagNode` is a structure which holds feature matrix and ranges of columns of each bag. Finally, `BagNode` can be concatenated (use `catobs`), you can get subset using `getindex`, and the library is compatible with a popular `MLDataPattern` package,
+`BagNode` is a structure which holds feature matrix and ranges of columns of each bag. Finally, `BagNode` can be concatenated (use `catobs`) and you can get subset using `getindex`.
 ```julia
 julia> fMat = load("example/musk.jld2", "fMat");      # matrix with instances, each column is one sample
 julia> bagids = load("example/musk.jld2", "bagids");  # ties instances to bags
@@ -27,17 +27,17 @@ julia> y = load("example/musk.jld2", "y");            # load labels
 julia> y = map(i -> maximum(y[i]) + 1, x.bags);       # create labels on bags
 julia> y_oh = Flux.onehotbatch(y, 1:2);               # one-hot encoding
 ```
- Once we have data, we can manually create a model. `BagModel` is designed to implement a basic multi-instance learning model as described above. Below, we use a simple model, where instances are first passed through a single layer with 10 neurons (input dimension is 166) with `relu` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `relu` nonlinearity followed by output linear layer with 2 neurons (output dimension).
+ Once we have data, we can manually create a model. `BagModel` is designed to implement a basic multi-instance learning model as described above. Below, we use a simple model, where instances are first passed through a single layer with 10 neurons (input dimension is 166) with `tanh` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `tanh` nonlinearity followed by output linear layer with 2 neurons (output dimension).
 ```julia
 julia> model = BagModel(
-    ArrayModel(Dense(166, 10, Flux.relu)),                      # model on the level of Flows
-    SegmentedMeanMax(10),
-    ArrayModel(Chain(Dense(20, 10, Flux.relu), Dense(10, 2))))         # model on the level of bags
+    ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
+    SegmentedMeanMax(10),                                       # aggregation
+    ArrayModel(Chain(Dense(20, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
 
 BagModel
-  ├── ArrayModel(Dense(166, 10, NNlib.relu))
+  ├── ArrayModel(Dense(166, 10, NNlib.tanh))
   ├── ⟨SegmentedMean(10), SegmentedMax(10)⟩
-  └── ArrayModel(Chain(Dense(20, 10, NNlib.relu), Dense(10, 2)))
+  └── ArrayModel(Chain(Dense(20, 10, NNlib.tanh), Dense(10, 2)))
 ```
  The loss function is standard `cross-entropy`:
 ```julia
