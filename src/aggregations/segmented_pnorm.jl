@@ -17,7 +17,7 @@ p_map(ρ) = 1 .+ softplus.(ρ)
 inv_p_map = (p) -> log.(exp.(p.-1) .- 1)
 
 (m::SegmentedPNorm)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedPNorm)(x::Missing, bags::AbstractBags, w::Nothing=nothing) = segmented_pnorm_forw(x, m.C, nothing, bags, nothing)
+(m::SegmentedPNorm)(x::Missing, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x, m.C, nothing, bags, w)
 (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x .- m.c, m.C, p_map(m.ρ), bags, w)
 function (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
     segmented_pnorm_forw((x.-m.c) .* mask', m.C, p_map(m.ρ), bags, w)
