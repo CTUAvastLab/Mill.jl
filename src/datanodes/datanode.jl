@@ -37,13 +37,14 @@ reduce(::typeof(catobs), as::Vector{<: Any}) = @error "cannot reduce Any"
 reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, Nothing}} = nothing
 reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, B}} where {B<: AbstractNode} = reduce(catobs, Vector{B}(as))
 
+Base.cat(as::AbstractNode...; dims = :) = reduce(catobs, collect(as))
+
 _cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple([reduce(catobs, [a[i] for a in as]) for i in 1:length(as[1])]...)
 function _cattuples(as::Vector{T}) where {T <: NamedTuple}
 	ks = keys(as[1])
 	vs = [k => reduce(catobs, [a[k] for a in as]) for k in ks]
 	(;vs...)
 end
-
 
 # functions to make datanodes compatible with getindex and with MLDataPattern
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
@@ -53,7 +54,6 @@ Base.lastindex(ds::AbstractNode) = nobs(ds)
 MLDataPattern.getobs(x::AbstractNode, i) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Undefined) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Last) = x[i]
-
 
 #subset of common datatypes the way we like them
 subset(x::AbstractMatrix, i) = x[:, i]
@@ -75,7 +75,8 @@ _len(a::Vector) = length(a)
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 Base.ndims(x::AbstractBagNode) = Colon()
-dsprint(io::IO, ::Missing; pad=[], s="", tr=false) where T = paddedprint(io, " ∅ ")
+
+dsprint(io::IO, ::Missing; pad=[], s="", tr=false) = paddedprint(io, " ∅")
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")

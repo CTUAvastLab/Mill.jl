@@ -87,15 +87,7 @@ end
 function onoff(mask, bagnode::WeightedBagNode, ds, model, i)
 	fill!(bagnode.weights, false); 
 	bagnode.weights[mask] .= true; 
-	sum(model(ds).data[i,:])
-end
-
-function onoff(mask, xe::AbstractArray, original_x::AbstractArray, ds, model, i)
-	xe .= 0
-	xe[mask] .= original_x[mask]
-	o = sum(model(ds).data[i,:])
-	xe .= original_x
-	o
+	sum(m(x).data[i,:])
 end
 
 explaining_fun(d, f) = explaining_fun(d, f, 0.5, 100)

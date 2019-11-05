@@ -1,6 +1,7 @@
 using Test
 using Mill, BenchmarkTools, SparseArrays, Random, Flux
 using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NGramMatrix, catobs
+
 @testset "ngrams" begin
     x = [1,3,5,2,6,8,3]
     b = 8 + 1
@@ -14,6 +15,7 @@ using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NG
         end 
         o
     end
+
     @testset "testing ngrams on vector of Ints" begin 
         @test all(ngrams(x,3,b) .== map(x -> indexes(x,b),slicer(x,3)))
         @test all(ngrams(x,2,b) .== map(x -> indexes(x,b),slicer(x,2)))
@@ -79,7 +81,6 @@ using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NG
         end
     end
 end
-
 
 begin
     println("Benchmarking multiplication")

@@ -1,6 +1,8 @@
 module Mill
-using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote, FillArrays
+using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote
+using Zygote: @adjoint
 import Base.reduce
+
 const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 
 MLDataPattern.nobs(::Missing) = nothing
@@ -11,6 +13,9 @@ function paddedprint(io, s...; color=:default, pad=[])
     end
     printstyled(io, s..., color=color)
 end
+
+key_labels(data::NamedTuple) = ["$k: " for k in keys(data)]
+key_labels(data) = ["" for _ in 1:length(data)]
 
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 

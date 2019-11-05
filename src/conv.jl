@@ -234,6 +234,7 @@ struct BagConv{T, F}
 end
 
 Flux.@treelike BagConv
+# Flux.@functor BagConv
 
 function BagConv(d::Int, o::Int, n::Int, σ = identity)
 	W = (n > 1) ? tuple([randn(o, d) .* sqrt(2.0/(o + d)) for _ in 1:n]...) : randn(o, d) .* sqrt(2.0/(o + d))
@@ -244,7 +245,6 @@ end
 (m::BagConv{T,F} where {T<:AbstractMatrix,F})(x, bags) = m.σ.(m.W * x)
 (m::BagConv)(x::ArrayNode, bags::AbstractBags) = ArrayNode(bagconv(x.data, bags, m.W...))
 (m::BagConv)(x::BagNode) = ArrayNode(bagconv(x.data.data, x.bags, m.W...))
-
 
 Base.show(io::IO, m::BagConv) = modelprint(io, m)
 

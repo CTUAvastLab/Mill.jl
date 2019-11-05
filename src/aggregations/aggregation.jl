@@ -9,6 +9,7 @@ struct Aggregation{N} <: AggregationFunction
 end
 
 Flux.@treelike Aggregation
+# Flux.@functor Aggregation
 
 (a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 
@@ -25,50 +26,22 @@ function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
     paddedprint(io, (N == 1 ? "" : "⟩"))
 end
 
-const MaybeMatrix = Union{AbstractMatrix, Missing}
-const MaybeVector = Union{AbstractVector, Nothing}
-const MaybeMask = Union{Vector{Bool}, Nothing}
+const AggregationWeights = Union{Nothing,
+                                 AbstractVector{T} where T <: Real,
+                                 AbstractMatrix{T} where T <: Real}
+const MaybeMatrix = Union{Missing,
+                          AbstractMatrix{T} where T <: Real}
 
+bagnorm(w::Nothing, b) = length(b)
+bagnorm(w::AbstractVector, b) = @views sum(w[b])
+bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))
 
-bagnormalization(w::Nothing, b) = length(b)
-bagnormalization(w::AbstractVector, b) = sum(w[i] for i in b)
-bagnormalization(w::AbstractMatrix, b) = [sum(w[i,j] for j in b) for i in 1:size(w,1)]
+weight(w::Nothing, _, _) = 1
+weight(w::AbstractVector, _, j) = w[j]
+weight(w::AbstractMatrix, i, j) = w[i, j]
 
-macro do_nothing()
-    quote quote end end
-end
-
-macro mask_rule(mask_type) 
-    quote
-        $(esc(mask_type)) <: Nothing ? $(@do_nothing) : :(!mask[bi] && continue)
-    end
-end
-
-macro fill_missing()
-    quote quote return repeat(C, 1, length(bags)) end end
-end
-
-complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
-              bag_update_rule, after_bag_rule, return_rule) = quote
-    $init_rule
-    for (j, b) in enumerate(bags)
-        if isempty(b)
-            for i in 1:size(x, 1)
-                @inbounds $empty_bag_update_rule
-            end
-        else
-            @inbounds $init_bag_rule
-            for bi in b
-                @inbounds $mask_rule
-                for i in 1:size(x, 1)
-                    @inbounds $bag_update_rule
-                end
-            end
-            @inbounds $after_bag_rule
-        end
-    end
-    $return_rule
-end
+weightsum(ws::Real, _) = ws
+weightsum(ws::AbstractVector, i) = ws[i]
 
 include("segmented_mean.jl")
 include("segmented_max.jl")
@@ -82,31 +55,14 @@ for idxs in powerset(collect(1:length(names)))
     length(idxs) > 1 || continue
     for p in permutations(idxs)
         s = Symbol("Segmented", names[p]...)
-        # generates calls like
-        # SegmentedMeanMax(d::Int) = Aggregation(SegmentedMean(d), SegmentedMax(d))
         @eval function $s(d::Int)
-            Aggregation($(
-                          (
-                           map(names[p]) do n
-                               s_call = Symbol("Segmented" * n)
-                               :($s_call(d))
-                           end
-                          )
-                          ...))
+            Aggregation($((Expr(:call, Symbol("Segmented" * n), :d)
+                           for n in names[p])...))
         end
-        # generates calls like
-        # SegmentedMeanMax(d1::Int, d2::Int) = Aggregation(SegmentedMean(d1), SegmentedMax(d2))
         @eval function $s(D::Vararg{Int, $(length(p))})
-            Aggregation($(
-                          (
-                           map(enumerate(names[p])) do (i, n)
-                               s_call = Symbol("Segmented" * n)
-                               :($s_call(D[$i]))
-                           end
-                          )
-                          ...))
+            Aggregation($((Expr(:call, Symbol("Segmented" * n), :(D[$i]))
+                           for (i,n) in enumerate(names[p]))...))
         end
         @eval export $s
     end
 end
-

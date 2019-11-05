@@ -2,65 +2,82 @@ struct SegmentedMean{T} <: AggregationFunction
     C::T
 end
 
-SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 Flux.@treelike SegmentedMean
+# Flux.@functor SegmentedMean
+
+SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
 Base.show(io::IO, sm::SegmentedMean) = print(io, "SegmentedMean($(length(sm.C)))\n")
 modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($(length(sm.C)))")
 
 (m::SegmentedMean)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
-(m::SegmentedMean)(x, args...) = segmented_mean(x, m.C, args...)
-
-
-segmented_mean(x::Missing, C::AbstractVector, bags::AbstractBags, w = nothing, mask = nothing)   = repeat(C, 1, length(bags))
-function segmented_mean(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w = Fill(true, size(x,2)), mask = Fill(true, size(x,2))) 
-    o = zeros(eltype(x), size(x, 1), length(bags))
-    @inbounds for (j, b) in enumerate(bags)
-        if isempty(b) || bagnormalization(w, b) == 0
-                o[:, j] .= C
-        else
-            for bi in b
-               for i in 1:size(x, 1)
-                    o[i, j] += w[bi] * x[i, bi]
-                end
-            end
-            o[:, j] ./= bagnormalization(w, b)
-        end
-    end
-    o
+(m::SegmentedMean)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_mean_forw(x, m.C, bags, w)
+function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
+    segmented_mean_forw(x .* mask', m.C, bags, w)
 end
 
-function segmented_mean_back(Δ, n, x, C, bags, w = nothing) 
+segmented_mean_forw(::Missing, C::AbstractVector, bags::AbstractBags, w) = repeat(C, 1, length(bags))
+function segmented_mean_forw(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
+    y = zeros(eltype(x), size(x, 1), length(bags))
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            for i in eachindex(C)
+                y[i, bi] = C[i]
+            end
+        else
+            for j in b
+                for i in 1:size(x, 1)
+                    y[i, bi] += weight(w, i, j)  * x[i, j]
+                end
+            end
+            y[:, bi] ./= bagnorm(w, b)
+        end
+    end
+    y
+end
+
+function segmented_mean_back(Δ, y, x, C, bags, w) 
     dx = similar(x)
     dC = zero(C)
-    dw = (w == nothing) ? nothing : zero(w)
-    for (j, b) in enumerate(bags)
-        if isempty(b) || bagnormalization(w, b) == 0
-            dC .+= @view Δ[:, j]
+    dw = isnothing(w) ? nothing : zero(w)
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            for i in eachindex(C)
+                dC[i] += Δ[i, bi]
+            end
         else
-            ws = bagnormalization(w, b)
-            @inbounds for bi in b
+            ws = bagnorm(w, b)
+            for j in b
                 for i in 1:size(x, 1)
-                    dx[i, bi] = ∇dx_segmented_mean(Δ, bi, i, j, w, ws)
-                    ∇dx_segmented_mean!(dw, bi, x, Δ, n, i, j, w, ws)
+                    dx[i, j] = weight(w, i, j) * Δ[i, bi] / weightsum(ws, i)
+                    ∇dw_segmented_mean!(dw, Δ, x, y, w, ws, i, j, bi)
                 end
             end
         end
     end
-    (dx, dC, nothing, dw)
+    dx, dC, nothing, dw
 end
 
-Zygote.@adjoint function segmented_mean(args...)
-    n = segmented_mean(args...)
-    grad = Δ -> segmented_mean_back(Δ, n, args...)
-    n, grad
+function segmented_mean_back(Δ, y, x::Missing, C, bags, w::Nothing) 
+    dC = zero(C)
+    @inbounds for (bi, b) in enumerate(bags)
+        for i in eachindex(C)
+            dC[i] += Δ[i, bi]
+        end
+    end
+    nothing, dC, nothing, nothing
 end
 
-∇dx_segmented_mean(Δ, bi, i, j, w::Nothing, ws) = Δ[i, j] / ws
-∇dx_segmented_mean(Δ, bi, i, j, w::AbstractVector, ws) = w[bi] * Δ[i, j] / ws
-∇dx_segmented_mean(Δ, bi, i, j, w::AbstractMatrix, ws) = w[i, bi] * Δ[i, j] / ws[i]
+∇dw_segmented_mean!(dw::Nothing, Δ, x, y, w::Nothing, ws, i, j, bi) = nothing
+function ∇dw_segmented_mean!(dw::AbstractVector, Δ, x, y, w::AbstractVector, ws, i, j, bi) 
+    dw[j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws
+end
+function ∇dw_segmented_mean!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, ws, i, j, bi)
+    dw[i, j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws[i]
+end
 
-∇dx_segmented_mean!(dw::Nothing, bi, x, Δ, n, i, j, w::Nothing, ws) = nothing
-∇dx_segmented_mean!(dw::AbstractVector, bi, x, Δ, n, i, j, w::AbstractVector, ws) = dw[bi] += Δ[i, j] * (x[i, bi] - n[i, j]) / ws
-∇dx_segmented_mean!(dw::AbstractMatrix, bi, x, Δ, n, i, j, w::AbstractMatrix, ws) = dw[i, bi] += Δ[i, j] * (x[i, bi] - n[i, j]) / ws[i]
-
+@adjoint function segmented_mean_forw(args...)
+    y = segmented_mean_forw(args...)
+    grad = Δ -> segmented_mean_back(Δ, y, args...)
+    y, grad
+end

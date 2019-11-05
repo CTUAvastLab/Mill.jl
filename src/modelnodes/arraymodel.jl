@@ -10,8 +10,9 @@ struct ArrayModel{T <: MillFunction} <: MillModel
 end
 
 Flux.@treelike ArrayModel
+# Flux.@functor ArrayModel
 
 (m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x)
 
-modelprint(io::IO, m::ArrayModel; pad=[], s="", tr=false) = paddedprint(io, "ArrayModel(", m.m, ")$(tr_repr(s, tr))\n")
+modelprint(io::IO, m::ArrayModel; pad=[], s="", tr=false) = paddedprint(io, "ArrayModel(", m.m, ")$(tr_repr(s, tr))")
 

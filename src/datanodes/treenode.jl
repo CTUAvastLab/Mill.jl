@@ -13,7 +13,7 @@ TreeNode(data::T, metadata::C) where {T, C} = TreeNode{T, C}(data, metadata)
 
 mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
-Base.ndims(x::TreeNode) = Colon()
+Base.ndims(x::AbstractTreeNode) = Colon()
 LearnBase.nobs(a::AbstractTreeNode) = nobs(a.data[1], ObsDim.Last)
 LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
@@ -27,27 +27,16 @@ Base.getindex(x::TreeNode, i::VecOrRange) = TreeNode(subset(x.data, i), subset(x
 
 function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "TreeNode$(tr_repr(s, tr))\n", color=c)
-
+    paddedprint(io, "TreeNode$(tr_repr(s, tr))", color=c)
     m = length(n.data)
+    ks = key_labels(n.data)
     for i in 1:(m-1)
-        paddedprint(io, "  ├── ", color=c, pad=pad)
+        println(io)
+        paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
         dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
     end
-    paddedprint(io, "  └── ", color=c, pad=pad)
+    println(io)
+    paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
     dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
 end
 
-function dsprint(io::IO, n::TreeNode{T,C}; pad=[], s="", tr=false) where {T<:NamedTuple, C}
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "TreeNode$(tr_repr(s, tr))\n", color=c)
-
-    m = length(n.data)
-    ks = keys(n.data)
-    for i in 1:(m-1)
-        paddedprint(io, "  ├── $(ks[i]): ", color=c, pad=pad)
-        dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
-    end
-    paddedprint(io, "  └── $(ks[end]): ", color=c, pad=pad)
-    dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
-end

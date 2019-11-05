@@ -1,5 +1,4 @@
 using LearnBase
-using DataFrames
 import Base: cat, vcat, hcat
 
 """
@@ -34,8 +33,7 @@ function Base.vcat(as::ArrayNode...)
 end
 
 Base.hcat(as::ArrayNode...) = reduce(catobs, collect(as))
-Base.cat(as::ArrayNode...; dims = :) = reduce(catobs, collect(as))
 
 Base.getindex(x::ArrayNode, i::VecOrRange) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
 
-dsprint(io::IO, n::ArrayNode; pad=[], s="", tr=false) = paddedprint(io, "ArrayNode$(size(n.data))$(tr_repr(s, tr))\n")
+dsprint(io::IO, n::ArrayNode; pad=[], s="", tr=false) = paddedprint(io, "ArrayNode$(size(n.data))$(tr_repr(s, tr))")
