@@ -52,7 +52,7 @@ function ScatteredBags(k::Vector{T}) where {T<:Integer}
     ScatteredBags(collect(values(d)))
 end
 
-function length2bags(ls::Vector{Int})
+Zygote.@nograd function length2bags(ls::Vector{Int})
     ls = vcat([0], cumsum(ls))
     bags = map(i -> i[1]+1:i[2],zip(ls[1:end-1],ls[2:end]))
     bags = map(b -> isempty(b) ? (0:-1) : b,bags)

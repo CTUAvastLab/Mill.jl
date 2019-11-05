@@ -16,10 +16,8 @@ segmented_mean(x::Missing, C::AbstractVector, bags::AbstractBags, w = nothing, m
 function segmented_mean(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w = Fill(true, size(x,2)), mask = Fill(true, size(x,2))) 
     o = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (j, b) in enumerate(bags)
-        if isempty(b)
-            for i in 1:size(x, 1)
-                o[i, j] = C[i]
-            end
+        if isempty(b) || bagnormalization(w, b) == 0
+                o[:, j] .= C
         else
             for bi in b
                for i in 1:size(x, 1)
@@ -37,7 +35,7 @@ function segmented_mean_back(Δ, n, x, C, bags, w = nothing)
     dC = zero(C)
     dw = (w == nothing) ? nothing : zero(w)
     for (j, b) in enumerate(bags)
-        if isempty(b)
+        if isempty(b) || bagnormalization(w, b) == 0
             dC .+= @view Δ[:, j]
         else
             ws = bagnormalization(w, b)

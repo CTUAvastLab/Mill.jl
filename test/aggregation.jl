@@ -75,4 +75,17 @@ let
         end
     end
 
+
+    @test "testing compatibility with missing and zero-weighted bags" begin 
+    a = ArrayNode(rand(3,4))
+    b = BagNode(a, [1:2, 3:4])
+    c = BagNode(b, [1:2])
+
+    cw = WeightedBagNode(b, [1:2], [0,0])
+    cm = BagNode(missing, AlignedBags([0:-1]))
+
+    m = Mill.reflectinmodel(c, d -> Dense(d, 4), d -> SegmentedMeanMax(d))
+
+    @test m(cw).data ≈ m(cm).data
+
 end

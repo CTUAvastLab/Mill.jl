@@ -11,24 +11,21 @@ modelprint(io::IO, sm::SegmentedMax; pad=[]) = paddedprint(io, "SegmentedMax($(l
 (m::SegmentedMax)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedMax)(x, args...) = segmented_max(x, m.C, args...)
 
-
-@generated function segmented_max(x::MaybeMatrix, C::AbstractVector, bags::AbstractBags, w::MaybeVector=nothing, mask::MaybeMask=nothing) 
-    x <: Missing && return @fill_missing
-    init_rule = quote
-        o = fill(typemin(eltype(x)), size(x, 1), length(bags))
+segmented_max(::Missing, C::AbstractVector, bags, args...) = repeat(C, 1, length(bags)) 
+function segmented_max(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w = Fill(true, size(x,2)), mask = Fill(true, size(x,2))) 
+    o = zeros(eltype(x), size(x, 1), length(bags))
+    @inbounds for (j, b) in enumerate(bags)
+        if isempty(b) || bagnormalization(w, b) == 0
+                o[:, j] .= C
+        else
+            for bi in b
+               for i in 1:size(x, 1)
+                    o[i, j] = max(o[i, j], w[bi] * x[i, bi])
+                end
+            end
+        end
     end
-    empty_bag_update_rule = :(o[i, j] = C[i])
-    init_bag_rule = @do_nothing
-    mask_rule = @mask_rule mask
-    if x <: Nothing
-        bag_update_rule = @do_nothing
-    else
-        bag_update_rule = :(o[i, j] = max(o[i, j], x[i, bi]))
-    end
-    after_bag_rule = @do_nothing
-    return_rule = :(return o)
-    return complete_body(init_rule, empty_bag_update_rule, init_bag_rule, mask_rule,
-                         bag_update_rule, after_bag_rule, return_rule)
+    o
 end
 
 
@@ -40,7 +37,7 @@ function segmented_max_back(Δ, n, x, C, bags, w = nothing)
     idxs = zeros(Int, size(x, 1))
     for (j, b) in enumerate(bags)
         fill!(v, typemin(eltype(x)))
-        if isempty(b)
+        if isempty(b) 
             dC .+= @view Δ[:, j]
         else
             @inbounds for bi in b
