@@ -1,7 +1,7 @@
 name = "Mill"
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
 authors = ["Tomas Pevny <pevnak@protonmail.ch>", "Simon Mandlik <simon.mandlik@gmail.com>"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
@@ -18,14 +18,14 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
-Combinatorics = "0"
-DataFrames = "0"
-DataStructures = "0"
-Duff = "0"
-Flux = "0"
-JLD2 = "0"
-JSON = "0"
-LearnBase = "0"
-MLDataPattern = "0"
-Zygote = "0"
+Combinatorics = "0.7"
+DataFrames = "0.19"
+DataStructures = "0.17"
+Duff = "0.4"
+Flux = "0.9"
+JLD2 = "0.1"
+JSON = "0.21"
+LearnBase = "0.2"
+MLDataPattern = "0.5"
+Zygote = "0.3"
 julia = "1"
