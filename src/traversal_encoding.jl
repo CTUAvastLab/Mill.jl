@@ -93,6 +93,20 @@ function _walk(n::AbstractTreeNode, c::AbstractString)
     _walk(n.data[i], nc)
 end
 
+function list(m::ProductModel, s::String = "")
+    n = length(m.ms)
+    vcat(stringify(s), [list(m.ms[i], s * encode(i, n)) for i in 1:n]...)
+end 
+
+function list(m::BagModel, s::String = "")
+    vcat(stringify(s), list(m.im, s * encode(1, 1))...)
+end 
+
+function list(m::ArrayModel, s::String = "") 
+    [stringify(s)]
+end 
+
+
 show_traversal(n::AbstractNode) = dsprint(Base.stdout, n, tr=true)
 show_traversal(m::MillModel) = modelprint(Base.stdout, m, tr=true)
 Base.getindex(n::AbstractNode, i::AbstractString) = i == "" ? n : _walk(n, destringify(i))
