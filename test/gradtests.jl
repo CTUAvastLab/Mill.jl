@@ -391,4 +391,18 @@ end
             m(bnn).data
         end
     end
+
+  @testset "A gradient of ProductNode with a NamedTuple " begin
+    a = TreeNode((a = ArrayNode(randn(2,4)), b = ArrayNode(randn(3,4))))
+    m = f64(ProductModel((a = ArrayModel(Dense(2,2)), b = ArrayModel(Dense(3,1))), Dense(3,2)))
+    ps = params(m)
+    gradient(() -> sum(m(a).data), ps)
+    @test mgradtest(params(m)...) do W1, b1, W2, b2, W3, b3 
+      m = ProductModel((a = ArrayModel(Dense(W1, b1)), b = ArrayModel(Dense(W2, b2))), Dense(W3, b3))
+      sum(m(a).data)
+    end
+  end
 end
+
+
+
