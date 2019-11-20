@@ -85,7 +85,7 @@ And then, let's test the solution
 ```
 ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
 pm = PathModel(reflectinmodel(path2mill(ds), d -> Dense(d, 10, relu)), path2mill)
-pm(ds).ds
+pm(ds).data
 ```
 
 A final touch would be to overload the `reflectinmodel` as 
@@ -101,6 +101,6 @@ which can make it seamless
 ```
 ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
 pm = reflectinmodel(ds, d -> Dense(d, 10, relu))
-pm(ds).ds
+pm(ds).data
 ```
 
