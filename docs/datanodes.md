@@ -101,6 +101,6 @@ which can make it seamless
 ```
 ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
 pm = reflectinmodel(ds, d -> Dense(d, 10, relu))
-pm(ds).ds
+pm(ds).data
 ```
 
