@@ -39,8 +39,8 @@ reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, B}} where {
 
 Base.cat(as::AbstractNode...; dims = :) = reduce(catobs, collect(as))
 
-_cattuples(as::Vector{T}) where T <: Union{Tuple, Vector}  = tuple([reduce(catobs, [a[i] for a in as]) for i in 1:length(as[1])]...)
-function _cattuples(as::Vector{T}) where T <: NamedTuple
+_cattrees(as::Vector{T}) where T <: Union{Tuple, Vector}  = tuple([reduce(catobs, [a[i] for a in as]) for i in 1:length(as[1])]...)
+function _cattrees(as::Vector{T}) where T <: NamedTuple
     ks = keys(as[1])
     vs = [k => reduce(catobs, [a[k] for a in as]) for k in ks]
     (;vs...)
