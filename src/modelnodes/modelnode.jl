@@ -2,7 +2,8 @@ abstract type MillModel end
 
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
-Base.show(io::IO, m::MillModel) = modelprint(io, m, tr=false)
+Base.show(io::IO, ::MIME"text/plain", m::MillModel) = modelprint(io, m, tr=false)
+Base.show(io::IO, ::T) where T <: MillModel = show(io, Base.typename(T))
 modelprint(io::IO, m::MillModel; tr=false, pad=[]) = paddedprint(io, m, "\n")
 
 include("arraymodel.jl")
@@ -31,7 +32,6 @@ function _reflectinmodel(x::TreeNode{T,C}, db, da, b, a, s) where {T<:NamedTuple
     n = length(x.data)
     ks = keys(x.data)
     ms = (;[k => _reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n))[1] for (i, k) in enumerate(ks)]...)
-    @show ms
     tm, d = _reflectinmodel(ProductModel(ms)(x), db, da, b, a, s)
     ProductModel(ms, tm), d
 end

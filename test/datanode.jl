@@ -21,7 +21,7 @@ wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4), metadata)
 e = ArrayNode(rand(2, 2))
 
 f = TreeNode((wb,b))
-g = TreeNode((c, wc))
+g = TreeNode([c, wc])
 h = TreeNode((wc,c))
 i = TreeNode((
               b,
