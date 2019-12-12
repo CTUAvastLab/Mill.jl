@@ -93,19 +93,15 @@ function _walk(n::AbstractTreeNode, c::AbstractString)
     _walk(n.data[i], nc)
 end
 
-function list(m::ProductModel, s::String = "")
-    n = length(m.ms)
-    vcat(stringify(s), [list(m.ms[i], s * encode(i, n)) for i in 1:n]...)
-end 
-
-function list(m::BagModel, s::String = "")
-    vcat(stringify(s), list(m.im, s * encode(1, 1))...)
-end 
-
-function list(m::ArrayModel, s::String = "") 
+function list_traversal(m::Union{ArrayNode, ArrayModel}, s::String="") 
     [stringify(s)]
 end 
 
+function list_traversal(m::Union{AbstractNode, MillModel}, s::String="")
+    d = descendants(m)
+    n = length(d)
+    vcat(stringify(s), [list_traversal(d[i], s * encode(i, n)) for i in 1:n]...)
+end 
 
 show_traversal(n::AbstractNode) = dsprint(Base.stdout, n, tr=true)
 show_traversal(m::MillModel) = modelprint(Base.stdout, m, tr=true)
@@ -121,4 +117,3 @@ function _encode_traversal(m, idxs...)
     n = ith_child(m, idxs[1])
     return encode(idxs[1], descendants_n(m)) * _encode_traversal(n, idxs[2:end]...)
 end
-

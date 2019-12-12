@@ -39,6 +39,17 @@ i = TreeNode((
 k = TreeNode((a = wb, b = b))
 l = TreeNode((a = wc, b = c))
 
+@testset "testing nobs" begin
+    @test nobs(a) == nobs(wa) == 1
+    @test nobs(b) == nobs(wb) == 2
+    @test nobs(c) == nobs(wc) == 3
+    @test nobs(d) == nobs(wd) == 2
+    @test nobs(e) == 2
+    @test nobs(f) == nobs(wb) == nobs(b) == nobs(k)
+    @test nobs(g) == nobs(c) == nobs(wc) == nobs(l)
+    @test nobs(h) == nobs(wc) == nobs(c)
+    @test nobs(i) == nobs(b)
+end
 
 @testset "testing nobs" begin
     @test nobs(a) == nobs(wa) == 1
