@@ -129,7 +129,6 @@ end
 end
 
 @testset "testing catobs with missing values" begin
-    @test catobs(a, b, c) == catobs(a, b, missing, c)
     @test catobs(a, b, c).data.data == catobs(a, b, missing, c).data.data
     @test catobs(a, b, c).bags.bags == catobs(a, b, missing, c).bags.bags
     @test catobs(wa, wb, wc).data.data == catobs(wa, wb, missing, wc).data.data
