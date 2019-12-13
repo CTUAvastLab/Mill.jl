@@ -5,7 +5,7 @@ import Base: cat, vcat, hcat
 
 
 """
-mutable struct ArrayNode{A<:AbstractArray,C} <: AbstractNode
+struct ArrayNode{A<:AbstractArray,C} <: AbstractNode
     data::A
     metadata::C
 end

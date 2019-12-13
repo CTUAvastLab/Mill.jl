@@ -1,4 +1,4 @@
-mutable struct TreeNode{T,C} <: AbstractTreeNode
+struct TreeNode{T,C} <: AbstractTreeNode
     data::T
     metadata::C
 

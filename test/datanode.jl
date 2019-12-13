@@ -129,6 +129,7 @@ end
 end
 
 @testset "testing catobs with missing values" begin
+    @test catobs(a, b, c) == catobs(a, b, missing, c)
     @test catobs(a, b, c).data.data == catobs(a, b, missing, c).data.data
     @test catobs(a, b, c).bags.bags == catobs(a, b, missing, c).bags.bags
     @test catobs(wa, wb, wc).data.data == catobs(wa, wb, missing, wc).data.data
@@ -242,7 +243,7 @@ end
 
 @testset "testing sparsify and mapdata" begin
     x = TreeNode((TreeNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
-    xs = mapdata(i -> sparsify(i,0.05), x)
+    xs = mapdata(i -> sparsify(i, 0.05), x)
     @test typeof(xs.data[2].data) <: SparseMatrixCSC
     @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC
     @test all(xs.data[1].data[1].data .== x.data[1].data[1].data)
