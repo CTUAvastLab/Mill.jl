@@ -54,8 +54,7 @@ struct PathModel{T,F} <: MillModel
     path2mill::F
 end
 
-Flux.@treelike PathModel
-# Flux.@functor PathModel
+Flux.@functor PathModel
 
 (m::PathModel)(x::PathNode)  = m.m(m.path2mill(x))
 

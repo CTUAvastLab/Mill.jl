@@ -5,8 +5,7 @@ struct SegmentedPNorm{T, U, V} <: AggregationFunction
     C::V
 end
 
-Flux.@treelike SegmentedPNorm
-# Flux.@functor SegmentedPNorm
+Flux.@functor SegmentedPNorm
 
 SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
 

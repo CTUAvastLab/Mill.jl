@@ -13,8 +13,7 @@ struct ProductModel{TT<:TupleOfModels, T <: MillFunction} <: MillModel
     m::ArrayModel{T}
 end
 
-Flux.@treelike ProductModel
-# Flux.@functor ProductModel
+Flux.@functor ProductModel
 
 ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, ArrayModel(identity))
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))

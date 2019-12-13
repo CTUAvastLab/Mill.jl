@@ -10,8 +10,7 @@ struct BagChain{T<:Tuple}
   BagChain(xs...) = new{typeof(xs)}(xs)
 end
 
-Flux.@treelike BagChain
-# Flux.@functor BagChain
+Flux.@functor BagChain
 
 Flux.@forward BagChain.layers Base.getindex, Base.first, Base.last, Base.lastindex
 Flux.@forward BagChain.layers Base.iterate
