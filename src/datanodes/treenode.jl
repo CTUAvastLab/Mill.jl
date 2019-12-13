@@ -33,10 +33,10 @@ function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
     for i in 1:(m-1)
         println(io)
         paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
-        dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
+        dsprint(io, n.data[i], pad=[pad; (c, "  │" * repeat(" ", max(3, 2+length(ks[i]))))], s=s * encode(i, m), tr=tr)
     end
     println(io)
     paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
-    dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
+    dsprint(io, n.data[end], pad=[pad; (c, repeat(" ", 3+max(3, 2+length(ks[end]))))], s=s * encode(m, m), tr=tr)
 end
 
