@@ -1,7 +1,7 @@
+ [![Build Status](https://travis-ci.org/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.org/pevnak/Mill.jl)
+
 # Mill – Multiple Instance Learning Library
  Mill is a library build on top of Flux.jl aimed to prototype flexible multi-instance learning models as described in  [[1](#cit1)] and  [[2](#cit2)]
- 
- [![Build Status](https://travis-ci.org/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.org/pevnak/Mill.jl)
 
  ## What is Multiple instance learning (MIL) problem?
  In the prototypical machine learning problem the input sample ![equation](https://latex.codecogs.com/gif.latex?x) is a vector or matrix of a fixed dimension, or a sequence. In MIL problems the sample ![equation](https://latex.codecogs.com/gif.latex?x) is a set of vectors (or matrices) ![equation](https://latex.codecogs.com/gif.latex?%28x_1%2C%20x_2%2C%20...%2C%20x_n%29), which means that order does not matter, and which is also the feature making MIL problems different from sequences.
