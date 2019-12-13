@@ -1,13 +1,16 @@
-const ALPHABET = [Char(x) for x in vcat(collect.([48:57, 65:90, 97:122, 63:63, 33:33])...)]
-const INV_ALPHABET = Dict(ALPHABET[i] => i for i in 1:length(ALPHABET))
+const ALPHABET = [Char(x) for x in vcat(collect.([48:57, 65:90, 97:122])...)]
+const INV_ALPHABET = Dict(c => i for (i,c) in enumerate(ALPHABET))
 
 _segment_width(l::Integer) = ceil(Int, log2(l+1))
 encode(i::Integer, l::Integer) = string(i, base=2, pad=_segment_width(l))
-decode(c::AbstractString, l::Integer) = (parse(Int, c[1:_segment_width(l)], base=2), c[1+_segment_width(l):end])
+function decode(c::AbstractString, l::Integer)
+    k = min(_segment_width(l), length(c))
+    parse(Int, c[1:k], base=2), c[k+1:end]
+end
 
 function stringify(c::AbstractString)
     if length(c) % 6 != 0
-        c = c * '0'^(6 - (length(c) % 6))
+        c = c * '0' ^ mod(6-length(c), 6)
     end
     join(ALPHABET[parse(Int, x, base=2) + 1] for x in [c[i:i+5] for i in 1:6:(length(c)-1)])
 end
@@ -40,7 +43,7 @@ function _walk(m::Union{ArrayModel, ArrayNode}, c::AbstractString)
     end
 end
     
-function _walk(m::BagModel, c::AbstractString)
+function _walk(m::Union{BagModel, AbstractBagNode}, c::AbstractString)
     !isempty(c) || return m
     i, nc = decode(c, 1)
     if i == 0
@@ -50,20 +53,7 @@ function _walk(m::BagModel, c::AbstractString)
             @error "Invalid index!"
         end
     end
-    _walk(m.im, nc)
-end
-
-function _walk(n::AbstractBagNode, c::AbstractString)
-    !isempty(c) || return n
-    i, nc = decode(c, 1)
-    if i == 0
-        if Set(nc) ⊆ ['0']
-            return n
-        else
-            @error "Invalid index!"
-        end
-    end
-    _walk(n.data, nc)
+    _walk(descendants(m)[1], nc)
 end
 
 function _walk(m::ProductModel, c::AbstractString)
@@ -84,7 +74,7 @@ function _walk(n::AbstractTreeNode, c::AbstractString)
     i, nc = decode(c, length(n.data))
     0 <= i <= length(n.data) || @error "Invalid index!"
     if i == 0
-        if length(Set(nc)) <= 1
+        if Set(nc) ⊆ ['0']
             return n
         else
             @error "Invalid index!"
