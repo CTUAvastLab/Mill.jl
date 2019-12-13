@@ -17,7 +17,7 @@ Base.ndims(x::AbstractTreeNode) = Colon()
 LearnBase.nobs(a::AbstractTreeNode) = nobs(a.data[1], ObsDim.Last)
 LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
-function reduce(::typeof(catobs), as::Vector{T}) where {T<:TreeNode}
+function reduce(::typeof(catobs), as::Vector{T}) where {T <: TreeNode}
     data = _cattrees([x.data for x in as])
     metadata = reduce(catobs, [a.metadata for a in as])
     TreeNode(data, metadata)

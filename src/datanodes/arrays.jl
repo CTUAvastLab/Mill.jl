@@ -11,7 +11,7 @@ mutable struct ArrayNode{A<:AbstractArray,C} <: AbstractNode
 end
 
 ArrayNode(data::AbstractMatrix) = ArrayNode(data, nothing)
-ArrayNode(data::AbstractNode, a...) = data
+# ArrayNode(data::AbstractNode, a...) = data
 
 mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 

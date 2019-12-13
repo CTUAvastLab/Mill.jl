@@ -128,6 +128,13 @@ end
     @test reduce(catobs, [wd]).bags.bags == vcat(wd.bags).bags
 end
 
+@testset "testing catobs with missing values" begin
+    @test catobs(a, b, c).data.data == catobs(a, b, missing, c).data.data
+    @test catobs(a, b, c).bags.bags == catobs(a, b, missing, c).bags.bags
+    @test catobs(wa, wb, wc).data.data == catobs(wa, wb, missing, wc).data.data
+    @test catobs(wa, wb, wc).bags.bags == catobs(wa, wb, missing, wc).bags.bags
+    @test catobs(wa, wb, wc).weights == catobs(wa, wb, missing, wc).weights
+end
 
 @testset "testing hierarchical hcat on tree nodes" begin
     @test all(catobs(f, h).data[1].data.data .== hcat(wb.data.data, wc.data.data))
