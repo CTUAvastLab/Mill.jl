@@ -26,7 +26,7 @@ function segmented_mean_forw(x::AbstractMatrix, C::AbstractVector, bags::Abstrac
         else
             for j in b
                 for i in 1:size(x, 1)
-                    y[i, bi] += weight(w, i, j)  * x[i, j]
+                    y[i, bi] += weight(w, i, j) * x[i, j]
                 end
             end
             y[:, bi] ./= bagnorm(w, b)

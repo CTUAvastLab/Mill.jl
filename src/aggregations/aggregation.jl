@@ -42,14 +42,15 @@ weight(w::AbstractMatrix, i, j) = w[i, j]
 weightsum(ws::Real, _) = ws
 weightsum(ws::AbstractVector, i) = ws[i]
 
+include("segmented_sum.jl")
 include("segmented_mean.jl")
 include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 
-export SegmentedMax, SegmentedMean, SegmentedPNorm, SegmentedLSE
+export SegmentedSum, SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedLSE
 
-const names = ["Mean", "Max", "PNorm", "LSE"]
+const names = ["Sum", "Mean", "Max", "PNorm", "LSE"]
 for idxs in powerset(collect(1:length(names)))
     length(idxs) > 1 || continue
     for p in permutations(idxs)

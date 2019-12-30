@@ -30,10 +30,11 @@ BAGS2 = [
         w_mat = abs.(randn(size(x))) .+ 0.1
 
         # generate all combinations of aggregations
-        anames = ["Mean", "Max", "PNorm", "LSE"]
+        anames = ["Sum", "Mean", "Max", "PNorm", "LSE"]
         for idxs in powerset(collect(1:length(anames)))
             !isempty(idxs) || continue
             # not a thorough testing of all functions, but fast enough
+            length(idxs) <= 3 || continue
             # for idxs in permutations(idxs)
 
             s = Symbol("Segmented", anames[idxs]...)
@@ -58,11 +59,12 @@ end
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
 
-        fs = [:SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
-        params = (:C1,), (:C2,), (:ρ, :c, :C3), (:p, :C4)
+        fs = [:SegmentedSum, :SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
+        params = (:C1,), (:C2,), (:C3,), (:ρ, :c, :C4), (:p, :C5)
 
         for idxs in powerset(collect(1:length(fs)))
             !isempty(idxs) || continue;
+            length(idxs) <= 2 || continue
             rs = []; as = []; cs = []; 
             for (f, ps) in zip(fs[idxs], params[idxs])
                 # p too small causes numerical issues
@@ -103,32 +105,35 @@ end
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
 
-        a1 = f64(SegmentedMean(d))
-        a2 = f64(SegmentedMax(d))
-        a3 = f64(SegmentedPNorm(d))
-        a4 = f64(SegmentedLSE(d))
+        a1 = f64(SegmentedSum(d))
+        a2 = f64(SegmentedMean(d))
+        a3 = f64(SegmentedMax(d))
+        a4 = f64(SegmentedPNorm(d))
+        a5 = f64(SegmentedLSE(d))
         for g in [
                   w -> a1(x, bags, w),
                   w -> a2(x, bags, w),
-                  w -> a4(x, bags, w)
+                  w -> a3(x, bags, w),
+                  w -> a5(x, bags, w)
                  ]
             @test mgradtest(g, w)
         end
         for g in [
                   w_mat -> a1(x, bags, w_mat),
                   w_mat -> a2(x, bags, w_mat),
-                  w_mat -> a4(x, bags, w_mat)
+                  w_mat -> a3(x, bags, w_mat),
+                  w_mat -> a5(x, bags, w_mat)
                  ]
             @test mgradtest(g, w_mat)
         end
         # for g in [
-        #           w -> a3(x, bags, w_mat)
+        #           w -> a4(x, bags, w_mat)
         #          ]
         #     # NOT IMPLEMENTED YET
         #     @test_throws Exception mgradtest(g, w_mat)
         # end
         # for g in [
-        #           w -> a3(x, bags, w_mat)
+        #           w -> a4(x, bags, w_mat)
         #          ]
         #     # NOT IMPLEMENTED YET
         #     @test_throws Exception mgradtest(g, w_mat)
@@ -175,7 +180,7 @@ end
 
         bn = BagNode(ArrayNode(z), bags3)
         bnn = BagNode(bn, bags1)
-        abuilder = d -> SegmentedPNormLSEMeanMax(d)
+        abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
         @test mgradtest(z) do z
             bn = BagNode(ArrayNode(z), bags3)
@@ -213,7 +218,7 @@ end
 
         bn = BagNode(ArrayNode(z), bags3, w3)
         bnn = BagNode(bn, bags1)
-        abuilder = d -> SegmentedPNormLSEMeanMax(d)
+        abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
         @test mgradtest(z) do z
             bn = BagNode(ArrayNode(z), bags3, w3)
@@ -261,7 +266,7 @@ end
         end
 
         tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
-        abuilder = d -> SegmentedPNormLSEMeanMax(d)
+        abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
             W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
@@ -271,7 +276,7 @@ end
                                        Aggregation(
                                                    SegmentedPNorm(ρ1, c1, C11),
                                                    SegmentedLSE(p1, C12),
-                                                   SegmentedMean(C13),
+                                                   SegmentedSum(C13),
                                                    SegmentedMax(C14)
                                                   ),
                                        Dense(W2, b2, relu)
@@ -281,7 +286,7 @@ end
                                        Aggregation(
                                                    SegmentedPNorm(ρ2, c2, C21),
                                                    SegmentedLSE(p2, C22),
-                                                   SegmentedMean(C23),
+                                                   SegmentedSum(C23),
                                                    SegmentedMax(C24)
                                                   ),
                                        Dense(W4, b4, σ)
@@ -339,7 +344,7 @@ end
         end
 
         tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
-        abuilder = d -> SegmentedPNormLSEMeanMax(d)
+        abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
             W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
@@ -349,7 +354,7 @@ end
                                        Aggregation(
                                                    SegmentedPNorm(ρ1, c1, C11),
                                                    SegmentedLSE(p1, C12),
-                                                   SegmentedMean(C13),
+                                                   SegmentedSum(C13),
                                                    SegmentedMax(C14)
                                                   ),
                                        Dense(W2, b2, relu)
@@ -359,7 +364,7 @@ end
                                        Aggregation(
                                                    SegmentedPNorm(ρ2, c2, C21),
                                                    SegmentedLSE(p2, C22),
-                                                   SegmentedMean(C23),
+                                                   SegmentedSum(C23),
                                                    SegmentedMax(C24)
                                                   ),
                                        Dense(W4, b4, σ)
@@ -403,6 +408,3 @@ end
     end
   end
 end
-
-
-

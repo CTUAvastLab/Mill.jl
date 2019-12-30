@@ -46,7 +46,7 @@ function mgradcheck(f, xs...)
                 correct = false
                 @show ng
             end
-        elseif !all(isapprox.(ng, ag, rtol = 1e-4, atol = 1e-4))
+        elseif !all(isapprox.(ng, ag, rtol = 1e-5, atol = 1e-5))
             correct = false
             grad_dif = [abs.(x) for x in (ng .- ag)]
             @show ng
