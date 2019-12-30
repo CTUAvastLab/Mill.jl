@@ -12,7 +12,7 @@ Flux.@functor Aggregation
 
 (a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 
-(a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
+(a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
 Base.show(io::IO, a::AggregationFunction) = modelprint(io, a)
 Base.getindex(a::AggregationFunction, i) = a.fs[i]
