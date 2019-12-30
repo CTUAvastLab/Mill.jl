@@ -2,7 +2,7 @@ import Base: show, getindex
 
 abstract type AggregationFunction end
 
-struct Aggregation{N} <: AggregationFunction
+struct Aggregation{N}
     fs::NTuple{N, AggregationFunction}
     Aggregation(fs::Vararg{AggregationFunction, N}) where N = new{N}(fs)
     Aggregation(fs::NTuple{N, AggregationFunction}) where N = new{N}(fs)
@@ -14,8 +14,8 @@ Flux.@functor Aggregation
 
 (a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
-Base.show(io::IO, a::AggregationFunction) = modelprint(io, a)
-Base.getindex(a::AggregationFunction, i) = a.fs[i]
+Base.show(io::IO, a::Union{AggregationFunction, Aggregation}) = modelprint(io, a)
+Base.getindex(a::Aggregation, i) = a.fs[i]
 
 function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
     paddedprint(io, N == 1 ? "" : "⟨")
