@@ -1,4 +1,4 @@
-mutable struct TreeNode{T,C} <: AbstractTreeNode
+struct TreeNode{T,C} <: AbstractTreeNode
     data::T
     metadata::C
 
@@ -17,8 +17,8 @@ Base.ndims(x::AbstractTreeNode) = Colon()
 LearnBase.nobs(a::AbstractTreeNode) = nobs(a.data[1], ObsDim.Last)
 LearnBase.nobs(a::AbstractTreeNode, ::Type{ObsDim.Last}) = nobs(a)
 
-function reduce(::typeof(catobs), as::Vector{T}) where {T<:TreeNode}
-    data = _cattuples([x.data for x in as])
+function reduce(::typeof(catobs), as::Vector{T}) where {T <: TreeNode}
+    data = _cattrees([x.data for x in as])
     metadata = reduce(catobs, [a.metadata for a in as])
     TreeNode(data, metadata)
 end
@@ -33,10 +33,10 @@ function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
     for i in 1:(m-1)
         println(io)
         paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
-        dsprint(io, n.data[i], pad=[pad; (c, "  │   ")], s=s * encode(i, m), tr=tr)
+        dsprint(io, n.data[i], pad=[pad; (c, "  │" * repeat(" ", max(3, 2+length(ks[i]))))], s=s * encode(i, m), tr=tr)
     end
     println(io)
     paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
-    dsprint(io, n.data[end], pad=[pad; (c, "      ")], s=s * encode(m, m), tr=tr)
+    dsprint(io, n.data[end], pad=[pad; (c, repeat(" ", 3+max(3, 2+length(ks[end]))))], s=s * encode(m, m), tr=tr)
 end
 

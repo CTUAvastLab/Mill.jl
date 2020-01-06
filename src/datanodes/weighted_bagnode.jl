@@ -1,4 +1,4 @@
-mutable struct WeightedBagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, W, C} <: AbstractBagNode
+struct WeightedBagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, W, C} <: AbstractBagNode
     data::T
     bags::B
     weights::Vector{W}

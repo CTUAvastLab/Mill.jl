@@ -1,4 +1,4 @@
-using Mill: ArrayNode, BagNode, TreeNode, WeightedBagNode
+using Mill
 using SparseArrays, DataFrames
 
 import Mill: sparsify, mapdata
@@ -21,7 +21,7 @@ wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4), metadata)
 e = ArrayNode(rand(2, 2))
 
 f = TreeNode((wb,b))
-g = TreeNode((c, wc))
+g = TreeNode([c, wc])
 h = TreeNode((wc,c))
 i = TreeNode((
               b,
@@ -39,6 +39,17 @@ i = TreeNode((
 k = TreeNode((a = wb, b = b))
 l = TreeNode((a = wc, b = c))
 
+@testset "testing nobs" begin
+    @test nobs(a) == nobs(wa) == 1
+    @test nobs(b) == nobs(wb) == 2
+    @test nobs(c) == nobs(wc) == 3
+    @test nobs(d) == nobs(wd) == 2
+    @test nobs(e) == 2
+    @test nobs(f) == nobs(wb) == nobs(b) == nobs(k)
+    @test nobs(g) == nobs(c) == nobs(wc) == nobs(l)
+    @test nobs(h) == nobs(wc) == nobs(c)
+    @test nobs(i) == nobs(b)
+end
 
 @testset "testing nobs" begin
     @test nobs(a) == nobs(wa) == 1
@@ -117,6 +128,13 @@ end
     @test reduce(catobs, [wd]).bags.bags == vcat(wd.bags).bags
 end
 
+@testset "testing catobs with missing values" begin
+    @test catobs(a, b, c).data.data == catobs(a, b, missing, c).data.data
+    @test catobs(a, b, c).bags.bags == catobs(a, b, missing, c).bags.bags
+    @test catobs(wa, wb, wc).data.data == catobs(wa, wb, missing, wc).data.data
+    @test catobs(wa, wb, wc).bags.bags == catobs(wa, wb, missing, wc).bags.bags
+    @test catobs(wa, wb, wc).weights == catobs(wa, wb, missing, wc).weights
+end
 
 @testset "testing hierarchical hcat on tree nodes" begin
     @test all(catobs(f, h).data[1].data.data .== hcat(wb.data.data, wc.data.data))
@@ -224,7 +242,7 @@ end
 
 @testset "testing sparsify and mapdata" begin
     x = TreeNode((TreeNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
-    xs = mapdata(i -> sparsify(i,0.05), x)
+    xs = mapdata(i -> sparsify(i, 0.05), x)
     @test typeof(xs.data[2].data) <: SparseMatrixCSC
     @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC
     @test all(xs.data[1].data[1].data .== x.data[1].data[1].data)

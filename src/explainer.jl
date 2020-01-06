@@ -33,7 +33,7 @@ using Mill, Flux, Duff
 """
 function explain(ds, model, i)
 	sub_ds = deepcopy(ds)
-	for index in setdiff(list(model),"")
+	for index in setdiff(list_traversal(model),"")
 		try
 			sub_ds = explain(sub_ds[index], model[index], sub_ds, model, (x...) -> onoff(x..., i), explaining_fun)
 		catch

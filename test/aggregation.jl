@@ -1,6 +1,8 @@
 using Test, Mill, Flux
 using Mill: p_map, inv_p_map
 
+import Mill: bagnorm
+
 X = Matrix{Float64}(reshape(1:12, 2, 6))
 BAGS = AlignedBags([1:1, 2:3, 4:6])
 W = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
@@ -9,15 +11,19 @@ C = [1, 2]
 
 @testset "basic aggregation functionality" begin
     @test SegmentedMean(2)(X, BAGS) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0]
+    @test SegmentedSum(2)(X, BAGS) ≈ length.(BAGS)' .* SegmentedMean(2)(X, BAGS)
     @test SegmentedMax(2)(X, BAGS) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0]
     @test SegmentedMeanMax(2)(X, BAGS) ≈ cat(SegmentedMean(2)(X, BAGS), SegmentedMax(2)(X, BAGS), dims=1)
     @test SegmentedMean(2)(X, BAGS, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
+    @test SegmentedSum(2)(X, BAGS, W) ≈ [bagnorm(W, b) for b in BAGS]' .* SegmentedMean(2)(X, BAGS, W)
     @test SegmentedMax(2)(X, BAGS, W) ≈ SegmentedMax(2)(X, BAGS)
     @test SegmentedMeanMax(2)(X, BAGS, W) ≈ cat(SegmentedMean(2)(X, BAGS, W), SegmentedMax(2)(X, BAGS, W), dims=1)
 end
 
 @testset "matrix functionality" begin
+    @test SegmentedSum(2)(X, BAGS, W_mat) ≈ SegmentedSum(2)(X, BAGS, W)
     @test SegmentedMean(2)(X, BAGS, W_mat) ≈ SegmentedMean(2)(X, BAGS, W)
+    @test SegmentedMax(2)(X, BAGS, W_mat) ≈ SegmentedMax(2)(X, BAGS, W)
 end
 
 @testset "pnorm functionality" begin
@@ -79,6 +85,7 @@ end
     dummy = randn(2)
     for bags in [AlignedBags([0:-1]), AlignedBags([0:-1, 0:-1, 0:-1])]
         @test SegmentedMean(C)(missing, bags) == repeat(C, 1, length(bags))
+        @test SegmentedSum(C)(missing, bags) == repeat(C, 1, length(bags))
         @test SegmentedMax(C)(missing, bags) == repeat(C, 1, length(bags))
         @test SegmentedLSE(dummy, C)(missing, bags) == repeat(C, 1, length(bags))
         @test SegmentedPNorm(dummy, dummy, C)(missing, bags) == repeat(C, 1, length(bags)) 

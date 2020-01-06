@@ -5,13 +5,13 @@ import Base: cat, vcat, hcat
 
 
 """
-mutable struct ArrayNode{A<:AbstractArray,C} <: AbstractNode
+struct ArrayNode{A<:AbstractArray,C} <: AbstractNode
     data::A
     metadata::C
 end
 
 ArrayNode(data::AbstractMatrix) = ArrayNode(data, nothing)
-ArrayNode(data::AbstractNode, a...) = data
+# ArrayNode(data::AbstractNode, a...) = data
 
 mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 

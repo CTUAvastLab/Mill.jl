@@ -13,8 +13,7 @@ struct ProductModel{TT<:TupleOfModels, T <: MillFunction} <: MillModel
     m::ArrayModel{T}
 end
 
-Flux.@treelike ProductModel
-# Flux.@functor ProductModel
+Flux.@functor ProductModel
 
 ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, ArrayModel(identity))
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
@@ -38,11 +37,11 @@ function modelprint(io::IO, m::ProductModel; pad=[], s="", tr=false)
     for i in 1:(n-1)
         println(io)
         paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
-        modelprint(io, m.ms[i], pad=[pad; (c, "  │   ")], s=s * encode(i, n), tr=tr)
+        modelprint(io, m.ms[i], pad=[pad; (c, "  │" * repeat(" ", max(3, 2+length(ks[i]))))], s=s * encode(i, n), tr=tr)
     end
     println(io)
     paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
-    modelprint(io, m.ms[end], pad=[pad; (c, "      ")], s=s * encode(n, n), tr=tr)
+    modelprint(io, m.ms[end], pad=[pad; (c, repeat(" ", 3+max(3, 2+length(ks[end]))))], s=s * encode(n, n), tr=tr)
 
     println(io)
     paddedprint(io, " ) ↦  ", color=c, pad=pad)

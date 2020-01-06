@@ -2,19 +2,20 @@ import Base: show, getindex
 
 abstract type AggregationFunction end
 
-struct Aggregation{N} <: AggregationFunction
+struct Aggregation{N}
     fs::NTuple{N, AggregationFunction}
     Aggregation(fs::Vararg{AggregationFunction, N}) where N = new{N}(fs)
     Aggregation(fs::NTuple{N, AggregationFunction}) where N = new{N}(fs)
 end
 
-Flux.@treelike Aggregation
-# Flux.@functor Aggregation
+Flux.@functor Aggregation
 
 (a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
 
-Base.show(io::IO, a::AggregationFunction) = modelprint(io, a)
-Base.getindex(a::AggregationFunction, i) = a.fs[i]
+(a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
+
+Base.show(io::IO, a::Union{AggregationFunction, Aggregation}) = modelprint(io, a)
+Base.getindex(a::Aggregation, i) = a.fs[i]
 
 function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
     paddedprint(io, N == 1 ? "" : "⟨")
@@ -43,14 +44,15 @@ weight(w::AbstractMatrix, i, j) = w[i, j]
 weightsum(ws::Real, _) = ws
 weightsum(ws::AbstractVector, i) = ws[i]
 
+include("segmented_sum.jl")
 include("segmented_mean.jl")
 include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 
-export SegmentedMax, SegmentedMean, SegmentedPNorm, SegmentedLSE
+export SegmentedSum, SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedLSE
 
-const names = ["Mean", "Max", "PNorm", "LSE"]
+const names = ["Sum", "Mean", "Max", "PNorm", "LSE"]
 for idxs in powerset(collect(1:length(names)))
     length(idxs) > 1 || continue
     for p in permutations(idxs)

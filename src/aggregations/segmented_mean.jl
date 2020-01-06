@@ -2,15 +2,13 @@ struct SegmentedMean{T} <: AggregationFunction
     C::T
 end
 
-Flux.@treelike SegmentedMean
-# Flux.@functor SegmentedMean
+Flux.@functor SegmentedMean
 
 SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
 Base.show(io::IO, sm::SegmentedMean) = print(io, "SegmentedMean($(length(sm.C)))\n")
 modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($(length(sm.C)))")
 
-(m::SegmentedMean)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedMean)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_mean_forw(x, m.C, bags, w)
 function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
     segmented_mean_forw(x .* mask', m.C, bags, w)
@@ -27,7 +25,7 @@ function segmented_mean_forw(x::AbstractMatrix, C::AbstractVector, bags::Abstrac
         else
             for j in b
                 for i in 1:size(x, 1)
-                    y[i, bi] += weight(w, i, j)  * x[i, j]
+                    y[i, bi] += weight(w, i, j) * x[i, j]
                 end
             end
             y[:, bi] ./= bagnorm(w, b)

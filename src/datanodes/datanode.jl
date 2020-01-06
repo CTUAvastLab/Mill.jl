@@ -34,16 +34,18 @@ reduce(::typeof(catobs), as::Vector{<: DataFrame}) = reduce(vcat, as)
 reduce(::typeof(catobs), as::Vector{<: Missing}) = missing
 reduce(::typeof(catobs), as::Vector{<: Nothing}) = nothing
 reduce(::typeof(catobs), as::Vector{<: Any}) = @error "cannot reduce Any"
-reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, Nothing}} = nothing
-reduce(::typeof(catobs), as::Vector{<: T}) where {T<: Union{Missing, B}} where {B<: AbstractNode} = reduce(catobs, Vector{B}(as))
+reduce(::typeof(catobs), as::Vector{<: Union{Missing, Nothing}}) = nothing
+function reduce(::typeof(catobs), as::Vector{T}) where {T <: Union{Missing, AbstractNode}}
+    reduce(catobs, [a for a in as if !ismissing(a)])
+end
 
 Base.cat(as::AbstractNode...; dims = :) = reduce(catobs, collect(as))
 
-_cattuples(as::AbstractVecOrTuple{T}) where {T <: NTuple{N, AbstractNode} where N}  = tuple([reduce(catobs, [a[i] for a in as]) for i in 1:length(as[1])]...)
-function _cattuples(as::Vector{T}) where {T <: NamedTuple}
-	ks = keys(as[1])
-	vs = [k => reduce(catobs, [a[k] for a in as]) for k in ks]
-	(;vs...)
+_cattrees(as::Vector{T}) where T <: Union{Tuple, Vector}  = tuple([reduce(catobs, [a[i] for a in as]) for i in 1:length(as[1])]...)
+function _cattrees(as::Vector{T}) where T <: NamedTuple
+    ks = keys(as[1])
+    vs = [k => reduce(catobs, [a[k] for a in as]) for k in ks]
+    (;vs...)
 end
 
 # functions to make datanodes compatible with getindex and with MLDataPattern
@@ -65,7 +67,8 @@ subset(::Nothing, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
 
-Base.show(io::IO, n::AbstractNode) = dsprint(io, n, tr=false)
+Base.show(io::IO, ::MIME"text/plain", n::AbstractNode) = dsprint(io, n, tr=false)
+Base.show(io::IO, ::T) where T <: AbstractNode = show(io, Base.typename(T))
 
 include("arrays.jl")
 

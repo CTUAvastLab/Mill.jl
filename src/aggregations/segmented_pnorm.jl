@@ -5,8 +5,7 @@ struct SegmentedPNorm{T, U, V} <: AggregationFunction
     C::V
 end
 
-Flux.@treelike SegmentedPNorm
-# Flux.@functor SegmentedPNorm
+Flux.@functor SegmentedPNorm
 
 SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
 
@@ -16,7 +15,6 @@ modelprint(io::IO, n::SegmentedPNorm; pad=[]) = paddedprint(io, "SegmentedPNorm(
 p_map(ρ) = 1 .+ softplus.(ρ)
 inv_p_map = (p) -> log.(exp.(p.-1) .- 1)
 
-(m::SegmentedPNorm)(x::ArrayNode, args...) = mapdata(x -> m(x, args...), x)
 (m::SegmentedPNorm)(x::Missing, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x, m.C, nothing, bags, w)
 (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x .- m.c, m.C, p_map(m.ρ), bags, w)
 function (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)

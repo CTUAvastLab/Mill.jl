@@ -6,7 +6,7 @@ Let's take a look on an example on a simple `ArrayNode` holding a matrix or a ve
 
 `ArrayNode` has a simple structure holding only Array, which is considered the data and optionally some metadata, which can be literally anything.
 ```
-mutable struct ArrayNode{A,C} <: AbstractNode
+struct ArrayNode{A,C} <: AbstractNode
     data::A
     metadata::C
 end
@@ -54,8 +54,7 @@ struct PathModel{T,F} <: MillModel
     path2mill::F
 end
 
-Flux.@treelike PathModel
-# Flux.@functor PathModel
+Flux.@functor PathModel
 
 (m::PathModel)(x::PathNode)  = m.m(m.path2mill(x))
 
