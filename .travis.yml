@@ -15,6 +15,5 @@ jobs:
   allow_failures:
     - julia: nightly
 
-## uncomment the following lines to override the default test script
 script:
  - julia --color=yes -e 'using Pkg; Pkg.activate(); Pkg.instantiate(); Pkg.test()'
