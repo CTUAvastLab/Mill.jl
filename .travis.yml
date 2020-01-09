@@ -14,4 +14,4 @@ jobs:
     - julia: nightly
 
 script:
- - julia --color=yes -e 'using Pkg; Pkg.activate(); Pkg.instantiate(); Pkg.test()'
+ - julia --color=yes -e 'using Pkg; Pkg.activate(); Pkg.instantiate(); Pkg.test("Mill", coverage=true)'
