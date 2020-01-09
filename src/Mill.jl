@@ -35,6 +35,7 @@ include("threadfuns.jl")
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
+export NGramMatrix, NGramIterator
 export catobs, removeinstances
 
 include("aggregations/aggregation.jl")
