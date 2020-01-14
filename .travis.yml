@@ -3,7 +3,7 @@ language: julia
 
 os:
   - linux
-  # - osx
+  - osx
 
 julia:
   - 1.3
@@ -20,14 +20,14 @@ jobs:
   allow_failures:
     - julia: nightly
 
-coveralls: true
-
-script:
- - julia --color=yes -e 'using Pkg; Pkg.activate(); Pkg.instantiate(); Pkg.test("Mill", coverage=true)'
-
 env:
   global:
     - COVERALLS_PARALLEL=true
+
+script:
+ - julia --color=yes -e 'using Pkg; Pkg.activate(); Pkg.instantiate(); Pkg.test("Mill", coverage=true)'
+   - julia --color=yes --project=./example -e 'using Pkg; Pkg.instantiate()'
+   - julia --color=yes --project=./example example/musk.jl
 
 after_success:
   # push coverage results to Coveralls
