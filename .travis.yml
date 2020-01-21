@@ -25,9 +25,9 @@ env:
     - COVERALLS_PARALLEL=true
 
 script:
- - julia --color=yes -e 'using Pkg; Pkg.activate(); Pkg.instantiate(); Pkg.test("Mill", coverage=true)'
-   - julia --color=yes --project=./example -e 'using Pkg; Pkg.instantiate()'
-   - julia --color=yes --project=./example example/musk.jl
+  - julia --color=yes --project=@. -e 'using Pkg; Pkg.instantiate(); Pkg.test("Mill", coverage=true)'
+  - julia --color=yes --project=./example -e 'using Pkg; Pkg.instantiate()'
+  - julia --color=yes --project=./example example/musk.jl
 
 after_success:
   # push coverage results to Coveralls
