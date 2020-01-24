@@ -23,6 +23,7 @@ git:
 jobs:
   allow_failures:
     - julia: nightly
+    - arch: arm64
 
 env:
   global:
