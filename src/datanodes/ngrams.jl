@@ -7,7 +7,7 @@ n::Int
 b::Int
 end
 
-Iterates and enumerates ngrams of collection of integers `s::T` with zero padding. Enumeration is computed as in positional number systems, where items of `s` are digits and `b` is the base. 
+Iterates and enumerates ngrams of collection of integers `s::T` with zero padding. Enumeration is computed as in positional number systems, where items of `s` are digits and `b` is the base.
 
 In order to reduce collisions when mixing ngrams of different order one should avoid zeros and negative integers in `s` and should set base `b` to be equal to the expected number of unique tokkens in `s`.
 
@@ -64,15 +64,15 @@ Base.length(it::NGramIterator) = length(it.s) + it.n - 1
 
 function Base.iterate(it::NGramIterator, s = (0, 1))
     idx, i = s
-    b, n = it.b, it.n 
+    b, n = it.b, it.n
     if i <= length(it.s)
         idx = idx * b + it.s[i]
-        idx = (i>n) ? idx - it.s[i - n]*b^n : idx 
+        idx = (i>n) ? idx - it.s[i - n]*b^n : idx
         return(idx, (idx, i + 1))
     elseif i < length(it.s) + n
         idx = (i>n) ? idx - it.s[i - n]*b^(n - (i - length(it.s))) : idx
         return(idx, (idx, i + 1))
-    else 
+    else
         return(nothing)
     end
 end
@@ -139,21 +139,21 @@ string2ngrams(x, n, m) = x
 """
 struct NGramMatrix{T}
 s::Vector{T}
-n::Int 
-b::Int 
+n::Int
+b::Int
 m::Int
 end
 
-Represents strings stored in array `s` as ngrams of cardinality `n`. Strings are internally stored as strings and the multiplication with 
+Represents strings stored in array `s` as ngrams of cardinality `n`. Strings are internally stored as strings and the multiplication with
 dense matrix is overloaded and `b` is a base for calculation of trigrams. Finally `m` is the modulo applied on indexes of ngrams.
 
-The structure essentially represents module one-hot representation of strings, where each columns contains one observation (string). 
+The structure essentially represents module one-hot representation of strings, where each columns contains one observation (string).
 Therefore the structure can be viewed as a matrix with `m` rows and `length(s)` columns
 """
 struct NGramMatrix{T} <: AbstractMatrix{T}
     s::Vector{T}
-    n::Int 
-    b::Int 
+    n::Int
+    b::Int
     m::Int
 end
 
@@ -194,7 +194,7 @@ function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: I
             vid += 1
         end
     end
-    sparse(I, J, V, x.m, length(x.s))
+    sparse(I, J, V, size(x,1), size(x,2))
 end
 
 function mulkernel!(C, A, jB, mA, nA, idxs)
