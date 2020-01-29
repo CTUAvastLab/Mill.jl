@@ -11,6 +11,8 @@ end
 TreeNode(data::T) where {T} = TreeNode{T, Nothing}(data, nothing)
 TreeNode(data::T, metadata::C) where {T, C} = TreeNode{T, C}(data, metadata)
 
+Flux.@functor TreeNode
+
 mapdata(f, x::TreeNode) = TreeNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
 Base.ndims(x::AbstractTreeNode) = Colon()

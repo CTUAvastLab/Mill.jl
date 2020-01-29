@@ -13,6 +13,8 @@ end
 ArrayNode(data::AbstractMatrix) = ArrayNode(data, nothing)
 # ArrayNode(data::AbstractNode, a...) = data
 
+Flux.@functor ArrayNode
+
 mapdata(f, x::ArrayNode) = ArrayNode(f(x.data), x.metadata)
 
 Base.ndims(x::ArrayNode) = Colon()

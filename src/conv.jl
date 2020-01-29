@@ -100,6 +100,7 @@ end
 
 function bagconv(x, bags, W...)
 	o = similar(W[1], size(W[1], 1), size(x, 2))
+	o .= 0
 	for i in 1:Threads.nthreads()
 		bagconv!(o, x, subsetof(bags), W...)
 	end

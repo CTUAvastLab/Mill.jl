@@ -11,6 +11,8 @@ end
 
 BagNode(data::T, b::Vector, metadata::C=nothing) where {T, C} = BagNode(data, bags(b), metadata)
 
+Flux.@functor BagNode
+
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 
 function Base.getindex(x::BagNode, i::VecOrRange)
