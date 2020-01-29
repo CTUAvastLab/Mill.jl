@@ -1,4 +1,4 @@
-const ALPHABET = [Char(x) for x in vcat(collect.([48:57, 65:90, 97:122])...)]
+const ALPHABET = [Char(x) for x in vcat(collect.([42:43, 48:57, 65:90, 97:122])...)]
 const INV_ALPHABET = Dict(c => i for (i,c) in enumerate(ALPHABET))
 
 _segment_width(l::Integer) = ceil(Int, log2(l+1))
