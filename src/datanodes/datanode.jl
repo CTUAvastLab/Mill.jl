@@ -33,10 +33,16 @@ reduce(::typeof(catobs), as::Vector{<: AbstractVector}) = reduce(vcat, as)
 reduce(::typeof(catobs), as::Vector{<: DataFrame}) = reduce(vcat, as)
 reduce(::typeof(catobs), as::Vector{<: Missing}) = missing
 reduce(::typeof(catobs), as::Vector{<: Nothing}) = nothing
-reduce(::typeof(catobs), as::Vector{<: Any}) = @error "cannot reduce Any"
 reduce(::typeof(catobs), as::Vector{<: Union{Missing, Nothing}}) = nothing
 function reduce(::typeof(catobs), as::Vector{T}) where {T <: Union{Missing, AbstractNode}}
     reduce(catobs, [a for a in as if !ismissing(a)])
+end
+
+function reduce(::typeof(catobs), as::Vector{<: Any}) 
+    isempty(as) && return(as)
+    T = mapreduce(typeof, typejoin, as)
+    T == Any && @error "cannot reduce Any"
+    reduce(catobs, Vector{T}(as))
 end
 
 Base.cat(as::AbstractNode...; dims = :) = reduce(catobs, collect(as))
