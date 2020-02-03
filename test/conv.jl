@@ -8,7 +8,7 @@ using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇convsum, A
     @test _convshift(5) == -2:2
 end
 
-@testset "testing matvec and vecvec products " begin 
+@testset "testing matvec and vecvec products " begin
     W = randn(3, 4)
     Wt = Matrix(transpose(W))
     xs = sprand(4, 10, 0.5)
@@ -130,4 +130,3 @@ end
         @test length(params(m)) == 5
     end
 end
-
