@@ -8,7 +8,7 @@ const TupleOfModels = Union{NTuple{N, MillModel} where {N}, NamedTuple}
 
     uses each model in `ms` on each data in `TreeNode`, concatenate the output and pass it to the chainmodel `m`
 """
-struct ProductModel{TT<:TupleOfModels, T <: MillFunction} <: MillModel
+struct ProductModel{TT<:TupleOfModels, T} <: MillModel
     ms::TT
     m::ArrayModel{T}
 end
@@ -46,4 +46,27 @@ function modelprint(io::IO, m::ProductModel; pad=[], s="", tr=false)
     println(io)
     paddedprint(io, " ) ↦  ", color=c, pad=pad)
     modelprint(io, m.m, pad=[pad; (c, "")])
+end
+
+
+
+function HiddenLayerModel(m::ProductModel, x::TreeNode, k::Int)
+    ks = keys(m.ms)
+    hxms = [HiddenLayerModel(m.ms[i], x.data[i], k) for i in keys(m.ms)]
+    hms = (;[ks[i] => hxms[i][1] for i in 1:length(ks)]...)
+    xms = vcat([hxms[i][2] for i in 1:length(ks)]...)
+
+    hm, o = HiddenLayerModel(m.m, xms, k)
+    ProductModel(hms, hm), o
+end
+
+
+function mapactivations(hm::ProductModel, x::TreeNode, m::ProductModel)
+    ks = keys(m.ms)
+    _xxs = [mapactivations(hm.ms[i], x.data[i], m.ms[i]) for i in keys(m.ms)]
+    hxs = foldl( +, [_xxs[i][1].data for i in 1:length(ks)])
+    xxs = vcat([_xxs[i][2] for i in 1:length(ks)]...)
+
+    ho, o = mapactivations(hm.m, xxs, m.m)
+    (ArrayNode(ho.data + hxs), o)
 end
