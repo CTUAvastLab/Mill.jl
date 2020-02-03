@@ -18,7 +18,7 @@ modelprint(io::IO, m::ArrayModel; pad=[], s="", tr=false) = paddedprint(io, "Arr
 
 function HiddenLayerModel(m::ArrayModel, x::ArrayNode, k::Int)
 	os = Flux.activations(m.m, x.data)
-	layers = map(x -> Dense(size(x,1), 3), os)
+	layers = map(x -> Dense(size(x,1), k), os)
 	ArrayModel(layers), ArrayNode(os[end])
 end
 
