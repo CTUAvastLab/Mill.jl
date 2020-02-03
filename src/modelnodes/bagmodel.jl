@@ -43,3 +43,22 @@ function modelprint(io::IO, m::BagModel{T, A}; pad=[], s="", tr=false) where {T,
     paddedprint(io, "  └── ", color=c, pad=pad)
     modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
 end
+
+
+
+function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
+    im, o = HiddenLayerModel(m.im, x.data, k)
+    a = SegmentedMax(k)
+    b = m.a(o, x.bags)
+    bm, o = HiddenLayerModel(m.bm, b, k)
+    BagModel(im, a, bm), o
+end
+
+
+function mapactivations(hm::BagModel, x::BagNode{<: AbstractNode}, m::BagModel)
+    hmi, mi = mapactivations(hm.im, x.data, m.im)
+    ai = m.a(mi, x.bags)
+    hai = hm.a(hmi, x.bags)
+    hbo, bo = mapactivations(hm.bm, ai, m.bm)
+    (ArrayNode(hbo.data + hai.data), bo)
+end
