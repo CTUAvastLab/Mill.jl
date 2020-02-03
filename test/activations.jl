@@ -25,6 +25,12 @@ end
 
     @test size(hx.data) == (3,2)
     @test mx.data ≈ m(x).data
+
+
+    x = BagNode(missing, [0:-1, 0:-1])
+    hx, mx = mapactivations(hm, x, m)
+    @test size(hx.data) == (3,2)
+    @test mx.data ≈ m(x).data
 end
 
 @testset "testing simple tuple models" begin
