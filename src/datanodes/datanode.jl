@@ -38,7 +38,7 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T <: Union{Missing, Abst
     reduce(catobs, [a for a in as if !ismissing(a)])
 end
 
-function reduce(::typeof(catobs), as::Vector{<: Any}) 
+function reduce(::typeof(catobs), as::Vector{<: Any})
     isempty(as) && return(as)
     T = mapreduce(typeof, typejoin, as)
     T == Any && @error "cannot reduce Any"
