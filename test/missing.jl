@@ -119,7 +119,7 @@ end
     bbc = BagNode(missing, AlignedBags([0:-1]), nothing)
 
 
-    x = reduce(catobs, [d, e])
+    x = reduce(catobs, [c, d])
     y = reduce(catobs, [ba, bb, bc])
     z = reduce(catobs, [bba, bbb, bbc])
 
@@ -127,15 +127,15 @@ end
     my = reflectinmodel(y, d -> Dense(d, 2, relu))
     mz = reflectinmodel(z, d -> Dense(d, 2, relu))
 
-    mx(x).data[:, 1] ≈ mx(d).data
-    mx(x).data[:, 2] ≈ mx(e).data
+    @test mx(x).data[:, 1] ≈ mx(c).data
+    @test mx(x).data[:, 2] ≈ mx(d).data
 
-    my(y).data[:, 1] ≈ my(ba).data
-    my(y).data[:, 2] ≈ my(bb).data
-    my(y).data[:, 3] ≈ my(bc).data
+    @test my(y).data[:, 1] ≈ my(ba).data
+    @test my(y).data[:, 2] ≈ my(bb).data
+    @test my(y).data[:, 3] ≈ my(bc).data
 
-    mz(z).data[:, 1] ≈ mz(bba).data
-    mz(z).data[:, 2] ≈ mz(bbb).data
-    mz(z).data[:, 3] ≈ mz(bbc).data
+    @test mz(z).data[:, 1] ≈ mz(bba).data
+    @test mz(z).data[:, 2] ≈ mz(bbb).data
+    @test mz(z).data[:, 3] ≈ mz(bbc).data
 
 end
