@@ -25,7 +25,6 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T <: BagNode}
     data = filter(!ismissing, [x.data for x in as])
     metadata = filter(!isnothing, [x.metadata for x in as])
     bags = _catbags([d.bags for d in as])
-    _data = isempty(data) ? missing : reduce(catobs, data)
     BagNode(isempty(data) ? missing : reduce(catobs, data),
             bags,
             isempty(metadata) ? nothing : reduce(catobs, metadata))

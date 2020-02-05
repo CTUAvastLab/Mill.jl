@@ -69,7 +69,9 @@ end
     @test all(vcat(e, e).data .== vcat(e.data, e.data))
     x = ArrayNode(randn(2,3),rand(3))
     @test typeof(catobs(x,x[0:-1])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
+    @inferred catobs(x,x[0:-1]) == [1,2,3]
     @test typeof(reduce(catobs, [x, x[0:-1]])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
+    @inferred reduce(catobs, [x, x[0:-1]]) == [1,2,3]
     @test all(cat(e, e, dims = ndims(e)).data .== hcat(e.data, e.data))
 end
 
