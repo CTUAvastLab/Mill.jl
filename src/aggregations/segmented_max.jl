@@ -39,12 +39,14 @@ function segmented_max_back(Δ, y, x, C, bags)
     v = similar(x, size(x, 1))
     idxs = zeros(Int, size(x, 1))
     @inbounds for (bi, b) in enumerate(bags)
-        fill!(v, typemin(eltype(x)))
         if isempty(b)
             for i in eachindex(C)
                 dC[i] += Δ[i, bi]
             end
         else
+            fi = first(b)
+            v .= x[:,fi]
+            idxs .= fi
             for j in b
                 for i in 1:size(x,1)
                     if v[i] < x[i, j]
