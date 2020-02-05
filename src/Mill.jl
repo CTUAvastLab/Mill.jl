@@ -58,7 +58,4 @@ export BagChain
 include("replacein.jl")
 export replacein
 
-include("explainer.jl")
-export explain
-
 end
