@@ -1,3 +1,5 @@
+using Pkg
+Pkg.activate("..")
 using Test, Mill, Flux
 using Random
 
@@ -65,6 +67,7 @@ include("datanode.jl")
 include("modelnode.jl")
 include("missing.jl")
 include("aggregation.jl")
+include("aggregation_gpu.jl")
 include("gradtests.jl")
 include("conv.jl")
 include("bags.jl")

@@ -49,6 +49,7 @@ include("segmented_sum.jl")
 include("segmented_mean.jl")
 include("segmented_mean_gpu.jl")
 include("segmented_max.jl")
+include("segmented_max_gpu.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 
