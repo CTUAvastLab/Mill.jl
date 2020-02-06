@@ -49,26 +49,29 @@ function kernel_segmented_mean_forw!(y, x, C, bs, be, w)
 end
 
 function kernel_missing_bags_back!(Δc, Δ, bs, be)
-end
-
-function kernel_segmented_mean_back!(Δ, y, x, C, bs, be, w, Δx, Δc, Δw) 
     bi = blockIdx().x
-    nrows = size(x,1)
+    nrows = length(Δc)
     ri = threadIdx().x
     ri > nrows  && return(nothing)
     stride = blockDim().x
 
-    #we need to deal with empty bags here
-    if bi == length(bs) + 1
-    	for row in ri:stride:size(x,1)
-    		Δc[row] = 0
-	        for i in 1:length(bs)
-	        	!isbagempty(bs, be, i) && continue
-	            Δc[row] += Δ[row, i]
-	        end
-	    end
-	    return(nothing)
+	for row in ri:stride:nrows
+		Δc[row] = 0
+        for i in 1:length(bs)
+        	!isbagempty(bs, be, i) && continue
+            Δc[row] += Δ[row, i]
+        end
     end
+    return(nothing)
+end
+
+function kernel_segmented_mean_back!(Δ, y, x, C, bs, be, w, Δx, Δc, Δw) 
+    bi = blockIdx().x
+    bi > length(bs) && return(nothing)
+    nrows = size(x,1)
+    ri = threadIdx().x
+    ri > nrows  && return(nothing)
+    stride = blockDim().x
     isbagempty(bs, be, bi) && return(nothing)
 
     for row in ri:stride:nrows
@@ -98,7 +101,8 @@ function Mill.segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuV
 	Δx = similar(x)
 	Δc = similar(c)
 	Δw = similar(w)
-    @cuda threads=256 blocks=length(bags) + 1 kernel_segmented_mean_back!(Δ, y, x, c, bs, be, w, Δx, Δc, Δw)
+    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bs, be, w, Δx, Δc, Δw)
+    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
     Δx, Δc, nothing, Δw
 end
 
@@ -108,7 +112,8 @@ function Mill.segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuV
 	Δx = similar(x)
 	Δc = similar(c)
 	Δw = similar(w, size(x))
-    @cuda threads=256 blocks=length(bags) + 1 kernel_segmented_mean_back!(Δ, y, x, c, bs, be, w, Δx, Δc, Δw)
+    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bs, be, w, Δx, Δc, Δw)
+    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
 	Δx, Δc, nothing, sum(Δw, dims = 1)[:]
 end
 
