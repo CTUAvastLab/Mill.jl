@@ -23,13 +23,13 @@ function kernel_segmented_mean_forw!(y, x, C, bs, be, w)
 
     bi = blockIdx().x
     stride = blockDim().x
-    if isbagempty(bs, be, bi)
+    @inbounds if isbagempty(bs, be, bi)
         for row in ri:stride:size(x,1)
             y[row, bi] = C[row]
         end
         return(nothing)
     end
-    for row in ri:stride:size(x,1)
+    @inbounds for row in ri:stride:nrows
         y[row, bi] = 0
         for j in bs[bi]:be[bi]
             ww = weight(w, row, j)
@@ -48,7 +48,7 @@ function kernel_missing_bags_back!(Δc, Δ, bs, be)
     ri > nrows  && return(nothing)
     stride = blockDim().x
 
-    for row in ri:stride:nrows
+    @inbounds for row in ri:stride:nrows
         Δc[row] = 0
         for i in 1:length(bs)
             !isbagempty(bs, be, i) && continue
