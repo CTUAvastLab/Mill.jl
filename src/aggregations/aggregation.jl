@@ -34,8 +34,9 @@ const MaybeMatrix = Union{Missing,
                           AbstractMatrix{T} where T <: Real}
 
 bagnorm(w::Nothing, b) = length(b)
-bagnorm(w::AbstractVector, b) = @views sum(w[b])
-bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))
+bagnorm(w::Vector, b) = @views sum(w[b])
+bagnorm(w::Matrix, b) = @views vec(sum(w[:, b], dims=2))
+
 
 weight(w::Nothing, _, _) = 1
 weight(w::AbstractVector, _, j) = w[j]
@@ -46,6 +47,7 @@ weightsum(ws::AbstractVector, i) = ws[i]
 
 include("segmented_sum.jl")
 include("segmented_mean.jl")
+include("segmented_mean_gpu.jl")
 include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
