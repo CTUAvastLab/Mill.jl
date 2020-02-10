@@ -56,3 +56,23 @@ end
 	Δgc = Mill.segmented_max_back(gΔ, maxI, gy, gx, gc, bags)[2]
 	@test Δc ≈ Δgc
 end
+
+
+#Let's do a stress test
+l = rand(1:100, 10000)
+bags = Mill.length2bags(l);
+x = randn(Float32, 160, sum(l));
+c = randn(Float32, 160);
+gx = CuArray(x)
+gc = CuArray(c)
+
+y = Mill.segmented_max_forw(x, c, bags)
+gy, maxI = Mill.segmented_max_forw(gx, gc, bags)
+y ≈ gy 
+
+Flux.gradient(gx -> sum(Mill.segmented_max_forw(gx, gc, bags)), gx)
+
+@btime Mill.segmented_max_forw(x, c, bags);
+@btime CuArrays.@sync Mill.segmented_max_forw(gx, gc, bags);
+@btime Mill.segmented_mean_forw(x, c, bags, nothing);
+@btime CuArrays.@sync Mill.segmented_mean_forw(gx, gc, bags, nothing);
