@@ -1,4 +1,7 @@
+# __precompile__(false)
+
 module Mill
+
 using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote
 using Zygote: @adjoint
 import Base.reduce
@@ -57,5 +60,7 @@ export BagChain
 
 include("replacein.jl")
 export replacein
+
+include("cuda/convert.jl")
 
 end
