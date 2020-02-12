@@ -54,6 +54,8 @@ function _cattrees(as::Vector{T}) where T <: NamedTuple
     (;vs...)
 end
 
+mapdata(f, x) = f(x)
+
 # functions to make datanodes compatible with getindex and with MLDataPattern
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
 Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractNode = x[findall(i)]
