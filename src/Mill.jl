@@ -41,6 +41,8 @@ export ArrayNode, BagNode, WeightedBagNode, TreeNode
 export NGramMatrix, NGramIterator
 export catobs, removeinstances
 
+include("cuda/cuda.jl")
+
 include("aggregations/aggregation.jl")
 # agg. types exported in aggregation.jl
 export Aggregation
@@ -60,7 +62,5 @@ export BagChain
 
 include("replacein.jl")
 export replacein
-
-include("cuda/convert.jl")
 
 end

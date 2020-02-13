@@ -105,3 +105,19 @@ function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector
     @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
     Δx, Δc, nothing, sum(Δw, dims = 1)[:]
 end
+
+function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::Missing, C::CuVector, bags::CuAlignedBags, w::Nothing)
+    # dC = zero(C)
+    # @inbounds for (bi, b) in enumerate(bags)
+    #     for i in eachindex(C)
+    #         dC[i] += Δ[i, bi]
+    #     end
+    # end
+    dC = sum(Δ, dims=2)
+    nothing, dC[:], nothing, nothing
+end
+
+@adjoint function segmented_mean_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags, w)
+    y = segmented_mean_forw(x, c, bags, w)
+    y, Δ -> segmented_mean_back(Δ, y, x, c, bags, w)
+end

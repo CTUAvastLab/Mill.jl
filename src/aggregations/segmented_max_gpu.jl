@@ -1,5 +1,5 @@
 
-function kernel_segmented_max_forw!(o, maxI, x, C, bs, be) 
+function kernel_segmented_max_forw!(o, maxI, x, C, bs, be)
     nrows = size(o,1)
     ri = threadIdx().x
     ri > nrows  && return(nothing)
@@ -19,14 +19,14 @@ function kernel_segmented_max_forw!(o, maxI, x, C, bs, be)
         for j in bs[bi] + 1:be[bi]
             if x[row, j] > o[row, bi]
                 o[row, bi] = x[row, j]
-                maxI[row, bi] = j 
+                maxI[row, bi] = j
             end
         end
     end
     return(nothing)
 end
 
-function kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc) 
+function kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc)
     bi = blockIdx().x
     nrows = size(x,1)
     ri = threadIdx().x
@@ -44,37 +44,38 @@ function kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc)
 end
 
 
-function segmented_max_forw(x::CuMatrix, c::CuVector, bags::AlignedBags) 
-    bs = CuArray([Int32(s.start) for s in bags])
-    be = CuArray([Int32(s.stop) for s in bags])
-    segmented_max_forw(x, c, bs, be) 
+function segmented_max_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags)
+    segmented_max_forw(x, c, bags.bs, bags.be)
 end
 
-function segmented_max_forw(x::CuMatrix, c::CuVector, bs, be) 
+function segmented_max_forw_maxI(x::CuMatrix, c::CuVector, bs, be)
     o = similar(x, size(x,1), length(bs))
-    maxI = CuArrays.fill(0, size(x,1), length(bs))
+    maxI = CuArrays.zeros(Int32, size(x,1), length(bs))
     @cuda threads=256 blocks=length(bs) kernel_segmented_max_forw!(o, maxI, x, c, bs, be)
     o, maxI
 end
 
-function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::AlignedBags) 
-    bs = CuArray([Int32(s.start) for s in bags])
-    be = CuArray([Int32(s.stop) for s in bags])
-    segmented_max_back(Δ, maxI, y, x, c, bs, be) 
+segmented_max_forw(x::CuMatrix, c::CuVector, bs, be) = segmented_max_forw_maxI(x, c, bs, be)[1]
+
+function segmented_max_forw(::Missing, C::CuVector, bags::CuAlignedBags)
+    out = CuArrays.zeros(length(C), length(bags))
+    out .= C
+    out
 end
 
-function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bs, be) 
+function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::CuAlignedBags)
+    segmented_max_back(Δ, maxI, y, x, c, bags.bs, bags.be)
+end
+
+function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bs, be)
     Δx = similar(x)
     Δc = similar(c)
-    @cuda threads=256 blocks=length(bs) kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc) 
+    @cuda threads=256 blocks=length(bs) kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc)
     @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
     Δx, Δc, nothing
 end
 
-@adjoint function segmented_max_forw(x::CuMatrix, c::CuVector, bags::AlignedBags)
-    bs = CuArray([Int32(s.start) for s in bags])
-    be = CuArray([Int32(s.stop) for s in bags])
-    y, maxI = segmented_max_forw(x, c, bs, be)
-    y, Δ -> segmented_max_back(Δ, maxI, y, x, c, bs, be) 
+@adjoint function segmented_max_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags)
+    y, maxI = segmented_max_forw_maxI(x, c, bags.bs, bags.be)
+    y, Δ -> segmented_max_back(Δ, maxI, y, x, c, bags.bs, bags.be)
 end
-
