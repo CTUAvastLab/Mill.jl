@@ -2,7 +2,7 @@ import Base: show, getindex
 
 abstract type AggregationFunction end
 
-struct Aggregation{N}
+struct Aggregation{N} <: AggregationFunction
     fs::NTuple{N, AggregationFunction}
     Aggregation(fs::Vararg{AggregationFunction, N}) where N = new{N}(fs)
     Aggregation(fs::NTuple{N, AggregationFunction}) where N = new{N}(fs)
