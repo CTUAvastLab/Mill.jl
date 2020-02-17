@@ -16,13 +16,19 @@ const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
 # TODO exports
 export print
 
-head_string(::T) where T = @error "Define head_string(x) for type $T of x for hierarchical printing, empty string is possible"
-tail_string(::T) where T = @error "Define tail_string(x) for type $T of x for hierarchical printing, empty string is possible"
-children_string(::T) where T = @error "Define children_string(x) for type $T of x returning an iterable of descriptions for each child, empty strings are possible"
-children(::T) where T = @error "Define children(x) for type $T of x returning an iterable of children of x"
+children_string(x::T) where T = children_string(NodeType(x), x)
+children_string(::LeafNode, _) = []
+children_string(::InnerNode, ::T) where T = @error "Define children_string(x) for type $T of x returning an iterable of descriptions for each child, empty strings are possible"
+
+children(x::T) where T = children(NodeType(x), x)
+children(::InnerNode, ::T) where T = @error "Define children(x) for type $T of x returning an iterable of children of x"
+children(::LeafNode, _) = []
+
+nchildren(::LeafNode, _) = 0
 nchildren(x) = length(children(x))
-# TODO
-# TODO listy jsou ti, co nemaji zadne deti
+
+head_string(::T) where T = @error "Define head_string(x) for type $T of x for hierarchical printing, empty string is possible"
+# tail_string(::InnerNode, ::T) where T = @error "Define tail_string(x) for type $T of x for hierarchical printing, empty string is possible"
 
 abstract type NodeType end
 struct LeafNode <: NodeType end
@@ -52,7 +58,7 @@ function _print_tree(io::IO, n::T, C, d, p, e, trav, trunc_level) where T
             _print_tree(io, ch, C, d+1, [p; (c, ns)], e * encode(i, nch), trav, trunc_level)
         end
     end
-    paddedprint(io, tail_string(n), color=c)
+    # paddedprint(io, tail_string(n), color=c)
 end
 
 print_tree(n::T; trav=false, trunc_level=Inf) where T = print_tree(stdout, n, trav=trav, trunc_level=trunc_level)

@@ -69,13 +69,13 @@ NodeType(::Type{<:MillModel}) = InnerNode()
 import .HierarchicalUtils: COLORS, paddedprint
 
 head_string(::Missing) = "∅"
-tail_string(x::Missing) = ""
+# tail_string(x::Missing) = ""
 children_string(x::Missing) = []
 children(x::Missing) = []
 nchildren(::Missing) = 0
 
 head_string(n::ArrayNode) = "ArrayNode$(size(n.data))"
-tail_string(x::ArrayNode) = ""
+# tail_string(x::ArrayNode) = ""
 children_string(x::ArrayNode) = []
 children(x::ArrayNode) = []
 nchildren(::ArrayNode) = 0
@@ -83,7 +83,7 @@ nchildren(::ArrayNode) = 0
 head_string(n::BagNode) = "BagNode$(size(n.data))"
 head_string(n::BagNode) = "BagNode with $(length(n.bags)) bag(s)"
 head_string(n::WeightedBagNode) = "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))"
-tail_string(::AbstractBagNode) = ""
+# tail_string(::AbstractBagNode) = ""
 children_string(::AbstractBagNode) = [""]
 children(n::AbstractBagNode) = (n.data,)
 nchildren(::AbstractBagNode) = 1
@@ -91,33 +91,33 @@ nchildren(::AbstractBagNode) = 1
 key_labels(data::NamedTuple) = 
 key_labels(data) = ["" for _ in 1:length(data)]
 head_string(n::TreeNode) = "TreeNode"
-tail_string(n::TreeNode) = ""
+# tail_string(n::TreeNode) = ""
 children_string(n::TreeNode{<:NamedTuple}) = ["$k: " for k in keys(n.data)]
 children_string(n::TreeNode) = ["" for k in keys(n.data)]
 children(n::TreeNode) = n.data
 nchildren(n::TreeNode) = length(n.data)
 
 head_string(n::ArrayModel) = "ArrayModel($(n.m))"
-tail_string(x::ArrayModel) = ""
+# tail_string(x::ArrayModel) = ""
 children_string(x::ArrayModel) = []
 children(x::ArrayModel) = []
 nchildren(::ArrayModel) = 0
 
 head_string(n::T) where T <: AggregationFunction = "$(T.name)($(length(n.C)))"
 head_string(a::Aggregation{N}) where N = "⟨" * join(head_string(f) for f in a.fs ", ") * "⟩"
-tail_string(::AggregationFunction) = ""
+# tail_string(::AggregationFunction) = ""
 children_string(::AggregationFunction) = []
 children(n::AggregationFunction) = []
 nchildren(::AggregationFunction) = 0
 
 head_string(n::BagModel) = "BagModel"
-tail_string(::BagModel) = ""
+# tail_string(::BagModel) = ""
 children_string(::BagModel) = ["", "", ""]
 children(n::BagModel) = (n.im, n.a, n.bm)
 nchildren(::BagModel) = 3
 
-head_string(n::ProductModel) = "ProductModel("
-tail_string(n::ProductModel) = " ) ↦  $(n.m)"
+head_string(n::ProductModel) = "ProductModel ↦ $(head_string(n.m))"
+# tail_string(n::ProductModel) = " ) ↦  $(n.m)"
 children_string(n::ProductModel{<:NamedTuple}) = ["$k: " for k in keys(n.ms)]
 children_string(n::ProductModel) = ["" for k in keys(n.ms)]
 children(n::ProductModel) = n.ms
