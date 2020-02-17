@@ -1,0 +1,4 @@
+name = "HierarchicalUtils"
+uuid = "f9ccea15-0695-44b9-8113-df7c26ae4fa9"
+authors = ["Simon Mandlik <simon.mandlik@gmail.com>"]
+version = "0.1.0"
