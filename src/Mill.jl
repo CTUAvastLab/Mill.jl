@@ -34,11 +34,11 @@ include("modelnodes/modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 export reflectinmodel
 
-include("traversal_encoding.jl")
-export show_traversal, encode_traversal
-
 include("conv.jl")
 export bagconv, BagConv
+
+# TODO delete
+include("traversal_encoding.jl")
 
 include("bagchain.jl")
 export BagChain
@@ -47,16 +47,32 @@ include("replacein.jl")
 export replacein
 
 include("HierarchicalUtils/src/HierarchicalUtils.jl")
-import .HierarchicalUtils: head_string, tail_string, children_string, children, nchildren, NodeType, LeafNode, InnerNode
+import .HierarchicalUtils: print_tree, head_string, tail_string, children_string, children, nchildren, NodeType, LeafNode, InnerNode
 
-NodeType(::Type{<:Union{ArrayNode, ArrayModel, AggregationFunction}}) = LeafNode()
+# TODO leafes by mely mit automaticky zadefinovane vlastnosti
+# TODO aggregation function also MillModel?
+Base.show(io::IO, ::MIME"text/plain", m::Union{AbstractNode, MillModel, AggregationFunction}) = print_tree(io, m, trunc_level=2, trav=false)
+Base.show(io::IO, ::T) where T <: Union{AbstractNode, MillModel, AggregationFunction} = show(io, Base.typename(T))
+
+# TODO
+Base.show(io::IO, n::NGramMatrix) = (print(io, "NGramMatrix($(n.b), $(n.m))"); show(io, n.s))
+Base.show(io::IO, ::MIME{Symbol("text/plain")}, n::NGramMatrix) = Base.show(io, n)
+
+NodeType(::Type{<:Union{ArrayNode, ArrayModel, Missing}}) = LeafNode()
+NodeType(::Type{<:AggregationFunction}) = LeafNode()
 NodeType(::Type{<:AbstractNode}) = InnerNode()
 NodeType(::Type{<:MillModel}) = InnerNode()
 
 # TODO upravit Mill + jeho dokumentaci
 # # TODO delete traversal
-# TODO delete
+# TODO delete this and extract to a new package
 import .HierarchicalUtils: COLORS, paddedprint
+
+head_string(::Missing) = "∅"
+tail_string(x::Missing) = ""
+children_string(x::Missing) = []
+children(x::Missing) = []
+nchildren(::Missing) = 0
 
 head_string(n::ArrayNode) = "ArrayNode$(size(n.data))"
 tail_string(x::ArrayNode) = ""
@@ -87,12 +103,8 @@ children_string(x::ArrayModel) = []
 children(x::ArrayModel) = []
 nchildren(::ArrayModel) = 0
 
-# head_string(n::T) where T <: Aggregation = "$T(length(n.C))"
-head_string(::AggregationFunction) = "Aggregation"
-head_string(n::SegmentedMax) = "SegmentedMax($(length(n.C)))"
-head_string(n::SegmentedMean) = "SegmentedMean($(length(n.C)))"
-head_string(n::SegmentedLSE) = "SegmentedLSE($(length(n.p)))"
-head_string(n::SegmentedPNorm) = "SegmentedPNorm($(length(n.ρ)))"
+head_string(n::T) where T <: AggregationFunction = "$(T.name)($(length(n.C)))"
+head_string(a::Aggregation{N}) where N = "⟨" * join(head_string(f) for f in a.fs ", ") * "⟩"
 tail_string(::AggregationFunction) = ""
 children_string(::AggregationFunction) = []
 children(n::AggregationFunction) = []

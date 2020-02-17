@@ -6,9 +6,6 @@ Flux.@functor SegmentedMean
 
 SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
-Base.show(io::IO, sm::SegmentedMean) = print(io, "SegmentedMean($(length(sm.C)))\n")
-modelprint(io::IO, sm::SegmentedMean; pad=[]) = paddedprint(io, "SegmentedMean($(length(sm.C)))")
-
 (m::SegmentedMean)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_mean_forw(x, m.C, bags, w)
 function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
     segmented_mean_forw(x .* mask', m.C, bags, w)

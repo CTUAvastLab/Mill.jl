@@ -30,22 +30,6 @@ BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
 # if the data is missing, we do not use the mapping
 (m::BagModel)(x::BagNode{<: Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags)))
 
-function modelprint(io::IO, m::BagModel{T, A}; pad=[], s="", tr=false) where {T, A}
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "BagModel$(tr_repr(s, tr))\n", color=c)
-    paddedprint(io, "  ├── ", color=c, pad=pad)
-    modelprint(io, m.im, pad=[pad; (c, "  │   ")], s=s * encode(1, 1), tr=tr)
-    println(io);
-    paddedprint(io, "  ├── ", color=c, pad=pad)
-    modelprint(io, m.a, pad=[pad; (c, "  │   ")])
-    # A == Aggregation || paddedprint(io, '\n', color=c)
-    println(io);
-    paddedprint(io, "  └── ", color=c, pad=pad)
-    modelprint(io, m.bm, pad=[pad; (c, "  │   ")])
-end
-
-
-
 function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
     im, o = HiddenLayerModel(m.im, x.data, k)
     a = SegmentedMax(k)

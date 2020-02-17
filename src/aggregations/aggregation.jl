@@ -2,7 +2,7 @@ import Base: show, getindex
 
 abstract type AggregationFunction end
 
-struct Aggregation{N}
+struct Aggregation{N} <: AggregationFunction
     fs::NTuple{N, AggregationFunction}
     Aggregation(fs::Vararg{AggregationFunction, N}) where N = new{N}(fs)
     Aggregation(fs::NTuple{N, AggregationFunction}) where N = new{N}(fs)
@@ -10,22 +10,10 @@ end
 
 Flux.@functor Aggregation
 
-(a::Aggregation)(args...) = vcat([f(args...) for f in a.fs]...)
-
+(a::Aggregation)(x::Union{AbstractArray, Missing}, args...) = vcat([f(x, args...) for f in a.fs]...)
 (a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
-Base.show(io::IO, a::Union{AggregationFunction, Aggregation}) = modelprint(io, a)
 Base.getindex(a::Aggregation, i) = a.fs[i]
-
-function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
-    paddedprint(io, N == 1 ? "" : "⟨")
-    for f in a.fs[1:end-1]
-        modelprint(io, f, pad=pad)
-        paddedprint(io, ", ")
-    end
-    modelprint(io, a.fs[end], pad=pad)
-    paddedprint(io, (N == 1 ? "" : "⟩"))
-end
 
 const AggregationWeights = Union{Nothing,
                                  AbstractVector{T} where T <: Real,

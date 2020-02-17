@@ -157,12 +157,6 @@ struct NGramMatrix{T} <: AbstractMatrix{T}
     m::Int
 end
 
-Base.show(io::IO, n::NGramMatrix) = (print(io, "NGramMatrix($(n.b), $(n.m))"); show(io, n.s))
-Base.show(io::IO, ::MIME{Symbol("text/plain")}, n::NGramMatrix) = Base.show(io, n)
-
-NGramIterator(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramIterator(codeunits(a.s[i]), a.n, a.b)
-NGramIterator(a::NGramMatrix{T}, i) where {T<:Vector{U}} where {U<:Integer} = NGramIterator(a.s[i], a.n, a.b)
-
 Base.length(a::NGramMatrix) = length(a.s)
 Base.size(a::NGramMatrix) = (a.m, length(a.s))
 Base.size(a::NGramMatrix, d) = (d == 1) ? a.m : length(a.s)

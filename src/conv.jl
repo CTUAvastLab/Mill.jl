@@ -246,12 +246,6 @@ end
 (m::BagConv)(x::ArrayNode, bags::AbstractBags) = ArrayNode(bagconv(x.data, bags, m.W...))
 (m::BagConv)(x::BagNode) = ArrayNode(bagconv(x.data.data, x.bags, m.W...))
 
-Base.show(io::IO, m::BagConv) = modelprint(io, m)
-
-function modelprint(io::IO, m::BagConv; pad=[])
-  paddedprint(io, "BagConvolution($(size(m.W[1], 2)), $(size(m.W[1], 1)), $(length(m.W)))\n")
-end
-
 convsum(bags, xs::AbstractMatrix) = xs
 function convsum(bags, xs...)
 	offsets = _convshift(length(xs))

@@ -26,19 +26,3 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T <: TreeNode}
 end
 
 Base.getindex(x::TreeNode, i::VecOrRange) = TreeNode(subset(x.data, i), subset(x.metadata, i))
-
-function dsprint(io::IO, n::AbstractTreeNode; pad=[], s="", tr=false)
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "TreeNode$(tr_repr(s, tr))", color=c)
-    m = length(n.data)
-    ks = key_labels(n.data)
-    for i in 1:(m-1)
-        println(io)
-        paddedprint(io, "  ├── $(ks[i])", color=c, pad=pad)
-        dsprint(io, n.data[i], pad=[pad; (c, "  │" * repeat(" ", max(3, 2+length(ks[i]))))], s=s * encode(i, m), tr=tr)
-    end
-    println(io)
-    paddedprint(io, "  └── $(ks[end])", color=c, pad=pad)
-    dsprint(io, n.data[end], pad=[pad; (c, repeat(" ", 3+max(3, 2+length(ks[end]))))], s=s * encode(m, m), tr=tr)
-end
-

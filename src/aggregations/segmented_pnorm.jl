@@ -9,9 +9,6 @@ Flux.@functor SegmentedPNorm
 
 SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
 
-Base.show(io::IO, n::SegmentedPNorm) = print(io, "SegmentedPNorm($(length(n.ρ)))\n")
-modelprint(io::IO, n::SegmentedPNorm; pad=[]) = paddedprint(io, "SegmentedPNorm($(length(n.ρ)))")
-
 p_map(ρ) = 1 .+ softplus.(ρ)
 inv_p_map = (p) -> log.(exp.(p.-1) .- 1)
 

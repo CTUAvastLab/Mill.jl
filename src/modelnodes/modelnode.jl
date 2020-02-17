@@ -2,10 +2,6 @@ abstract type MillModel end
 
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
-Base.show(io::IO, ::MIME"text/plain", m::MillModel) = modelprint(io, m, tr=false)
-Base.show(io::IO, ::T) where T <: MillModel = show(io, Base.typename(T))
-modelprint(io::IO, m::MillModel; tr=false, pad=[]) = paddedprint(io, m, "\n")
-
 include("arraymodel.jl")
 include("bagmodel.jl")
 include("productmodel.jl")
