@@ -1,4 +1,7 @@
+# __precompile__(false)
+
 module Mill
+
 using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote
 using Zygote: @adjoint
 import Base.reduce
@@ -37,6 +40,8 @@ export AbstractNode, AbstractTreeNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, TreeNode
 export NGramMatrix, NGramIterator
 export catobs, removeinstances
+
+include("cuda/cuda.jl")
 
 include("aggregations/aggregation.jl")
 # agg. types exported in aggregation.jl

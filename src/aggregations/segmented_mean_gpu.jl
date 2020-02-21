@@ -16,7 +16,7 @@ end
 
 isbagempty(bs, be, bi) = be[bi] < bs[bi]
 
-function kernel_segmented_mean_forw!(y, x, C, bs, be, w) 
+function kernel_segmented_mean_forw!(y, x, C, bs, be, w)
     nrows = size(y,1)
     ri = threadIdx().x
     ri > nrows  && return(nothing)
@@ -30,13 +30,13 @@ function kernel_segmented_mean_forw!(y, x, C, bs, be, w)
         return(nothing)
     end
     @inbounds for row in ri:stride:nrows
-        y[row, bi] = 0
+        acc = 0
         for j in bs[bi]:be[bi]
             ww = weight(w, row, j)
             # @cuprintln("thread $ri, block $stride, $j ww = $(ww)")
-            y[row, bi] +=  ww * x[row, j]
+            acc +=  ww * x[row, j]
         end
-        y[row, bi] /= bagnorm(w, row, bs[bi], be[bi])
+        y[row, bi] = acc / bagnorm(w, row, bs[bi], be[bi])
     end
     return(nothing)
 end
@@ -49,16 +49,17 @@ function kernel_missing_bags_back!(Δc, Δ, bs, be)
     stride = blockDim().x
 
     @inbounds for row in ri:stride:nrows
-        Δc[row] = 0
+        acc = 0
         for i in 1:length(bs)
             !isbagempty(bs, be, i) && continue
-            Δc[row] += Δ[row, i]
+            acc += Δ[row, i]
         end
+        Δc[row] = acc
     end
     return(nothing)
 end
 
-function kernel_segmented_mean_back!(Δ, y, x, C, bs, be, w, Δx, Δc, Δw) 
+function kernel_segmented_mean_back!(Δ, y, x, C, bs, be, w, Δx, Δc, Δw)
     bi = blockIdx().x
     bi > length(bs) && return(nothing)
     nrows = size(x,1)
@@ -70,9 +71,10 @@ function kernel_segmented_mean_back!(Δ, y, x, C, bs, be, w, Δx, Δc, Δw)
     for row in ri:stride:nrows
         ws = bagnorm(w, row, bs[bi], be[bi])
         # @cuprintln("($ri, $bi) ws = $ws")
+        Δrow = Δ[row, bi]
         for j in bs[bi]:be[bi]
             # @cuprintln("($ri, $bi) ($row, $j) ws = $(weight(w, row, j))")
-            Δx[row, j] = weight(w, row, j) * Δ[row, bi] / ws
+            Δx[row, j] = weight(w, row, j) * Δrow / ws
             ∇dw_segmented_mean!(Δw, Δ, x, y, ws, row, j, bi)
         end
     end
@@ -80,32 +82,42 @@ function kernel_segmented_mean_back!(Δ, y, x, C, bs, be, w, Δx, Δc, Δw)
 end
 
 
-function segmented_mean_forw(x::CuMatrix, c::CuVector, bags::AlignedBags, w) 
-    bs = CuArray([Int32(s.start) for s in bags])
-    be = CuArray([Int32(s.stop) for s in bags])
+function segmented_mean_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags, w)
     y = similar(x, size(x,1), length(bags))
-    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_forw!(y, x, c, bs, be, w)
+    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_forw!(y, x, c, bags.bs, bags.be, w)
     y
 end
 
-function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::AlignedBags, w::Union{Nothing, CuMatrix}) 
-    bs = CuArray([Int32(s.start) for s in bags])
-    be = CuArray([Int32(s.stop) for s in bags])
+function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::CuAlignedBags, w::Union{Nothing, CuMatrix})
     Δx = similar(x)
     Δc = similar(c)
     Δw = similar(w)
-    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bs, be, w, Δx, Δc, Δw)
-    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
+    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bags.bs, bags.be, w, Δx, Δc, Δw)
+    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
     Δx, Δc, nothing, Δw
 end
 
-function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::AlignedBags, w::CuVector) 
-    bs = CuArray([Int32(s.start) for s in bags])
-    be = CuArray([Int32(s.stop) for s in bags])
+function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::CuAlignedBags, w::CuVector)
     Δx = similar(x)
     Δc = similar(c)
     Δw = similar(w, size(x))
-    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bs, be, w, Δx, Δc, Δw)
-    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
+    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bags.bs, bags.be, w, Δx, Δc, Δw)
+    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
     Δx, Δc, nothing, sum(Δw, dims = 1)[:]
+end
+
+function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::Missing, C::CuVector, bags::CuAlignedBags, w::Nothing)
+    # dC = zero(C)
+    # @inbounds for (bi, b) in enumerate(bags)
+    #     for i in eachindex(C)
+    #         dC[i] += Δ[i, bi]
+    #     end
+    # end
+    dC = sum(Δ, dims=2)
+    nothing, dC[:], nothing, nothing
+end
+
+@adjoint function segmented_mean_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags, w)
+    y = segmented_mean_forw(x, c, bags, w)
+    y, Δ -> segmented_mean_back(Δ, y, x, c, bags, w)
 end
