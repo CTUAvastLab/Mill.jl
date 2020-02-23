@@ -42,6 +42,7 @@ function Base.:*(A::CuMatrix, B::Flux.OneHotMatrix{<: CuArray})
         x_blk = ceil(Int, n / y_thr)
 
         parallel_kernel(parallel_kargs...; threads=(x_thr,y_thr), blocks=(x_blk,y_blk))
+        synchronize()
     end
 
     return R

@@ -52,16 +52,22 @@ function segmented_max_forw_maxI(x::CuMatrix, c::CuVector, bs, be)
     o = similar(x, size(x,1), length(bs))
     maxI = CuArrays.zeros(Int32, size(x,1), length(bs))
     @cuda threads=256 blocks=length(bs) kernel_segmented_max_forw!(o, maxI, x, c, bs, be)
+    synchronize()
     o, maxI
 end
 
 segmented_max_forw(x::CuMatrix, c::CuVector, bs, be) = segmented_max_forw_maxI(x, c, bs, be)[1]
 
-function segmented_max_forw(::Missing, C::CuVector, bags::CuAlignedBags)
-    out = CuArrays.zeros(length(C), length(bags))
-    out .= C
-    out
-end
+#
+# function segmented_max_forw(::Missing, C::CuVector, bags::CuAlignedBags)
+#     out = CuArrays.zeros(length(C), length(bags))
+#     out .= C
+#     out
+# end
+#
+# @adjoint function segmented_max_forw(::Missing, C::CuVector, bags::CuAlignedBags)
+#     nothing, nothing, nothing
+# end
 
 function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::CuAlignedBags)
     segmented_max_back(Δ, maxI, y, x, c, bags.bs, bags.be)
@@ -71,11 +77,31 @@ function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatr
     Δx = similar(x)
     Δc = similar(c)
     @cuda threads=256 blocks=length(bs) kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc)
+    synchronize()
     @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
+    synchronize()
     Δx, Δc, nothing
 end
 
-@adjoint function segmented_max_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags)
+function segmented_max_back(Δ, y, x::Missing, C, bags::CuAlignedBags)
+    # dC = zero(C)
+    # @inbounds for (bi, b) in enumerate(bags)
+    #     for i in eachindex(C)
+    #         dC[i] += Δ[i, bi]
+    #     end
+    # end
+    # nothing, dC, nothing, nothing
+
+    dC = sum(Δ, dims=2)
+    nothing, dC[:], nothing, nothing
+end
+
+@adjoint function segmented_max_forw(x::Missing, c, bags::CuAlignedBags)
+    y = repeat(c, 1, length(bags))
+    y, Δ -> segmented_max_back(Δ, y, x, c, bags)
+end
+
+@adjoint function segmented_max_forw(x, c, bags::CuAlignedBags)
     y, maxI = segmented_max_forw_maxI(x, c, bags.bs, bags.be)
     y, Δ -> segmented_max_back(Δ, maxI, y, x, c, bags.bs, bags.be)
 end
