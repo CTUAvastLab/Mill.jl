@@ -7,16 +7,20 @@ using SparseArrays
 @generated function gpu(x)
     expr = :($(get_unionall(x))())
     for field in fieldnames(x)
-        push!(expr.args, :(gpu(x.$field)))
+        if field == :metadata
+            push!(expr.args, :(x.$field))
+        else
+            push!(expr.args, :(gpu(x.$field)))
+        end
     end
 
     expr
 end
 
 # Specialized conversion utilities follow
-gpu(x::Array) = CuArrays.cu(x)
+gpu(x::Array) = x |> CuArrays.cu
 gpu(x::AlignedBags) = CuAlignedBags(x)
-# gpu(x::Flux.OneHotMatrix) = x |> Flux.gpu
+gpu(x::Flux.OneHotMatrix) = x |> Flux.gpu
 gpu(x::NGramMatrix) = CuArrays.CUSPARSE.CuSparseMatrixCSC(SparseMatrixCSC(x))
 gpu(x::NamedTuple{KW}) where KW = NamedTuple{KW}(values(x) |> gpu)
 gpu(x::Tuple) = gpu.(x)
