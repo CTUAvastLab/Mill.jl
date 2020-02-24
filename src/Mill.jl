@@ -1,4 +1,5 @@
 module Mill
+
 using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote
 using Zygote: @adjoint
 import Base.reduce
@@ -46,8 +47,9 @@ export BagChain
 include("replacein.jl")
 export replacein
 
+# TODO extract to new package
 include("HierarchicalUtils/src/HierarchicalUtils.jl")
-import .HierarchicalUtils: print_tree, head_string, tail_string, children_string, children, nchildren, NodeType, LeafNode, InnerNode
+import .HierarchicalUtils: print_tree, head_string, children_string, children, nchildren, NodeType, LeafNode, InnerNode
 
 # TODO leafes by mely mit automaticky zadefinovane vlastnosti
 # TODO aggregation function also MillModel?
@@ -70,15 +72,9 @@ import .HierarchicalUtils: COLORS, paddedprint
 
 head_string(::Missing) = "∅"
 # tail_string(x::Missing) = ""
-children_string(x::Missing) = []
-children(x::Missing) = []
-nchildren(::Missing) = 0
 
 head_string(n::ArrayNode) = "ArrayNode$(size(n.data))"
 # tail_string(x::ArrayNode) = ""
-children_string(x::ArrayNode) = []
-children(x::ArrayNode) = []
-nchildren(::ArrayNode) = 0
 
 head_string(n::BagNode) = "BagNode$(size(n.data))"
 head_string(n::BagNode) = "BagNode with $(length(n.bags)) bag(s)"
@@ -99,16 +95,10 @@ nchildren(n::TreeNode) = length(n.data)
 
 head_string(n::ArrayModel) = "ArrayModel($(n.m))"
 # tail_string(x::ArrayModel) = ""
-children_string(x::ArrayModel) = []
-children(x::ArrayModel) = []
-nchildren(::ArrayModel) = 0
 
 head_string(n::T) where T <: AggregationFunction = "$(T.name)($(length(n.C)))"
 head_string(a::Aggregation{N}) where N = "⟨" * join(head_string(f) for f in a.fs ", ") * "⟩"
 # tail_string(::AggregationFunction) = ""
-children_string(::AggregationFunction) = []
-children(n::AggregationFunction) = []
-nchildren(::AggregationFunction) = 0
 
 head_string(n::BagModel) = "BagModel"
 # tail_string(::BagModel) = ""
