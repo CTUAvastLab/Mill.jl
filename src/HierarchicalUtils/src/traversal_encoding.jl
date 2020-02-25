@@ -27,6 +27,8 @@ function ith_child(m, i::Integer)
     end
 end
 
+walk(n::T, c) where T = _walk(n, destringify(c))
+
 _walk(n::T, c) where T = _walk(NodeType(T), n, c)
 
 function _walk(::LeafNode, n, c::AbstractString)
@@ -65,16 +67,10 @@ function list_traversal(::InnerNode, n, s::String="")
     vcat(stringify(s), [list_traversal(d[i], s * encode(i, k)) for i in 1:k]...)
 end 
 
-# TODO define another trait for this functionality
-# show_traversal(n::AbstractNode) = dsprint(Base.stdout, n, tr=true)
-# show_traversal(m::MillModel) = modelprint(Base.stdout, m, tr=true)
-# Base.getindex(n::AbstractNode, i::AbstractString) = i == "" ? n : _walk(n, destringify(i))
-# Base.getindex(m::MillModel, i::AbstractString) = i == "" ? m : _walk(m, destringify(i))
+encode_traversal(t, idxs::Integer...) = stringify(_encode_traversal(t, idxs...))
 
-# encode_traversal(m::AbstractNode, idxs::Integer...) = stringify(_encode_traversal(m, idxs...))
-
-# function _encode_traversal(m, idxs...)
-#     !isempty(idxs) || return ""
-#     n = ith_child(m, idxs[1])
-#     return encode(idxs[1], nchildren(m)) * _encode_traversal(n, idxs[2:end]...)
-# end
+function _encode_traversal(t, idxs...)
+    !isempty(idxs) || return ""
+    n = ith_child(t, idxs[1])
+    return encode(idxs[1], nchildren(t)) * _encode_traversal(n, idxs[2:end]...)
+end

@@ -1,15 +1,11 @@
 # TODO
-# Iterators - type of node, 
-# indexing - do Millu?
+# Vilo chce pracovat naraz se schematem a samplem, protoze schema nese informace/statistiky, problem je v tom, ze schema muze mit jinou strukturu nez ten sample! nejak to vymyslet
 # treemap, treemap!, map na listy a vratit seznam vysledku?
 # reflectinmodel -> treemap
 # map over multiple trees with the same structure simultaneously using a function of multiple arguments.
 # Work with individual samples and not whole batches. 
 # Matej neco na ten zpusob co chtel
 # tests
-# nodecount
-# leafcount
-# pairs iterator
 # mutating?
 # odebrat vse z Millu, zmenit dokumentaci Millu
 
@@ -25,7 +21,7 @@ NodeType(::Type{T}) where T = @error "Define NodeType(::Type{$T}) to be either L
 children_string(x::T) where T = children_string(NodeType(T), x)
 children_string(::LeafNode, _) = []
 # children_string(::InnerNode, ::T) where T = @error "Define children_string(x) for type $T of x returning an iterable of descriptions for each child, empty strings are possible"
-children_string(::InnerNode, n::T) where T = ["" for _ in 1:length(children(n))]
+children_string(::InnerNode, n::T) where T = ["" for _ in eachindex(children(n))]
 
 children(x::T) where T = children(NodeType(T), x)
 children(::InnerNode, ::T) where T = @error "Define children(x) for type $T of x returning an iterable of children of x"
@@ -68,12 +64,14 @@ end
 print_tree(n::T; trav=false, trunc_level=Inf) where T = print_tree(stdout, n, trav=trav, trunc_level=trunc_level)
 print_tree(io::IO, n::T; trav=false, trunc_level=Inf) where T = _print_tree(io, n, COLORS, 0, [], "", trav, trunc_level)
 
+nnodes(t) = 1 + mapreduce(nnodes, +, children(t); init=0)
+nleafs(t) = mapreduce(nleafs, +, children(t); init=0) + nchildren(t) == 0
+
 # TODO imports
 include("iterators.jl")
 include("traversal_encoding.jl")
 
 # TODO exports
 export print
-
 
 end # module
