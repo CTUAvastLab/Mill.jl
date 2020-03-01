@@ -157,6 +157,9 @@ struct NGramMatrix{T} <: AbstractMatrix{T}
     m::Int
 end
 
+Base.show(io::IO, n::NGramMatrix) = (print(io, "NGramMatrix($(n.b), $(n.m))"); show(io, n.s))
+Base.show(io::IO, ::MIME"text/plain", n::NGramMatrix) = Base.show(io, n)
+
 Base.length(a::NGramMatrix) = length(a.s)
 Base.size(a::NGramMatrix) = (a.m, length(a.s))
 Base.size(a::NGramMatrix, d) = (d == 1) ? a.m : length(a.s)

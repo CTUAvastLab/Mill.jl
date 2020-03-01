@@ -6,6 +6,8 @@ include("arraymodel.jl")
 include("bagmodel.jl")
 include("productmodel.jl")
 
+import HierarchicalUtils: encode, stringify
+
 reflectinmodel(x, db, da=d->SegmentedMean(d); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")[1]
 
 function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
