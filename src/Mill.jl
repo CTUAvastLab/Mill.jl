@@ -40,7 +40,7 @@ export catobs, removeinstances
 
 include("aggregations/aggregation.jl")
 # agg. types exported in aggregation.jl
-export Aggregation
+export AggregationFunction, Aggregation
 
 include("modelnodes/modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
