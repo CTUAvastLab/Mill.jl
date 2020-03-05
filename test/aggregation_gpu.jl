@@ -12,11 +12,11 @@ CuArrays.allowscalar(false)
 	bags = AlignedBags([1:1, 2:3, 4:6, 0:-1])
 	c = [1.0, -2]
 	Δ = randn(2,4)
-	gΔ = CuArray(Δ)
+	gΔ = CuArray{Float32}(Δ)
 
-	gx = CuArray(x)
-	gc = CuArray(c)
-	gbags = bags |> Mill.mgpu
+	gx = CuArray{Float32}(x)
+	gc = CuArray{Float32}(c)
+	gbags = bags |> Mill.gpu
 	for w in [nothing, abs.(randn(size(x,2))), abs.(randn(size(x)))]
 		gw = isnothing(w) ? nothing : CuArray(w)
 		y = segmented_mean_forw(x, c, bags, w)
@@ -42,11 +42,11 @@ end
 	bags = AlignedBags([1:1, 2:3, 4:6, 0:-1])
 	c = [1.0, -2]
 	Δ = ones(2,4)
-	gΔ = CuArray(Δ)
+	gΔ = CuArray{Float32}(Δ)
 
-	gx = CuArray(x)
-	gc = CuArray(c)
-	gbags = bags |> Mill.mgpu
+	gx = CuArray{Float32}(x)
+	gc = CuArray{Float32}(c)
+	gbags = bags |> Mill.gpu
 
 	y = Mill.segmented_max_forw(x, c, bags)
 	gy, maxI = Mill.segmented_max_forw_maxI(gx, gc, gbags.bs, gbags.be)
@@ -69,7 +69,7 @@ x = randn(Float32, 160, sum(l));
 c = randn(Float32, 160);
 gx = CuArray(x)
 gc = CuArray(c)
-gbags = bags |> Mill.mgpu
+gbags = bags |> Mill.gpu
 
 y = Mill.segmented_max_forw(x, c, bags)
 gy, maxI = Mill.segmented_max_forw_maxI(gx, gc, gbags.bs, gbags.be)

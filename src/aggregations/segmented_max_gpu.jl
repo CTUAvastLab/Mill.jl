@@ -52,7 +52,6 @@ function segmented_max_forw_maxI(x::CuMatrix, c::CuVector, bs, be)
     o = similar(x, size(x,1), length(bs))
     maxI = CuArrays.zeros(Int32, size(x,1), length(bs))
     @cuda threads=256 blocks=length(bs) kernel_segmented_max_forw!(o, maxI, x, c, bs, be)
-    synchronize()
     o, maxI
 end
 
@@ -75,12 +74,12 @@ end
 
 function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bs, be)
     Δx = similar(x)
-    Δc = similar(c)
+    # Δc = similar(c)
+    Δc = CuArrays.zeros(length(c), 1)
     @cuda threads=256 blocks=length(bs) kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc)
-    synchronize()
-    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
-    synchronize()
-    Δx, Δc, nothing
+    # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
+    missingbags_mapreducedim!(identity, +, Δc, Δ, bs, be)
+    Δx, Δc[:], nothing
 end
 
 function segmented_max_back(Δ, y, x::Missing, C, bags::CuAlignedBags)

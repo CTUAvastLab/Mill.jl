@@ -41,23 +41,23 @@ function kernel_segmented_mean_forw!(y, x, C, bs, be, w)
     return(nothing)
 end
 
-function kernel_missing_bags_back!(Δc, Δ, bs, be)
-    bi = blockIdx().x
-    nrows = length(Δc)
-    ri = threadIdx().x
-    ri > nrows  && return(nothing)
-    stride = blockDim().x
-
-    @inbounds for row in ri:stride:nrows
-        acc = 0
-        for i in 1:length(bs)
-            !isbagempty(bs, be, i) && continue
-            acc += Δ[row, i]
-        end
-        Δc[row] = acc
-    end
-    return(nothing)
-end
+# function kernel_missing_bags_back!(Δc, Δ, bs, be)
+#     bi = blockIdx().x
+#     nrows = length(Δc)
+#     ri = threadIdx().x
+#     ri > nrows  && return(nothing)
+#     stride = blockDim().x
+#
+#     @inbounds for row in ri:stride:nrows
+#         acc = 0
+#         for i in 1:length(bs)
+#             !isbagempty(bs, be, i) && continue
+#             acc += Δ[row, i]
+#         end
+#         Δc[row] = acc
+#     end
+#     return(nothing)
+# end
 
 function kernel_segmented_mean_back!(Δ, y, x, C, bs, be, w, Δx, Δc, Δw)
     bi = blockIdx().x
@@ -88,22 +88,27 @@ function segmented_mean_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags, w)
     y
 end
 
+include("ugly_code_is_here/missingbags.jl")
 function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::CuAlignedBags, w::Union{Nothing, CuMatrix})
     Δx = similar(x)
-    Δc = similar(c)
+    # Δc = similar(c)
+    Δc = CuArrays.zeros(length(c), 1)
     Δw = similar(w)
     @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bags.bs, bags.be, w, Δx, Δc, Δw)
-    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
-    Δx, Δc, nothing, Δw
+    # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
+    missingbags_mapreducedim!(identity, +, Δc, Δ, bags.bs, bags.be)
+    Δx, Δc[:], nothing, Δw
 end
 
 function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bags::CuAlignedBags, w::CuVector)
     Δx = similar(x)
-    Δc = similar(c)
+    # Δc = similar(c)
+    Δc = CuArrays.zeros(length(c), 1)
     Δw = similar(w, size(x))
     @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bags.bs, bags.be, w, Δx, Δc, Δw)
-    @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
-    Δx, Δc, nothing, sum(Δw, dims = 1)[:]
+    # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
+    missingbags_mapreducedim!(identity, +, Δc, Δ, bags.bs, bags.be)
+    Δx, Δc[:], nothing, sum(Δw, dims = 1)[:]
 end
 
 function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::Missing, C::CuVector, bags::CuAlignedBags, w::Nothing)
