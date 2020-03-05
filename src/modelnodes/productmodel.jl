@@ -60,7 +60,6 @@ function HiddenLayerModel(m::ProductModel, x::TreeNode, k::Int)
     ProductModel(hms, hm), o
 end
 
-
 function mapactivations(hm::ProductModel, x::TreeNode, m::ProductModel)
     ks = keys(m.ms)
     _xxs = [mapactivations(hm.ms[i], x.data[i], m.ms[i]) for i in keys(m.ms)]
@@ -69,4 +68,11 @@ function mapactivations(hm::ProductModel, x::TreeNode, m::ProductModel)
 
     ho, o = mapactivations(hm.m, xxs, m.m)
     (ArrayNode(ho.data + hxs), o)
+end
+
+function fold(f, m::ProductModel, x::TreeNode)
+    # o₁ = (;[k => fold(f, m.ms[k], x.data[k]) for k in keys(m.ms)]...)
+    o₁ = map(k -> fold(f, m.ms[k], x.data[k]), keys(m.ms))
+    o₂ = f(o₁)
+    f(m.m, o₂)
 end

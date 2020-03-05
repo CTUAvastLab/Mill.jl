@@ -27,6 +27,12 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T<:ArrayNode}
     ArrayNode(data, metadata)
 end
 
+function reduce(::typeof(vcat), as::Vector{T}) where {T<:ArrayNode}
+    data = reduce(vcat, [a.data for a in as])
+    metadata = as[1].metadata == nothing ? nothing : as[1].metadata
+    ArrayNode(data, metadata)
+end
+
 # hcat and vcat only for ArrayNode
 function Base.vcat(as::ArrayNode...)
     data = vcat([a.data for a in as]...)
