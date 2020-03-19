@@ -55,4 +55,7 @@ include("hierarchical_utils.jl")
 Base.show(io::IO, ::T) where T <: Union{AbstractNode, MillModel, AggregationFunction} = show(io, Base.typename(T))
 Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, MillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=2)
 Base.getindex(n::Union{AbstractNode, MillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
+
+export printtree
+
 end
