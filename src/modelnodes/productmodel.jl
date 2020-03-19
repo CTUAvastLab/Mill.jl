@@ -70,8 +70,7 @@ function mapactivations(hm::ProductModel, x::TreeNode, m::ProductModel)
     (ArrayNode(ho.data + hxs), o)
 end
 
-function fold(f, m::ProductModel, x::TreeNode)
-    # o₁ = (;[k => fold(f, m.ms[k], x.data[k]) for k in keys(m.ms)]...)
+function fold(f, m::ProductModel, x)
     o₁ = map(k -> fold(f, m.ms[k], x.data[k]), keys(m.ms))
     o₂ = f(o₁)
     f(m.m, o₂)

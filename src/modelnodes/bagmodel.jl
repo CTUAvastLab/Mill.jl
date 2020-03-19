@@ -70,8 +70,9 @@ function mapactivations(hm::BagModel, x::BagNode{<: Missing, B,C}, m::BagModel) 
     (ArrayNode(hbo.data + hai), bo)
 end
 
-function fold(f, m::BagModel, x::BagNode)
-    o₁ = f(m.im, x.data)
+function fold(f, m::BagModel, x)
+    o₁ = fold(f, m.im, x.data)
     o₂ = f(m.a, o₁, x.bags)
-    f(m.bm, o₂)
+    o₃ = fold(f, m.bm, o₂)
+    o₃
 end
