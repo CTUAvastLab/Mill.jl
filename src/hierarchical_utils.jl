@@ -1,5 +1,4 @@
-# TODO upravit Mill + jeho dokumentaci
-import HierarchicalUtils: NodeType, noderepr, childrenfield, children, childrenstring
+import HierarchicalUtils: NodeType, noderepr, childrenfields, children, childrenstring
 
 NodeType(::Type{<:Union{ArrayNode, ArrayModel, BagNode{Missing}}}) = LeafNode()
 NodeType(::Type{<:AbstractNode}) = InnerNode()
@@ -15,9 +14,9 @@ noderepr(n::WeightedBagNode) = "WeightedNode with $(length(n.bags)) bag(s) and w
 noderepr(n::AbstractTreeNode) = "TreeNode"
 noderepr(n::ProductModel) = "ProductModel ↦ $(noderepr(n.m))"
 
-childrenfield(::Type{<:Union{AbstractTreeNode, AbstractBagNode}}) = :data
-childrenfield(::Type{BagModel}) = :im
-childrenfield(::Type{ProductModel}) = :ms
+childrenfields(::Type{<:Union{AbstractTreeNode, AbstractBagNode}}) = (:data,)
+childrenfields(::Type{BagModel}) = (:im,)
+childrenfields(::Type{ProductModel}) = (:ms,)
 
 children(n::AbstractBagNode) = (n.data,)
 children(n::BagModel) = (n.im,)
