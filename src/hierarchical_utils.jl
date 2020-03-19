@@ -1,5 +1,4 @@
 # TODO upravit Mill + jeho dokumentaci
-# TODO MillModel -> AbstractMillModel
 import HierarchicalUtils: NodeType, noderepr, childrenfield, children, childrenstring
 
 NodeType(::Type{<:Union{ArrayNode, ArrayModel, BagNode{Missing}}}) = LeafNode()
