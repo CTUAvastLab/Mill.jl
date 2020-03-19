@@ -3,7 +3,7 @@ using SparseArrays, HierarchicalUtils
 metadata = fill("metadata", 4)
 an1 = ArrayNode(rand(3,4))
 b = BagNode(an1, [1:4, 0:-1], metadata)
-an2 = ArrayNode(NGramMatrix(["test"], 3, 10, 17))
+an2 = ArrayNode(NGramMatrix(["test", "skunk", "mill", "julia"], 3, 10, 17))
 wb = WeightedBagNode(an2, [1:2,3:4], rand(1:4, 4), metadata)
 n1 = TreeNode((b=b,wb=wb))
 an3 = ArrayNode(SparseMatrixCSC(rand(10, 2)))
