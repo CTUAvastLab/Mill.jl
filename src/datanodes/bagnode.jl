@@ -1,11 +1,11 @@
-struct BagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, C} <: AbstractBagNode
-    data::T
+struct BagNode{B <: AbstractBags, C} <: AbstractBagNode
+    data
     bags::B
     metadata::C
 
     function BagNode(d::T, b::B, m::C=nothing) where {T <: Union{Missing, AbstractNode}, B <: AbstractBags, C}
         ismissing(d) && any(_len.(b.bags) .!= 0) && error("BagNode with nothing in data cannot have a non-empty bag")
-        new{T, B, C}(d, b, m)
+        new{B, C}(d, b, m)
     end
 end
 

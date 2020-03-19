@@ -23,12 +23,10 @@ BagModel(im::MillFunction, a) = BagModel(im, a, identity)
 BagModel(im::MillModel, a) = BagModel(im, a, ArrayModel(identity))
 
 (m::BagModel)(x::WeightedBagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
-# if the data is missing, we do not use the mapping
-(m::BagModel)(x::WeightedBagNode{<: Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags, x.weights)))
 
-(m::BagModel)(x::BagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags))
-# if the data is missing, we do not use the mapping
-(m::BagModel)(x::BagNode{<: Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags)))
+function (m::BagModel)(x::BagNode)
+    ismissing(x.data) ? m.bm(ArrayNode(m.a(x.data, x.bags))) : m.bm(m.a(m.im(x.data), x.bags))
+end
 
 function modelprint(io::IO, m::BagModel{T, A}; pad=[], s="", tr=false) where {T, A}
     c = COLORS[(length(pad)%length(COLORS))+1]
@@ -55,7 +53,7 @@ function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
 end
 
 
-function mapactivations(hm::BagModel, x::BagNode{<:AbstractNode, B, C}, m::BagModel) where {B, C}
+function mapactivations(hm::BagModel, x::BagNode, m::BagModel)
     hmi, mi = mapactivations(hm.im, x.data, m.im)
     ai = m.a(mi, x.bags)
     hai = hm.a(hmi, x.bags)
@@ -63,12 +61,12 @@ function mapactivations(hm::BagModel, x::BagNode{<:AbstractNode, B, C}, m::BagMo
     (ArrayNode(hbo.data + hai.data), bo)
 end
 
-function mapactivations(hm::BagModel, x::BagNode{<: Missing, B,C}, m::BagModel) where {B,C}
-    ai = m.a(missing, x.bags)
-    hai = hm.a(missing, x.bags)
-    hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)
-    (ArrayNode(hbo.data + hai), bo)
-end
+# function mapactivations(hm::BagModel, x::BagNode{<: Missing, B,C}, m::BagModel) where {B,C}
+#     ai = m.a(missing, x.bags)
+#     hai = hm.a(missing, x.bags)
+#     hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)
+#     (ArrayNode(hbo.data + hai), bo)
+# end
 
 function fold(f, m::BagModel, x)
     o₁ = fold(f, m.im, x.data)
