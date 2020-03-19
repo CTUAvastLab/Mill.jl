@@ -1,3 +1,5 @@
+using SparseArrays, HierarchicalUtils
+
 metadata = fill("metadata", 4)
 an1 = ArrayNode(rand(3,4))
 b = BagNode(an1, [1:4, 0:-1], metadata)

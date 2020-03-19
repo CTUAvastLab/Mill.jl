@@ -1,4 +1,4 @@
-import HierarchicalUtils: NodeType, noderepr, childrenfields, children, childrenstring
+import HierarchicalUtils: NodeType, noderepr, childrenfields, children
 
 NodeType(::Type{<:Union{ArrayNode, ArrayModel, BagNode{Missing}}}) = LeafNode()
 NodeType(::Type{<:AbstractNode}) = InnerNode()
@@ -22,6 +22,3 @@ children(n::AbstractBagNode) = (n.data,)
 children(n::BagModel) = (n.im,)
 children(n::TreeNode) = n.data
 children(n::ProductModel) = n.ms
-
-childrenstring(n::TreeNode{<:NamedTuple}) = ["$k: " for k in keys(n.data)]
-childrenstring(n::ProductModel{<:NamedTuple}) = ["$k: " for k in keys(n.ms)]
