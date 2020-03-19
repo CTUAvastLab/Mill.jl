@@ -10,7 +10,7 @@
  Pevny and Somol has proposed simple way to solve MIL problems with neural networks. The network consists from two non-linear layers, with mean (or maximum) operation sandwiched between nonlinearities. Denoting ![equation](https://latex.codecogs.com/gif.latex?f_1), ![equation](https://latex.codecogs.com/gif.latex?f_2) layers of neural network, the output is calculated as ![equation](https://latex.codecogs.com/gif.latex?f%28x%29%20%3D%20f_2%20%5Cleft%28%5Cfrac%7B1%7D%7Bn%7D%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%20f_1%28x_i%29%5Cright%29). In [[3](#cit3)], authors have further extended the universal approximation theorem to MIL problems.
  ### Multiple instance learning on Musk 1
 Musk dataset is a classic problem of the field used in publication [[4](#cit4)], which has given the class of problems its name. 
- Below is a little walk-through how to solve the problem using Mill library. The full example is shown in [example/musk.jl](example/musk.jl).
+ Below is a little walk-through how to solve the problem using Mill library. The full example is shown in [example/musk.jl](example/musk.jl), which also contains Julia environment to run the whole thing.
  
  Let's start by importing all libraries
 ```julia
@@ -22,12 +22,12 @@ julia> using Base.Iterators: repeated
  Loading a dataset from file and folding it in Mill's data-structures is done in the following function. `musk.jld2` contains matrix with features, `fMat`, the id of sample (called bag in MIL terminology) to which each instance (column in `fMat`) belongs to, and finally a label of each instance in `y`. 
 `BagNode` is a structure which holds feature matrix and ranges of columns of each bag. Finally, `BagNode` can be concatenated (use `catobs`) and you can get subset using `getindex`.
 ```julia
-julia> fMat = load("example/musk.jld2", "fMat");      # matrix with instances, each column is one sample
-julia> bagids = load("example/musk.jld2", "bagids");  # ties instances to bags
-julia> x = BagNode(ArrayNode(fMat), bagids);          # create BagDataset
-julia> y = load("example/musk.jld2", "y");            # load labels
-julia> y = map(i -> maximum(y[i]) + 1, x.bags);       # create labels on bags
-julia> y_oh = Flux.onehotbatch(y, 1:2);               # one-hot encoding
+julia> fMat = load("musk.jld2", "fMat");         # matrix with instances, each column is one sample
+julia> bagids = load("musk.jld2", "bagids");     # ties instances to bags
+julia> x = BagNode(ArrayNode(fMat), bagids);     # create BagDataset
+julia> y = load("musk.jld2", "y");               # load labels
+julia> y = map(i -> maximum(y[i]) + 1, x.bags);  # create labels on bags
+julia> y_oh = Flux.onehotbatch(y, 1:2);          # one-hot encoding
 ```
  Once we have data, we can manually create a model. `BagModel` is designed to implement a basic multi-instance learning model as described above. Below, we use a simple model, where instances are first passed through a single layer with 10 neurons (input dimension is 166) with `tanh` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `tanh` nonlinearity followed by output linear layer with 2 neurons (output dimension).
 ```julia
@@ -35,11 +35,9 @@ julia> model = BagModel(
     ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
     SegmentedMeanMax(10),                                       # aggregation
     ArrayModel(Chain(Dense(20, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
-
-BagModel
-  ├── ArrayModel(Dense(166, 10, NNlib.tanh))
-  ├── ⟨SegmentedMean(10), SegmentedMax(10)⟩
-  └── ArrayModel(Chain(Dense(20, 10, NNlib.tanh), Dense(10, 2)))
+    
+BagModel ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Chain(Dense(20, 10, tanh), Dense(10, 2)))
+  └── ArrayModel(Dense(166, 10, tanh))
 ```
  The loss function is standard `cross-entropy`:
 ```julia
@@ -49,7 +47,7 @@ julia> loss(x, y_oh) = Flux.logitcrossentropy(model(x).data, y_oh);
  ```julia
 julia> evalcb = () -> @show(loss(x, y_oh));
 julia> opt = Flux.ADAM();
-julia> @epochs 10 Flux.train!(loss, params(model), repeated((x, y_oh), 100), opt, cb=throttle(evalcb, 1))
+julia> @epochs 10 Flux.train!(loss, params(model), repeated((x, y_oh), 1000), opt, cb=throttle(evalcb, 1))
 
 [ Info: Epoch 1
 loss(x, y_oh) = 87.793724f0
@@ -98,13 +96,9 @@ julia> m = BagModel(
     SegmentedMeanMax(3),
     ArrayModel(Chain(Dense(6, 3, Flux.relu), Dense(3,2))))
 
-BagModel
-  ├── BagModel
-  │     ├── ArrayModel(Dense(4, 3, NNlib.relu))
-  │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  │     └── ArrayModel(Dense(6, 3, NNlib.relu))
-  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  └── ArrayModel(Chain(Dense(6, 3, NNlib.relu), Dense(3, 2)))
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Chain(Dense(6, 3, relu), Dense(3, 2)))
+  └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        └── ArrayModel(Dense(4, 3, relu))
 ```
 and we can apply the model as
 ```julia
@@ -112,18 +106,24 @@ julia> m(ds)
 
 ArrayNode(2, 3)
 ```
- Since constructions of large models can be a process prone to errors, there is a function `reflectinmodel` which tries to automatize it keeping track of dimensions. It accepts a first parameter a sample `ds`, the second is a function returning layer (or set of layers) with input dimension `d`, and the third function is a function returning aggregation functions for `BagModel`. Using the function on the above example creates a model:
+ Since constructions of large models can be a process prone to errors, there is a function `reflectinmodel` which tries to automatize it keeping track of dimensions. It accepts as a first parameter a sample `ds`. Using the function on the above example creates a model:
+```julia
+julia> m = reflectinmodel(ds)
+
+BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
+  └── BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
+        └── ArrayModel(Dense(4, 10))
+```
+
+To have better control over the topology, `reflectinmodel` accepts up to four additional parameters. The second parameter is a function returning layer (or set of layers) with input dimension `d`, and the third function is a function returning aggregation functions for `BagModel`:
 ```julia
 julia> m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d))
 
-BagModel
-  ├── BagModel
-  │     ├── ArrayModel(Dense(4, 5, NNlib.relu))
-  │     ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
-  │     └── ArrayModel(Dense(10, 5, NNlib.relu))
-  ├── ⟨SegmentedMean(5), SegmentedMax(5)⟩
-  └── ArrayModel(Dense(10, 5, NNlib.relu))
+BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
+  └── BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
+        └── ArrayModel(Dense(4, 5, relu))
 ```
+
 Let's test the model
 ```julia
 julia> m(ds).data
@@ -135,6 +135,7 @@ julia> m(ds).data
  0.00796955  0.36415   1.18108 
  0.034735    0.17383   0.0
 ```
+
  ### Even more complicated models
 As already mentioned above, the datasets can contain Cartesian products of MIL and normal (non-MIL) problems. Let's do a quick demo.
 ```julia
@@ -151,83 +152,118 @@ julia> ds = BagNode(
 BagNode with 3 bag(s)
   └── TreeNode
         ├── BagNode with 5 bag(s)
-        │     └── ArrayNode(4, 10)
+        │     ⋮
         ├── ArrayNode(3, 5)
         ├── BagNode with 5 bag(s)
-        │     └── BagNode with 15 bag(s)
-        │           └── ArrayNode(2, 30)
+        │     ⋮
         └── ArrayNode(2, 5)
 ```
 For this, we really want to create model automatically despite it being sub-optimal.
 ```julia
 julia> m = reflectinmodel(ds, d -> Dense(d, 3, relu), d -> SegmentedMeanMax(d))
 
-BagModel
-  ├── ProductModel (
-  │     ├── BagModel
-  │     │     ├── ArrayModel(Dense(4, 3, NNlib.relu))
-  │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
-  │     ├── ArrayModel(Dense(3, 3, NNlib.relu))
-  │     ├── BagModel
-  │     │     ├── BagModel
-  │     │     │     ├── ArrayModel(Dense(2, 3, NNlib.relu))
-  │     │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  │     │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
-  │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
-  │     └── ArrayModel(Dense(2, 3, NNlib.relu))
-  │   ) ↦  ArrayModel(Dense(12, 3, NNlib.relu))
-  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  └── ArrayModel(Dense(6, 3, NNlib.relu))
-
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     ⋮
+        ├── ArrayModel(Dense(3, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     ⋮
+        └── ArrayModel(Dense(2, 3, relu))
 ```
 
-## Tree traversals
-The latest version also includes a convenient traversal functionality:
-```julia
-julia>  show_traversal(m)
+## Hierarchical utils
+Mill.jl uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features. For instance, if you want to print a non-truncated version of a model, call:
 
-BagModel []
-  ├── ProductModel [W] (
-  │     ├── BagModel [a]
-  │     │     ├── ArrayModel(Dense(4, 3, NNlib.relu)) [c]
-  │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
-  │     ├── ArrayModel(Dense(3, 3, NNlib.relu)) [e]
-  │     ├── BagModel [i]
-  │     │     ├── BagModel [k]
-  │     │     │     ├── ArrayModel(Dense(2, 3, NNlib.relu)) [l]
-  │     │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  │     │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
-  │     │     ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  │     │     └── ArrayModel(Dense(6, 3, NNlib.relu))
-  │     └── ArrayModel(Dense(2, 3, NNlib.relu)) [m]
-  │   ) ↦  ArrayModel(Dense(12, 3, NNlib.relu))
-  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  └── ArrayModel(Dense(6, 3, NNlib.relu))
+```julia
+julia> printtree(m; trunc_level=Inf)
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     └── ArrayModel(Dense(4, 3, relu))
+        ├── ArrayModel(Dense(3, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │           └── ArrayModel(Dense(2, 3, relu))
+        └── ArrayModel(Dense(2, 3, relu))
 ```
 
-This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree. All tree nodes are accessible by indexing with the traversal code:.
+Callling with `trav=true` enables convenient traversal functionality with string indexing:
+```julia
+julia>  printtree(m; trunc_level=Inf, trav=true)
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) [""]
+  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu)) ["U"]
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["Y"]
+        │     └── ArrayModel(Dense(4, 3, relu)) ["a"]
+        ├── ArrayModel(Dense(3, 3, relu)) ["c"]
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["g"]
+        │     └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["i"]
+        │           └── ArrayModel(Dense(2, 3, relu)) ["j"]
+        └── ArrayModel(Dense(2, 3, relu)) ["k"]
+```
+
+This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree (for instance when constructing adversarial samples). All tree nodes are accessible by indexing with the traversal code:.
 
 ```julia
-julia> m["k"]
+julia> m["Y"]
 
-BagModel
-  ├── ArrayModel(Dense(2, 3, NNlib.relu))
-  ├── ⟨SegmentedMean(3), SegmentedMax(3)⟩
-  └── ArrayModel(Dense(6, 3, NNlib.relu))
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+  └── ArrayModel(Dense(4, 3, relu))
 ```
 
 The following two approaches give the same result:
 ```julia
-julia> m["k"] === m.im.ms[3].im
+julia> m["Y"] === m.im.ms[1]
 
 true
 ```
 
+Other functions provided by `HierarchicalUtils.jl`:
+```
+julia> nnodes(m)
+
+9
+
+julia> nleafs(m)
+
+4
+
+julia> NodeIterator(m) |> collect
+
+9-element Array{MillModel,1}:
+ BagModel
+ ProductModel
+ BagModel
+ ArrayModel
+ ArrayModel
+ BagModel
+ BagModel
+ ArrayModel
+ ArrayModel
+
+julia> LeafIterator(m) |> collect
+
+4-element Array{ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}},1}:
+ ArrayModel
+ ArrayModel
+ ArrayModel
+ ArrayModel
+
+julia> TypeIterator{BagModel}(m) |> collect
+
+4-element Array{BagModel{T,Aggregation{2},ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}}} where T<:MillModel,1}:
+ BagModel
+ BagModel
+ BagModel
+ BagModel
+```
+
+... and many others.
+
 ## Default aggregation values
-With the latest version of Mill, it is also possible to work with missing data, replacing a missing bag with a default constant value, and even to learn this value as well.
+With the latest version of Mill, it is also possible to work with missing data, replacing a missing bag with a default constant value, and even to learn this value as well. Everything is done automatically.
 
 ## References
  <a name="cit1"><b>1</b></a> *Discriminative models for multi-instance problems with tree-structure, Tomáš Pevný, Petr Somol, 2016*, https://arxiv.org/abs/1703.02868
