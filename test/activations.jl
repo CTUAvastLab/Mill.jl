@@ -34,7 +34,7 @@ end
 end
 
 @testset "testing simple tuple models" begin
-    x = TreeNode((a = ArrayNode(randn(2,2)),
+    x = ProductNode((a = ArrayNode(randn(2,2)),
         b = ArrayNode(randn(3,2))))
     m = ProductModel((
         a = ArrayModel(Chain(Dense(2,2,leakyrelu), Dense(2,2))),

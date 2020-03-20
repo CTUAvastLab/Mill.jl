@@ -1,11 +1,11 @@
 """
-struct ArrayModel{T <: MillFunction} <: MillModel
+struct ArrayModel{T <: MillFunction} <: AbstractMillModel
 m::T
 end
 
 use a Chain, Dense, or any other function on an ArrayNode
 """
-struct ArrayModel{T} <: MillModel
+struct ArrayModel{T} <: AbstractMillModel
     m::T
 end
 

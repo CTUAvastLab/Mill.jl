@@ -4,8 +4,8 @@
 		replace matrices with at most `nnzrate` fraction of non-zeros with SparseMatrixCSC
 
 ```juliadoctest
-julia> x = TreeNode((
-				TreeNode((
+julia> x = ProductNode((
+				ProductNode((
 					MatrixNode(randn(5,5)),
 					MatrixNode(zeros(5,5))
 						)),

@@ -5,9 +5,9 @@ an1 = ArrayNode(rand(3,4))
 b = BagNode(an1, [1:4, 0:-1], metadata)
 an2 = ArrayNode(NGramMatrix(["test", "skunk", "mill", "julia"], 3, 10, 17))
 wb = WeightedBagNode(an2, [1:2,3:4], rand(1:4, 4), metadata)
-n1 = TreeNode((b=b,wb=wb))
+n1 = ProductNode((b=b,wb=wb))
 an3 = ArrayNode(SparseMatrixCSC(rand(10, 2)))
-n2 = TreeNode((n1, an3))
+n2 = ProductNode((n1, an3))
 
 n2m = reflectinmodel(n2)
 n1m, an3m = n2m.ms
@@ -94,9 +94,9 @@ end
 @testset "TypeIterator" begin
     @test Set(TypeIterator{AbstractNode}(n2)) == Set(NodeIterator(n2))
     @test Set(TypeIterator{AbstractBagNode}(n2)) == Set([b, wb])
-    @test Set(TypeIterator{AbstractTreeNode}(n2)) == Set([n1, n2])
+    @test Set(TypeIterator{AbstractProductNode}(n2)) == Set([n1, n2])
 
-    @test Set(TypeIterator{MillModel}(n2m)) == Set(NodeIterator(n2m))
+    @test Set(TypeIterator{AbstractMillModel}(n2m)) == Set(NodeIterator(n2m))
     @test Set(TypeIterator{BagModel}(n2m)) == Set([bm, wbm])
     @test Set(TypeIterator{ProductModel}(n2m)) == Set([n1m, n2m])
 end
@@ -104,8 +104,3 @@ end
 @testset "ZipIterator" begin
     @test ZipIterator(n2, n2m) |> collect == collect(zip(NodeIterator(n2) |> collect, NodeIterator(n2m) |> collect))
 end
-
-
-
-
-

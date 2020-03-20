@@ -163,18 +163,18 @@ end
             m(bn).data
         end
 
-        tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+        tn = ProductNode((ArrayNode(x), ArrayNode(y)))
         m = f64(reflectinmodel(tn, layerbuilder))
         @test mgradtest(x, y) do x, y
-            tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+            tn = ProductNode((ArrayNode(x), ArrayNode(y)))
             m(tn).data
         end
 
-        tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
+        tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         @test mgradtest(x, y) do x, y
-            tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
+            tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
             m(tn).data
         end
 
@@ -208,11 +208,11 @@ end
             m(bn).data
         end
 
-        tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
+        tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         @test mgradtest(x, y) do x, y
-            tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
+            tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
             m(tn).data
         end
 
@@ -255,7 +255,7 @@ end
             m(bn).data
         end
 
-        tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+        tn = ProductNode((ArrayNode(x), ArrayNode(y)))
         m = f64(reflectinmodel(tn, layerbuilder))
         @test mgradtest(params(m)...) do W1, b1, W2, b2, W3, b3
             m = ProductModel(ArrayModel.((
@@ -265,7 +265,7 @@ end
             m(tn).data
         end
 
-        tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
+        tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
         abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
@@ -343,7 +343,7 @@ end
             m(bn).data
         end
 
-        tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
+        tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
         abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
@@ -398,7 +398,7 @@ end
     end
 
   @testset "A gradient of ProductNode with a NamedTuple " begin
-    a = TreeNode((a = ArrayNode(randn(2,4)), b = ArrayNode(randn(3,4))))
+    a = ProductNode((a = ArrayNode(randn(2,4)), b = ArrayNode(randn(3,4))))
     m = f64(ProductModel((a = ArrayModel(Dense(2,2)), b = ArrayModel(Dense(3,1))), Dense(3,2)))
     ps = params(m)
     gradient(() -> sum(m(a).data), ps)

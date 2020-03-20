@@ -1,4 +1,4 @@
-abstract type MillModel end
+abstract type AbstractMillModel end
 
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
@@ -18,7 +18,7 @@ function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
     BagModel(im, agg, bm), d
 end
 
-function _reflectinmodel(x::AbstractTreeNode, db, da, b, a, s)
+function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s)
     n = length(x.data)
     mm = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n)) for (i, xx) in enumerate(x.data)]
     im = tuple([i[1] for i in mm]...)
@@ -26,7 +26,7 @@ function _reflectinmodel(x::AbstractTreeNode, db, da, b, a, s)
     ProductModel(im, tm), d
 end
 
-function _reflectinmodel(x::TreeNode{T,C}, db, da, b, a, s) where {T<:NamedTuple, C}
+function _reflectinmodel(x::ProductNode{T,C}, db, da, b, a, s) where {T<:NamedTuple, C}
     n = length(x.data)
     ks = keys(x.data)
     ms = (;[k => _reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n))[1] for (i, k) in enumerate(ks)]...)

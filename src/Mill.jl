@@ -28,8 +28,8 @@ include("util.jl")
 include("threadfuns.jl")
 
 include("datanodes/datanode.jl")
-export AbstractNode, AbstractTreeNode, AbstractBagNode
-export ArrayNode, BagNode, WeightedBagNode, TreeNode
+export AbstractNode, AbstractProductNode, AbstractBagNode
+export ArrayNode, BagNode, WeightedBagNode, ProductNode
 export NGramMatrix, NGramIterator
 export catobs, removeinstances
 
@@ -38,7 +38,7 @@ include("aggregations/aggregation.jl")
 export AggregationFunction, Aggregation
 
 include("modelnodes/modelnode.jl")
-export MillModel, ArrayModel, BagModel, ProductModel
+export AbstractMillModel, ArrayModel, BagModel, ProductModel
 export reflectinmodel
 
 include("conv.jl")
@@ -52,9 +52,9 @@ export replacein
 
 include("hierarchical_utils.jl")
 
-Base.show(io::IO, ::T) where T <: Union{AbstractNode, MillModel, AggregationFunction} = show(io, Base.typename(T))
-Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, MillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=2)
-Base.getindex(n::Union{AbstractNode, MillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
+Base.show(io::IO, ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = show(io, Base.typename(T))
+Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=2)
+Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 export printtree
 

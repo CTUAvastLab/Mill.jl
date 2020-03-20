@@ -18,7 +18,7 @@ end
 
 @testset "testing simple tuple models" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    x = TreeNode((ArrayNode(randn(Float32, 3, 4)), ArrayNode(randn(Float32, 4, 4))))
+    x = ProductNode((ArrayNode(randn(Float32, 3, 4)), ArrayNode(randn(Float32, 4, 4))))
     m = reflectinmodel(x, layerbuilder)
 
     @test eltype(m(x).data) == Float32
@@ -26,7 +26,7 @@ end
     @test typeof(m) <: ProductModel
     @test typeof(m.ms[1]) <: ArrayModel
     @test typeof(m.ms[2]) <: ArrayModel
-    x = TreeNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
+    x = ProductNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                   BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 2)

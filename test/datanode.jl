@@ -20,12 +20,12 @@ wc = WeightedBagNode(ArrayNode(rand(3,4)),[1:1,2:2,3:4], rand(1:4, 4), metadata)
 wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4,0:-1], rand(1:4, 4), metadata)
 e = ArrayNode(rand(2, 2))
 
-f = TreeNode((wb,b))
-g = TreeNode([c, wc])
-h = TreeNode((wc,c))
-i = TreeNode((
+f = ProductNode((wb,b))
+g = ProductNode([c, wc])
+h = ProductNode((wc,c))
+i = ProductNode((
               b,
-              TreeNode((
+              ProductNode((
                         b,
                         BagNode(
                                 BagNode(
@@ -36,8 +36,8 @@ i = TreeNode((
                                )
                        ))
              ))
-k = TreeNode((a = wb, b = b))
-l = TreeNode((a = wc, b = c))
+k = ProductNode((a = wb, b = b))
+l = ProductNode((a = wc, b = c))
 
 @testset "testing nobs" begin
     @test nobs(a) == nobs(wa) == 1
@@ -138,7 +138,7 @@ end
     @test catobs(wa, wb, wc).weights == catobs(wa, wb, missing, wc).weights
 end
 
-@testset "testing hierarchical hcat on tree nodes" begin
+@testset "testing hierarchical hcat on product nodes" begin
     @test all(catobs(f, h).data[1].data.data .== hcat(wb.data.data, wc.data.data))
     @test all(reduce(catobs, [f, h]).data[1].data.data .== hcat(wb.data.data, wc.data.data))
     @test all(catobs(f, h).data[2].data.data .== hcat(b.data.data, c.data.data))
@@ -220,9 +220,9 @@ end
 end
 
 
-@testset "testing TreeNode" begin
-    x = TreeNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
-    y = TreeNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
+@testset "testing ProductNode" begin
+    x = ProductNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
+    y = ProductNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
     @test all(catobs(x,y).data[1].data .== hcat(x.data[1].data,y.data[1].data))
     @test all(reduce(catobs, [x,y]).data[1].data .== hcat(x.data[1].data,y.data[1].data))
     @test all(catobs(x,y).data[2].data .== hcat(x.data[2].data,y.data[2].data))
@@ -243,7 +243,7 @@ end
 end
 
 @testset "testing sparsify and mapdata" begin
-    x = TreeNode((TreeNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
+    x = ProductNode((ProductNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
     xs = mapdata(i -> sparsify(i, 0.05), x)
     @test typeof(xs.data[2].data) <: SparseMatrixCSC
     @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC
@@ -251,7 +251,7 @@ end
 end
 
 @testset "testing missing mapdata" begin
-    x = TreeNode((TreeNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))), BagNode(missing, AlignedBags([0:-1]), nothing))
+    x = ProductNode((ProductNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))), BagNode(missing, AlignedBags([0:-1]), nothing))
     xs = mapdata(i -> sparsify(i, 0.05), x)
     @test typeof(xs.data[2].data) <: SparseMatrixCSC
     @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC

@@ -140,7 +140,7 @@ julia> m(ds).data
 As already mentioned above, the datasets can contain Cartesian products of MIL and normal (non-MIL) problems. Let's do a quick demo.
 ```julia
 julia> ds = BagNode(
-    TreeNode(
+    ProductNode(
         (BagNode(ArrayNode(randn(4,10)),[1:2,3:4,5:5,6:7,8:10]),
         ArrayNode(randn(3,5)),
         BagNode(
@@ -150,7 +150,7 @@ julia> ds = BagNode(
     [1:1,2:3,4:5])
 
 BagNode with 3 bag(s)
-  └── TreeNode
+  └── ProductNode
         ├── BagNode with 5 bag(s)
         │     ⋮
         ├── ArrayNode(3, 5)
@@ -232,7 +232,7 @@ julia> nleafs(m)
 
 julia> NodeIterator(m) |> collect
 
-9-element Array{MillModel,1}:
+9-element Array{AbstractMillModel,1}:
  BagModel
  ProductModel
  BagModel
@@ -253,7 +253,7 @@ julia> LeafIterator(m) |> collect
 
 julia> TypeIterator{BagModel}(m) |> collect
 
-4-element Array{BagModel{T,Aggregation{2},ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}}} where T<:MillModel,1}:
+4-element Array{BagModel{T,Aggregation{2},ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}}} where T<:AbstractMillModel,1}:
  BagModel
  BagModel
  BagModel

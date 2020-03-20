@@ -4,7 +4,7 @@ NodeType(::Type{<:Union{Missing, ArrayNode, ArrayModel}}) = LeafNode()
 NodeType(::Type{<:AbstractNode}) = InnerNode()
 NodeType(::Type{<:AbstractBagNode}) = SingletonNode()
 NodeType(::Type{<:BagModel}) = SingletonNode()
-NodeType(::Type{<:MillModel}) = InnerNode()
+NodeType(::Type{<:AbstractMillModel}) = InnerNode()
 
 noderepr(::Missing) = "∅"
 noderepr(n::ArrayNode) = "ArrayNode$(size(n.data))"
@@ -16,14 +16,14 @@ else
 end
 noderepr(n::BagModel) = "BagModel ↦ $(repr("text/plain", n.a)) ↦ $(repr("text/plain", n.bm))"
 noderepr(n::WeightedBagNode) = "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))"
-noderepr(n::AbstractTreeNode) = "TreeNode"
+noderepr(n::AbstractProductNode) = "ProductNode"
 noderepr(n::ProductModel) = "ProductModel ↦ $(noderepr(n.m))"
 
-childrenfields(::Type{<:Union{AbstractTreeNode, AbstractBagNode}}) = (:data,)
+childrenfields(::Type{<:Union{AbstractProductNode, AbstractBagNode}}) = (:data,)
 childrenfields(::Type{BagModel}) = (:im,)
 childrenfields(::Type{ProductModel}) = (:ms,)
 
 children(n::AbstractBagNode) = (n.data,)
 children(n::BagModel) = (n.im,)
-children(n::TreeNode) = n.data
+children(n::ProductNode) = n.data
 children(n::ProductModel) = n.ms

@@ -3,7 +3,7 @@ using DataFrames
 import Base: cat, vcat, hcat, _cat, lastindex, getindex
 
 abstract type AbstractNode end
-abstract type AbstractTreeNode <: AbstractNode end
+abstract type AbstractProductNode <: AbstractNode end
 abstract type AbstractBagNode <: AbstractNode end
 
 # FIXME: this alias would better be Union{AbstractVector{T}, Tuple{Vararg{T}}}
@@ -75,7 +75,7 @@ subset(::Nothing, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
 
-include("arrays.jl")
+include("arraynode.jl")
 
 # definitions needed for all types of bag nodes
 _len(a::UnitRange) = max(a.stop - a.start + 1, 0)
@@ -86,6 +86,5 @@ Base.ndims(x::AbstractBagNode) = Colon()
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")
-
 include("ngrams.jl")
-include("treenode.jl")
+include("productnode.jl")
