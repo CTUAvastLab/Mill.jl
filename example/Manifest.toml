@@ -214,9 +214,9 @@ version = "2.0.1"
 
 [[HierarchicalUtils]]
 deps = ["Setfield"]
-git-tree-sha1 = "a5da854baa5591a7544e3685a08d1c40a71ec286"
+git-tree-sha1 = "28fb4b8f5ced9932e88eaa76416b8f4c0a9a53d2"
 uuid = "f9ccea15-0695-44b9-8113-df7c26ae4fa9"
-version = "0.0.1"
+version = "0.0.4"
 
 [[IRTools]]
 deps = ["InteractiveUtils", "MacroTools", "Test"]
@@ -331,7 +331,7 @@ version = "0.5.0"
 deps = ["Combinatorics", "DataFrames", "DataStructures", "Flux", "HierarchicalUtils", "LearnBase", "MLDataPattern", "SparseArrays", "Statistics", "Zygote"]
 path = ".."
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
-version = "1.0.6"
+version = "1.1.0"
 
 [[Missings]]
 deps = ["DataAPI"]
