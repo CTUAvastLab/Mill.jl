@@ -9,8 +9,11 @@ NodeType(::Type{<:MillModel}) = InnerNode()
 noderepr(::Missing) = "∅"
 noderepr(n::ArrayNode) = "ArrayNode$(size(n.data))"
 noderepr(n::ArrayModel) = "ArrayModel($(n.m))"
-noderepr(n::BagNode) = "BagNode with $(length(n.bags)) bag(s)"
-noderepr(n::BagNode{Missing}) = "BagNode with $(length(n.bags)) empty bag(s)"
+noderepr(n::BagNode) = if ismissing(n.data) || nobs(n.data) == 0
+    "BagNode with $(length(n.bags)) empty bag(s)"
+else
+    "BagNode with $(length(n.bags)) bag(s)"
+end
 noderepr(n::BagModel) = "BagModel ↦ $(repr("text/plain", n.a)) ↦ $(repr("text/plain", n.bm))"
 noderepr(n::WeightedBagNode) = "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))"
 noderepr(n::AbstractTreeNode) = "TreeNode"
