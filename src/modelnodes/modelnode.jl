@@ -2,15 +2,13 @@ abstract type MillModel end
 
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 
-Base.show(io::IO, ::MIME"text/plain", m::MillModel) = modelprint(io, m, tr=false)
-Base.show(io::IO, ::T) where T <: MillModel = show(io, Base.typename(T))
-modelprint(io::IO, m::MillModel; tr=false, pad=[]) = paddedprint(io, m, "\n")
-
 include("arraymodel.jl")
 include("bagmodel.jl")
 include("productmodel.jl")
 
-reflectinmodel(x, db, da=d->SegmentedMean(d); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")[1]
+import HierarchicalUtils: encode, stringify
+
+reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")[1]
 
 function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
     im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1))

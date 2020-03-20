@@ -6,9 +6,6 @@ Flux.@functor SegmentedSum
 
 SegmentedSum(d::Int) = SegmentedSum(zeros(Float32, d))
 
-Base.show(io::IO, sm::SegmentedSum) = print(io, "SegmentedSum($(length(sm.C)))\n")
-modelprint(io::IO, sm::SegmentedSum; pad=[]) = paddedprint(io, "SegmentedSum($(length(sm.C)))")
-
 (m::SegmentedSum)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_sum_forw(x, m.C, bags, w)
 function (m::SegmentedSum)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
     segmented_sum_forw(x .* mask', m.C, bags, w)

@@ -1,21 +1,16 @@
 module Mill
-using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote
+
+using Flux
+using MLDataPattern
+using SparseArrays
+using Statistics
+using Combinatorics
+using Zygote
+using HierarchicalUtils
 using Zygote: @adjoint
 import Base.reduce
 
-const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
-
 MLDataPattern.nobs(::Missing) = nothing
-
-function paddedprint(io, s...; color=:default, pad=[])
-    for (c, p) in pad
-        printstyled(io, p, color=c)
-    end
-    printstyled(io, s..., color=color)
-end
-
-key_labels(data::NamedTuple) = ["$k: " for k in keys(data)]
-key_labels(data) = ["" for _ in 1:length(data)]
 
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 
@@ -46,9 +41,6 @@ include("modelnodes/modelnode.jl")
 export MillModel, ArrayModel, BagModel, ProductModel
 export reflectinmodel
 
-include("traversal_encoding.jl")
-export show_traversal, encode_traversal
-
 include("conv.jl")
 export bagconv, BagConv
 
@@ -57,5 +49,13 @@ export BagChain
 
 include("replacein.jl")
 export replacein
+
+include("hierarchical_utils.jl")
+
+Base.show(io::IO, ::T) where T <: Union{AbstractNode, MillModel, AggregationFunction} = show(io, Base.typename(T))
+Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, MillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=2)
+Base.getindex(n::Union{AbstractNode, MillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
+
+export printtree
 
 end

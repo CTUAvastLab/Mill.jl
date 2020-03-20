@@ -13,9 +13,6 @@ Flux.@functor ArrayModel
 
 (m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x)
 
-modelprint(io::IO, m::ArrayModel; pad=[], s="", tr=false) = paddedprint(io, "ArrayModel(", m.m, ")$(tr_repr(s, tr))")
-
-
 function HiddenLayerModel(m::ArrayModel, x::ArrayNode, k::Int)
 	os = Flux.activations(m.m, x.data)
 	layers = map(x -> Dense(size(x,1), k), os)

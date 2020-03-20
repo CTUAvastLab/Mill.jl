@@ -75,9 +75,6 @@ subset(::Nothing, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
 
-Base.show(io::IO, ::MIME"text/plain", n::AbstractNode) = dsprint(io, n, tr=false)
-Base.show(io::IO, ::T) where T <: AbstractNode = show(io, Base.typename(T))
-
 include("arrays.jl")
 
 # definitions needed for all types of bag nodes
@@ -86,8 +83,6 @@ _len(a::Vector) = length(a)
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 Base.ndims(x::AbstractBagNode) = Colon()
-
-dsprint(io::IO, ::Missing; pad=[], s="", tr=false) = paddedprint(io, " ∅")
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")
