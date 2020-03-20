@@ -179,10 +179,10 @@ end
     @test d[[2,1]].bags.bags == [0:-1,1:4]
     @test all(d[1:2].data.data .== d.data.data)
     @test d[1:2].bags.bags == [1:4,0:-1]
-    @test ismissing(d[2].data)
+    @test nobs(d[2].data) == 0
     @test d[2].bags.bags == [0:-1]
     @test isempty(a[2:1].bags.bags)
-    @test ismissing(a[2:1].data)
+    @test nobs(a[2:1].data) == 0
 end
 
 @testset "testing WeightedBagNode indexing" begin
@@ -204,7 +204,7 @@ end
     @test wd[[2,1]].bags.bags == [0:-1,1:4]
     @test all(wd[1:2].data.data .== wd.data.data)
     @test wd[1:2].bags.bags == [1:4,0:-1]
-    @test ismissing(wd[2].data)
+    @test nobs(wd[2].data) == 0
     @test wd[2].bags.bags == [0:-1]
 end
 

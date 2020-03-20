@@ -229,6 +229,27 @@ true
 ## Default aggregation values
 With the latest version of Mill, it is also possible to work with missing data, replacing a missing bag with a default constant value, and even to learn this value as well.
 
+## Representing missing values
+The library currently support two ways to represent bags with missing values. First one represent missing data using `missing` as `a = BagNode(missing, [0:-1])` while the second as an empty vector as `a = BagNode(zero(4,0), [0:-1])`.  While off the shelf the library supports both approaches transparently, the difference is mainly when one uses getindex, and therefore there is a switch
+`Mill.emptyismissing(false)`, which is by default false. Let me demonstrate the difference.
+```julia 
+julia> a = BagNode(ArrayNode(rand(3,2)), [1:2, 0:-1])
+BagNode with 2 bag(s)
+  └── ArrayNode(3, 2)
+
+julia> Mill.emptyismissing(false);
+
+julia> a[2].data
+ArrayNode(3, 0)
+
+julia> Mill.emptyismissing(true)
+true
+
+julia> a[2].data
+missing
+```
+The advantage of the first approach, default, is that types are always the same, which is nice to the compiler (and Zygote). The advantage of the latter is that it is more compact and nicer.
+
 ## References
  <a name="cit1"><b>1</b></a> *Discriminative models for multi-instance problems with tree-structure, Tomáš Pevný, Petr Somol, 2016*, https://arxiv.org/abs/1703.02868
  

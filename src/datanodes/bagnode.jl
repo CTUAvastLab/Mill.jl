@@ -1,3 +1,9 @@
+const _emptyismissing = Ref(false)
+
+function emptyismissing(a)
+    _emptyismissing[] = a
+end
+
 struct BagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, C} <: AbstractBagNode
     data::T
     bags::B
@@ -17,7 +23,7 @@ mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 
 function Base.getindex(x::BagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
-    # isempty(ii) && return(BagNode(missing, nb, nothing))
+    _emptyismissing[] && isempty(ii) && return(BagNode(missing, nb, nothing))
     BagNode(subset(x.data,ii), nb, subset(x.metadata, i))
 end
 

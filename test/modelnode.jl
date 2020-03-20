@@ -56,7 +56,7 @@ end
 @testset "testing nested bag model" begin
     bn = BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8])
     x = BagNode(bn, [1:2, 3:4])
-    m = reflectinmodel(x, layerbuilder)
+    m = reflectinmodel(x, d -> Flux.Dense(d, 2))
     @test size(m(x).data) == (2, 2)
     @test typeof(m) <: BagModel
     @test typeof(m.im) <: BagModel
@@ -76,10 +76,10 @@ end
     mc = m(c).data
     mabc = m(abc).data
     mbca = m(bca).data
+    @test mb ≈ mc
     @test mabc[:,1] ≈ ma
     @test mabc[:,2] ≈ mb
     @test mabc[:,3] ≈ mc
-    @test mba[:,1] ≈ mb
     @test mbca[:,1] ≈ mb
     @test mbca[:,2] ≈ mc
     @test mbca[:,3] ≈ ma
