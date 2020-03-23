@@ -7,9 +7,9 @@ Pkg.add.(["Mill", "JLD2", "FileIO", "Flux"])
 using Mill, Flux, JLD2, FileIO
 
 # define a structure of the model (by hand or using a schema)
-a = BagNode(ArrayNode(rand(3,4)),[1:4])
-b = BagNode(ArrayNode(rand(3,4)),[1:4])
-m = TreeNode((a,b))
+a = BagModel(ArrayModel(rand(3,4)), SegmentedMean(4), ArrayModel(rand(4, 2)))
+b = BagModel(ArrayModel(rand(2,5)), SegmentedMean(5), ArrayModel(rand(2, 5)))
+m = ProductModel((a,b))
 
 @load "ps.jld2" ps
 Flux.loadparams!(m, ps)
@@ -17,4 +17,3 @@ Flux.loadparams!(m, ps)
 
 # serialize/save your model again
 # ...
-

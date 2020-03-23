@@ -8,9 +8,9 @@ using Mill, Flux, JLD2, FileIO
 
 # load your 1.0.7 model (via JLD2 or BSON)
 # here I just define one
-a = BagNode(ArrayNode(rand(3,4)),[1:4])
-b = BagNode(ArrayNode(rand(3,4)),[1:4])
-m = TreeNode((a,b))
+a = BagModel(ArrayModel(rand(3,4)), SegmentedMean(4), ArrayModel(rand(4, 2)))
+b = BagModel(ArrayModel(rand(2,5)), SegmentedMean(5), ArrayModel(rand(2, 5)))
+m = ProductModel((a,b))
 
 ps = Flux.params(m)
 @show ps
