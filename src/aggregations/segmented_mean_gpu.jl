@@ -84,7 +84,10 @@ end
 
 function segmented_mean_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags, w)
     y = similar(x, size(x,1), length(bags))
-    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_forw!(y, x, c, bags.bs, bags.be, w)
+    length(bags) > 0 && @cuda threads=256 blocks=length(bags) kernel_segmented_mean_forw!(y, x, c, bags.bs, bags.be, w)
+    # if length(bags) == 0
+    #     @assert size(y,2) == 0
+    # end
     y
 end
 
@@ -94,9 +97,15 @@ function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector
     # Δc = similar(c)
     Δc = CuArrays.zeros(length(c), 1)
     Δw = similar(w)
-    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bags.bs, bags.be, w, Δx, Δc, Δw)
-    # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
-    missingbags_mapreducedim!(identity, +, Δc, Δ, bags.bs, bags.be)
+    if length(bags) > 0
+        @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bags.bs, bags.be, w, Δx, Δc, Δw)
+        # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
+        missingbags_mapreducedim!(identity, +, Δc, Δ, bags.bs, bags.be)
+    # else
+    #     @assert size(Δx,2) == 0
+    #     @assert abs(sum(Δc[:])) < 1e-4
+    #     @assert isnothing(Δw)
+    end
     Δx, Δc[:], nothing, Δw
 end
 
@@ -105,9 +114,15 @@ function segmented_mean_back(Δ::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector
     # Δc = similar(c)
     Δc = CuArrays.zeros(length(c), 1)
     Δw = similar(w, size(x))
-    @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bags.bs, bags.be, w, Δx, Δc, Δw)
-    # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
-    missingbags_mapreducedim!(identity, +, Δc, Δ, bags.bs, bags.be)
+    if length(bags) > 0
+        @cuda threads=256 blocks=length(bags) kernel_segmented_mean_back!(Δ, y, x, c, bags.bs, bags.be, w, Δx, Δc, Δw)
+        # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bags.bs, bags.be)
+        missingbags_mapreducedim!(identity, +, Δc, Δ, bags.bs, bags.be)
+    # else
+    #     @assert size(Δx,2) == 0
+    #     @assert abs(sum(Δc[:])) < 1e-4
+    #     @assert false
+    end
     Δx, Δc[:], nothing, sum(Δw, dims = 1)[:]
 end
 

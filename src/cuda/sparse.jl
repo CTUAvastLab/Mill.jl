@@ -48,7 +48,7 @@ function CuSparseMatrix(csc::SparseArrays.SparseMatrixCSC)
         CuArrays.CUSPARSE.CuSparseMatrixCSC(SparseArrays.SparseMatrixCSC(csc)),
         cucsr)
 end
-MacroTools.@forward CuSparseMatrix.csc Base.size, Base.getindex, Base.setindex!, Base.axes
+MacroTools.@forward CuSparseMatrix.csc Base.size, Base.getindex, Base.axes
 
 """
     Multiplies dense A * sparse B using CUSPARSE

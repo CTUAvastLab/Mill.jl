@@ -15,7 +15,7 @@ function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::Aggregatio
 end
 
 segmented_mean_forw(::Missing, C::AbstractVector, bags::AbstractBags, w) = repeat(C, 1, length(bags))
-function segmented_mean_forw(x::Matrix, C::Vector, bags::AbstractBags, w::AggregationWeights) 
+function segmented_mean_forw(x::Matrix, C::DenseVector, bags::AbstractBags, w::AggregationWeights)
     y = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)

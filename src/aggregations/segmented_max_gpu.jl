@@ -1,3 +1,6 @@
+function nonans(x)
+    @assert !any(isnan.(x))
+end
 
 function kernel_segmented_max_forw!(o, maxI, x, C, bs, be)
     nrows = size(o,1)
@@ -49,9 +52,10 @@ function segmented_max_forw(x::CuMatrix, c::CuVector, bags::CuAlignedBags)
 end
 
 function segmented_max_forw_maxI(x::CuMatrix, c::CuVector, bs, be)
-    o = similar(x, size(x,1), length(bs))
+    o = CuArrays.zeros(size(x,1), length(bs))
     maxI = CuArrays.zeros(Int32, size(x,1), length(bs))
-    @cuda threads=256 blocks=length(bs) kernel_segmented_max_forw!(o, maxI, x, c, bs, be)
+    length(bs) > 0 && @cuda threads=256 blocks=length(bs) kernel_segmented_max_forw!(o, maxI, x, c, bs, be)
+    # nonans(o)
     o, maxI
 end
 
@@ -73,12 +77,18 @@ function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatr
 end
 
 function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix, y::CuMatrix, x::CuMatrix, c::CuVector, bs, be)
-    Δx = similar(x)
+    Δx = CuArrays.zeros(size(x))
     # Δc = similar(c)
     Δc = CuArrays.zeros(length(c), 1)
-    @cuda threads=256 blocks=length(bs) kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc)
-    # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
-    missingbags_mapreducedim!(identity, +, Δc, Δ, bs, be)
+    if length(bs) > 0
+        @cuda threads=256 blocks=length(bs) kernel_segmented_max_back!(Δ, maxI, x, bs, be, Δx, Δc)
+        # @cuda threads=256 blocks=1 kernel_missing_bags_back!(Δc, Δ, bs, be)
+        missingbags_mapreducedim!(identity, +, Δc, Δ, bs, be)
+    end
+
+    # nonans(Δx)
+    # nonans(Δc)
+
     Δx, Δc[:], nothing
 end
 
@@ -92,6 +102,9 @@ function segmented_max_back(Δ, y, x::Missing, C, bags::CuAlignedBags)
     # nothing, dC, nothing, nothing
 
     dC = sum(Δ, dims=2)
+
+    # nonans(dC)
+
     nothing, dC[:], nothing, nothing
 end
 
