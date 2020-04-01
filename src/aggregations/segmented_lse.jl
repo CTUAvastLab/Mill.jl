@@ -1,6 +1,6 @@
-# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4908336/
+# https://arxiv.org/abs/1511.05286
 struct SegmentedLSE{T, U} <: AggregationFunction
-    p::T
+    ρ::T
     C::U
 end
 
@@ -8,9 +8,12 @@ Flux.@functor SegmentedLSE
 
 SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 
-(m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_optim(x, m.C, m.p, bags)
+r_map(ρ) = softplus.(ρ)
+inv_r_map = (p) -> log.(exp.(p) .- 1)
+
+(m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_optim(x, m.C, r_map(m.ρ), bags)
 function (m::SegmentedLSE)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_lse_optim(x .+ typemin(T) * mask', m.C, m.p, bags)
+    segmented_lse_optim(x .+ typemin(T) * mask', m.C, r_map(m.ρ), bags)
 end
 
 segmented_lse_optim(x::Missing, C::AbstractVector, p::AbstractVector, bags::AbstractBags) = segmented_lse_forw(x, C, bags)

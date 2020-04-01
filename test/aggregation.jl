@@ -1,5 +1,5 @@
 using Test, Mill, Flux
-using Mill: p_map, inv_p_map
+using Mill: p_map, inv_p_map, inv_r_map
 
 import Mill: bagnorm
 
@@ -57,27 +57,32 @@ end
 @testset "lse functionality" begin
     for t = 1:10
         a, b, c, d, r1, r2 = randn(6)
-        @test SegmentedLSE([r1, r2], C)([a b; c d], ScatteredBags([[1,2]])) ≈ [
+        @test SegmentedLSE(inv_r_map.([r1, r2]), C)([a b; c d], ScatteredBags([[1,2]])) ≈ [
                                                                                1/r1*log(1/2*(exp(a*r1)+exp(b*r1)));
                                                                                1/r2*log(1/2*(exp(c*r2)+exp(d*r2)))
                                                                               ]
         X = randn(2, 6)
         r1, r2 = randn(2)
-        @test all(SegmentedLSE([r1, r2], C)(X, BAGS) .== SegmentedLSE([r1, r2], C)(X, BAGS, W))
+        @test all(SegmentedLSE(inv_r_map.([r1, r2]), C)(X, BAGS) .== SegmentedLSE(inv_r_map.([r1, r2]), C)(X, BAGS, W))
         # the bigger value of r, the closer we are to the real maximum
         @test isapprox(SegmentedLSE([100, 100], C)(X, BAGS), SegmentedMax(2)(X, BAGS), atol=0.1)
     end
 end
 
 @testset "lse numerical stability" begin
+    # it holds for any c and any r != 0, LSE(r)(x) == c .+ LSE(r)(x .- c)
     b1 = AlignedBags([1:2])
     b2 = ScatteredBags([[1,2]])
-    @test SegmentedLSE([1,1], C)([1e15 1e15; 1e15 1e15], b1) ≈ [1e15; 1e15]
-    @test SegmentedLSE([1,1], C)([-1e15 -1e15; -1e15 -1e15], b2) ≈ [-1e15; -1e15]
-    @test SegmentedLSE([1,1], C)([1e15 1e15; 1e15 1e15], b1, [1, 1]) ≈ [1e15; 1e15]
-    @test SegmentedLSE([1,1], C)([1e15 1e15; 1e15 1e15], b2, [2, 2]) ≈ [1e15; 1e15]
-    @test SegmentedLSE([1,1], C)([-1e15 -1e15; -1e15 -1e15], b1, [1, 1]) ≈ [-1e15; -1e15]
-    @test SegmentedLSE([1,1], C)([-1e15 -1e15; -1e15 -1e15], b2, [2, 2]) ≈ [-1e15; -1e15]
+    for _ in 1:5
+        r = randn(2)
+        r .+= sign.(r) .* eps(Float32)
+        @test SegmentedLSE(r, C)([1e15 1e15; 1e15 1e15], b1) ≈ [1e15; 1e15]
+        @test SegmentedLSE(r, C)([-1e15 -1e15; -1e15 -1e15], b2) ≈ [-1e15; -1e15]
+        @test SegmentedLSE(r, C)([1e15 1e15; 1e15 1e15], b1, [1, 1]) ≈ [1e15; 1e15]
+        @test SegmentedLSE(r, C)([1e15 1e15; 1e15 1e15], b2, [2, 2]) ≈ [1e15; 1e15]
+        @test SegmentedLSE(r, C)([-1e15 -1e15; -1e15 -1e15], b1, [1, 1]) ≈ [-1e15; -1e15]
+        @test SegmentedLSE(r, C)([-1e15 -1e15; -1e15 -1e15], b2, [2, 2]) ≈ [-1e15; -1e15]
+    end
 end
 
 
