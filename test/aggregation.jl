@@ -1,5 +1,5 @@
 using Test, Mill, Flux
-using Mill: p_map, inv_p_map, inv_r_map
+using Mill: p_map, inv_p_map, r_map, inv_r_map
 
 import Mill: bagnorm
 
@@ -56,14 +56,15 @@ end
 
 @testset "lse functionality" begin
     for t = 1:10
-        a, b, c, d, r1, r2 = randn(6)
-        @test SegmentedLSE(inv_r_map.([r1, r2]), C)([a b; c d], ScatteredBags([[1,2]])) ≈ [
+        a, b, c, d, ρ1, ρ2 = randn(6)
+        r1, r2 = r_map(ρ1), r_map(ρ2)
+        @test SegmentedLSE([ρ1, ρ2], C)([a b; c d], ScatteredBags([[1,2]])) ≈ [
                                                                                1/r1*log(1/2*(exp(a*r1)+exp(b*r1)));
                                                                                1/r2*log(1/2*(exp(c*r2)+exp(d*r2)))
                                                                               ]
         X = randn(2, 6)
         r1, r2 = randn(2)
-        @test all(SegmentedLSE(inv_r_map.([r1, r2]), C)(X, BAGS) .== SegmentedLSE(inv_r_map.([r1, r2]), C)(X, BAGS, W))
+        @test all(SegmentedLSE([ρ1, ρ2], C)(X, BAGS) .== SegmentedLSE([ρ1, ρ2], C)(X, BAGS, W))
         # the bigger value of r, the closer we are to the real maximum
         @test isapprox(SegmentedLSE([100, 100], C)(X, BAGS), SegmentedMax(2)(X, BAGS), atol=0.1)
     end

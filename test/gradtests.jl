@@ -60,15 +60,14 @@ end
         w_mat = abs.(randn(size(x))) .+ 0.1
 
         fs = [:SegmentedSum, :SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
-        params = (:C1,), (:C2,), (:C3,), (:ρ, :c, :C4), (:p, :C5)
+        params = (:C1,), (:C2,), (:C3,), (:ρ1, :c, :C4), (:ρ2, :C5)
 
         for idxs in powerset(collect(1:length(fs)))
             !isempty(idxs) || continue;
             length(idxs) <= 2 || continue
             rs = []; as = []; cs = []; 
             for (f, ps) in zip(fs[idxs], params[idxs])
-                # p too small causes numerical issues
-                push!(rs, (p == :p ? :(clamp.(randn($d), 0.1, Inf)) : :(randn($d)) for p in ps)...)
+                push!(rs, fill(:(randn($d)), length(ps))...)
                 push!(as, ps...)
                 push!(cs, Expr(:call, f, ps...))
             end
@@ -245,11 +244,11 @@ end
         bn = BagNode(ArrayNode(x), bags1)
         abuilder = d -> SegmentedPNormLSE(d)
         m = f64(reflectinmodel(bn, layerbuilder, abuilder))
-        @test mgradtest(params(m)...) do W1, b1, ρ, c, C1, p, C2, W2, b2
+        @test mgradtest(params(m)...) do W1, b1, ρ1, c, C1, ρ2, C2, W2, b2
             m = BagModel(Dense(W1, b1, relu),
                          Aggregation(
-                                     SegmentedPNorm(ρ, c, C1),
-                                     SegmentedLSE(p, C2)
+                                     SegmentedPNorm(ρ1, c, C1),
+                                     SegmentedLSE(ρ2, C2)
                                     ),
                          Dense(W2, b2, σ))
             m(bn).data
@@ -268,14 +267,14 @@ end
         tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
         abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
-        @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
-            W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
+        @test mgradtest(params(m)...) do W1, b1, ρ11, c1, C11, ρ12, C12, C13, C14,
+            W2, b2, W3, b3, ρ21, c2, C21, ρ22, C22, C23, C24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, σ),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ1, c1, C11),
-                                                   SegmentedLSE(p1, C12),
+                                                   SegmentedPNorm(ρ11, c1, C11),
+                                                   SegmentedLSE(ρ12, C12),
                                                    SegmentedSum(C13),
                                                    SegmentedMax(C14)
                                                   ),
@@ -284,8 +283,8 @@ end
                               BagModel(
                                        Dense(W3, b3, relu),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ2, c2, C21),
-                                                   SegmentedLSE(p2, C22),
+                                                   SegmentedPNorm(ρ21, c2, C21),
+                                                   SegmentedLSE(ρ22, C22),
                                                    SegmentedSum(C23),
                                                    SegmentedMax(C24)
                                                   ),
@@ -333,11 +332,11 @@ end
         bn = BagNode(ArrayNode(x), bags1, w)
         abuilder = d -> SegmentedPNormLSE(d)
         m = f64(reflectinmodel(bn, layerbuilder, abuilder))
-        @test mgradtest(params(m)...) do W1, b1, ρ, c, C1, p, C2, W2, b2
+        @test mgradtest(params(m)...) do W1, b1, ρ1, c, C1, ρ2, C2, W2, b2
             m = BagModel(Dense(W1, b1, relu),
                          Aggregation(
-                                     SegmentedPNorm(ρ, c, C1),
-                                     SegmentedLSE(p, C2)
+                                     SegmentedPNorm(ρ1, c, C1),
+                                     SegmentedLSE(ρ2, C2)
                                     ),
                          Dense(W2, b2, σ))
             m(bn).data
@@ -346,14 +345,14 @@ end
         tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
         abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
-        @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
-            W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
+        @test mgradtest(params(m)...) do W1, b1, ρ11, c1, C11, ρ12, C12, C13, C14,
+            W2, b2, W3, b3, ρ21, c2, C21, ρ22, C22, C23, C24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, σ),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ1, c1, C11),
-                                                   SegmentedLSE(p1, C12),
+                                                   SegmentedPNorm(ρ11, c1, C11),
+                                                   SegmentedLSE(ρ12, C12),
                                                    SegmentedSum(C13),
                                                    SegmentedMax(C14)
                                                   ),
@@ -362,8 +361,8 @@ end
                               BagModel(
                                        Dense(W3, b3, relu),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ2, c2, C21),
-                                                   SegmentedLSE(p2, C22),
+                                                   SegmentedPNorm(ρ21, c2, C21),
+                                                   SegmentedLSE(ρ22, C22),
                                                    SegmentedSum(C23),
                                                    SegmentedMax(C24)
                                                   ),

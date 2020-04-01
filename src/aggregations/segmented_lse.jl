@@ -9,7 +9,7 @@ Flux.@functor SegmentedLSE
 SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 
 r_map(ρ) = softplus.(ρ)
-inv_r_map = (p) -> log.(exp.(p) .- 1)
+inv_r_map = (r) -> log.(exp.(r) .- 1)
 
 (m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_optim(x, m.C, r_map(m.ρ), bags)
 function (m::SegmentedLSE)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)

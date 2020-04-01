@@ -59,7 +59,7 @@ end
 
 mgradtest(f, xs::AbstractArray...) = mgradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
 
-Random.seed!(42)
+Random.seed!(24)
 
 include("datanode.jl")
 include("modelnode.jl")
