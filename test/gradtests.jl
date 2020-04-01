@@ -3,8 +3,8 @@ using Mill: reflectinmodel, length2bags
 using Combinatorics
 
 BAGS = [
-        length2bags([1 for _ in 1:10]),
-        length2bags([2 for _ in 1:5]),
+        length2bags(ones(Int, 10)),
+        length2bags(2 .* ones(Int, 5)),
         length2bags([5, 5]),
         length2bags([10]),
 length2bags([3, 4, 3]),
