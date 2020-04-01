@@ -11,9 +11,7 @@ end
 ProductNode(data::T) where {T} = ProductNode{T, Nothing}(data, nothing)
 ProductNode(data::T, metadata::C) where {T, C} = ProductNode{T, C}(data, metadata)
 
-TreeNode(data::T) where {T} = ProductNode{T, Nothing}(data, nothing)
 @deprecate TreeNode(data) ProductNode(data)
-TreeNode(data::T, metadata::C) where {T, C} = ProductNode{T, C}(data, metadata)
 @deprecate TreeNode(data, metadata) ProductNode(data, metadata)
 
 Flux.@functor ProductNode
