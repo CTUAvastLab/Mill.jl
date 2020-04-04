@@ -16,11 +16,11 @@ function (m::SegmentedLSE)(x::AbstractMatrix, bags::AbstractBags, w::Aggregation
     segmented_lse_optim(x .+ typemin(T) * mask', m.C, r_map(m.ρ), bags)
 end
 
-segmented_lse_optim(x::Missing, C::AbstractVector, p::AbstractVector, bags::AbstractBags) = segmented_lse_forw(x, C, bags)
-function segmented_lse_optim(x::AbstractMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags)
-    a = p .* x
+segmented_lse_optim(x::Missing, C::AbstractVector, r::AbstractVector, bags::AbstractBags) = segmented_lse_forw(x, C, bags)
+function segmented_lse_optim(x::AbstractMatrix, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
+    a = r .* x
     m = maximum(a, dims=2)
-    y = (m .+ segmented_lse_forw(a .- m, C, bags)) ./ p
+    y = (m .+ segmented_lse_forw(a .- m, C, bags)) ./ r
 end
 
 segmented_lse_forw(::Missing, C::AbstractVector, bags::AbstractBags) = repeat(C, 1, length(bags))
