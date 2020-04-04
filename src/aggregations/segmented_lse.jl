@@ -18,57 +18,74 @@ end
 
 segmented_lse_optim(x::Missing, C::AbstractVector, r::AbstractVector, bags::AbstractBags) = segmented_lse_forw(x, C, bags)
 function segmented_lse_optim(x::AbstractMatrix, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
-    a = r .* x
-    m = maximum(a, dims=2)
-    y = (m .+ segmented_lse_forw(a .- m, C, bags)) ./ r
+    y = (segmented_lse_forw(r .* x, C, bags)) ./ r
 end
 
 segmented_lse_forw(::Missing, C::AbstractVector, bags::AbstractBags) = repeat(C, 1, length(bags))
-function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::AbstractBags) 
-    y = zeros(eltype(a), size(a, 1), length(bags))
-    e = exp.(a)
+function segmented_lse_forw(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags)
+    y = zeros(eltype(x), length(C), length(bags))
+    M = zeros(eltype(x), length(C))
+
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(C)
                 y[i, bi] = C[i]
             end
         else
-            for j in b
-                for i in 1:size(a, 1)
-                    y[i, bi] += e[i, j]
+            for i in eachindex(C)
+                M[i] = x[i, first(b)]
+            end
+            for j in b[2:end]
+                for i in eachindex(C)
+                    M[i] = max.(M[i], x[i, j])
                 end
             end
-            lb = log(max(1, length(b)))
-            for i in 1:size(a, 1)
-                y[i, bi] = log(y[i, bi]) - lb
+            for j in b
+                for i in eachindex(C)
+                    y[i, bi] += exp.(x[i, j] - M[i])
+                end
+            end
+            for i in eachindex(C)
+                y[i, bi] = log(y[i, bi]) - log(length(b)) + M[i]
             end
         end
     end
     y
 end
 
-function segmented_lse_back(Δ, y, a, C, bags)
-    da = zero(a)
-    s = zero(C)
+function segmented_lse_back(Δ, x, C, bags)
+    dx = zero(x)
     dC = zero(C)
-    e = exp.(a)
+    M = zeros(eltype(x), length(C))
+    S = zeros(eltype(x), length(C))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(C)
                 dC[i] += Δ[i, bi]
             end
         else
-            s .= 0
-            for j in b
-                for i in 1:size(a, 1)
-                    da[i, j] = Δ[i, bi] * e[i, j]
-                    s[i] += e[i, j]
+            for i in eachindex(C)
+                M[i] = x[i, first(b)]
+                S[i] = 0
+            end
+            for j in b[2:end]
+                for i in eachindex(C)
+                    M[i] = max(M[i], x[i, j])
                 end
             end
-            da[:, b] ./= s
+            for j in b
+                for i in eachindex(C)
+                    S[i] += exp(x[i, j] - M[i])
+                end
+            end
+            for j in b
+                for i in eachindex(C)
+                    dx[i, j] = Δ[i, bi] * exp(x[i, j] - M[i]) / S[i]
+                end
+            end
         end
     end
-    da, dC, nothing, nothing
+    dx, dC, nothing, nothing
 end
 
 function segmented_lse_back(Δ, C, bags)
@@ -81,14 +98,8 @@ function segmented_lse_back(Δ, C, bags)
     nothing, dC, nothing, nothing
 end
 
-@adjoint function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::AbstractBags)
-    y = segmented_lse_forw(a, C, bags)
-    grad = Δ -> segmented_lse_back(Δ, y, a, C, bags)
-    y, grad
-end
-
-@adjoint function segmented_lse_forw(a::Missing, C::AbstractVector, bags::AbstractBags)
-    y = segmented_lse_forw(a, C, bags)
-    grad = Δ -> segmented_lse_back(Δ, C, bags)
+@adjoint function segmented_lse_forw(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags)
+    y = segmented_lse_forw(x, C, bags)
+    grad = Δ -> segmented_lse_back(Δ, x, C, bags)
     y, grad
 end
