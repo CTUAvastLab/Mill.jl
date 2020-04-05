@@ -2,20 +2,20 @@ using Flux, Test, Mill
 using Mill: reflectinmodel, length2bags
 using Combinatorics
 
-const BAGS = [
+const BAGS2 = [
         length2bags(ones(Int, 10)),
         length2bags(2 .* ones(Int, 5)),
         length2bags([5, 5]),
         length2bags([10]),
         length2bags([3, 4, 3]),
-AlignedBags([1:3, 0:-1, 0:-1, 4:7, 0:-1, 8:10]),
-AlignedBags([0:-1, 1:5, 0:-1, 0:-1, 0:-1, 6:10]),
-ScatteredBags([collect(1:3), collect(7:10), collect(4:6)]),
-ScatteredBags([collect(7:10), [], collect(1:3), [], collect(4:6), []]),
-ScatteredBags([[], collect(1:10), []]),
+        AlignedBags([1:3, 0:-1, 0:-1, 4:7, 0:-1, 8:10]),
+        AlignedBags([0:-1, 1:5, 0:-1, 0:-1, 0:-1, 6:10]),
+        ScatteredBags([collect(1:3), collect(7:10), collect(4:6)]),
+        ScatteredBags([collect(7:10), [], collect(1:3), [], collect(4:6), []]),
+        ScatteredBags([[], collect(1:10), []]),
 ]
 
-const BAGS2 = [
+const BAGS3 = [
          (AlignedBags([1:2, 3:4, 0:-1]), ScatteredBags([[2,3,4], [1], []]), AlignedBags([1:4, 0:-1, 5:8, 0:-1])),
          (AlignedBags([0:-1, 1:2, 3:4]), ScatteredBags([[1], [2], [3, 4]]), AlignedBags([0:-1, 1:7, 0:-1, 8:8])),
          (AlignedBags([0:-1, 0:-1, 1:2, 3:4]), ScatteredBags([[2,4], [], [3, 1], []]), AlignedBags([1:1, 2:2, 0:-1, 3:8])),
@@ -27,7 +27,7 @@ const BAGS2 = [
 const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, lisht]
 
 @testset "aggregation grad check w.r.t. input" begin
-    for bags in BAGS
+    for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
@@ -57,7 +57,7 @@ const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, l
 end
 
 @testset "aggregation grad check w.r.t. agg params" begin
-    for bags in BAGS
+    for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
@@ -102,7 +102,7 @@ end
 end
 
 @testset "derivative w.r.t weights in aggregations" begin
-    for bags in BAGS
+    for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
@@ -145,7 +145,7 @@ end
 end
 
 @testset "model aggregation grad check w.r.t. inputs" begin
-    for (bags1, bags2, bags3) in BAGS2
+    for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS))
         x = randn(4, 4)
         y = randn(3, 4)
@@ -194,7 +194,7 @@ end
 end
 
 @testset "model aggregation grad check w.r.t. inputs weighted" begin
-    for (bags1, bags2, bags3) in BAGS2
+    for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS))
         x = randn(4, 4)
         y = randn(3, 4)
@@ -232,7 +232,7 @@ end
 end
 
 @testset "model aggregation grad check w.r.t. params" begin
-    for (bags1, bags2, bags3) in BAGS2
+    for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2)
         x = randn(4, 4)
         y = randn(3, 4)
@@ -329,7 +329,7 @@ end
 end
 
 @testset "model aggregation grad check w.r.t. params weighted" begin
-    for (bags1, bags2, bags3) in BAGS2
+    for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2)
         x = randn(4, 4)
         y = randn(3, 4)
