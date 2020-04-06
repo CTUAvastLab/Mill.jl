@@ -15,6 +15,12 @@ bm, wbm = n1m.ms
 an1m = bm.im
 an2m = wbm.im
 
+@testset "list traversal" begin
+    for (n1, n2) in ZipIterator(n2, n2m)
+        @test list_traversal(n1) == list_traversal(n2)
+    end
+end
+
 @testset "getindex on strings" begin
     @test n2[""] === n2
     @test n2["E"] === n1
