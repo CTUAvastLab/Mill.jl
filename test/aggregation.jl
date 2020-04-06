@@ -94,7 +94,6 @@ end
     end
 end
 
-
 @testset "missing values" begin
     dummy = randn(2)
     C = randn(2)
