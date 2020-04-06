@@ -8,6 +8,7 @@ using Combinatorics
 using Zygote
 using HierarchicalUtils
 using Zygote: @adjoint
+using LinearAlgebra
 import Base.reduce
 
 MLDataPattern.nobs(::Missing) = nothing

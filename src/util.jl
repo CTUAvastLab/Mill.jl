@@ -1,5 +1,3 @@
-using LinearAlgebra
-
 """
 		sparsify(x,nnzrate)
 
