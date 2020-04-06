@@ -22,7 +22,7 @@ const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 function catobs end;
 
 include("bags.jl")
-export AlignedBags, ScatteredBags
+export AlignedBags, ScatteredBags, length2bags
 
 include("util.jl")
 include("threadfuns.jl")
