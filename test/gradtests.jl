@@ -37,6 +37,10 @@ const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, l
 end
 
 @testset "aggregation grad check w.r.t. agg params" begin
+    # r_map and p_map are stable
+    @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
+    @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
+     
     for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)

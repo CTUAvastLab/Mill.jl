@@ -32,6 +32,9 @@ weight(w::AbstractMatrix, i, j) = w[i, j]
 weightsum(ws::Real, _) = ws
 weightsum(ws::AbstractVector, i) = ws[i]
 
+# more stable definitions for r_map and p_map
+Zygote.@adjoint softplus(x) = softplus.(x), Δ -> (Δ .* σ.(x),)
+
 include("segmented_sum.jl")
 include("segmented_mean.jl")
 include("segmented_max.jl")
