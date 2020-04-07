@@ -3,7 +3,7 @@ using DataFrames
 import Base: cat, vcat, hcat, _cat, lastindex, getindex
 
 abstract type AbstractNode end
-abstract type AbstractTreeNode <: AbstractNode end
+abstract type AbstractProductNode <: AbstractNode end
 abstract type AbstractBagNode <: AbstractNode end
 
 # FIXME: this alias would better be Union{AbstractVector{T}, Tuple{Vararg{T}}}
@@ -75,10 +75,7 @@ subset(::Nothing, i) = nothing
 subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
 subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
 
-Base.show(io::IO, ::MIME"text/plain", n::AbstractNode) = dsprint(io, n, tr=false)
-Base.show(io::IO, ::T) where T <: AbstractNode = show(io, Base.typename(T))
-
-include("arrays.jl")
+include("arraynode.jl")
 
 # definitions needed for all types of bag nodes
 _len(a::UnitRange) = max(a.stop - a.start + 1, 0)
@@ -87,10 +84,7 @@ LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 Base.ndims(x::AbstractBagNode) = Colon()
 
-dsprint(io::IO, ::Missing; pad=[], s="", tr=false) = paddedprint(io, " ∅")
-
 include("bagnode.jl")
 include("weighted_bagnode.jl")
-
 include("ngrams.jl")
-include("treenode.jl")
+include("productnode.jl")

@@ -49,7 +49,7 @@ Mill.dsprint(io::IO, n::PathNode; pad=[], s="", tr=false) = paddedprint(io, "Pat
 Similarly, we define a `ModelNode` which will be a counterpart processing the data. Note that the part of the `ModelNode` is a function which converts the pathanme string to `Matrix` (or other Mill structures). Again, we add a support for pretty printing.
 
 ```
-struct PathModel{T,F} <: MillModel
+struct PathModel{T,F} <: AbstractMillModel
     m::T
     path2mill::F
 end

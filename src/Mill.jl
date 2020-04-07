@@ -1,21 +1,17 @@
 module Mill
-using Flux, MLDataPattern, SparseArrays, Statistics, Combinatorics, Zygote
+
+using Flux
+using MLDataPattern
+using SparseArrays
+using Statistics
+using Combinatorics
+using Zygote
+using HierarchicalUtils
 using Zygote: @adjoint
+using LinearAlgebra
 import Base.reduce
 
-const COLORS = [:blue, :red, :green, :yellow, :cyan, :magenta]
-
 MLDataPattern.nobs(::Missing) = nothing
-
-function paddedprint(io, s...; color=:default, pad=[])
-    for (c, p) in pad
-        printstyled(io, p, color=c)
-    end
-    printstyled(io, s..., color=color)
-end
-
-key_labels(data::NamedTuple) = ["$k: " for k in keys(data)]
-key_labels(data) = ["" for _ in 1:length(data)]
 
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 
@@ -27,14 +23,14 @@ const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 function catobs end;
 
 include("bags.jl")
-export AlignedBags, ScatteredBags
+export AlignedBags, ScatteredBags, length2bags
 
 include("util.jl")
 include("threadfuns.jl")
 
 include("datanodes/datanode.jl")
-export AbstractNode, AbstractTreeNode, AbstractBagNode
-export ArrayNode, BagNode, WeightedBagNode, TreeNode
+export AbstractNode, AbstractProductNode, AbstractBagNode
+export ArrayNode, BagNode, WeightedBagNode, ProductNode
 export NGramMatrix, NGramIterator
 export catobs, removeinstances
 
@@ -43,11 +39,8 @@ include("aggregations/aggregation.jl")
 export AggregationFunction, Aggregation
 
 include("modelnodes/modelnode.jl")
-export MillModel, ArrayModel, BagModel, ProductModel
+export AbstractMillModel, ArrayModel, BagModel, ProductModel
 export reflectinmodel
-
-include("traversal_encoding.jl")
-export show_traversal, encode_traversal
 
 include("conv.jl")
 export bagconv, BagConv
@@ -57,5 +50,27 @@ export BagChain
 
 include("replacein.jl")
 export replacein
+
+include("hierarchical_utils.jl")
+
+Base.show(io::IO, ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = show(io, Base.typename(T))
+Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=2)
+Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
+
+
+const _terseprint = Ref(true)
+
+function terseprint(a)
+    _terseprint[] = a
+end
+
+function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
+	if _terseprint[]
+		print(io, "$(x.name){…}")
+	else
+		Base.show_datatype(io, x)
+	end
+end
+export printtree
 
 end

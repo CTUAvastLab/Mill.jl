@@ -1,29 +1,13 @@
 using Flux, Test, Mill
-using Mill: reflectinmodel, length2bags
+using Mill: reflectinmodel
 using Combinatorics
 
-BAGS = [
-        length2bags([1 for _ in 1:10]),
-        length2bags([2 for _ in 1:5]),
-        length2bags([5, 5]),
-        length2bags([10]),
-length2bags([3, 4, 3]),
-AlignedBags([1:3, 0:-1, 0:-1, 4:7, 0:-1, 8:10]),
-AlignedBags([0:-1, 1:5, 0:-1, 0:-1, 0:-1, 6:10]),
-ScatteredBags([collect(1:3), collect(7:10), collect(4:6)]),
-ScatteredBags([collect(7:10), [], collect(1:3), [], collect(4:6), []]),
-ScatteredBags([[], collect(1:10), []]),
-]
-
-BAGS2 = [
-         (AlignedBags([1:2, 3:4, 0:-1]), ScatteredBags([[2,3,4], [1], []]), AlignedBags([1:4, 0:-1, 5:8, 0:-1])),
-         (AlignedBags([0:-1, 1:2, 3:4]), ScatteredBags([[1], [2], [3, 4]]), AlignedBags([0:-1, 1:7, 0:-1, 8:8])),
-         (AlignedBags([0:-1, 0:-1, 1:2, 3:4]), ScatteredBags([[2,4], [], [3, 1], []]), AlignedBags([1:1, 2:2, 0:-1, 3:8])),
-         (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1,3], [2,4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
-        ]
+# use only activations without "kinks" for numerical gradient checking
+# see e.g. https://stackoverflow.com/questions/40623512/how-to-check-relu-gradient
+const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, lisht]
 
 @testset "aggregation grad check w.r.t. input" begin
-    for bags in BAGS
+    for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
@@ -53,22 +37,25 @@ BAGS2 = [
 end
 
 @testset "aggregation grad check w.r.t. agg params" begin
-    for bags in BAGS
+    # r_map and p_map are stable
+    @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
+    @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
+     
+    for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
 
         fs = [:SegmentedSum, :SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
-        params = (:C1,), (:C2,), (:C3,), (:ρ, :c, :C4), (:p, :C5)
+        params = (:C1,), (:C2,), (:C3,), (:ρ1, :c, :C4), (:ρ2, :C5)
 
         for idxs in powerset(collect(1:length(fs)))
             !isempty(idxs) || continue;
             length(idxs) <= 2 || continue
             rs = []; as = []; cs = []; 
             for (f, ps) in zip(fs[idxs], params[idxs])
-                # p too small causes numerical issues
-                push!(rs, (p == :p ? :(clamp.(randn($d), 0.1, Inf)) : :(randn($d)) for p in ps)...)
+                push!(rs, fill(:(randn($d)), length(ps))...)
                 push!(as, ps...)
                 push!(cs, Expr(:call, f, ps...))
             end
@@ -99,7 +86,7 @@ end
 end
 
 @testset "derivative w.r.t weights in aggregations" begin
-    for bags in BAGS
+    for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
@@ -142,8 +129,8 @@ end
 end
 
 @testset "model aggregation grad check w.r.t. inputs" begin
-    for (bags1, bags2, bags3) in BAGS2
-        layerbuilder(k) = Dense(k, 2, NNlib.relu)
+    for (bags1, bags2, bags3) in BAGS3
+        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -163,18 +150,18 @@ end
             m(bn).data
         end
 
-        tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+        tn = ProductNode((ArrayNode(x), ArrayNode(y)))
         m = f64(reflectinmodel(tn, layerbuilder))
         @test mgradtest(x, y) do x, y
-            tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+            tn = ProductNode((ArrayNode(x), ArrayNode(y)))
             m(tn).data
         end
 
-        tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
+        tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         @test mgradtest(x, y) do x, y
-            tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
+            tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
             m(tn).data
         end
 
@@ -191,8 +178,8 @@ end
 end
 
 @testset "model aggregation grad check w.r.t. inputs weighted" begin
-    for (bags1, bags2, bags3) in BAGS2
-        layerbuilder(k) = Dense(k, 2, NNlib.relu)
+    for (bags1, bags2, bags3) in BAGS3
+        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -208,11 +195,11 @@ end
             m(bn).data
         end
 
-        tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
+        tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         @test mgradtest(x, y) do x, y
-            tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
+            tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
             m(tn).data
         end
 
@@ -229,69 +216,73 @@ end
 end
 
 @testset "model aggregation grad check w.r.t. params" begin
-    for (bags1, bags2, bags3) in BAGS2
-        layerbuilder(k) = Dense(k, 2, NNlib.relu)
+    for (bags1, bags2, bags3) in BAGS3
+        layerbuilder(k) = Dense(k, 2)
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
 
         n = ArrayNode(x)
         m = f64(reflectinmodel(n, layerbuilder))
+        a = rand(ACTIVATIONS)
         @test mgradtest(params(m)...) do W, b
-            m = ArrayModel(Dense(W, b, relu))
+            m = ArrayModel(Dense(W, b, a))
             m(n).data
         end
 
         bn = BagNode(ArrayNode(x), bags1)
         abuilder = d -> SegmentedPNormLSE(d)
         m = f64(reflectinmodel(bn, layerbuilder, abuilder))
-        @test mgradtest(params(m)...) do W1, b1, ρ, c, C1, p, C2, W2, b2
-            m = BagModel(Dense(W1, b1, relu),
+        a1, a2 = rand(ACTIVATIONS, 2)
+        @test mgradtest(params(m)...) do W1, b1, ρ1, c, C1, ρ2, C2, W2, b2
+            m = BagModel(Dense(W1, b1, a1),
                          Aggregation(
-                                     SegmentedPNorm(ρ, c, C1),
-                                     SegmentedLSE(p, C2)
+                                     SegmentedPNorm(ρ1, c, C1),
+                                     SegmentedLSE(ρ2, C2)
                                     ),
-                         Dense(W2, b2, σ))
+                         Dense(W2, b2, a2))
             m(bn).data
         end
 
-        tn = TreeNode((ArrayNode(x), ArrayNode(y)))
+        tn = ProductNode((ArrayNode(x), ArrayNode(y)))
         m = f64(reflectinmodel(tn, layerbuilder))
+        a1, a2, a3 = rand(ACTIVATIONS, 3)
         @test mgradtest(params(m)...) do W1, b1, W2, b2, W3, b3
             m = ProductModel(ArrayModel.((
-                                          Dense(W1, b1, σ),
-                                          Dense(W2, b2, relu)
-                                         )), Dense(W3, b3, σ)) 
+                                          Dense(W1, b1, a1),
+                                          Dense(W2, b2, a2)
+                                         )), Dense(W3, b3, a3)) 
             m(tn).data
         end
 
-        tn = TreeNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
+        tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
         abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
-        @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
-            W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
+        a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
+        @test mgradtest(params(m)...) do W1, b1, ρ11, c1, C11, ρ12, C12, C13, C14,
+            W2, b2, W3, b3, ρ21, c2, C21, ρ22, C22, C23, C24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
-                                       Dense(W1, b1, σ),
+                                       Dense(W1, b1, a1),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ1, c1, C11),
-                                                   SegmentedLSE(p1, C12),
+                                                   SegmentedPNorm(ρ11, c1, C11),
+                                                   SegmentedLSE(ρ12, C12),
                                                    SegmentedSum(C13),
                                                    SegmentedMax(C14)
                                                   ),
-                                       Dense(W2, b2, relu)
+                                       Dense(W2, b2, a2)
                                       ),
                               BagModel(
-                                       Dense(W3, b3, relu),
+                                       Dense(W3, b3, a3),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ2, c2, C21),
-                                                   SegmentedLSE(p2, C22),
+                                                   SegmentedPNorm(ρ21, c2, C21),
+                                                   SegmentedLSE(ρ22, C22),
                                                    SegmentedSum(C23),
                                                    SegmentedMax(C24)
                                                   ),
-                                       Dense(W4, b4, σ)
+                                       Dense(W4, b4, a4)
                                       ),
-                             ), Dense(W5, b5, relu)) 
+                             ), Dense(W5, b5, a5)) 
             m(tn).data
         end
 
@@ -299,21 +290,22 @@ end
         bnn = BagNode(bn, bags1)
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
+        a1, a2, a3 = rand(ACTIVATIONS, 3)
         @test mgradtest(params(m)...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
             m = BagModel(
                          BagModel(
-                                  Dense(W1, b1),
+                                  Dense(W1, b1, a1),
                                   Aggregation(
                                               SegmentedMean(C11),
                                               SegmentedMax(C12)
                                              ),
-                                  Dense(W2, b2)
+                                  Dense(W2, b2, a2)
                                  ),
                          Aggregation(
                                      SegmentedMean(C21),
                                      SegmentedMax(C22)
-            ),
-                         Dense(W3, b3)
+                                    ),
+                         Dense(W3, b3, a3)
                         )
             m(bnn).data
         end
@@ -321,8 +313,8 @@ end
 end
 
 @testset "model aggregation grad check w.r.t. params weighted" begin
-    for (bags1, bags2, bags3) in BAGS2
-        layerbuilder(k) = Dense(k, 2, NNlib.relu)
+    for (bags1, bags2, bags3) in BAGS3
+        layerbuilder(k) = Dense(k, 2)
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -333,43 +325,45 @@ end
         bn = BagNode(ArrayNode(x), bags1, w)
         abuilder = d -> SegmentedPNormLSE(d)
         m = f64(reflectinmodel(bn, layerbuilder, abuilder))
-        @test mgradtest(params(m)...) do W1, b1, ρ, c, C1, p, C2, W2, b2
-            m = BagModel(Dense(W1, b1, relu),
+        a1, a2 = rand(ACTIVATIONS, 2)
+        @test mgradtest(params(m)...) do W1, b1, ρ1, c, C1, ρ2, C2, W2, b2
+            m = BagModel(Dense(W1, b1, a1),
                          Aggregation(
-                                     SegmentedPNorm(ρ, c, C1),
-                                     SegmentedLSE(p, C2)
+                                     SegmentedPNorm(ρ1, c, C1),
+                                     SegmentedLSE(ρ2, C2)
                                     ),
-                         Dense(W2, b2, σ))
+                         Dense(W2, b2, a2))
             m(bn).data
         end
 
-        tn = TreeNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
+        tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
         abuilder = d -> SegmentedPNormLSESumMax(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
-        @test mgradtest(params(m)...) do W1, b1, ρ1, c1, C11, p1, C12, C13, C14,
-            W2, b2, W3, b3, ρ2, c2, C21, p2, C22, C23, C24, W4, b4, W5, b5
+        a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
+        @test mgradtest(params(m)...) do W1, b1, ρ11, c1, C11, ρ12, C12, C13, C14,
+            W2, b2, W3, b3, ρ21, c2, C21, ρ22, C22, C23, C24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
-                                       Dense(W1, b1, σ),
+                                       Dense(W1, b1, a1),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ1, c1, C11),
-                                                   SegmentedLSE(p1, C12),
+                                                   SegmentedPNorm(ρ11, c1, C11),
+                                                   SegmentedLSE(ρ12, C12),
                                                    SegmentedSum(C13),
                                                    SegmentedMax(C14)
                                                   ),
-                                       Dense(W2, b2, relu)
+                                       Dense(W2, b2, a2)
                                       ),
                               BagModel(
-                                       Dense(W3, b3, relu),
+                                       Dense(W3, b3, a3),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ2, c2, C21),
-                                                   SegmentedLSE(p2, C22),
+                                                   SegmentedPNorm(ρ21, c2, C21),
+                                                   SegmentedLSE(ρ22, C22),
                                                    SegmentedSum(C23),
                                                    SegmentedMax(C24)
                                                   ),
-                                       Dense(W4, b4, σ)
+                                       Dense(W4, b4, a4)
                                       ),
-                             ), Dense(W5, b5, relu)) 
+                             ), Dense(W5, b5, a5)) 
             m(tn).data
         end
 
@@ -377,34 +371,43 @@ end
         bnn = BagNode(bn, bags1, w)
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
+        a1, a2, a3 = rand(ACTIVATIONS, 3)
         @test mgradtest(params(m)...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
             m = BagModel(
                          BagModel(
-                                  Dense(W1, b1),
+                                  Dense(W1, b1, a1),
                                   Aggregation(
                                               SegmentedMean(C11),
                                               SegmentedMax(C12)
                                              ),
-                                  Dense(W2, b2)
+                                  Dense(W2, b2, a2)
                                  ),
                          Aggregation(
                                      SegmentedMean(C21),
                                      SegmentedMax(C22)
-            ),
-                         Dense(W3, b3)
+                                    ),
+                         Dense(W3, b3, a3)
                         )
             m(bnn).data
         end
     end
 
-  @testset "A gradient of ProductNode with a NamedTuple " begin
-    a = TreeNode((a = ArrayNode(randn(2,4)), b = ArrayNode(randn(3,4))))
-    m = f64(ProductModel((a = ArrayModel(Dense(2,2)), b = ArrayModel(Dense(3,1))), Dense(3,2)))
-    ps = params(m)
-    gradient(() -> sum(m(a).data), ps)
-    @test mgradtest(params(m)...) do W1, b1, W2, b2, W3, b3 
-      m = ProductModel((a = ArrayModel(Dense(W1, b1)), b = ArrayModel(Dense(W2, b2))), Dense(W3, b3))
-      sum(m(a).data)
+    @testset "A gradient of ProductNode with a NamedTuple " begin
+        a1, a2, a3 = rand(ACTIVATIONS, 3)
+        x = ProductNode((
+                         a = ArrayNode(randn(2, 4)),
+        b = ArrayNode(randn(3, 4))
+       ))
+        m = f64(ProductModel((
+                              a = ArrayModel(Dense(2, 2, a1)),
+                              b = ArrayModel(Dense(3, 1, a2))
+                             ), Dense(3, 2, a3)))
+        @test mgradtest(params(m)...) do W1, b1, W2, b2, W3, b3 
+            m = ProductModel((
+                              a = ArrayModel(Dense(W1, b1, a1)),
+            b = ArrayModel(Dense(W2, b2, a2))
+           ), Dense(W3, b3, a3))
+            sum(m(x).data)
+        end
     end
-  end
 end

@@ -35,10 +35,10 @@ BagNode with 1 empty bag(s)
 During forward (and backward) pass, the missing values in BagNodes are filled in aggregation by zeros. ** In order this feature to work, the `Aggregation` needs to know dimension, therefore use MissingAggregation, which can handle this.** In the future, MissingAggregation will be made default.
 
 Last but not least,
-`TreeNodes` cannot handle missing values, as the missingness is propagated to its leaves, i.e.
+`ProductNode`s cannot handle missing values, as the missingness is propagated to its leaves, i.e.
 ```
-julia> TreeNode((a,e))
-TreeNode{2}
+julia> ProductNode((a,e))
+ProductNode{2}
   ├── BagNode with 1 bag(s)
   │     └── ArrayNode(3, 4)
   └── BagNode with 1 empty bag(s)

@@ -1,6 +1,6 @@
-# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4908336/
+# https://arxiv.org/abs/1511.05286
 struct SegmentedLSE{T, U} <: AggregationFunction
-    p::T
+    ρ::T
     C::U
 end
 
@@ -8,25 +8,36 @@ Flux.@functor SegmentedLSE
 
 SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 
-Base.show(io::IO, n::SegmentedLSE) = print(io, "SegmentedLSE($(length(n.p)))\n")
-modelprint(io::IO, n::SegmentedLSE; pad=[]) = paddedprint(io, "SegmentedLSE($(length(n.p)))")
+r_map(ρ) = softplus.(ρ)
+inv_r_map = (r) -> max.(r, 0) .+ log1p.(-exp.(-abs.(r)))
 
-(m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_optim(x, m.C, m.p, bags)
+(m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_forw(x, m.C, r_map(m.ρ), bags)
 function (m::SegmentedLSE)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_lse_optim(x .+ typemin(T) * mask', m.C, m.p, bags)
+    segmented_lse_forw(x .+ typemin(T) * mask', m.C, r_map(m.ρ), bags)
 end
 
-segmented_lse_optim(x::Missing, C::AbstractVector, p::AbstractVector, bags::AbstractBags) = segmented_lse_forw(x, C, bags)
-function segmented_lse_optim(x::AbstractMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags)
-    a = p .* x
-    m = maximum(a, dims=2)
-    y = (m .+ segmented_lse_forw(a .- m, C, bags)) ./ p
+function _lse_precomp(x::AbstractMatrix, r, bags)
+    M = zeros(eltype(x), length(r), length(bags))
+    @inbounds for (bi, b) in enumerate(bags)
+        if !isempty(b)
+            for i in eachindex(r)
+                M[i, bi] = r[i] * x[i, first(b)]
+            end
+            for j in b[2:end]
+                for i in eachindex(r)
+                    M[i, bi] = max(M[i, bi], r[i] * x[i, j])
+                end
+            end
+        end
+    end
+    M
 end
 
-segmented_lse_forw(::Missing, C::AbstractVector, bags::AbstractBags) = repeat(C, 1, length(bags))
-function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::AbstractBags) 
-    y = zeros(eltype(a), size(a, 1), length(bags))
-    e = exp.(a)
+segmented_lse_forw(::Missing, C, r, bags::AbstractBags) = repeat(C, 1, length(bags))
+function segmented_lse_forw(x::AbstractMatrix, C, r, bags::AbstractBags)
+    y = zeros(eltype(x), length(r), length(bags))
+    M = _lse_precomp(x, r, bags)
+
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(C)
@@ -34,61 +45,90 @@ function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::Abstract
             end
         else
             for j in b
-                for i in 1:size(a, 1)
-                    y[i, bi] += e[i, j]
+                for i in eachindex(r)
+                    y[i, bi] += exp.(r[i] * x[i, j] - M[i, bi])
                 end
             end
-            lb = log(max(1, length(b)))
-            for i in 1:size(a, 1)
-                y[i, bi] = log(y[i, bi]) - lb
+            for i in eachindex(r)
+                y[i, bi] = (log(y[i, bi]) - log(length(b)) + M[i, bi]) / r[i]
             end
         end
     end
     y
 end
 
-function segmented_lse_back(Δ, y, a, C, bags)
-    da = zero(a)
-    s = zero(C)
+function segmented_lse_back(Δ, y, x, C, r, bags, M)
+    dx = zero(x)
     dC = zero(C)
-    e = exp.(a)
+    dr = zero(r)
+    s1 = zeros(eltype(x), length(r))
+    s2 = zeros(eltype(x), length(r))
+
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(C)
                 dC[i] += Δ[i, bi]
             end
         else
-            s .= 0
+            for i in eachindex(r)
+                s1[i] = s2[i] = 0
+            end
             for j in b
-                for i in 1:size(a, 1)
-                    da[i, j] = Δ[i, bi] * e[i, j]
-                    s[i] += e[i, j]
+                for i in eachindex(r)
+                    e = exp(r[i] * x[i, j] - M[i, bi])
+                    s1[i] += e
+                    s2[i] += x[i, j] * e
                 end
             end
-            da[:, b] ./= s
+            for j in b
+                for i in eachindex(r)
+                    dx[i, j] = Δ[i, bi] * exp(r[i] * x[i, j] - M[i, bi]) / s1[i]
+                end
+            end
+            for i in eachindex(r)
+                dr[i] += Δ[i, bi] * (s2[i]/s1[i] - y[i, bi]) / r[i]
+            end
         end
     end
-    da, dC, nothing, nothing
+    dx, dC, dr, nothing, nothing
 end
 
-function segmented_lse_back(Δ, C, bags)
+function segmented_lse_back(Δ, ::Missing, C, r, bags)
     dC = zero(C)
     @inbounds for (bi, b) in enumerate(bags)
         for i in eachindex(C)
             dC[i] += Δ[i, bi]
         end
     end
-    nothing, dC, nothing, nothing
+    nothing, dC, nothing, nothing, nothing
 end
 
-@adjoint function segmented_lse_forw(a::AbstractMatrix, C::AbstractVector, bags::AbstractBags)
-    y = segmented_lse_forw(a, C, bags)
-    grad = Δ -> segmented_lse_back(Δ, y, a, C, bags)
+@adjoint function segmented_lse_forw(x::AbstractMatrix, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
+    M = _lse_precomp(x, r, bags)
+    y = zeros(eltype(x), length(C), length(bags))
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            for i in eachindex(C)
+                y[i, bi] = C[i]
+            end
+        else
+            for j in b
+                for i in eachindex(C)
+                    y[i, bi] += exp.(r[i] * x[i, j] - M[i, bi])
+                end
+            end
+            for i in eachindex(C)
+                y[i, bi] = (log(y[i, bi]) - log(length(b)) + M[i, bi]) / r[i]
+            end
+        end
+    end
+
+    grad = Δ -> segmented_lse_back(Δ, y, x, C, r, bags, M)
     y, grad
 end
 
-@adjoint function segmented_lse_forw(a::Missing, C::AbstractVector, bags::AbstractBags)
-    y = segmented_lse_forw(a, C, bags)
-    grad = Δ -> segmented_lse_back(Δ, C, bags)
+@adjoint function segmented_lse_forw(x::Missing, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
+    y = segmented_lse_forw(x, C, r, bags)
+    grad = Δ -> segmented_lse_back(Δ, x, C, r, bags)
     y, grad
 end

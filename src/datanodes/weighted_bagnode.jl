@@ -17,7 +17,7 @@ mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.w
 
 function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange) where {T, B, W}
     nb, ii = remapbag(x.bags, i)
-    isempty(ii) && return(WeightedBagNode(missing, nb, W[], nothing))
+    _emptyismissing[] && isempty(ii) && return(WeightedBagNode(missing, nb, W[], nothing))
     WeightedBagNode(subset(x.data,ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
 end
 
@@ -31,11 +31,3 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T <: WeightedBagNode}
 end
 
 removeinstances(a::WeightedBagNode, mask) = WeightedBagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), subset(a.weights, findall(mask)), a.metadata)
-
-function dsprint(io::IO, n::WeightedBagNode{T}; pad=[], s="", tr=false) where T
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    m = T <: Missing ? " missing " : " "
-    paddedprint(io, "WeightedNode with $(length(n.bags))$(m)bag(s) and weights Σw = $(sum(n.weights))$(tr_repr(s, tr))\n", color=c)
-    paddedprint(io, "  └── ", color=c, pad=pad)
-    dsprint(io, n.data, pad = [pad; (c, "      ")], s=s * encode(1, 1), tr=tr)
-end

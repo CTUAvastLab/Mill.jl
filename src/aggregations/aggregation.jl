@@ -13,18 +13,7 @@ Flux.@functor Aggregation
 (a::Aggregation)(x::Union{AbstractArray, Missing}, args...) = vcat([f(x, args...) for f in a.fs]...)
 (a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
-Base.show(io::IO, a::Union{AggregationFunction, Aggregation}) = modelprint(io, a)
 Base.getindex(a::Aggregation, i) = a.fs[i]
-
-function modelprint(io::IO, a::Aggregation{N}; pad=[]) where N
-    paddedprint(io, N == 1 ? "" : "⟨")
-    for f in a.fs[1:end-1]
-        modelprint(io, f, pad=pad)
-        paddedprint(io, ", ")
-    end
-    modelprint(io, a.fs[end], pad=pad)
-    paddedprint(io, (N == 1 ? "" : "⟩"))
-end
 
 const AggregationWeights = Union{Nothing,
                                  AbstractVector{T} where T <: Real,
@@ -43,11 +32,17 @@ weight(w::AbstractMatrix, i, j) = w[i, j]
 weightsum(ws::Real, _) = ws
 weightsum(ws::AbstractVector, i) = ws[i]
 
+# more stable definitions for r_map and p_map
+Zygote.@adjoint softplus(x) = softplus.(x), Δ -> (Δ .* σ.(x),)
+
 include("segmented_sum.jl")
 include("segmented_mean.jl")
 include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
+
+Base.show(io::IO, ::MIME"text/plain", a::T) where T <: AggregationFunction = print(io, "$(T.name)($(length(a.C)))")
+Base.show(io::IO, m::MIME"text/plain", a::Aggregation{N}) where N = print(io, "⟨" * join(repr(m, f) for f in a.fs ", ") * "⟩")
 
 export SegmentedSum, SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedLSE
 

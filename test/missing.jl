@@ -1,5 +1,5 @@
 using Mill, Flux, Test
-using Mill: ArrayNode, BagNode, TreeNode, catobs
+using Mill: ArrayNode, BagNode, ProductNode, catobs
 
 @testset "testing catobs & getindex operations missing values" begin
     a = BagNode(ArrayNode(rand(3,4)), [1:4], nothing)
@@ -19,7 +19,10 @@ using Mill: ArrayNode, BagNode, TreeNode, catobs
 
     x = reduce(catobs, [a, e])
     @test  isnothing(x[2].metadata)
+    Mill.emptyismissing(true)
     @test  ismissing(x[2].data)
+    Mill.emptyismissing(false)
+    @test  nobs(x[2].data) == 0
     @test  x[2].bags.bags == [0:-1]
 
     @test  x[1].data.data == a.data.data
@@ -61,7 +64,10 @@ end
 
     x = reduce(catobs, [a, e])
     @test  isnothing(x[2].metadata)
+    Mill.emptyismissing(true)
     @test  ismissing(x[2].data)
+    Mill.emptyismissing(false)
+    @test  nobs(x[2].data) == 0
     @test  x[2].bags.bags == [0:-1]
     @test x[1].weights == [1.0, 0.0, 1.0, 0.5]
     @test x[2].weights == []
@@ -81,11 +87,11 @@ end
         @test m(x).data ≈ hcat(m(a).data, m(e).data)
     end
 
-    @testset "TreeNode" begin
-        t1 = TreeNode((a, a))
-        t2 = TreeNode((a, e))
-        t3 = TreeNode((e, a))
-        t4 = TreeNode((e, e))
+    @testset "ProductNode" begin
+        t1 = ProductNode((a, a))
+        t2 = ProductNode((a, e))
+        t3 = ProductNode((e, a))
+        t4 = ProductNode((e, e))
         tt = [t1, t2, t3, t4]
         x  = reduce(catobs, tt)
         tm = ProductModel((m, m))
@@ -100,13 +106,13 @@ end
 end
 
 @testset "testing reduction with missing values" begin
-    a = TreeNode((x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4))))
-    b = TreeNode((x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4))))
+    a = ProductNode((x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4))))
+    b = ProductNode((x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4))))
 
-    c = TreeNode((
+    c = ProductNode((
         x=BagNode(missing, AlignedBags([0:-1]), nothing), y=ArrayNode(rand(3,1)),
     ))
-    d = TreeNode((
+    d = ProductNode((
         x=BagNode(a, [1:4], nothing), y=ArrayNode(rand(3,1)),
     ))
 

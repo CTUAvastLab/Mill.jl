@@ -1,16 +1,14 @@
-abstract type MillModel end
+abstract type AbstractMillModel end
 
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
-
-Base.show(io::IO, ::MIME"text/plain", m::MillModel) = modelprint(io, m, tr=false)
-Base.show(io::IO, ::T) where T <: MillModel = show(io, Base.typename(T))
-modelprint(io::IO, m::MillModel; tr=false, pad=[]) = paddedprint(io, m, "\n")
 
 include("arraymodel.jl")
 include("bagmodel.jl")
 include("productmodel.jl")
 
-reflectinmodel(x, db, da=d->SegmentedMean(d); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")[1]
+import HierarchicalUtils: encode, stringify
+
+reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")[1]
 
 function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
     im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1))
@@ -20,7 +18,7 @@ function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
     BagModel(im, agg, bm), d
 end
 
-function _reflectinmodel(x::AbstractTreeNode, db, da, b, a, s)
+function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s)
     n = length(x.data)
     mm = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n)) for (i, xx) in enumerate(x.data)]
     im = tuple([i[1] for i in mm]...)
@@ -28,7 +26,7 @@ function _reflectinmodel(x::AbstractTreeNode, db, da, b, a, s)
     ProductModel(im, tm), d
 end
 
-function _reflectinmodel(x::TreeNode{T,C}, db, da, b, a, s) where {T<:NamedTuple, C}
+function _reflectinmodel(x::ProductNode{T,C}, db, da, b, a, s) where {T<:NamedTuple, C}
     n = length(x.data)
     ks = keys(x.data)
     ms = (;[k => _reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n))[1] for (i, k) in enumerate(ks)]...)
