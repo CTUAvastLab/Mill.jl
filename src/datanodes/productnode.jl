@@ -18,6 +18,9 @@ Flux.@functor ProductNode
 
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
+Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
+Base.keys(x::ProductNode) = keys(x.data)
+
 Base.ndims(x::AbstractProductNode) = Colon()
 LearnBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
 LearnBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)

@@ -18,10 +18,14 @@ Flux.@functor ProductModel
 ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, ArrayModel(identity))
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
+Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
+Base.keys(m::ProductModel) = keys(m.ms)
+
 function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:Tuple,T,MS<:Tuple, M} 
     xx = vcat([m.ms[i](x.data[i]) for i in 1:length(m.ms)]...)
     m.m(xx)
 end
+
 
 function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:NamedTuple,T,MS<:NamedTuple, M} 
     xx = vcat([m.ms[k](x.data[k]) for k in keys(m.ms)]...)
