@@ -57,6 +57,11 @@ Base.show(io::IO, ::T) where T <: Union{AbstractNode, AbstractMillModel, Aggrega
 Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=2)
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
+const _emptyismissing = Ref(false)
+
+function emptyismissing(a)
+    _emptyismissing[] = a
+end
 
 const _terseprint = Ref(true)
 
