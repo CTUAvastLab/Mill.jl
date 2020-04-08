@@ -79,18 +79,29 @@ end
 end
 
 @testset "lse numerical stability" begin
-    # it holds for any c and any r != 0, LSE(r)(x) == c .+ LSE(r)(x .- c)
-    b1 = AlignedBags([1:2])
-    b2 = ScatteredBags([[1,2]])
     dummy = randn(2)
-    for t in 1:5
-        ρ = randn(2)
-        @test SegmentedLSE(ρ, dummy)([1e15 1e15; 1e15 1e15], b1) ≈ [1e15; 1e15]
-        @test SegmentedLSE(ρ, dummy)([-1e15 -1e15; -1e15 -1e15], b2) ≈ [-1e15; -1e15]
-        @test SegmentedLSE(ρ, dummy)([1e15 1e15; 1e15 1e15], b1, [1, 1]) ≈ [1e15; 1e15]
-        @test SegmentedLSE(ρ, dummy)([1e15 1e15; 1e15 1e15], b2, [2, 2]) ≈ [1e15; 1e15]
-        @test SegmentedLSE(ρ, dummy)([-1e15 -1e15; -1e15 -1e15], b1, [1, 1]) ≈ [-1e15; -1e15]
-        @test SegmentedLSE(ρ, dummy)([-1e15 -1e15; -1e15 -1e15], b2, [2, 2]) ≈ [-1e15; -1e15]
+    for b in [AlignedBags([1:2]), ScatteredBags([[1,2]])]
+        ρ1 = inv_r_map.(1e5 .+ 100 .* randn(2))
+        ρ2 = inv_r_map.(-1e5 .- 100 .* randn(2))
+        Z = 1e5 .+ 1e3 .* randn(2, 2)
+        for X in [Z, -Z, randn(2, 2)]
+            @test_skip @test SegmentedLSE(ρ1, dummy)(X, b) ≈ maximum(X; dims=2)
+            # doesn't use weights
+            @test_skip @test SegmentedLSE(ρ1, dummy)(X, b, [1, 1]) ≈ maximum(X; dims=2)
+            @test_skip @test SegmentedLSE(ρ1, dummy)(X, b, [2, 2]) ≈ maximum(X; dims=2)
+
+            @test_skip @test SegmentedLSE(ρ2, dummy)(X, b) ≈ sum(X; dims=2) ./ 2
+            # doesn't use weights
+            @test_skip @test SegmentedLSE(ρ2, dummy)(X, b, [1, 1]) ≈ sum(X; dims=2) ./ 2
+            @test_skip @test SegmentedLSE(ρ2, dummy)(X, b, [2, 2]) ≈ sum(X; dims=2) ./ 2
+
+            for i in 1:2
+                @test SegmentedLSE(randn(2), dummy)(repeat(X[:, i], 1, 2), b) ≈ X[:, i]
+                @test SegmentedLSE(randn(2), dummy)(repeat(X[:, i], 1, 2), b, [1, 1]) ≈ X[:, i]
+                # doesn't use weights
+                @test SegmentedLSE(randn(2), dummy)(repeat(X[:, i], 1, 2), b, [1, 2]) ≈ X[:, i]
+            end
+        end
     end
 end
 
