@@ -19,13 +19,10 @@ function (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w::Aggregati
 end
 
 function _pnorm_precomp(x::AbstractMatrix, bags)
-    M = zeros(eltype(x), size(x, 1), length(bags))
+    M = ones(eltype(x), size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if !isempty(b)
-            for i in 1:size(x, 1)
-                M[i, bi] = abs(x[i, first(b)])
-            end
-            for j in b[2:end]
+            for j in b
                 for i in 1:size(x, 1)
                     M[i, bi] = max(M[i, bi], abs(x[i, j]))
                 end
