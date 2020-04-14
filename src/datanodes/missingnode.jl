@@ -1,4 +1,4 @@
-struct MissingNode{D}
+struct MissingNode{D} <:AbstractNode
 	data::D
 	present::Vector{Bool}
 end
@@ -15,13 +15,19 @@ function Base.reduce(::typeof(Mill.catobs), as::Vector{T}) where {T<:MissingNode
     MissingNode(data, present)
 end
 
-get_true_index(present, i::Int) = sum(view(present, 1:i))
-get_true_index(present, ii::Vector{Int}) = map(i -> get_true_index(present, i), ii)
+get_present_index(present, i::Int) = sum(view(present, 1:i))
+get_present_index(present, ii::Vector{Int}) = map(i -> get_present_index(present, i), ii)
 
 function Base.getindex(x::MissingNode, i::VecOrRange)
 	p = x.present[i]
 	!any(p) && return(MissingNode(x.data[1:0], p))
-	ii = get_true_index(x.present, i[p])
+	ii = get_present_index(x.present, i[p])
 	@show typeof(p)
 	MissingNode(x.data[ii], p)
 end
+
+NodeType(::Type{<:MissingNode}) = SingletonNode()
+children(n::MissingNode) = (n.data,)
+noderepr(n::MissingNode) = "Missing"
+childrenfields(::Type{MissingNode}) = (:data,)
+
