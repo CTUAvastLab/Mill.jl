@@ -1,5 +1,5 @@
 using Mill, Test, Flux, FiniteDifferences
-using Mill: MissingNode, ArrayNode, MissingModel
+using Mill: MissingNode, ArrayNode, MissingModel, reflectinmodel
 using Finite
 
 @testset "missingnode" begin 
@@ -50,6 +50,6 @@ end
 
 	d = ArrayNode([1 2 3; 4 5 6])
 	x = MissingNode(d)
-	_reflectinmodel(x, d -> Dense(d, 3), d -> SegmentedMean)
+	reflectinmodel(x, d -> Dense(d, 3), d -> SegmentedMean);
 end
 
