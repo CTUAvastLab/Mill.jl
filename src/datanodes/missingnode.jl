@@ -1,3 +1,14 @@
+"""
+	struct MissingNode{D} <:AbstractNode
+		data::D
+		present::Vector{Bool}
+	end
+
+	Missing node adds a generic support for missing values to nodes. It wraps the node,
+	such that `data` field contain only non-missing values, which are indicated in the 
+	`present` mask. 
+
+"""
 struct MissingNode{D} <:AbstractNode
 	data::D
 	present::Vector{Bool}
