@@ -6,6 +6,7 @@ NodeType(::Type{<:AbstractBagNode}) = SingletonNode()
 NodeType(::Type{<:BagModel}) = SingletonNode()
 NodeType(::Type{<:AbstractMillModel}) = InnerNode()
 
+noderepr(::T) where T <: Union{AbstractNode, AbstractMillModel} = "$(Base.nameof(T))"
 noderepr(::Missing) = "∅"
 noderepr(n::ArrayNode) = "ArrayNode$(size(n.data))"
 noderepr(n::ArrayModel) = "ArrayModel($(n.m))"
