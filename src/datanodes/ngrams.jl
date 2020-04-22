@@ -182,6 +182,7 @@ Base.Matrix(x::NGramMatrix) = Matrix(SparseMatrixCSC(x))
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Float32, UInt}(x)
 
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}
+    length(x) == 0 && return sparse(Ti[],Ti[],Tv[], size(x,1), size(x,2))
     l = sum(map(i -> length(NGramIterator(x, i)), 1:length(x)))
     I = zeros(Ti, l)
     J = zeros(Ti, l)
