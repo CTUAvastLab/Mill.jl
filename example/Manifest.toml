@@ -219,9 +219,9 @@ version = "3.2.0"
 
 [[HierarchicalUtils]]
 deps = ["Setfield"]
-git-tree-sha1 = "612a4c817b749d5039c646c6bacff718b3449f65"
+git-tree-sha1 = "7e9521741ce42e3a05459acb541313ed9ccb3185"
 uuid = "f9ccea15-0695-44b9-8113-df7c26ae4fa9"
-version = "0.0.6"
+version = "0.0.7"
 
 [[IRTools]]
 deps = ["InteractiveUtils", "MacroTools", "Test"]
