@@ -75,24 +75,24 @@ function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMill
 		return
 	# basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
     elseif x isa DataType
-        show_datatype(io, x)
+        Base.show_datatype(io, x)
         return
     elseif x isa Union
         print(io, "Union")
-        show_delim_array(io, uniontypes(x), '{', ',', '}', false)
+        Base.show_delim_array(io, uniontypes(x), '{', ',', '}', false)
         return
     end
     x::UnionAll
 
-    if print_without_params(x)
+    if Base.print_without_params(x)
         return show(io, unwrap_unionall(x).name)
     end
 
-    if x.var.name === :_ || io_has_tvar_name(io, x.var.name, x)
+    if x.var.name === :_ || Base.io_has_tvar_name(io, x.var.name, x)
         counter = 1
         while true
             newname = Symbol(x.var.name, counter)
-            if !io_has_tvar_name(io, newname, x)
+            if !Base.io_has_tvar_name(io, newname, x)
                 newtv = TypeVar(newname, x.var.lb, x.var.ub)
                 x = UnionAll(newtv, x{newtv})
                 break
