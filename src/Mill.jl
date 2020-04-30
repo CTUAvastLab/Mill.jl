@@ -72,10 +72,38 @@ end
 function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
 	if _terseprint[]
 		print(io, "$(x.name){…}")
-	else
-		Base.show_datatype(io, x)
-	end
-end
+		return
+	# basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
+    elseif x isa DataType
+        show_datatype(io, x)
+        return
+    elseif x isa Union
+        print(io, "Union")
+        show_delim_array(io, uniontypes(x), '{', ',', '}', false)
+        return
+    end
+    x::UnionAll
+
+    if print_without_params(x)
+        return show(io, unwrap_unionall(x).name)
+    end
+
+    if x.var.name === :_ || io_has_tvar_name(io, x.var.name, x)
+        counter = 1
+        while true
+            newname = Symbol(x.var.name, counter)
+            if !io_has_tvar_name(io, newname, x)
+                newtv = TypeVar(newname, x.var.lb, x.var.ub)
+                x = UnionAll(newtv, x{newtv})
+                break
+            end
+            counter += 1
+        end
+    end
+
+    show(IOContext(io, :unionall_env => x.var), x.body)
+    print(io, " where ")
+    show(io, x.var)end
 export printtree
 
 end
