@@ -41,19 +41,46 @@ end
     @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
     @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
      
-    for bags in BAGS2
+    fs = [:SegmentedSum, :SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
+    params = [(:C1,), (:C2,), (:C3,), (:ρ1, :c, :C4), (:ρ2, :C5)]
+
+    for idxs in powerset(collect(1:length(fs)))
+        !isempty(idxs) || continue;
+        length(idxs) <= 2 || continue
+
         d = rand(1:20)
-        x = randn(d, 10)
-        w = abs.(randn(size(x, 2))) .+ 0.1
-        w_mat = abs.(randn(size(x))) .+ 0.1
+        x = randn(d, 0)
+        as = []; cs = []; rs = []
+        for (f, ps) in zip(fs[idxs], params[idxs])
+            push!(rs, fill(:(randn($d)), length(ps))...)
+            push!(as, ps...)
+            push!(cs, Expr(:call, f, ps...))
+        end
+        @eval begin
+            @test mgradtest($(map(eval, rs)...)) do $(as...)
+                a = Aggregation($(cs...))
+                a(missing, ScatteredBags([Int[], Int[]]))
+            end
+            @test mgradtest($(map(eval, rs)...)) do $(as...)
+                a = Aggregation($(cs...))
+                a(missing, AlignedBags([0:-1]), nothing)
+            end
+            @test mgradtest($(map(eval, rs)...)) do $(as...)
+                a = Aggregation($(cs...))
+                a($x, ScatteredBags([Int[]]))
+            end
+            @test mgradtest($(map(eval, rs)...)) do $(as...)
+                a = Aggregation($(cs...))
+                a($x, AlignedBags([0:-1, 0:-1]), nothing)
+            end
+        end
 
-        fs = [:SegmentedSum, :SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
-        params = (:C1,), (:C2,), (:C3,), (:ρ1, :c, :C4), (:ρ2, :C5)
-
-        for idxs in powerset(collect(1:length(fs)))
-            !isempty(idxs) || continue;
-            length(idxs) <= 2 || continue
-            rs = []; as = []; cs = []; 
+        for bags in BAGS2
+            d = rand(1:20)
+            x = randn(d, 10)
+            w = abs.(randn(size(x, 2))) .+ 0.1
+            w_mat = abs.(randn(size(x))) .+ 0.1
+            as = []; cs = []; rs = []
             for (f, ps) in zip(fs[idxs], params[idxs])
                 push!(rs, fill(:(randn($d)), length(ps))...)
                 push!(as, ps...)
@@ -62,15 +89,7 @@ end
             @eval begin
                 @test mgradtest($(map(eval, rs)...)) do $(as...)
                     a = Aggregation($(cs...))
-                    a(missing, $bags)
-                end
-                @test mgradtest($(map(eval, rs)...)) do $(as...)
-                    a = Aggregation($(cs...))
                     a($x, $bags)
-                end
-                @test mgradtest($(map(eval, rs)...)) do $(as...)
-                    a = Aggregation($(cs...))
-                    a(missing, $bags, nothing)
                 end
                 @test mgradtest($(map(eval, rs)...)) do $(as...)
                     a = Aggregation($(cs...))
