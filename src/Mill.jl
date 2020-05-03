@@ -11,6 +11,8 @@ using Zygote: @adjoint
 using LinearAlgebra
 import Base.reduce
 
+import HierarchicalUtils: NodeType, childrenfields, children, InnerNode, SingletonNode, LeafNode, printtree, noderepr
+
 MLDataPattern.nobs(::Missing) = nothing
 
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
@@ -58,19 +60,19 @@ Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel})
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 
-const _terseprint = Ref(true)
+# const _terseprint = Ref(true)
 
-function terseprint(a)
-    _terseprint[] = a
-end
+# function terseprint(a)
+#     _terseprint[] = a
+# end
 
-function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
-	if _terseprint[]
-		print(io, "$(x.name){…}")
-	else
-		Base.show_datatype(io, x)
-	end
-end
+# function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
+# 	if _terseprint[]
+# 		print(io, "$(x.name){…}")
+# 	else
+# 		Base.show_datatype(io, x)
+# 	end
+# end
 export printtree
 
 end

@@ -45,23 +45,16 @@ function mapactivations(hm::BagModel, x::BagNode, m::BagModel)
     (ArrayNode(hbo.data + hai.data), bo)
 end
 
-# function mapactivations(hm::BagModel, x::BagNode{<: Missing, B,C}, m::BagModel) where {B,C}
-#     ai = m.a(missing, x.bags)
-#     hai = hm.a(missing, x.bags)
-#     hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)
-#     (ArrayNode(hbo.data + hai), bo)
-# end
+function mapactivations(hm::BagModel, x::BagNode{M, B,C}, m::BagModel) where {M<: Missing,B,C}
+    ai = m.a(missing, x.bags)
+    hai = hm.a(missing, x.bags)
+    hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)
+    (ArrayNode(hbo.data + hai), bo)
+end
 
 function fold(f, m::BagModel, x)
     o₁ = fold(f, m.im, x.data)
     o₂ = f(m.a, o₁, x.bags)
     o₃ = fold(f, m.bm, o₂)
     o₃
-end
-
-function mapactivations(hm::BagModel, x::BagNode{<: Missing, B,C}, m::BagModel) where {B,C}
-    ai = m.a(missing, x.bags)
-    hai = hm.a(missing, x.bags)
-    hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)
-    (ArrayNode(hbo.data + hai), bo)
 end

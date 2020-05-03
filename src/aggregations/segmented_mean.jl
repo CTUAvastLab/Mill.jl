@@ -32,7 +32,7 @@ function segmented_mean_forw(x::AbstractMatrix, C::AbstractVector, bags::Abstrac
 end
 
 function segmented_mean_back(Δ, y, x, C, bags, w) 
-    dx = similar(x)
+    dx = zero(x)
     dC = zero(C)
     dw = isnothing(w) ? nothing : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
@@ -44,7 +44,7 @@ function segmented_mean_back(Δ, y, x, C, bags, w)
             ws = bagnorm(w, b)
             for j in b
                 for i in 1:size(x, 1)
-                    dx[i, j] = weight(w, i, j) * Δ[i, bi] / weightsum(ws, i)
+                    dx[i, j] += weight(w, i, j) * Δ[i, bi] / weightsum(ws, i)
                     ∇dw_segmented_mean!(dw, Δ, x, y, w, ws, i, j, bi)
                 end
             end

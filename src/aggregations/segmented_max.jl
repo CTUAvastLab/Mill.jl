@@ -53,7 +53,7 @@ function segmented_max_back(Δ, y, x, C, bags)
                 end
             end
             for i in 1:size(x, 1)
-                dx[i, idxs[i]] = Δ[i, bi]
+                dx[i, idxs[i]] += Δ[i, bi]
             end
         end
     end
