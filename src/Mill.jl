@@ -59,20 +59,9 @@ Base.show(io::IO, ::T) where T <: Union{AbstractNode, AbstractMillModel, Aggrega
 Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=2)
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
+include("partialeval.jl")
 
-# const _terseprint = Ref(true)
 
-# function terseprint(a)
-#     _terseprint[] = a
-# end
-
-# function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
-# 	if _terseprint[]
-# 		print(io, "$(x.name){…}")
-# 	else
-# 		Base.show_datatype(io, x)
-# 	end
-# end
 export printtree
 
 end

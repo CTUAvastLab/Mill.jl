@@ -37,7 +37,7 @@ function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
 end
 
 
-function mapactivations(hm::BagModel, x::BagNode, m::BagModel)
+function mapactivations(hm::BagModel, x::BagNode{M, B,C}, m::BagModel) where {M<: AbstractNode,B,C}
     hmi, mi = mapactivations(hm.im, x.data, m.im)
     ai = m.a(mi, x.bags)
     hai = hm.a(hmi, x.bags)
