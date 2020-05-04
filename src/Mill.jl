@@ -66,6 +66,12 @@ function emptyismissing(a)
     _emptyismissing[] = a
 end
 
+const _terseprint = Ref(true)
+
+function terseprint(a)
+    _terseprint[] = a
+end
+
 function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
 	if _terseprint[]
 		if !hasproperty(x, :name) && hasproperty(x, :body)
