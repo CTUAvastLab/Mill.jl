@@ -18,10 +18,24 @@ function (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w::Aggregati
     segmented_pnorm_forw((x.-m.c) .* mask', m.C, p_map(m.ρ), bags, w)
 end
 
-segmented_pnorm_forw(::Missing, C::AbstractVector, p, bags::AbstractBags, w) = repeat(C, 1, length(bags))
-function segmented_pnorm_forw(a::AbstractMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
+function _pnorm_precomp(x::AbstractMatrix, bags)
+    M = ones(eltype(x), size(x, 1), length(bags))
+    @inbounds for (bi, b) in enumerate(bags)
+        if !isempty(b)
+            for j in b
+                for i in 1:size(x, 1)
+                    M[i, bi] = max(M[i, bi], abs(x[i, j]))
+                end
+            end
+        end
+    end
+    M
+end
+
+function _segmented_pnorm_norm(a::AbstractMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w, M) 
     isnothing(w) || @assert all(w .> 0)
     y = zeros(eltype(a), size(a, 1), length(bags))
+    M = _pnorm_precomp(a, bags)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(C)
@@ -31,19 +45,24 @@ function segmented_pnorm_forw(a::AbstractMatrix, C::AbstractVector, p::AbstractV
             ws = bagnorm(w, b)
             for j in b
                 for i in 1:size(a, 1)
-                    y[i, bi] += weight(w, i, j) * abs(a[i, j]) ^ p[i]
+                    y[i, bi] += weight(w, i, j) * abs(a[i, j]/M[i, bi]) ^ p[i]
                 end
             end
             for i in 1:size(a, 1)
-                y[i, bi] /= weightsum(ws, i)
-                y[i, bi] ^= 1 / p[i]
+                y[i, bi] = M[i, bi] * (y[i, bi] / weightsum(ws, i))^(1/p[i])
             end
         end
     end
     y
 end
 
-function segmented_pnorm_back(Δ, y, a::AbstractMatrix, C, p, bags::AbstractBags, w::AggregationWeights)
+segmented_pnorm_forw(::Missing, C::AbstractVector, p, bags::AbstractBags, w) = repeat(C, 1, length(bags))
+function segmented_pnorm_forw(a::MaybeMatrix, C::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
+    M = _pnorm_precomp(a, bags)
+    _segmented_pnorm_norm(a, C, p, bags, w, M)
+end
+
+function segmented_pnorm_back(Δ, y, a::AbstractMatrix, C, p, bags::AbstractBags, w::AggregationWeights, M)
     da = similar(a)
     dp = zero(p)
     dps1 = zero(p)
@@ -64,14 +83,14 @@ function segmented_pnorm_back(Δ, y, a::AbstractMatrix, C, p, bags::AbstractBags
                     ab = abs(a[i, j])
                     da[i, j] = Δ[i, bi] * weight(w, i, j) * sign(a[i, j]) / weightsum(ws, i) 
                     da[i, j] *= (ab / y[i, bi]) ^ (p[i] - 1)
-                    ww = weight(w, i, j) * ab ^ p[i]
+                    ww = weight(w, i, j) * (ab / M[i, bi]) ^ p[i]
                     dps1[i] +=  ww * log(ab)
                     dps2[i] +=  ww
                 end
             end
             for i in 1:size(a, 1)
                 t = y[i, bi] / p[i]
-                t *= dps1[i] / dps2[i] - (log(dps2[i]) - log(weightsum(ws, i))) / p[i]
+                t *= dps1[i] / dps2[i] - (p[i] * log(M[i, bi]) + log(dps2[i]) - log(weightsum(ws, i))) / p[i]
                 dp[i] += Δ[i, bi] * t
             end
         end
@@ -79,7 +98,7 @@ function segmented_pnorm_back(Δ, y, a::AbstractMatrix, C, p, bags::AbstractBags
     da, dC, dp, nothing, dw
 end
 
-function segmented_pnorm_back(Δ, y, a::Missing, C, p, bags, w::Nothing) 
+function segmented_pnorm_back(Δ, y, C, bags) 
     dC = zero(C)
     @inbounds for (bi, b) in enumerate(bags)
         for i in eachindex(C)
@@ -97,8 +116,15 @@ function ∇dw_segmented_pnorm!(dw::AbstractMatrix, Δ, a, y, w::AbstractMatrix,
     error("Not implemented yet!")
 end
 
-Zygote.@adjoint function segmented_pnorm_forw(a, C, p, args...)
-    y = segmented_pnorm_forw(a, C, p, args...)
-    grad = Δ -> segmented_pnorm_back(Δ, y, a, C, p, args...)
+Zygote.@adjoint function segmented_pnorm_forw(a::AbstractMatrix, C, p, bags, w)
+    M = _pnorm_precomp(a, bags)
+    y = _segmented_pnorm_norm(a, C, p, bags, w, M)
+    grad = Δ -> segmented_pnorm_back(Δ, y, a, C, p, bags, w, M)
+    y, grad
+end
+
+Zygote.@adjoint function segmented_pnorm_forw(a::Missing, C, p, bags, w)
+    y = segmented_pnorm_forw(a, C, p, bags, w)
+    grad = Δ -> segmented_pnorm_back(Δ, y, C, bags)
     y, grad
 end

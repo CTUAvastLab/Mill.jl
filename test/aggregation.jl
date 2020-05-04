@@ -78,19 +78,53 @@ end
     end
 end
 
+@testset "pnorm numerical stability" begin
+    k, d = 10, 5
+    dummy, c = randn(d), zeros(d)
+    b = AlignedBags([1:k])
+    ρ1 = inv_p_map.(ones(d))
+    ρ2 = randn(d)
+    p2 = p_map(ρ2)
+    Z = 1e5 .+ 1e3 .* randn(d, k)
+    W = abs.(randn(k)) .+ 1e-2
+    for X in [Z, -Z, randn(d, k)]
+        @test SegmentedPNorm(ρ1, c, dummy)(X, b) ≈ sum(abs.(X); dims=2) ./ k
+        @test SegmentedPNorm(ρ1, c, dummy)(X, b, W) ≈ sum(W' .* abs.(X); dims=2) / sum(W)
+        @test SegmentedPNorm(ρ1, c, dummy)(X, b, W) ≈ sum(W' .* abs.(X); dims=2) / sum(W)
+
+        for i in 1:k
+            @test SegmentedPNorm(ρ1, c, dummy)(repeat(X[:, i], 1, k), b) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(ρ2, c, dummy)(repeat(X[:, i], 1, k), b) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(ρ1, c, dummy)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(ρ1, c, dummy)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(ρ2, c, dummy)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(ρ2, c, dummy)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
+        end
+    end
+end
+
 @testset "lse numerical stability" begin
-    # it holds for any c and any r != 0, LSE(r)(x) == c .+ LSE(r)(x .- c)
-    b1 = AlignedBags([1:2])
-    b2 = ScatteredBags([[1,2]])
-    dummy = randn(2)
-    for t in 1:5
-        ρ = randn(2)
-        @test SegmentedLSE(ρ, dummy)([1e15 1e15; 1e15 1e15], b1) ≈ [1e15; 1e15]
-        @test SegmentedLSE(ρ, dummy)([-1e15 -1e15; -1e15 -1e15], b2) ≈ [-1e15; -1e15]
-        @test SegmentedLSE(ρ, dummy)([1e15 1e15; 1e15 1e15], b1, [1, 1]) ≈ [1e15; 1e15]
-        @test SegmentedLSE(ρ, dummy)([1e15 1e15; 1e15 1e15], b2, [2, 2]) ≈ [1e15; 1e15]
-        @test SegmentedLSE(ρ, dummy)([-1e15 -1e15; -1e15 -1e15], b1, [1, 1]) ≈ [-1e15; -1e15]
-        @test SegmentedLSE(ρ, dummy)([-1e15 -1e15; -1e15 -1e15], b2, [2, 2]) ≈ [-1e15; -1e15]
+    k, d = 10, 5
+    dummy = randn(d)
+    b = AlignedBags([1:k])
+    ρ1 = inv_r_map.(1e5 .+ 100 .* randn(d))
+    ρ2 = inv_r_map.(-1e5 .- 100 .* randn(d))
+    Z = 1e5 .+ 1e3 .* randn(d, k)
+    W = abs.(randn(k)) .+ 1e-2
+    for X in [Z, -Z, randn(d, k)]
+        @test_skip @test SegmentedLSE(ρ1, dummy)(X, b) ≈ maximum(X; dims=2)
+        # doesn't use weights
+        @test_skip @test SegmentedLSE(ρ1, dummy)(X, b, W) ≈ maximum(X; dims=2)
+
+        @test_skip @test SegmentedLSE(ρ2, dummy)(X, b) ≈ sum(X; dims=2) ./ k
+        # doesn't use weights
+        @test_skip @test SegmentedLSE(ρ2, dummy)(X, b, W) ≈ sum(X; dims=2) ./ k
+
+        for i in 1:k
+            @test SegmentedLSE(randn(d), dummy)(repeat(X[:, i], 1, k), b) ≈ X[:, i]
+            # doesn't use weights
+            @test SegmentedLSE(randn(d), dummy)(repeat(X[:, i], 1, k), b, W) ≈ X[:, i]
+        end
     end
 end
 

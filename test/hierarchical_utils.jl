@@ -110,3 +110,31 @@ end
 @testset "ZipIterator" begin
     @test ZipIterator(n2, n2m) |> collect == collect(zip(NodeIterator(n2) |> collect, NodeIterator(n2m) |> collect))
 end
+
+@testset "printtree" begin
+	buf = IOBuffer()
+	printtree(buf, n2, trav=true)
+	str_repr = String(take!(buf))
+	@test str_repr ==
+"""
+ProductNode [""]
+  ├── ProductNode ["E"]
+  │     ├─── b: BagNode with 2 bag(s) ["I"]
+  │     │         └── ArrayNode(3, 4) ["K"]
+  │     └── wb: WeightedNode with 2 bag(s) and weights Σw = 11 ["M"]
+  │               └── ArrayNode(17, 4) ["O"]
+  └── ArrayNode(10, 2) ["U"]"""
+
+  buf = IOBuffer()
+  printtree(buf, n2m, trav=true)
+  str_repr = String(take!(buf))
+  @test str_repr ==
+"""
+ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
+  ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"]
+  │     ├─── b: BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10)) ["I"]
+  │     │         └── ArrayModel(Dense(3, 10)) ["K"]
+  │     └── wb: BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10)) ["M"]
+  │               └── ArrayModel(Dense(17, 10)) ["O"]
+  └── ArrayModel(Dense(10, 10)) ["U"]"""
+end

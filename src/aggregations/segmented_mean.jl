@@ -53,7 +53,7 @@ function segmented_mean_back(Δ, y, x, C, bags, w)
     dx, dC, nothing, dw
 end
 
-function segmented_mean_back(Δ, y, x::Missing, C, bags, w::Nothing) 
+function segmented_mean_back(Δ, y, x::Missing, C, bags, w) 
     dC = zero(C)
     @inbounds for (bi, b) in enumerate(bags)
         for i in eachindex(C)

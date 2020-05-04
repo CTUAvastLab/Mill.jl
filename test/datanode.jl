@@ -257,3 +257,19 @@ end
     @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC
     @test all(xs.data[1].data[1].data .== x.data[1].data[1].data)
 end
+
+@testset "testing terseprint on" begin
+    Mill.terseprint(true)
+    buf = IOBuffer()
+    show(buf, typeof([h,i]))
+    str_repr = String(take!(buf))
+    @test str_repr == "Array{ProductNode{…},1}"
+end
+
+@testset "testing terseprint off" begin
+    Mill.terseprint(false)
+    buf = IOBuffer()
+    show(buf, typeof([h,i]))
+    str_repr = String(take!(buf))
+    @test str_repr == "Array{ProductNode{T,Nothing} where T,1}"
+end

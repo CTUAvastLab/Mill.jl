@@ -1,9 +1,3 @@
-const _emptyismissing = Ref(false)
-
-function emptyismissing(a)
-    _emptyismissing[] = a
-end
-
 struct BagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, C} <: AbstractBagNode
     data::T
     bags::B

@@ -33,11 +33,8 @@ function _lse_precomp(x::AbstractMatrix, r, bags)
     M
 end
 
-segmented_lse_forw(::Missing, C, r, bags::AbstractBags) = repeat(C, 1, length(bags))
-function segmented_lse_forw(x::AbstractMatrix, C, r, bags::AbstractBags)
+function _segmented_lse_norm(x::AbstractMatrix, C, r, bags::AbstractBags, M)
     y = zeros(eltype(x), length(r), length(bags))
-    M = _lse_precomp(x, r, bags)
-
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(C)
@@ -55,6 +52,12 @@ function segmented_lse_forw(x::AbstractMatrix, C, r, bags::AbstractBags)
         end
     end
     y
+end
+
+segmented_lse_forw(::Missing, C::AbstractVector, r, bags::AbstractBags) = repeat(C, 1, length(bags))
+function segmented_lse_forw(x::AbstractMatrix, C, r, bags::AbstractBags)
+    M = _lse_precomp(x, r, bags)
+    _segmented_lse_norm(x, C, r, bags, M)
 end
 
 function segmented_lse_back(Δ, y, x, C, r, bags, M)
@@ -93,7 +96,7 @@ function segmented_lse_back(Δ, y, x, C, r, bags, M)
     dx, dC, dr, nothing, nothing
 end
 
-function segmented_lse_back(Δ, ::Missing, C, r, bags)
+function segmented_lse_back(Δ, ::Missing, C, bags)
     dC = zero(C)
     @inbounds for (bi, b) in enumerate(bags)
         for i in eachindex(C)
@@ -105,30 +108,13 @@ end
 
 @adjoint function segmented_lse_forw(x::AbstractMatrix, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
     M = _lse_precomp(x, r, bags)
-    y = zeros(eltype(x), length(C), length(bags))
-    @inbounds for (bi, b) in enumerate(bags)
-        if isempty(b)
-            for i in eachindex(C)
-                y[i, bi] = C[i]
-            end
-        else
-            for j in b
-                for i in eachindex(C)
-                    y[i, bi] += exp.(r[i] * x[i, j] - M[i, bi])
-                end
-            end
-            for i in eachindex(C)
-                y[i, bi] = (log(y[i, bi]) - log(length(b)) + M[i, bi]) / r[i]
-            end
-        end
-    end
-
+    y = _segmented_lse_norm(x, C, r, bags, M)
     grad = Δ -> segmented_lse_back(Δ, y, x, C, r, bags, M)
     y, grad
 end
 
 @adjoint function segmented_lse_forw(x::Missing, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
     y = segmented_lse_forw(x, C, r, bags)
-    grad = Δ -> segmented_lse_back(Δ, x, C, r, bags)
+    grad = Δ -> segmented_lse_back(Δ, x, C, bags)
     y, grad
 end
