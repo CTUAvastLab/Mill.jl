@@ -23,3 +23,6 @@ noderepr(n::LazyNode{N,D}) where {N,D} = "$(N) $(length(n.data)) items"
 noderepr(n::LazyNode{N,D}) where {N,D<:Nothing} = "$(N) ∅"
 NodeType(::LazyNode) = LeafNode()
 
+Base.hash(e::LazyNode{N,D}, h::UInt) where {N,D} = hash((N, D, e.data), h)
+Base.:(==)(e1::LazyNode{N,D}, e2::LazyNode{N,D}) where {N,D} = e1.data == e2.data
+Base.:(==)(e1::LazyNode, e2::LazyNode) = false

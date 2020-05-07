@@ -5,8 +5,8 @@
 	end
 
 	Missing node adds a generic support for missing values to nodes. It wraps the node,
-	such that `data` field contain only non-missing values, which are indicated in the 
-	`present` mask. 
+	such that `data` field contain only non-missing values, which are indicated in the
+	`present` mask.
 
 """
 struct MissingNode{D} <:AbstractNode
@@ -42,3 +42,6 @@ children(n::MissingNode) = (n.data,)
 noderepr(n::MissingNode) = "Missing"
 childrenfields(::Type{MissingNode}) = (:data,)
 
+Base.hash(e::MissingNode{D}, h::UInt) where {D} = hash((D, e.data, e.bags, e.metadata), h)
+Base.:(==)(e1::MissingNode{D}, e2::MissingNode{D}) where {D} = e1.data == e2.data && e1.present == e2.present
+Base.:(==)(e1::MissingNode, e2::MissingNode) = false
