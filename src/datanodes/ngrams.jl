@@ -160,8 +160,8 @@ end
 Base.show(io::IO, n::NGramMatrix) = (print(io, "NGramMatrix($(n.b), $(n.m))"); show(io, n.s))
 Base.show(io::IO, ::MIME"text/plain", n::NGramMatrix) = Base.show(io, n)
 
-NGramIterator(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramIterator(codeunits(a.s[i]), a.n, a.b)		
- NGramIterator(a::NGramMatrix{T}, i) where {T<:Vector{U}} where {U<:Integer} = NGramIterator(a.s[i], a.n, a.b)
+NGramIterator(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramIterator(codeunits(a.s[i]), a.n, a.b)
+NGramIterator(a::NGramMatrix{T}, i) where {T<:Vector{U}} where {U<:Integer} = NGramIterator(a.s[i], a.n, a.b)
 
 Base.length(a::NGramMatrix) = length(a.s)
 Base.size(a::NGramMatrix) = (a.m, length(a.s))
@@ -245,3 +245,7 @@ end
 Zygote.@adjoint function *(a::AbstractMatrix, b::NGramMatrix)
     return mul(a,b) , Δ -> (multrans(Δ, b),nothing)
 end
+
+Base.hash(e::NGramMatrix{T}, h::UInt) where {T} = hash((T, e.s, e.n, e.b, e.m), h)
+Base.:(==)(e1::NGramMatrix{T}, e2::NGramMatrix{T}) where {T} = e1.s == e2.s && e1.n === e2.n && e1.b === e2.b && e1.m === e2.m
+Base.:(==)(e1::NGramMatrix{<:Any}, e2::NGramMatrix{<:Any}) = false

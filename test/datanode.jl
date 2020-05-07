@@ -273,3 +273,22 @@ end
     str_repr = String(take!(buf))
     @test str_repr == "Array{ProductNode{T,Nothing} where T,1}"
 end
+
+@testset "testing equals and hash" begin
+    a2 = deepcopy(a)
+    i2 = deepcopy(i)
+    k2 = ProductNode((a = wb, b = b))
+
+    @test a != b
+    @test a != i
+    @test a == a2
+    @test i == i2
+    @test i != k
+    @test k == k2
+    @test hash(a) !== hash(b)
+    @test hash(a) === hash(a2)
+    @test hash(a) !== hash(i)
+    @test hash(i) === hash(i2)
+    @test hash(i) !== hash(k)
+    @test hash(k) === hash(k2)
+end
