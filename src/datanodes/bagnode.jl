@@ -34,4 +34,3 @@ removeinstances(a::BagNode, mask) = BagNode(subset(a.data, findall(mask)), adjus
 
 Base.hash(e::BagNode{T,B,C}, h::UInt) where {T,B,C} = hash((T, B, C, e.data, e.bags, e.metadata), h)
 Base.:(==)(e1::BagNode{T,B,C}, e2::BagNode{T,B,C}) where {T,B,C} = e1.data == e2.data && e1.bags == e2.bags && e1.metadata == e2.metadata
-Base.:(==)(e1::BagNode{<:Any,<:Any,<:Any}, e2::BagNode{<:Any,<:Any,<:Any}) = false
