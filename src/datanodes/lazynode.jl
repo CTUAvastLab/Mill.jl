@@ -2,6 +2,7 @@ struct LazyNode{Name,D} <: AbstractNode
 	data::D
 end
 
+const LazyNode{Name} = LazyNode{Name, D} where {D}
 LazyNode(Name::Symbol, values::T) where {T} = LazyNode{Name,T}(values)
 LazyNode{Name}(values::T) where {Name, T} = LazyNode{Name,T}(values)
 
@@ -18,6 +19,7 @@ end
 
 Base.getindex(x::LazyNode{N,T}, i::VecOrRange) where {N,T}= LazyNode{N}(subset(x.data, i))
 
-noderepr(n::LazyNode{N,D}) where {N,D} = "Lazy$(N) $(size(n.data))"
+noderepr(n::LazyNode{N,D}) where {N,D} = "$(N) $(length(n.data)) items"
+noderepr(n::LazyNode{N,D}) where {N,D<:Nothing} = "$(N) ∅"
 NodeType(::LazyNode) = LeafNode()
 

@@ -1,23 +1,33 @@
-struct LazyModel{Name,T,F} <: AbstractMillModel
+struct LazyModel{Name,T} <: AbstractMillModel
     m::T
-    extract::F
 end
-LazyModel{Name}(m::M, e::F) where {Name, M, F} = LazyModel{Name,M, F}(m, e)
+
+const LazyModel{Name} = LazyModel{Name, T} where {T}
+LazyModel{Name}(m::M) where {Name, M} = LazyModel{Name,M}(m)
 
 Flux.@functor LazyModel
 
-function (m::LazyModel{Name,T,F})(x::LazyNode{Name,D}) where {Name, T, F, D}
-	ds = m.extract(x.data)
+function (m::LazyModel{Name})(x::LazyNode{Name}) where {Name}
+	ds = unpack2mill(x)
 	m.m(ds)
 end
 
-function _reflectinmodel(ds::LazyNode{Name,T}, db, da, b, a, s) where {Name, T}
-	extract = lazyextractfun(Val(Name))
-    pm, d = Mill._reflectinmodel(extract(ds.data), db, da, b, a, s * Mill.encode(1, 1))
-	LazyModel{Name}(pm, extract), d
+function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s) where {Name}
+    pm, d = Mill._reflectinmodel(unpack2mill(ds), db, da, b, a, s * Mill.encode(1, 1))
+	LazyModel{Name}(pm), d
 end
 
-function lazyextractfun end
-
-noderepr(n::LazyModel{Name,T,F}) where {Name, T, F} = "Lazy$(Name)"
+noderepr(n::LazyModel{Name}) where {Name} = "Lazy$(Name)"
 NodeType(::LazyModel) = LeafNode()
+
+
+function Mill.HiddenLayerModel(m::LazyModel{N}, ds::LazyNode{N}, n) where {N}
+	hm, o = Mill.HiddenLayerModel(m.m, unpack2mill(ds), n)
+	return(LazyModel{N}(hm), o )
+end
+
+function Mill.mapactivations(hm::LazyModel{N}, x::LazyNode{N}, m::LazyModel{N}) where {N}
+	ho, o = Mill.mapactivations(hm.m, unpack2mill(x), m.m)
+end
+
+function unpack2mill end

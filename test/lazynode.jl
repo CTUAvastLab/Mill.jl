@@ -4,13 +4,12 @@ using Mill: LazyNode
 @testset "LazyNode" begin
 	ss = ["Hello world.", "Make peace.", "Make food.", "Eat penam."]
 
-	function efun(s) 
+	function Mill.unpack2mill(ds::LazyNode{:Sentence})
+		s = ds.data 
 		ss = map(x -> split(x, " "),s)
 		x = NGramMatrix(reduce(vcat, ss), 3, 256, 2053)
 		BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
 	end
-
-	Mill.lazyextractfun(::Val{:Sentence}) = efun
 
 	@test LazyNode{:Sentence,Vector{String}}(ss).data == ss
 	@test LazyNode(:Sentence, ss).data == ss
@@ -23,5 +22,5 @@ using Mill: LazyNode
 
 	ds = LazyNode{:Sentence}(ss)
 	m = Mill.reflectinmodel(ds, d -> Dense(d,2), s -> SegmentedMeanMax(s))
-	@test m(ds).data ≈ m.m(efun(ss)).data
+	@test m(ds).data ≈ m.m(Mill.unpack2mill(ds)).data
 end
