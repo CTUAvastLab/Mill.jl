@@ -246,6 +246,6 @@ Zygote.@adjoint function *(a::AbstractMatrix, b::NGramMatrix)
     return mul(a,b) , Δ -> (multrans(Δ, b),nothing)
 end
 
-Base.hash(e::NGramMatrix{T}, h::UInt) where {T} = hash((T, e.data, e.metadata), h)
+Base.hash(e::NGramMatrix{T}, h::UInt) where {T} = hash((T, e.s, e.n, e.b, e.m), h)
 Base.:(==)(e1::NGramMatrix{T}, e2::NGramMatrix{T}) where {T} = e1.s == e2.s && e1.n === e2.n && e1.b === e2.b && e1.m === e2.m
 Base.:(==)(e1::NGramMatrix{<:Any}, e2::NGramMatrix{<:Any}) = false

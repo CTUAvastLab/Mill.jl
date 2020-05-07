@@ -42,6 +42,6 @@ children(n::MissingNode) = (n.data,)
 noderepr(n::MissingNode) = "Missing"
 childrenfields(::Type{MissingNode}) = (:data,)
 
-Base.hash(e::MissingNode{D}, h::UInt) where {D} = hash((D, e.data, e.bags, e.metadata), h)
+Base.hash(e::MissingNode{D}, h::UInt) where {D} = hash((D, e.data, e.present), h)
 Base.:(==)(e1::MissingNode{D}, e2::MissingNode{D}) where {D} = e1.data == e2.data && e1.present == e2.present
 Base.:(==)(e1::MissingNode{<:Any}, e2::MissingNode{<:Any}) = false
