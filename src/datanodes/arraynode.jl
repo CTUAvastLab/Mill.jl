@@ -46,4 +46,4 @@ Base.getindex(x::ArrayNode, i::VecOrRange) = ArrayNode(subset(x.data, i), subset
 
 Base.hash(e::ArrayNode{A,C}, h::UInt) where {A,C} = hash((A, C, e.data, e.metadata), h)
 Base.:(==)(e1::ArrayNode{A,C}, e2::ArrayNode{A,C}) where {A,C} = e1.data == e2.data && e1.metadata == e2.metadata
-Base.:(==)(e1::ArrayNode, e2::ArrayNode) = false
+Base.:(==)(e1::ArrayNode{<:Any,<:Any}, e2::ArrayNode{<:Any,<:Any}) = false
