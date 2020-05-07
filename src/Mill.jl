@@ -11,6 +11,8 @@ using Zygote: @adjoint
 using LinearAlgebra
 import Base.reduce
 
+import HierarchicalUtils: NodeType, childrenfields, children, InnerNode, SingletonNode, LeafNode, printtree, noderepr
+
 MLDataPattern.nobs(::Missing) = nothing
 
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
@@ -30,7 +32,7 @@ include("threadfuns.jl")
 
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
-export ArrayNode, BagNode, WeightedBagNode, ProductNode
+export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export NGramMatrix, NGramIterator
 export catobs, removeinstances
 
@@ -39,7 +41,7 @@ include("aggregations/aggregation.jl")
 export AggregationFunction, Aggregation
 
 include("modelnodes/modelnode.jl")
-export AbstractMillModel, ArrayModel, BagModel, ProductModel
+export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel
 export reflectinmodel
 
 include("conv.jl")
@@ -57,6 +59,7 @@ Base.show(io::IO, ::T) where T <: Union{AbstractNode, AbstractMillModel, Aggrega
 Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=2)
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
+include("partialeval.jl")
 const _emptyismissing = Ref(false)
 
 function emptyismissing(a)

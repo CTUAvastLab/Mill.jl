@@ -131,3 +131,13 @@ end
     @test remapbag(b, [2,4])[2] == [4,3,5]
 end
 
+@testset "equals and hash" begin
+    a = ScatteredBags([[1], [], [1,4], [4,3,5]])
+    b = ScatteredBags([[1], [], [1,5], [4,3,5]])
+    c = ScatteredBags([[1], [], [1,5], [4,3,5]])
+    @test a != b
+    @test a != c
+    @test b == c
+    @test hash(a) !== hash(b)
+    @test hash(b) === hash(c)
+end

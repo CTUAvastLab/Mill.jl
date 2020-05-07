@@ -5,6 +5,8 @@ const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 include("arraymodel.jl")
 include("bagmodel.jl")
 include("productmodel.jl")
+include("missingmodel.jl")
+include("lazymodel.jl")
 
 import HierarchicalUtils: encode, stringify
 

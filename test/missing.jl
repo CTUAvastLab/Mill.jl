@@ -143,5 +143,4 @@ end
     @test mz(z).data[:, 1] ≈ mz(bba).data
     @test mz(z).data[:, 2] ≈ mz(bbb).data
     @test mz(z).data[:, 3] ≈ mz(bbc).data
-
 end

@@ -51,3 +51,9 @@ function mapactivations(hm::ProductModel, x::ProductNode, m::ProductModel)
     ho, o = mapactivations(hm.m, xxs, m.m)
     (ArrayNode(ho.data + hxs), o)
 end
+
+function fold(f, m::ProductModel, x)
+    o₁ = map(k -> fold(f, m.ms[k], x.data[k]), keys(m.ms))
+    o₂ = f(o₁)
+    f(m.m, o₂)
+end

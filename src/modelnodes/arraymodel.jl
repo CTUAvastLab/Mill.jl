@@ -26,4 +26,8 @@ function mapactivations(hm::ArrayModel, x::ArrayNode, m::ArrayModel)
 	(ArrayNode(hx), ArrayNode(os[end]))
 end
 
+function fold(f, m::ArrayModel, x)
+	f(m, x)
+end
+
 Flux.activations(::typeof(identity), x::Array{Float32,2}) = (x,)
