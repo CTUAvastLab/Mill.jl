@@ -278,6 +278,12 @@ end
     a2 = deepcopy(a)
     i2 = deepcopy(i)
     k2 = ProductNode((a = wb, b = b))
+    metadata1 = fill("metadata", 4)
+    metadata2 = "Oh, Hi Mark"
+    r = rand(3,4)
+    x1 = BagNode(ArrayNode(r),[1:4], metadata1)
+    x2 = BagNode(ArrayNode(r),[1:4], metadata1)
+    x3 = BagNode(ArrayNode(r),[1:4], metadata2)
 
     @test a != b
     @test a != i
@@ -285,10 +291,14 @@ end
     @test i == i2
     @test i != k
     @test k == k2
+    @test x1 == x2
+    @test x1 != x3
     @test hash(a) !== hash(b)
     @test hash(a) === hash(a2)
     @test hash(a) !== hash(i)
     @test hash(i) === hash(i2)
     @test hash(i) !== hash(k)
     @test hash(k) === hash(k2)
+    @test hash(x1) === hash(x2)
+    @test hash(x1) !== hash(x3)
 end
