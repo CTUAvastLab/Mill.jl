@@ -198,6 +198,17 @@ function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: I
     sparse(I, J, V, size(x,1), size(x,2))
 end
 
+
+function nextgram(s, idx, i, N, B)
+    if i <= length(s)
+        idx = idx * B + s[i]
+        idx = (i>N) ? idx - s[i - N]*B^N : idx
+        return(idx)
+       end
+    idx = (i>N) ? idx - s[i - N]*B^(N - (i - length(s))) : idx
+    idx
+end
+
 function mulkernel!(C, A, jB, mA, nA, idxs)
     for iB in idxs
         miB = mod(iB, nA) + 1
@@ -207,14 +218,39 @@ function mulkernel!(C, A, jB, mA, nA, idxs)
     end
 end
 
+function mulkernel!(C, A, jB, mA, nA, s, N, B)
+    l = length(s) + N - 1
+    iB = 0
+    for j in 1:l
+        iB = nextgram(s, iB, j, N, B)
+        miB = mod(iB, nA) + 1
+        @inbounds for iA in 1:mA
+            C[iA, jB] += A[iA, miB]
+        end
+    end
+end
+
 *(A::Matrix, B::NGramMatrix) = mul(A, B)
-function mul(A::AbstractMatrix, B::NGramMatrix)
+function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T<:AbstractString}
     mA, nA = size(A)
     @assert nA == size(B,1)
     nB = length(B)
     C = zeros(eltype(A), mA, nB)
     for jB in 1:length(B)
-        mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
+        # mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
+        mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
+    end
+    return C
+end
+
+function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T}
+    mA, nA = size(A)
+    @assert nA == size(B,1)
+    nB = length(B)
+    C = zeros(eltype(A), mA, nB)
+    for jB in 1:length(B)
+        # mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
+        mulkernel!(C, A, jB, mA, nA, B.s[jB], B.n, B.b)
     end
     return C
 end
@@ -228,12 +264,36 @@ function multkernel!(C, A, jB, mA, bm, idxs)
     end
 end
 
-function multrans(A::AbstractMatrix, B::NGramMatrix)
+function multkernel!(C, A, jB, mA, bm, s, N, B)
+    l = length(s) + N - 1
+    iB = 0
+    for j in 1:l
+        iB = nextgram(s, iB, j, N, B)
+        miB = mod(iB, bm) + 1
+        @inbounds for iA in 1:mA
+            C[iA, miB] += A[iA, jB]
+        end
+    end
+end
+
+function multrans(A::AbstractMatrix, B::NGramMatrix{T}) where {T<:AbstractString}
     mA, nA = size(A)
     mB = length(B)
     C = zeros(eltype(A), mA, B.m)
     for jB in 1:length(B)
-        multkernel!(C, A, jB, mA, B.m, NGramIterator(B, jB))
+        # multkernel!(C, A, jB, mA, B.m, NGramIterator(B, jB))
+        multkernel!(C, A, jB, mA, B.m, codeunits(B.s[jB]), B.n, B.b)
+    end
+    return C
+end
+
+function multrans(A::AbstractMatrix, B::NGramMatrix{T}) where {T}
+    mA, nA = size(A)
+    mB = length(B)
+    C = zeros(eltype(A), mA, B.m)
+    for jB in 1:length(B)
+        # multkernel!(C, A, jB, mA, B.m, NGramIterator(B, jB))
+        multkernel!(C, A, jB, mA, B.m, B.s[jB], B.n, B.b)
     end
     return C
 end
