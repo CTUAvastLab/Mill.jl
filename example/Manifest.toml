@@ -57,10 +57,10 @@ uuid = "be33ccc6-a3ff-5ff2-a52e-74243cff1e17"
 version = "3.1.0"
 
 [[CategoricalArrays]]
-deps = ["Compat", "DataAPI", "Future", "JSON", "Missings", "Printf", "Reexport", "Statistics", "Unicode"]
-git-tree-sha1 = "23d7324164c89638c18f6d7f90d972fa9c4fa9fb"
+deps = ["DataAPI", "Future", "JSON", "Missings", "Printf", "Statistics", "Unicode"]
+git-tree-sha1 = "df774d7e905ca391178f0abc67f4fa5d3ff4ef12"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
-version = "0.7.7"
+version = "0.8.0"
 
 [[CodeTracking]]
 deps = ["InteractiveUtils", "UUIDs"]
@@ -87,6 +87,7 @@ uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.12.0"
 
 [[Combinatorics]]
+deps = ["Polynomials"]
 git-tree-sha1 = "08c8b6831dc00bfea825826be0bc8336fc369860"
 uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
 version = "1.0.2"
@@ -133,9 +134,9 @@ version = "1.3.0"
 
 [[DataFrames]]
 deps = ["CategoricalArrays", "Compat", "DataAPI", "Future", "InvertedIndices", "IteratorInterfaceExtensions", "Missings", "PooledArrays", "Printf", "REPL", "Reexport", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
-git-tree-sha1 = "7d5bf815cc0b30253e3486e8ce2b93bf9d0faff6"
+git-tree-sha1 = "1b4d832288e2d919eeaccdf1d9af7a8a57d773d6"
 uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "0.20.2"
+version = "0.21.0"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
@@ -176,6 +177,12 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 git-tree-sha1 = "6f0517056812fd6aa3af23d4b70d5325a2ae4e95"
 uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
 version = "0.1.1"
+
+[[EzXML]]
+deps = ["Printf", "XML2_jll"]
+git-tree-sha1 = "0fa3b52a04a4e210aeb1626def9c90df3ae65268"
+uuid = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
+version = "1.1.0"
 
 [[FileIO]]
 deps = ["Pkg"]
@@ -238,6 +245,12 @@ version = "0.3.2"
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
+[[Intervals]]
+deps = ["Dates", "Printf", "RecipesBase", "TimeZones"]
+git-tree-sha1 = "5e9938f4dff72e5ed4c0f7fbe34b204cbabcf43a"
+uuid = "d8418881-c3e1-53bb-8760-2df7ec849ed5"
+version = "1.1.0"
+
 [[InvertedIndices]]
 deps = ["Test"]
 git-tree-sha1 = "15732c475062348b0165684ffe28e85ea8396afc"
@@ -284,6 +297,12 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 
 [[Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+
+[[Libiconv_jll]]
+deps = ["Libdl", "Pkg"]
+git-tree-sha1 = "e5256a3b0ebc710dbd6da0c0b212164a3681037f"
+uuid = "94ce4f54-9a6c-5748-9c1c-f9c7231a4531"
+version = "1.16.0+2"
 
 [[LinearAlgebra]]
 deps = ["Libdl"]
@@ -340,6 +359,12 @@ version = "0.4.3"
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
+[[Mocking]]
+deps = ["ExprTools"]
+git-tree-sha1 = "916b850daad0d46b8c71f65f719c49957e9513ed"
+uuid = "78c3b35d-d492-501b-9361-3d52fe80e533"
+version = "0.7.1"
+
 [[NNlib]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "Requires", "Statistics"]
 git-tree-sha1 = "d9f196d911f55aeaff11b11f681b135980783824"
@@ -372,6 +397,12 @@ version = "1.0.4"
 deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Test", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
+[[Polynomials]]
+deps = ["Intervals", "LinearAlgebra", "RecipesBase"]
+git-tree-sha1 = "19f1b9e3f27702309880b9ccb051287729af7db4"
+uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
+version = "0.8.0"
+
 [[PooledArrays]]
 deps = ["DataAPI"]
 git-tree-sha1 = "b1333d4eced1826e15adbdf01a4ecaccca9d353c"
@@ -393,6 +424,11 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 [[Random]]
 deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[[RecipesBase]]
+git-tree-sha1 = "54f8ceb165a0f6d083f0d12cb4996f5367c6edbc"
+uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+version = "1.0.1"
 
 [[Reexport]]
 deps = ["Pkg"]
@@ -473,6 +509,12 @@ version = "1.0.4"
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[[TimeZones]]
+deps = ["Dates", "EzXML", "Mocking", "Printf", "RecipesBase", "Serialization", "Unicode"]
+git-tree-sha1 = "07af1bd3226d644ca1a3235c93e7d0207ce4536a"
+uuid = "f269a46b-ccf7-5d73-abea-4c690281aa53"
+version = "1.1.1"
+
 [[TimerOutputs]]
 deps = ["Printf"]
 git-tree-sha1 = "0cc8db57cb537191b02948d4fabdc09eb7f31f98"
@@ -491,6 +533,12 @@ uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+
+[[XML2_jll]]
+deps = ["Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
+git-tree-sha1 = "987c02a43fa10a491a5f0f7c46a6d3559ed6a8e2"
+uuid = "02c8fc9c-b97f-50b9-bbe4-9be30ff0a78a"
+version = "2.9.9+4"
 
 [[ZipFile]]
 deps = ["Libdl", "Printf", "Zlib_jll"]
