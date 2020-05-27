@@ -1,7 +1,7 @@
 name = "Mill"
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
 authors = ["Tomas Pevny <pevnak@protonmail.ch>", "Simon Mandlik <simon.mandlik@gmail.com>"]
-version = "1.1.7"
+version = "1.2.0"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
@@ -12,6 +12,7 @@ HierarchicalUtils = "f9ccea15-0695-44b9-8113-df7c26ae4fa9"
 LearnBase = "7f8f8fb0-2700-5f03-b4bd-41f8cfc144b6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MLDataPattern = "9920b226-0b2a-5f5f-9153-9aa70a013f8b"
+Setfield = "efcf1570-3423-57d1-acb7-fd33fddbac46"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
@@ -24,5 +25,6 @@ Flux = "~0.10"
 HierarchicalUtils = "0.0.6, 0.0.7"
 LearnBase = "0.2, 0.3, 0.4"
 MLDataPattern = "~0.5"
+Setfield = "0.6"
 Zygote = "~0.4"
 julia = "^1.3"

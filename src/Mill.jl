@@ -32,7 +32,7 @@ include("threadfuns.jl")
 
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
-export ArrayNode, BagNode, WeightedBagNode, ProductNode
+export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode, IdentityModel
 export NGramMatrix, NGramIterator
 export catobs, removeinstances
 
@@ -41,7 +41,7 @@ include("aggregations/aggregation.jl")
 export AggregationFunction, Aggregation
 
 include("modelnodes/modelnode.jl")
-export AbstractMillModel, ArrayModel, BagModel, ProductModel
+export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel
 export reflectinmodel
 
 include("conv.jl")
@@ -51,7 +51,7 @@ include("bagchain.jl")
 export BagChain
 
 include("replacein.jl")
-export replacein
+export replacein, findin
 
 include("hierarchical_utils.jl")
 
