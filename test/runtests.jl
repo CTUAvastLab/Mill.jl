@@ -87,16 +87,42 @@ const BAGS3 = [
          (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1,3], [2,4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
-include("datanode.jl")
-include("modelnode.jl")
-include("missing.jl")
-include("aggregation.jl")
-include("gradtests.jl")
-include("conv.jl")
-include("bags.jl")
-include("ngrams.jl")
-include("activations.jl")
-include("hierarchical_utils.jl")
-include("replacein.jl")
-include("partialeval.jl")
-include("lazynode.jl")
+@testset "Data nodes" begin
+    include("datanode.jl")
+end
+@testset "Model nodes" begin
+    include("modelnode.jl")
+end
+@testset "Missing" begin
+    include("missing.jl")
+end
+@testset "Aggregation" begin
+    include("aggregation.jl")
+end
+@testset "Gradtests" begin
+    include("gradtests.jl")
+end
+@testset "Conv" begin
+    include("conv.jl")
+end
+@testset "Bags" begin
+    include("bags.jl")
+end
+@testset "NGrams" begin
+    include("ngrams.jl")
+end
+@testset "Activations" begin
+    include("activations.jl")
+end
+@testset "Hierarchical Utils" begin
+    include("hierarchical_utils.jl")
+end
+@testset "Replace in" begin
+    include("replacein.jl")
+end
+@testset "Partial Eval" begin
+    include("partialeval.jl")
+end
+@testset "Lazy Node" begin
+    include("lazynode.jl")
+end
