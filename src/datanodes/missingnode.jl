@@ -33,7 +33,6 @@ function Base.getindex(x::MissingNode, i::VecOrRange)
 	p = x.present[i]
 	!any(p) && return(MissingNode(x.data[1:0], p))
 	ii = get_present_index(x.present, i[p])
-	@show typeof(p)
 	MissingNode(x.data[ii], p)
 end
 

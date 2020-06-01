@@ -68,9 +68,9 @@ end
     @test all(hcat(e, e).data .== hcat(e.data, e.data))
     @test all(vcat(e, e).data .== vcat(e.data, e.data))
     x = ArrayNode(randn(2,3),rand(3))
-    @test typeof(catobs(x,x[0:-1])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
+    @test catobs(x,x[0:-1]) isa ArrayNode{Array{Float64,2},Array{Float64,1}}
     @inferred catobs(x,x[0:-1]) == [1,2,3]
-    @test typeof(reduce(catobs, [x, x[0:-1]])) .== ArrayNode{Array{Float64,2},Array{Float64,1}}
+    @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Array{Float64,2},Array{Float64,1}}
     @inferred reduce(catobs, [x, x[0:-1]]) == [1,2,3]
     @test all(cat(e, e, dims = ndims(e)).data .== hcat(e.data, e.data))
 end
@@ -237,24 +237,24 @@ end
 end
 
 @testset "testing sparsify" begin
-    @test typeof(sparsify(zeros(10,10),0.05)) <: SparseMatrixCSC
-    @test typeof(sparsify(randn(10,10),0.05)) <: Matrix
-    @test typeof(sparsify(randn(10),0.05)) <: Vector
+    @test sparsify(zeros(10, 10), 0.05) isa SparseMatrixCSC
+    @test sparsify(randn(10, 10), 0.05) isa Matrix
+    @test sparsify(randn(10), 0.05) isa Vector
 end
 
 @testset "testing sparsify and mapdata" begin
     x = ProductNode((ProductNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
     xs = mapdata(i -> sparsify(i, 0.05), x)
-    @test typeof(xs.data[2].data) <: SparseMatrixCSC
-    @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC
+    @test xs.data[2].data isa SparseMatrixCSC
+    @test xs.data[1].data[2].data isa SparseMatrixCSC
     @test all(xs.data[1].data[1].data .== x.data[1].data[1].data)
 end
 
 @testset "testing missing mapdata" begin
     x = ProductNode((ProductNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))), BagNode(missing, AlignedBags([0:-1]), nothing))
     xs = mapdata(i -> sparsify(i, 0.05), x)
-    @test typeof(xs.data[2].data) <: SparseMatrixCSC
-    @test typeof(xs.data[1].data[2].data) <: SparseMatrixCSC
+    @test xs.data[2].data isa SparseMatrixCSC
+    @test xs.data[1].data[2].data isa SparseMatrixCSC
     @test all(xs.data[1].data[1].data .== x.data[1].data[1].data)
 end
 

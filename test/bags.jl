@@ -22,10 +22,10 @@ using Mill: AlignedBags, ScatteredBags, bags, length2bags, remapbag
 end
 
 @testset "bags()" begin
-    @test typeof(Mill.bags(Int[])) == AlignedBags
-    @test typeof(Mill.bags([1, 1, 1, 2, 2, 3, 3])) == AlignedBags
-    @test typeof(Mill.bags([2, 2, 2, 1, 1, 3, 3])) == AlignedBags
-    @test typeof(Mill.bags([1, 2, 1])) == ScatteredBags
+    @test Mill.bags(Int[]) isa AlignedBags
+    @test Mill.bags([1, 1, 1, 2, 2, 3, 3]) isa AlignedBags
+    @test Mill.bags([2, 2, 2, 1, 1, 3, 3]) isa AlignedBags
+    @test Mill.bags([1, 2, 1]) isa ScatteredBags
 end
 
 @testset "length2bags" begin

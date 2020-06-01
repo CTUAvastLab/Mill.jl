@@ -3,7 +3,7 @@
     x = ArrayNode(randn(Float32, 4, 5))
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 5)
-    @test typeof(m) <: ArrayModel
+    @test m isa ArrayModel
     @test eltype(m(x).data) == Float32
 end
 
@@ -12,7 +12,7 @@ end
     x = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:2, 3:4])
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 2)
-    @test typeof(m) <: BagModel
+    @test m isa BagModel
     @test eltype(m(x).data) == Float32
 end
 
@@ -20,37 +20,23 @@ end
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
     x = ProductNode((ArrayNode(randn(Float32, 3, 4)), ArrayNode(randn(Float32, 4, 4))))
     m = reflectinmodel(x, layerbuilder)
-
     @test eltype(m(x).data) == Float32
     @test size(m(x).data) == (2, 4)
-    @test typeof(m) <: ProductModel
-    @test typeof(m.ms[1]) <: ArrayModel
-    @test typeof(m.ms[2]) <: ArrayModel
+    @test m isa ProductModel
+    @test m.ms[1] isa ArrayModel
+    @test m.ms[2] isa ArrayModel
+
     x = ProductNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                   BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 2)
-    @test typeof(m) <: ProductModel
-    @test typeof(m.ms[1]) <: BagModel
-    @test typeof(m.ms[1].im) <: ArrayModel
-    @test typeof(m.ms[1].bm) <: ArrayModel
-    @test typeof(m.ms[2]) <: BagModel
-    @test typeof(m.ms[2].im) <: ArrayModel
-    @test typeof(m.ms[2].bm) <: ArrayModel
-end
-
-@testset "testing nested bag model" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    bn = BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8])
-    x = BagNode(bn, [1:2, 3:4])
-    m = reflectinmodel(x, layerbuilder)
-    @test size(m(x).data) == (2, 2)
-    @test typeof(m) <: BagModel
-    @test typeof(m.im) <: BagModel
-    @test typeof(m.im.im) <: ArrayModel
-    @test typeof(m.im.bm) <: ArrayModel
-    @test typeof(m.bm) <: ArrayModel
-    @test eltype(m(x).data) == Float32
+    @test m isa ProductModel
+    @test m.ms[1] isa BagModel
+    @test m.ms[1].im isa ArrayModel
+    @test m.ms[1].bm isa ArrayModel
+    @test m.ms[2] isa BagModel
+    @test m.ms[2].im isa ArrayModel
+    @test m.ms[2].bm isa ArrayModel
 end
 
 @testset "testing nested bag model" begin
@@ -58,11 +44,11 @@ end
     x = BagNode(bn, [1:2, 3:4])
     m = reflectinmodel(x, d -> Flux.Dense(d, 2))
     @test size(m(x).data) == (2, 2)
-    @test typeof(m) <: BagModel
-    @test typeof(m.im) <: BagModel
-    @test typeof(m.im.im) <: ArrayModel
-    @test typeof(m.im.bm) <: ArrayModel
-    @test typeof(m.bm) <: ArrayModel
+    @test m isa BagModel
+    @test m.im isa BagModel
+    @test m.im.im isa ArrayModel
+    @test m.im.bm isa ArrayModel
+    @test m.bm isa ArrayModel
     @test eltype(m(x).data) == Float32
 
     a = BagNode(BagNode(ArrayNode(randn(2,2)),[1:2]),[1:1])
