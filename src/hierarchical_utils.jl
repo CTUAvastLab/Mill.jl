@@ -1,9 +1,8 @@
-import HierarchicalUtils: NodeType, noderepr, childrenfields, children
+# import HierarchicalUtils: NodeType, noderepr, set_children, children
+import HierarchicalUtils: NodeType, noderepr, children
 
 NodeType(::Type{<:Union{Missing, ArrayNode, ArrayModel}}) = LeafNode()
 NodeType(::Type{<:AbstractNode}) = InnerNode()
-NodeType(::Type{<:AbstractBagNode}) = SingletonNode()
-NodeType(::Type{<:BagModel}) = SingletonNode()
 NodeType(::Type{<:AbstractMillModel}) = InnerNode()
 
 noderepr(::T) where T <: Union{AbstractNode, AbstractMillModel} = "$(Base.nameof(T))"
@@ -19,10 +18,6 @@ noderepr(n::BagModel) = "BagModel ↦ $(repr("text/plain", n.a)) ↦ $(repr("tex
 noderepr(n::WeightedBagNode) = "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))"
 noderepr(n::AbstractProductNode) = "ProductNode"
 noderepr(n::ProductModel) = "ProductModel ↦ $(noderepr(n.m))"
-
-childrenfields(::Type{<:Union{AbstractProductNode, AbstractBagNode}}) = (:data,)
-childrenfields(::Type{BagModel}) = (:im,)
-childrenfields(::Type{ProductModel}) = (:ms,)
 
 children(n::AbstractBagNode) = (n.data,)
 children(n::BagModel) = (n.im,)
