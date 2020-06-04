@@ -37,9 +37,3 @@ function _reflectinmodel(x::MissingNode, db, da, b, a, s)
     θ = zeros(Float32, d)
     MissingModel(im, θ), d
 end
-
-
-NodeType(::Type{<:MissingModel}) = SingletonNode()
-noderepr(n::MissingModel) = "Missing"
-childrenfields(::Type{MissingModel}) = (:m,)
-children(n::MissingModel) = (n.data,)

@@ -1,5 +1,5 @@
 """
-	struct MissingNode{D} <:AbstractNode
+	struct MissingNode{D} <: AbstractNode
 		data::D
 		present::Vector{Bool}
 	end
@@ -35,11 +35,6 @@ function Base.getindex(x::MissingNode, i::VecOrRange)
 	ii = get_present_index(x.present, i[p])
 	MissingNode(x.data[ii], p)
 end
-
-NodeType(::Type{<:MissingNode}) = SingletonNode()
-children(n::MissingNode) = (n.data,)
-noderepr(n::MissingNode) = "Missing"
-childrenfields(::Type{MissingNode}) = (:data,)
 
 Base.hash(e::MissingNode{D}, h::UInt) where {D} = hash((D, e.data, e.present), h)
 Base.:(==)(e1::MissingNode{D}, e2::MissingNode{D}) where {D} = e1.data == e2.data && e1.present == e2.present

@@ -18,8 +18,13 @@ noderepr(n::BagModel) = "BagModel ↦ $(repr("text/plain", n.a)) ↦ $(repr("tex
 noderepr(n::WeightedBagNode) = "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))"
 noderepr(n::AbstractProductNode) = "ProductNode"
 noderepr(n::ProductModel) = "ProductModel ↦ $(noderepr(n.m))"
+noderepr(n::MissingNode) = "Missing"
+noderepr(n::MissingModel) = "Missing"
 
 children(n::AbstractBagNode) = (n.data,)
 children(n::BagModel) = (n.im,)
 children(n::ProductNode) = n.data
 children(n::ProductModel) = n.ms
+children(n::MissingNode) = (n.data,)
+children(n::MissingModel) = (n.data,)
+

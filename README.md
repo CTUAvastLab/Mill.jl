@@ -176,7 +176,7 @@ BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, 
 Mill.jl uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features. For instance, if you want to print a non-truncated version of a model, call:
 
 ```julia
-julia> printtree(m; trunc_level=Inf)
+julia> printtree(m; trunc=Inf)
 
 BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
   └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
@@ -191,7 +191,7 @@ BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, 
 
 Callling with `trav=true` enables convenient traversal functionality with string indexing:
 ```julia
-julia>  printtree(m; trunc_level=Inf, trav=true)
+julia>  printtree(m; trunc=Inf, trav=true)
 
 BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) [""]
   └── ProductModel ↦ ArrayModel(Dense(12, 3, relu)) ["U"]
