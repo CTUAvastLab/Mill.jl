@@ -15,6 +15,22 @@ bm, wbm = n1m.ms
 an1m = bm.im
 an2m = wbm.im
 
+struct NumberNode
+    n::Int
+    chs::Vector{NumberNode}
+end
+import HierarchicalUtils: NodeType, LeafNode, InnerNode, noderepr, children
+NodeType(::Type{NumberNode}) = InnerNode()
+noderepr(n::NumberNode) = string(n.n)
+children(n::NumberNode) = n.chs
+
+t2 = treemap((n2, n2m)) do (k1, k2), chs
+    NumberNode(rand(1:10), chs)
+end
+printtree(n2)
+printtree(n2m)
+printtree(t2)
+
 @testset "list traversal" begin
     for (n1, n2) in NodeIterator((n2, n2m))
         @test list_traversal(n1) == list_traversal(n2)
