@@ -91,7 +91,6 @@ end
         @test SegmentedPNorm(ρ1, c, dummy)(X, b) ≈ sum(abs.(X); dims=2) ./ k
         @test SegmentedPNorm(ρ1, c, dummy)(X, b, W) ≈ sum(W' .* abs.(X); dims=2) / sum(W)
         @test SegmentedPNorm(ρ1, c, dummy)(X, b, W) ≈ sum(W' .* abs.(X); dims=2) / sum(W)
-
         for i in 1:k
             @test SegmentedPNorm(ρ1, c, dummy)(repeat(X[:, i], 1, k), b) ≈ abs.(X[:, i])
             @test SegmentedPNorm(ρ2, c, dummy)(repeat(X[:, i], 1, k), b) ≈ abs.(X[:, i])
@@ -107,15 +106,16 @@ end
     k, d = 10, 5
     dummy = randn(d)
     b = AlignedBags([1:k])
-    ρ1 = inv_r_map.(1e5 .+ 100 .* randn(d))
-    ρ2 = inv_r_map.(-1e5 .- 100 .* randn(d))
+    ρ1 = inv_r_map.(1e15 .+ 1e5 .* randn(d))
+    ρ2 = inv_r_map.(abs.(1e5 .* randn(d)))
     Z = 1e5 .+ 1e3 .* randn(d, k)
     W = abs.(randn(k)) .+ 1e-2
     for X in [Z, -Z, randn(d, k)]
-        @test_skip @test SegmentedLSE(ρ1, dummy)(X, b) ≈ maximum(X; dims=2)
+        @test SegmentedLSE(ρ1, dummy)(X, b) ≈ maximum(X; dims=2)
         # doesn't use weights
-        @test_skip @test SegmentedLSE(ρ1, dummy)(X, b, W) ≈ maximum(X; dims=2)
+        @test SegmentedLSE(ρ1, dummy)(X, b, W) ≈ maximum(X; dims=2)
 
+        # implementation immune to underflow not available yet
         @test_skip @test SegmentedLSE(ρ2, dummy)(X, b) ≈ sum(X; dims=2) ./ k
         # doesn't use weights
         @test_skip @test SegmentedLSE(ρ2, dummy)(X, b, W) ≈ sum(X; dims=2) ./ k
