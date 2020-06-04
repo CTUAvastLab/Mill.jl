@@ -17,8 +17,6 @@ function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s) where {Name}
 	LazyModel{Name}(pm), d
 end
 
-noderepr(n::LazyModel{Name}) where {Name} = "Lazy$(Name)"
-NodeType(::LazyModel) = LeafNode()
 
 
 function Mill.HiddenLayerModel(m::LazyModel{N}, ds::LazyNode{N}, n) where {N}

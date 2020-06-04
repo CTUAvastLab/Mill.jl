@@ -71,15 +71,15 @@ function terseprint(a)
 end
 
 function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
-	if _terseprint[]
-		if !hasproperty(x, :name) && hasproperty(x, :body)
-			print(io, "$(x.body.name){…}")
-			return
-		else
-			print(io, "$(x.name){…}")
-			return
-		end
-	# basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
+    if _terseprint[]
+        if !hasproperty(x, :name) && hasproperty(x, :body)
+            print(io, "$(x.body.name){…}")
+            return
+        else
+            print(io, "$(x.name){…}")
+            return
+        end
+        # basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
     elseif x isa DataType
         Base.show_datatype(io, x)
         return

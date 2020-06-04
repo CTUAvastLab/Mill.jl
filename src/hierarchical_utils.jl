@@ -1,7 +1,7 @@
 # import HierarchicalUtils: NodeType, noderepr, set_children, children
-import HierarchicalUtils: NodeType, noderepr, children
+import HierarchicalUtils: NodeType, LeafNode, InnerNode, noderepr, children
 
-NodeType(::Type{<:Union{Missing, ArrayNode, ArrayModel}}) = LeafNode()
+NodeType(::Type{<:Union{Missing, ArrayNode, ArrayModel, LazyNode, LazyModel}}) = LeafNode()
 NodeType(::Type{<:AbstractNode}) = InnerNode()
 NodeType(::Type{<:AbstractMillModel}) = InnerNode()
 
@@ -20,6 +20,9 @@ noderepr(n::AbstractProductNode) = "ProductNode"
 noderepr(n::ProductModel) = "ProductModel ↦ $(noderepr(n.m))"
 noderepr(n::MissingNode) = "Missing"
 noderepr(n::MissingModel) = "Missing"
+noderepr(n::LazyNode{N,D}) where {N,D} = "$(N) $(length(n.data)) items"
+noderepr(n::LazyNode{N,D}) where {N,D<:Nothing} = "$(N) ∅"
+noderepr(n::LazyModel{Name}) where {Name} = "Lazy$(Name)"
 
 children(n::AbstractBagNode) = (n.data,)
 children(n::BagModel) = (n.im,)
@@ -27,4 +30,3 @@ children(n::ProductNode) = n.data
 children(n::ProductModel) = n.ms
 children(n::MissingNode) = (n.data,)
 children(n::MissingModel) = (n.data,)
-
