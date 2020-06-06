@@ -87,9 +87,13 @@ const BAGS3 = [
          (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1,3], [2,4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
+println("<HEARTBEAT>")
+
 @testset "Data nodes" begin
     include("datanode.jl")
 end
+
+println("<HEARTBEAT>")
 @testset "Model nodes" begin
     include("modelnode.jl")
 end
