@@ -1,3 +1,4 @@
+println("<HEARTBEAT>")
 using Test, Mill, Flux
 using Random
 
@@ -92,17 +93,17 @@ println("<HEARTBEAT>")
 @testset "Data nodes" begin
     include("datanode.jl")
 end
-
-println("<HEARTBEAT>")
 @testset "Model nodes" begin
     include("modelnode.jl")
 end
 @testset "Missing" begin
     include("missing.jl")
 end
+println("<HEARTBEAT>")
 @testset "Aggregation" begin
     include("aggregation.jl")
 end
+println("<HEARTBEAT>")
 @testset "Gradtests" begin
     include("gradtests.jl")
 end
