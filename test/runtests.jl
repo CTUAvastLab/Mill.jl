@@ -1,3 +1,4 @@
+println("<HEARTBEAT>")
 using Test, Mill, Flux
 using Random
 
@@ -87,6 +88,8 @@ const BAGS3 = [
          (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1,3], [2,4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
+println("<HEARTBEAT>")
+
 @testset "Data nodes" begin
     include("datanode.jl")
 end
@@ -96,9 +99,11 @@ end
 @testset "Missing" begin
     include("missing.jl")
 end
+println("<HEARTBEAT>")
 @testset "Aggregation" begin
     include("aggregation.jl")
 end
+println("<HEARTBEAT>")
 @testset "Gradtests" begin
     include("gradtests.jl")
 end

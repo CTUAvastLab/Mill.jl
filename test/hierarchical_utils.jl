@@ -137,6 +137,7 @@ ProductNode [""]
   │     └── wb: WeightedNode with 2 bag(s) and weights Σw = 11 ["M"]
   │               └── ArrayNode(17, 4) ["O"]
   └── ArrayNode(10, 2) ["U"]"""
+
     buf = IOBuffer()
     printtree(buf, n2m, trav=true)
     str_repr = String(take!(buf))
