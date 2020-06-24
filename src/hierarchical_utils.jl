@@ -1,4 +1,3 @@
-# import HierarchicalUtils: NodeType, noderepr, set_children, children
 import HierarchicalUtils: NodeType, LeafNode, InnerNode, noderepr, children
 
 NodeType(::Type{<:Union{Missing, ArrayNode, ArrayModel, LazyNode, LazyModel}}) = LeafNode()

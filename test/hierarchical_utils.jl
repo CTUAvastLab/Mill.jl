@@ -25,11 +25,8 @@ noderepr(n::NumberNode) = string(n.n)
 children(n::NumberNode) = n.chs
 
 t2 = treemap((n2, n2m)) do (k1, k2), chs
-    NumberNode(rand(1:10), chs)
+    NumberNode(rand(1:10), collect(chs))
 end
-printtree(n2)
-printtree(n2m)
-printtree(t2)
 
 @testset "list traversal" begin
     for (n1, n2) in NodeIterator((n2, n2m))
@@ -132,19 +129,18 @@ end
     printtree(buf, n2, trav=true)
     str_repr = String(take!(buf))
     @test str_repr ==
-    """
-    ProductNode [""]
-    ├── ProductNode ["E"]
-    │     ├─── b: BagNode with 2 bag(s) ["I"]
-    │     │         └── ArrayNode(3, 4) ["K"]
-    │     └── wb: WeightedNode with 2 bag(s) and weights Σw = 11 ["M"]
-    │               └── ArrayNode(17, 4) ["O"]
-    └── ArrayNode(10, 2) ["U"]"""
-
-  buf = IOBuffer()
-  printtree(buf, n2m, trav=true)
-  str_repr = String(take!(buf))
-  @test str_repr ==
+"""
+ProductNode [""]
+  ├── ProductNode ["E"]
+  │     ├─── b: BagNode with 2 bag(s) ["I"]
+  │     │         └── ArrayNode(3, 4) ["K"]
+  │     └── wb: WeightedNode with 2 bag(s) and weights Σw = 11 ["M"]
+  │               └── ArrayNode(17, 4) ["O"]
+  └── ArrayNode(10, 2) ["U"]"""
+    buf = IOBuffer()
+    printtree(buf, n2m, trav=true)
+    str_repr = String(take!(buf))
+    @test str_repr ==
 """
 ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
   ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"]
