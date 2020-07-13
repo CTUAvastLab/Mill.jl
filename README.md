@@ -251,7 +251,7 @@ julia> LeafIterator(m) |> collect
  ArrayModel
  ArrayModel
 
-julia> TypeIterator{BagModel}(m) |> collect
+julia> TypeIterator(m, BagModel) |> collect
 
 4-element Array{BagModel{T,Aggregation{2},ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}}} where T<:AbstractMillModel,1}:
  BagModel
@@ -260,7 +260,7 @@ julia> TypeIterator{BagModel}(m) |> collect
  BagModel
 ```
 
-... and many others.
+... and many others, see [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl).
 
 ## Default aggregation values
 With the latest version of Mill, it is also possible to work with missing data, replacing a missing bag with a default constant value, and even to learn this value as well. Everything is done automatically.
