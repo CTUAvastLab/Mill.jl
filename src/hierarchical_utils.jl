@@ -19,7 +19,7 @@ noderepr(n::AbstractProductNode) = "ProductNode"
 noderepr(n::ProductModel) = "ProductModel ↦ $(noderepr(n.m))"
 noderepr(n::MissingNode) = "Missing"
 noderepr(n::MissingModel) = "Missing"
-noderepr(n::LazyNode{N,D}) where {N,D} = "$(N) $(length(n.data)) items"
+noderepr(n::LazyNode{N,D}) where {N,D} = "$(N) $(length(n.data)) item(s)"
 noderepr(n::LazyNode{N,D}) where {N,D<:Nothing} = "$(N) ∅"
 noderepr(n::LazyModel{Name}) where {Name} = "Lazy$(Name)"
 
