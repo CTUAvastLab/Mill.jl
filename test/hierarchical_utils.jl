@@ -40,7 +40,6 @@ end
 # specification of printing
 NodeType(::Type{<:LazyNode{:Codons}}) = InnerNode()
 children(n::LazyNode{:Codons}) = (n.data,)
-children(n::LazyModel{:Codons}) = (n.m,)
 NodeType(n::Vector{<:AbstractString}) = InnerNode()
 noderepr(n::Vector{<:AbstractString}) = "Array $(length(n)) items"
 NodeType(n::AbstractString) = LeafNode()
