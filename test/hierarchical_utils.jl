@@ -1,4 +1,6 @@
 using SparseArrays, HierarchicalUtils
+import Base.Iterators: partition, accumulate, product, flatten
+using Mill: nobs
 
 metadata = fill("metadata", 4)
 an1 = ArrayNode(rand(3,4))
@@ -15,6 +17,10 @@ bm, wbm = n1m.ms
 an1m = bm.im
 an2m = wbm.im
 
+ss = ["GGGCGGCGA", "CCTCGCGGG", "TTTTCGCTATTTATGAAAATT", "TTCCGGTTTAAGGCGTTTCCG"]
+base_arr = collect("ACGT")
+possibilities = product(base_arr, base_arr, base_arr) |> collect |> x->reshape(x, 1, :) .|> (x->reduce(*, x)) |> x->x[:]
+
 struct NumberNode
     n::Int
     chs::Vector{NumberNode}
@@ -23,6 +29,22 @@ import HierarchicalUtils: NodeType, LeafNode, InnerNode, noderepr, children
 NodeType(::Type{NumberNode}) = InnerNode()
 noderepr(n::NumberNode) = string(n.n)
 children(n::NumberNode) = n.chs
+
+function Mill.unpack2mill(ds::LazyNode{:Codons})
+	s = ds.data
+	ss = map(x -> reduce.(*, partition(x, 3)),s)
+	x = reduce(hcat, map(x->Flux.onehotbatch(x, possibilities), ss))
+	BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
+end
+
+# specification of printing
+NodeType(::Type{<:LazyNode{:Codons}}) = InnerNode()
+children(n::LazyNode{:Codons}) = (n.data,)
+children(n::LazyModel{:Codons}) = (n.m,)
+NodeType(n::Vector{<:AbstractString}) = InnerNode()
+noderepr(n::Vector{<:AbstractString}) = "Array $(length(n)) items"
+NodeType(n::AbstractString) = LeafNode()
+children(n::Vector{<:AbstractString}) = (n...,)
 
 t2 = treemap((n2, n2m)) do (k1, k2), chs
     NumberNode(rand(1:10), collect(chs))
@@ -150,4 +172,32 @@ ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
   │     └── wb: BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10)) ["M"]
   │               └── ArrayModel(Dense(17, 10)) ["O"]
   └── ArrayModel(Dense(10, 10)) ["U"]"""
+end
+
+@testset "LazyNode" begin
+	ds = LazyNode{:Codons}(ss)
+	m = Mill.reflectinmodel(ds, d -> Dense(d,2), s -> SegmentedMeanMax(s))
+	@test nchildren(ds) == 1
+	@test nleafs(ds) == 4
+
+    buf = IOBuffer()
+    printtree(buf, ds, trav=true)
+    str_repr = String(take!(buf))
+    @test str_repr ==
+"""
+Codons 4 items [""]
+  └── Array 4 items ["U"]
+        ├── "GGGCGGCGA" ["Y"]
+        ├── "CCTCGCGGG" ["c"]
+        ├── "TTTTCGCTATTTATGAAAATT" ["g"]
+        └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]"""
+
+    buf = IOBuffer()
+    printtree(buf, m, trav=true)
+    str_repr = String(take!(buf))
+    @test str_repr ==
+"""
+LazyCodonsModel [""]
+  └── BagModel ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(4, 2)) ["U"]
+        └── ArrayModel(Dense(64, 2)) ["k"]"""
 end
