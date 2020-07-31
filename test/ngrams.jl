@@ -1,6 +1,7 @@
 using Test
-using Mill, BenchmarkTools, SparseArrays, Random, Flux
+using Mill, SparseArrays, Random, Flux
 using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NGramMatrix, catobs
+import BenchmarkTools: @btime
 
 @testset "ngrams" begin
     x = [1,3,5,2,6,8,3]
@@ -12,17 +13,17 @@ using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NG
         o = zeros(Int,n)
         for v in i
             o[mod(v,n)+1] +=1
-        end 
+        end
         o
     end
 
-    @testset "testing ngrams on vector of Ints" begin 
+    @testset "testing ngrams on vector of Ints" begin
         @test all(ngrams(x,3,b) .== map(x -> indexes(x,b),slicer(x,3)))
         @test all(ngrams(x,2,b) .== map(x -> indexes(x,b),slicer(x,2)))
         @test all(ngrams(x,1,b) .== map(x -> indexes(x,b),slicer(x,1)))
     end
 
-    @testset "testing frequency of ngrams on vector of Ints and on Strings" begin 
+    @testset "testing frequency of ngrams on vector of Ints and on Strings" begin
         @test all(countngrams(x,3,b,10) .== idx2vec(map(x -> indexes(x,b), slicer(x,3)), 10))
         for s in split("Lorem ipsum dolor sit amet, consectetur adipiscing elit")
             @test all(countngrams(s,3,256,10) .== idx2vec(ngrams(s,3,256), 10))
@@ -89,12 +90,12 @@ begin
     s = [randstring(10) for i in 1:1000];
     B = NGramMatrix(s, 3, 256, 2053)
     C = sparse(string2ngrams(s, 3, size(A, 2)));
-    println("A * B::NGramMatrix (This should be the fastest)"); 
+    println("A * B::NGramMatrix (This should be the fastest)");
     @btime A*B;                                                 # 526.456 μs (2002 allocations: 671.95 KiB)
     println("A * string2ngrams(s, 3, size(A, 2))")
     @btime A*string2ngrams(s, 3, size(A, 2));                   # 154.646 ms (3013 allocations: 16.38 MiB)
     println("A * sparse(string2ngrams(s, 3, size(A, 2)))")
     @btime A*sparse(string2ngrams(s, 3, size(A, 2)));           # 7.525 ms (3013 allocations: 16.57 MiB)
-    print("A * C where C = sparse(string2ngrams(s, 3, size(A, 2)));"); 
+    print("A * C where C = sparse(string2ngrams(s, 3, size(A, 2)));");
     @btime A*C;                                                 # 1.527 ms (2 allocations: 625.08 KiB)
 end
