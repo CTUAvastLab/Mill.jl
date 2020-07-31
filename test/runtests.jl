@@ -107,6 +107,7 @@ println("<HEARTBEAT>")
 @testset "Gradtests" begin
     include("gradtests.jl")
 end
+println("<HEARTBEAT>")
 @testset "Conv" begin
     include("conv.jl")
 end
