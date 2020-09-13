@@ -44,7 +44,7 @@ function Mill.partialeval(m::LazyModel{N}, ds::LazyNode{N}, skipnode) where {N}
 	(Mill.IdentityModel(), m(ds), false)
 end
 
-function partialeval(m::ProductModel{MS,M}, ds::ProductNode{P,T}, newnode) where {P<:NamedTuple,T,MS<:NamedTuple, M} 
+function partialeval(m::ProductModel{M}, ds::ProductNode{P}, newnode) where {P<:NamedTuple, M<:NamedTuple} 
 	ks = keys(m.ms)
 	mods = map(ks) do k
 		partialeval(m.ms[k], ds.data[k], newnode)
@@ -58,7 +58,7 @@ function partialeval(m::ProductModel{MS,M}, ds::ProductNode{P,T}, newnode) where
 
 end
 
-function partialeval(m::ProductModel{MS,M}, ds::ProductNode{P,T}, newnode) where {P<:Tuple,T,MS<:Tuple, M} 
+function partialeval(m::ProductModel{M}, ds::ProductNode{P}, newnode) where {P<:Tuple, M<:Tuple} 
 	mods = map(1:length(m.ms)) do k
 		partialeval(m.ms[k], ds.data[k], newnode)
 	end

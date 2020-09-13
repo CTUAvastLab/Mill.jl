@@ -10,35 +10,58 @@ include("lazymodel.jl")
 
 import HierarchicalUtils: encode, stringify
 
-reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")[1]
+reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict(),
+               single_key_identity=true) = _reflectinmodel(x, db, da, b, a, "", single_key_identity)[1]
 
-function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
-    im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1))
+function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s, ski)
+    im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1), ski)
     c = stringify(s)
     agg = c in keys(a) ? a[c](d) : da(d)
-    bm, d = _reflectinmodel(BagModel(im, agg)(x), db, da, b, a, s)
+    bm, d = _reflectinmodel(BagModel(im, agg)(x), db, da, b, a, s, ski)
     BagModel(im, agg, bm), d
 end
 
-function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s)
+function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s, ski)
     n = length(x.data)
-    mm = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n)) for (i, xx) in enumerate(x.data)]
-    im = tuple([i[1] for i in mm]...)
-    tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s)
-    ProductModel(im, tm), d
+    mm = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n), ski) for (i, xx) in enumerate(x.data)]
+    if ski && n == 1
+        im, d = mm[1]
+        ProductModel(im), d
+    else
+        im = tuple([i[1] for i in mm]...)
+        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski)
+        ProductModel(im, tm), d
+    end
 end
 
-function _reflectinmodel(x::ProductNode{T,C}, db, da, b, a, s) where {T<:NamedTuple, C}
+function _reflectinmodel(x::ProductNode{T}, db, da, b, a, s, ski) where T <: NamedTuple
     n = length(x.data)
     ks = keys(x.data)
-    ms = (;[k => _reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n))[1] for (i, k) in enumerate(ks)]...)
-    tm, d = _reflectinmodel(ProductModel(ms)(x), db, da, b, a, s)
-    ProductModel(ms, tm), d
+    mm = [_reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n), ski) for (i, k) in enumerate(ks)]
+    if ski && n == 1
+        im, d = mm[1]
+        ProductModel((; ks[1]=>im)), d
+    else
+        im = (; (k=>v[1] for (k,v) in zip(ks, mm))...)
+        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski)
+        ProductModel(im, tm), d
+    end
 end
 
-function _reflectinmodel(x::ArrayNode, db, da, b, a, s)
+function _reflectinmodel(x::ArrayNode, db, da, b, a, s, ski)
     c = stringify(s)
     t = c in keys(b) ? b[c](size(x.data, 1)) : db(size(x.data, 1))
     m = ArrayModel(t)
     m, size(m(x).data, 1)
+end
+
+function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s) where Name
+    pm, d = Mill._reflectinmodel(unpack2mill(ds), db, da, b, a, s * Mill.encode(1, 1))
+    LazyModel{Name}(pm), d
+end
+
+function _reflectinmodel(x::MissingNode, db, da, b, a, s)
+    im, d = _reflectinmodel(x.data, db, da, b, a, s)
+    θ = zeros(Float32, d)
+    MissingModel(im, θ), d
 end

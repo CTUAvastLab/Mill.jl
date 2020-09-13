@@ -8,26 +8,27 @@ const TupleOfModels = Union{NTuple{N, AbstractMillModel} where {N}, NamedTuple}
 
     uses each model in `ms` on each data in `ProductNode`, concatenate the output and pass it to the chainmodel `m`
 """
-struct ProductModel{TT<:TupleOfModels, T} <: AbstractMillModel
+struct ProductModel{TT<:TupleOfModels, T <: AbstractMillModel} <: AbstractMillModel
     ms::TT
-    m::ArrayModel{T}
+    m::T
 end
 
 Flux.@functor ProductModel
 
-ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, ArrayModel(identity))
+ProductModel(m::AbstractMillModel) = ProductModel((m,))
+ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, IdentityModel())
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 
-function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:Tuple,T,MS<:Tuple, M} 
+function (m::ProductModel{M})(x::ProductNode{P}) where {P<:Tuple, M<:Tuple} 
     xx = vcat([m.ms[i](x.data[i]) for i in 1:length(m.ms)]...)
     m.m(xx)
 end
 
 
-function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:NamedTuple,T,MS<:NamedTuple, M} 
+function (m::ProductModel{M})(x::ProductNode{P}) where {P<:NamedTuple, M<:NamedTuple} 
     xx = vcat([m.ms[k](x.data[k]) for k in keys(m.ms)]...)
     m.m(xx)
 end

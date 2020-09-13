@@ -14,26 +14,18 @@ end
 Flux.@functor MissingModel
 
 function (m::MissingModel)(x::MissingNode) 
-	xx = m.m(x.data)
-	all(x.present) && return(xx)
-	ArrayNode(fillmissing(x.present, xx.data, m.θ))
+    xx = m.m(x.data)
+    all(x.present) && return(xx)
+    ArrayNode(fillmissing(x.present, xx.data, m.θ))
 end
 
 function fillmissing(present, x, θ)
-	o = similar(x, size(x,1), length(present))
-	o[:, present]   = x
-	o[:, .!present] .= θ
-	o
+    o = similar(x, size(x,1), length(present))
+    o[:, present]   = x
+    o[:, .!present] .= θ
+    o
 end
 
 Zygote.@adjoint function fillmissing(present, x, θ)
-	fillmissing(present, x, θ), Δ -> (nothing, Δ[:,present], sum(Δ[:,.!present], dims = 2)[:])
-end
-
-
-function _reflectinmodel(x::MissingNode, db, da, b, a, s)
-	@show x
-    im, d = _reflectinmodel(x.data, db, da, b, a, s)
-    θ = zeros(Float32, d)
-    MissingModel(im, θ), d
+    fillmissing(present, x, θ), Δ -> (nothing, Δ[:,present], sum(Δ[:,.!present], dims = 2)[:])
 end
