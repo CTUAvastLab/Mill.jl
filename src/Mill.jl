@@ -39,7 +39,7 @@ include("aggregations/aggregation.jl")
 export AggregationFunction, Aggregation
 
 include("modelnodes/modelnode.jl")
-export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel, IdentityModel
+export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel, IdentityModel, identity_model
 export reflectinmodel
 
 include("conv.jl")

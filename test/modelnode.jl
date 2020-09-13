@@ -112,6 +112,4 @@ end
     @test m1_ski.m isa IdentityModel
     @test m2_ski.m isa IdentityModel
     @test m3_ski.m isa ArrayModel{<:Dense}
-    # @test m1_ski.m isa ArrayModel{identity}
-    # @test m2_ski.m isa ArrayModel{identity}
 end

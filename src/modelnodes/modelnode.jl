@@ -55,13 +55,13 @@ function _reflectinmodel(x::ArrayNode, db, da, b, a, s, ski)
     m, size(m(x).data, 1)
 end
 
-function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s) where Name
-    pm, d = Mill._reflectinmodel(unpack2mill(ds), db, da, b, a, s * Mill.encode(1, 1))
+function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s, ski) where Name
+    pm, d = Mill._reflectinmodel(unpack2mill(ds), db, da, b, a, s * Mill.encode(1, 1), ski)
     LazyModel{Name}(pm), d
 end
 
-function _reflectinmodel(x::MissingNode, db, da, b, a, s)
-    im, d = _reflectinmodel(x.data, db, da, b, a, s)
+function _reflectinmodel(x::MissingNode, db, da, b, a, s, ski)
+    im, d = _reflectinmodel(x.data, db, da, b, a, s, ski)
     θ = zeros(Float32, d)
     MissingModel(im, θ), d
 end

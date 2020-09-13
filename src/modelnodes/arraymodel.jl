@@ -13,6 +13,9 @@ Flux.@functor ArrayModel
 
 (m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x)
 
+identity_model() = ArrayModel(identity)
+const IdentityModel = ArrayModel{typeof(identity)}
+
 function HiddenLayerModel(m::ArrayModel, x::ArrayNode, k::Int)
 	os = Flux.activations(m.m, x.data)
 	layers = map(x -> Dense(size(x,1), k), os)
