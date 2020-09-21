@@ -29,3 +29,10 @@ end
 Zygote.@adjoint function fillmissing(present, x, θ)
     fillmissing(present, x, θ), Δ -> (nothing, Δ[:,present], sum(Δ[:,.!present], dims = 2)[:])
 end
+
+function _reflectinmodel(x::MissingNode, db, da, b, a, s)
+    @show x
+    im, d = _reflectinmodel(x.data, db, da, b, a, s)
+    θ = zeros(Float32, d)
+    MissingModel(im, θ), d
+end
