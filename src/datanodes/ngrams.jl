@@ -182,6 +182,8 @@ _catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for 
 
 Base.Matrix(x::NGramMatrix) = Matrix(SparseMatrixCSC(x))
 
+(m::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
+
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Float32, UInt}(x)
 
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}
