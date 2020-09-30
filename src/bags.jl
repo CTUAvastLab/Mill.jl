@@ -130,6 +130,6 @@ function _catbags(bs::Vector{ScatteredBags})
 end
 
 Base.hash(e::AlignedBags, h::UInt) where {A,C} = hash(e.bags, h)
-Base.:(==)(e1::AlignedBags, e2::AlignedBags) = e1.bags == e2.bags
+e1::AlignedBags == e2::AlignedBags = e1.bags == e2.bags
 Base.hash(e::ScatteredBags, h::UInt) where {A,C} = hash(e.bags, h)
-Base.:(==)(e1::ScatteredBags, e2::ScatteredBags) = e1.bags == e2.bags
+e1::ScatteredBags == e2::ScatteredBags = e1.bags == e2.bags

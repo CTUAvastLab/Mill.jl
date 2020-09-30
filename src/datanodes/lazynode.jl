@@ -20,4 +20,4 @@ end
 Base.getindex(x::LazyNode{N,T}, i::VecOrRange) where {N,T}= LazyNode{N}(subset(x.data, i))
 
 Base.hash(e::LazyNode{N,D}, h::UInt) where {N,D} = hash((N, D, e.data), h)
-Base.:(==)(e1::LazyNode{N,D}, e2::LazyNode{N,D}) where {N,D} = e1.data == e2.data
+e1::LazyNode{N,D} == e2::LazyNode{N,D} where {N,D} = e1.data == e2.data
