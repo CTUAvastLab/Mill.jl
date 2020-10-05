@@ -1,5 +1,6 @@
-# This is an example of how to implement attention in 
-# aggregation layer
+# This is an example of how to implement attention in Mill
+# Since attention reduce set of vectors to a single vector,
+# it is an aggregation and as such, it belongs to aggregation layer
 using Mill 
 using Flux
 
@@ -24,9 +25,14 @@ end
 
 BagAttention(f, a, agg_f) = BagAttention(f, a, agg_f, SegmentedSum([1f0]))
 
-m = BagAttention(Dense(2, 3), Dense(2,1), SegmentedSum(3), )
-
 #Let's create an absolutely dummy dataset 
 ds = BagNode(ArrayNode(randn(2,5)), [1:2,2:5,0:-1])
 
-reflectinmodel(ds, d -> Dense(d, 4, selu), d -> BagAttention(Dense(d, 4, selu), Dense(d, 1), SegmentedSum(4)))
+#try it with reflectinmodel
+model = reflectinmodel(ds, 
+	d -> Dense(d, 4, selu), 
+	d -> BagAttention(Dense(d, 4, selu), Dense(d, 1), SegmentedSum(4)),
+	)
+
+model(ds)
+gradient(() -> sum(sin.(model(ds).data)), Flux.params(model))
