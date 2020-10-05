@@ -15,7 +15,8 @@ end
 
 Flux.@functor ProductModel
 
-ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, ArrayModel(identity))
+ProductModel(m::AbstractMillModel) = ProductModel((m,))
+ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, identity_model())
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]

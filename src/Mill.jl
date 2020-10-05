@@ -39,7 +39,7 @@ include("aggregations/aggregation.jl")
 export AggregationFunction, Aggregation
 
 include("modelnodes/modelnode.jl")
-export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel
+export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel, IdentityModel, identity_model
 export reflectinmodel
 
 include("conv.jl")
@@ -54,7 +54,7 @@ export replacein, findin
 include("hierarchical_utils.jl")
 
 Base.show(io::IO, ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = show(io, Base.typename(T))
-Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel}) = HierarchicalUtils.printtree(io, n; trunc_level=3)
+Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel}) = HierarchicalUtils.printtree(io, n; htrunc=3)
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 include("partialeval.jl")

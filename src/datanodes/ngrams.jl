@@ -168,6 +168,9 @@ Base.size(a::NGramMatrix) = (a.m, length(a.s))
 Base.size(a::NGramMatrix, d) = (d == 1) ? a.m : length(a.s)
 subset(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramMatrix(a.s[i], a.n, a.b, a.m)
 Base.getindex(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramMatrix(a.s[i], a.n, a.b, a.m)
+function Base.getindex(a::NGramMatrix{T}, i::Union{Integer, CartesianIndex{1}}) where {T<:AbstractString}
+    NGramMatrix([a.s[i]], a.n, a.b, a.m)
+end
 Base.reduce(::typeof(catobs), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:])
 Base.reduce(::typeof(catobs), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
 Base.reduce(::typeof(hcat), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:])
