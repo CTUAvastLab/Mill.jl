@@ -18,7 +18,7 @@ Flux.trainable(m::BagAttention) = (m.f, m.a, m.agg_f)
 function (m::BagAttention)(ds, bags)
 	x = m.f(ds.data)
 	a = m.a(ds.data)
-	am = maximum(a)
+	am = maximum(a, dims = 2)
 	expa = exp.(a .- am)	# to have the stuff safe with respect to overflow
 	ArrayNode(m.agg_f(x .* expa, bags) ./ m.agg_a(expa, bags))
 end
@@ -32,6 +32,16 @@ ds = BagNode(ArrayNode(randn(2,5)), [1:2,2:5,0:-1])
 model = reflectinmodel(ds, 
 	d -> Dense(d, 4, selu), 
 	d -> BagAttention(Dense(d, 4, selu), Dense(d, 1), SegmentedSum(4)),
+	)
+
+model(ds)
+gradient(() -> sum(sin.(model(ds).data)), Flux.params(model))
+
+# Let's do an attention with per-item mask,
+# for which it is sufficient to extend the attention model and aggregation
+model = reflectinmodel(ds, 
+	d -> Dense(d, 4, selu), 
+	d -> BagAttention(Dense(d, 4, selu), Dense(d, 4), SegmentedSum(4), SegmentedSum(fill(1f0,4))),
 	)
 
 model(ds)
