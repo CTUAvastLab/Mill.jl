@@ -70,3 +70,78 @@ end
     @test mbca[:,2] ≈ mc
     @test mbca[:,3] ≈ ma
 end
+
+@testset "single key dictionary reflect in model" begin
+    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    x1 = (ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
+    x2 = (a = ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
+    x3 = (a = ArrayNode(randn(Float32, 3, 4)), b = ArrayNode(randn(Float32, 3, 4))) |> ProductNode
+
+    m1 = reflectinmodel(x1, layerbuilder; single_key_identity=false)
+    m1_ski = reflectinmodel(x1, layerbuilder)
+    m2 = reflectinmodel(x2, layerbuilder; single_key_identity=false)
+    m2_ski = reflectinmodel(x2, layerbuilder)
+    m3 = reflectinmodel(x3, layerbuilder; single_key_identity=false)
+    m3_ski = reflectinmodel(x3, layerbuilder)
+
+    for m in [m1, m1_ski]
+        @test eltype(m(x1).data) == Float32
+        @test size(m(x1).data) == (2, 4)
+        @test m isa ProductModel
+        @test m.ms[1] isa ArrayModel
+    end
+
+    for m in [m2, m2_ski]
+        @test eltype(m(x2).data) == Float32
+        @test size(m(x2).data) == (2, 4)
+        @test m isa ProductModel
+        @test m.ms[1] isa ArrayModel
+    end
+
+    for m in [m3, m3_ski]
+        @test eltype(m(x3).data) == Float32
+        @test size(m(x3).data) == (2, 4)
+        @test m isa ProductModel
+        @test m.ms[1] isa ArrayModel
+        @test m.ms[2] isa ArrayModel
+    end
+
+    @test m1.m isa ArrayModel{<:Dense}
+    @test m2.m isa ArrayModel{<:Dense}
+    @test m3.m isa ArrayModel{<:Dense}
+    @test m1_ski.m isa IdentityModel
+    @test m2_ski.m isa IdentityModel
+    @test m3_ski.m isa ArrayModel{<:Dense}
+end
+
+# Defining this is a bad idea - in Flux all models do not implement == and hash
+# it may break AD
+# @testset "testing equals and hash" begin
+#     # TODO lazy and missing models should be tested in a similar fashion
+#     @eval layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+#     @eval x1 = ArrayNode(randn(Float32, 3, 4)) 
+#     @eval x2 = ArrayNode(randn(Float32, 4, 4)) 
+#     @eval x3 = BagNode(x1, [1:2, 3:4])
+#     @eval x4 = BagNode(x2, [1:1, 2:4])
+#     @eval x5 = ProductNode((x3, x4))
+
+#     var(i, pref, suf="") = Symbol(pref * string(i) * suf)
+
+#     for i in 1:5
+#         @eval $(var(i, "m")) = reflectinmodel($(var(i, "x")), layerbuilder)
+#         @eval $(var(i, "m", "c")) = deepcopy($(var(i, "m")))
+#     end
+
+#     for i in 1:5, j in 1:5
+#         @show i,j
+#         res1 = i == j
+#         res2 = @eval $(var(i, "m")) == $(var(j, "m", "c"))
+#         @test res1 == res2
+#     end
+
+#     for i in 1:5, j in 1:5
+#         res1 = i == j
+#         res2 = @eval hash($(var(i, "m"))) == hash($(var(j, "m", "c")))
+#         @test res1 == res2
+#     end
+# end

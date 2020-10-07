@@ -30,9 +30,13 @@ Zygote.@adjoint function fillmissing(present, x, θ)
     fillmissing(present, x, θ), Δ -> (nothing, Δ[:,present], sum(Δ[:,.!present], dims = 2)[:])
 end
 
-function _reflectinmodel(x::MissingNode, db, da, b, a, s)
-    @show x
-    im, d = _reflectinmodel(x.data, db, da, b, a, s)
-    θ = zeros(Float32, d)
-    MissingModel(im, θ), d
+find_struct(p, m::AbstractArray{<:Number}, path=[]) = return p === m ? path : nothing
+function find_struct(p, m, path=[])
+    for (k,n) in Flux.trainable(m) |> pairs
+        fs = find_struct(p, n, vcat(path, k))
+        isnothing(fs) || return fs
+    end
 end
+
+# Base.hash(m::MissingModel{T,V}, h::UInt) where {T,V} = hash((T, V, m.m, m.θ), h)
+# (m1::MissingModel{T,V} == m2::MissingModel{T,V}) where {T,V} = m1.m == m2.m && m1.θ == m2.θ

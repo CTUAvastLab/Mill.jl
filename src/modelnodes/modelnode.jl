@@ -1,3 +1,5 @@
+using HierarchicalUtils: encode, stringify
+
 abstract type AbstractMillModel end
 
 const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
@@ -8,9 +10,8 @@ include("productmodel.jl")
 include("missingmodel.jl")
 include("lazymodel.jl")
 
-import HierarchicalUtils: encode, stringify
-
-reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict()) = _reflectinmodel(x, db, da, b, a, "")[1]
+reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict(),
+               single_key_identity=true) = _reflectinmodel(x, db, da, b, a, "", single_key_identity)[1]
 
 function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s)
     im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1))

@@ -1,5 +1,3 @@
-import Base: show, getindex
-
 abstract type AggregationFunction end
 
 struct Aggregation{N} <: AggregationFunction

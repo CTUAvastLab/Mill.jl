@@ -1,6 +1,5 @@
 using LearnBase
 using DataFrames
-import Base: cat, vcat, hcat, _cat, lastindex, getindex
 
 abstract type AbstractNode end
 abstract type AbstractProductNode <: AbstractNode end
@@ -45,7 +44,7 @@ end
 function reduce(::typeof(catobs), as::Vector{<: Any})
     isempty(as) && return(as)
     T = mapreduce(typeof, typejoin, as)
-    T == Any && @error "cannot reduce Any"
+    T === Any && @error "cannot reduce Any"
     reduce(catobs, Vector{T}(as))
 end
 

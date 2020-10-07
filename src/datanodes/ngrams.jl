@@ -1,4 +1,3 @@
-import Base.*
 # struct NGramIterator{T} where {T<:Union{Base.CodeUnits{UInt8,S} where S,Vector{I} where I<:Integer}}
 """
 struct NGramIterator{T}
@@ -312,7 +311,7 @@ Zygote.@adjoint function *(a::AbstractMatrix, b::NGramMatrix)
 end
 
 Base.hash(e::NGramMatrix{T}, h::UInt) where {T} = hash((T, e.s, e.n, e.b, e.m), h)
-e1::NGramMatrix{T} == e2::NGramMatrix{T} where {T} = e1.s == e2.s && e1.n === e2.n && e1.b === e2.b && e1.m === e2.m
+(e1::NGramMatrix{T} == e2::NGramMatrix{T}) where {T} = e1.s == e2.s && e1.n === e2.n && e1.b === e2.b && e1.m === e2.m
 
 (m::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
 (a::Flux.LayerNorm)(x::Flux.OneHotMatrix) = x

@@ -28,3 +28,6 @@ function Mill.mapactivations(hm::LazyModel{N}, x::LazyNode{N}, m::LazyModel{N}) 
 end
 
 function unpack2mill end
+
+# Base.hash(m::LazyModel{T}, h::UInt) where {T} = hash((T, m.m), h)
+# (m1::LazyModel{T} == m2::LazyModel{T}) where {T} = m1.m == m2.m
