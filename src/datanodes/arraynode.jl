@@ -1,6 +1,3 @@
-using LearnBase
-import Base: cat, vcat, hcat
-
 """
 
 
@@ -45,4 +42,4 @@ Base.hcat(as::ArrayNode...) = reduce(catobs, collect(as))
 Base.getindex(x::ArrayNode, i::VecOrRange) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
 
 Base.hash(e::ArrayNode{A,C}, h::UInt) where {A,C} = hash((A, C, e.data, e.metadata), h)
-e1::ArrayNode{A,C} == e2::ArrayNode{A,C} where {A,C} = e1.data == e2.data && e1.metadata == e2.metadata
+(e1::ArrayNode{A,C} == e2::ArrayNode{A,C}) where {A,C} = e1.data == e2.data && e1.metadata == e2.metadata

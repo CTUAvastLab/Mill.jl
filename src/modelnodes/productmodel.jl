@@ -58,3 +58,6 @@ function fold(f, m::ProductModel, x)
     o₂ = f(o₁)
     f(m.m, o₂)
 end
+
+# Base.hash(m::ProductModel{TT,T}, h::UInt) where {TT,T} = hash((TT, T, m.ms, m.m), h)
+# (m1::ProductModel{TT,T} == m2::ProductModel{TT,T}) where {TT,T} = m1.ms == m2.ms && m1.m == m2.m

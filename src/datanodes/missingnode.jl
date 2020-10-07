@@ -37,4 +37,4 @@ function Base.getindex(x::MissingNode, i::VecOrRange)
 end
 
 Base.hash(e::MissingNode{D}, h::UInt) where {D} = hash((D, e.data, e.present), h)
-e1::MissingNode{D} == e2::MissingNode{D} where {D} = e1.data == e2.data && e1.present == e2.present
+(e1::MissingNode{D} == e2::MissingNode{D}) where {D} = e1.data == e2.data && e1.present == e2.present

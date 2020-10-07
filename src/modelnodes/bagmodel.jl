@@ -37,7 +37,7 @@ function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
 end
 
 
-function mapactivations(hm::BagModel, x::BagNode{M, B,C}, m::BagModel) where {M<: AbstractNode,B,C}
+function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<: AbstractNode,B,C}
     hmi, mi = mapactivations(hm.im, x.data, m.im)
     ai = m.a(mi, x.bags)
     hai = hm.a(hmi, x.bags)
@@ -45,7 +45,7 @@ function mapactivations(hm::BagModel, x::BagNode{M, B,C}, m::BagModel) where {M<
     (ArrayNode(hbo.data + hai.data), bo)
 end
 
-function mapactivations(hm::BagModel, x::BagNode{M, B,C}, m::BagModel) where {M<: Missing,B,C}
+function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<: Missing,B,C}
     ai = m.a(missing, x.bags)
     hai = hm.a(missing, x.bags)
     hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)
@@ -58,3 +58,7 @@ function fold(f, m::BagModel, x)
     o₃ = fold(f, m.bm, o₂)
     o₃
 end
+
+# Base.hash(m::BagModel{T,A,U}, h::UInt) where {T,A,U} = hash((T, A, U, m.im, m.a, m.bm), h)
+# (m1::BagModel{T,A,U} == m2::BagModel{T,A,U}) where {T,A,U} =
+    # m1.im == m2.im && m1.a == m2.a && m1.bm == m2.bm

@@ -9,7 +9,9 @@ using Zygote
 using HierarchicalUtils
 using Zygote: @adjoint
 using LinearAlgebra
-import Base.reduce
+using LearnBase
+
+import Base: *, ==, hash, show, cat, vcat, hcat, _cat, lastindex, getindex, reduce
 
 MLDataPattern.nobs(::Missing) = nothing
 
@@ -20,7 +22,7 @@ const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 
 	concatenates all observations from all xs together
 """
-function catobs end;
+function catobs end
 
 include("bags.jl")
 export AlignedBags, ScatteredBags, length2bags

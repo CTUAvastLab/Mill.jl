@@ -113,3 +113,35 @@ end
     @test m2_ski.m isa IdentityModel
     @test m3_ski.m isa ArrayModel{<:Dense}
 end
+
+# Defining this is a bad idea - in Flux all models do not implement == and hash
+# it may break AD
+# @testset "testing equals and hash" begin
+#     # TODO lazy and missing models should be tested in a similar fashion
+#     @eval layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+#     @eval x1 = ArrayNode(randn(Float32, 3, 4)) 
+#     @eval x2 = ArrayNode(randn(Float32, 4, 4)) 
+#     @eval x3 = BagNode(x1, [1:2, 3:4])
+#     @eval x4 = BagNode(x2, [1:1, 2:4])
+#     @eval x5 = ProductNode((x3, x4))
+
+#     var(i, pref, suf="") = Symbol(pref * string(i) * suf)
+
+#     for i in 1:5
+#         @eval $(var(i, "m")) = reflectinmodel($(var(i, "x")), layerbuilder)
+#         @eval $(var(i, "m", "c")) = deepcopy($(var(i, "m")))
+#     end
+
+#     for i in 1:5, j in 1:5
+#         @show i,j
+#         res1 = i == j
+#         res2 = @eval $(var(i, "m")) == $(var(j, "m", "c"))
+#         @test res1 == res2
+#     end
+
+#     for i in 1:5, j in 1:5
+#         res1 = i == j
+#         res2 = @eval hash($(var(i, "m"))) == hash($(var(j, "m", "c")))
+#         @test res1 == res2
+#     end
+# end
