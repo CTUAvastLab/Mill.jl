@@ -314,12 +314,19 @@ end
     Base.show(buf, methods(experiment))
     str_repr = String(take!(buf))
     @test startswith(str_repr, "# 1 method for generic function \"experiment\":\n[1] experiment(ds::LazyNode{…}) where T<:Symbol")
+    t = UnionAll(TypeVar(:t), LazyNode)
+    buf = IOBuffer()
+    Base.show(buf, t)
+    str_repr = String(take!(buf))
 
 	Mill.terseprint(false)
 	buf = IOBuffer()
 	Base.show(buf, methods(experiment))
     str_repr = String(take!(buf))
     @test startswith(str_repr, "# 1 method for generic function \"experiment\":\n[1] experiment(ds::LazyNode{T,D} where D) where T<:Symbol")
+    buf = IOBuffer()
+    Base.show(buf, t)
+    str_repr = String(take!(buf))
 
     Mill.terseprint(orig_terse)
 end

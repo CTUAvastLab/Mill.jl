@@ -84,70 +84,72 @@ function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMill
             print(io, "$(x.name){…}")
             return
         end
+    else
         # basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
         # specifically function show(io::IO, @nospecialize(x::Type))
-    elseif x isa DataType
-        # print(io, "\ntvoje máma: elseif x isa DataType\n")
-        Base.show_datatype(io, x)
-        return
-    elseif x isa Union
-        # print(io, "\ntvoje máma: elseif x isa Union\n")
-        if x.a isa DataType && Core.Compiler.typename(x.a) === Core.Compiler.typename(DenseArray)
-            T2, N = x.a.parameters
-            if x == StridedArray{T2,N}
-                print(io, "StridedArray")
-                Base.show_delim_array(io, (T2,N), '{', ',', '}', false)
-                return
-            elseif x == StridedVecOrMat{T2}
-                print(io, "StridedVecOrMat")
-                Base.show_delim_array(io, (T2,), '{', ',', '}', false)
-                return
-            elseif StridedArray{T2,N} <: x
-                print(io, "Union")
-                Base.show_delim_array(io, vcat(StridedArray{T2,N}, Base.uniontypes(Core.Compiler.typesubtract(x, StridedArray{T2,N}))), '{', ',', '}', false)
-                return
+        if x isa DataType
+            # print(io, "\ntvoje máma: elseif x isa DataType\n")
+            Base.show_datatype(io, x)
+            return
+        elseif x isa Union
+            # print(io, "\ntvoje máma: elseif x isa Union\n")
+            if x.a isa DataType && Core.Compiler.typename(x.a) === Core.Compiler.typename(DenseArray)
+                T2, N = x.a.parameters
+                if x == StridedArray{T2,N}
+                    print(io, "StridedArray")
+                    Base.show_delim_array(io, (T2,N), '{', ',', '}', false)
+                    return
+                elseif x == StridedVecOrMat{T2}
+                    print(io, "StridedVecOrMat")
+                    Base.show_delim_array(io, (T2,), '{', ',', '}', false)
+                    return
+                elseif StridedArray{T2,N} <: x
+                    print(io, "Union")
+                    Base.show_delim_array(io, vcat(StridedArray{T2,N}, Base.uniontypes(Core.Compiler.typesubtract(x, StridedArray{T2,N}))), '{', ',', '}', false)
+                    return
+                end
+            end
+            print(io, "Union")
+            Base.show_delim_array(io, Base.uniontypes(x), '{', ',', '}', false)
+            return
+        end
+
+        # print(io, "tvoje máma typeof(x): \n$(typeof(x))\n")
+        # print(io, "tvoje máma fieldnames(x): \n$(fieldnames(x))\n")
+        # print(io, "\ntvoje máma <: DataType: $(x <: DataType)\n")
+        # print(io, "\ntvoje máma isa DataType: $(x isa DataType)\n")
+        # print(io, "\ntvoje máma :data in fieldnames(x)?: $(:data in fieldnames(x)) \n")
+        # print(io, "\ntvoje máma zkouší x.var\n")
+        # x.var
+
+        # this type assert is behaving obscurely. When in Mill, it does not assert that LazyNode{T<:Symbol,D} where D is UnionAll, but in debugging using Debugger, it does
+        # x::UnionAll
+        if Base.print_without_params(x)
+            # print(io, "\ntvoje máma: if Base.print_without_params(x)\n")
+            return show(io, Base.unwrap_unionall(x).name)
+        end
+
+        if x.var.name === :_ || Base.io_has_tvar_name(io, x.var.name, x)
+            # print(io, "\ntvoje máma: if x.var.name === :_ || Base.io_has_tvar_name(io, x.var.name, x)\n")
+            counter = 1
+            while true
+                newname = Symbol(x.var.name, counter)
+                if !Base.io_has_tvar_name(io, newname, x)
+                    newtv = TypeVar(newname, x.var.lb, x.var.ub)
+                    x = UnionAll(newtv, x{newtv})
+                    break
+                end
+                counter += 1
             end
         end
-        print(io, "Union")
-        Base.show_delim_array(io, Base.uniontypes(x), '{', ',', '}', false)
-        return
+
+        # print(io, "\ntvoje máma před: show(IOContext(io, :unionall_env => x.var), x.body)\n")
+        # print(io, "tvoje máma typeof(x): \n$(typeof(x))\n")
+        # print(io, "tvoje máma fieldnames(x): \n$(fieldnames(x))\n")
+        show(IOContext(io, :unionall_env => x.var), x.body)
+        print(io, " where ")
+        show(io, x.var)
     end
-
-    # print(io, "tvoje máma typeof(x): \n$(typeof(x))\n")
-    # print(io, "tvoje máma fieldnames(x): \n$(fieldnames(x))\n")
-    # print(io, "\ntvoje máma <: DataType: $(x <: DataType)\n")
-    # print(io, "\ntvoje máma isa DataType: $(x isa DataType)\n")
-    # print(io, "\ntvoje máma :data in fieldnames(x)?: $(:data in fieldnames(x)) \n")
-    # print(io, "\ntvoje máma zkouší x.var\n")
-    # x.var
-
-    # this type assert is behaving obscurely. When in Mill, it does not assert that LazyNode{T<:Symbol,D} where D is UnionAll, but in debugging using Debugger, it does
-    # x::UnionAll
-    if Base.print_without_params(x)
-        # print(io, "\ntvoje máma: if Base.print_without_params(x)\n")
-        return show(io, Base.unwrap_unionall(x).name)
-    end
-
-    if x.var.name === :_ || Base.io_has_tvar_name(io, x.var.name, x)
-        # print(io, "\ntvoje máma: if x.var.name === :_ || Base.io_has_tvar_name(io, x.var.name, x)\n")
-        counter = 1
-        while true
-            newname = Symbol(x.var.name, counter)
-            if !Base.io_has_tvar_name(io, newname, x)
-                newtv = TypeVar(newname, x.var.lb, x.var.ub)
-                x = UnionAll(newtv, x{newtv})
-                break
-            end
-            counter += 1
-        end
-    end
-
-    # print(io, "\ntvoje máma před: show(IOContext(io, :unionall_env => x.var), x.body)\n")
-    # print(io, "tvoje máma typeof(x): \n$(typeof(x))\n")
-    # print(io, "tvoje máma fieldnames(x): \n$(fieldnames(x))\n")
-    show(IOContext(io, :unionall_env => x.var), x.body)
-    print(io, " where ")
-    show(io, x.var)
 end
 
 end
