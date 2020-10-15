@@ -302,3 +302,24 @@ end
     @test hash(x1) === hash(x2)
     @test hash(x1) !== hash(x3)
 end
+
+@testset "testing more obscure terseprint things" begin
+    function experiment(ds::LazyNode{T}) where {T<:Symbol}
+    	@show ds
+    	@show T
+    end
+
+    Mill.terseprint(true)
+    buf = IOBuffer()
+    Base.show(buf, methods(experiment))
+    str_repr = String(take!(buf))
+    @test startswith(str_repr, "# 1 method for generic function \"experiment\":\n[1] experiment(ds::LazyNode{…}) where T<:Symbol")
+
+	Mill.terseprint(false)
+	buf = IOBuffer()
+	Base.show(buf, methods(experiment))
+    str_repr = String(take!(buf))
+    @test startswith(str_repr, "# 1 method for generic function \"experiment\":\n[1] experiment(ds::LazyNode{T,D} where D) where T<:Symbol")
+
+    Mill.terseprint(orig_terse)
+end

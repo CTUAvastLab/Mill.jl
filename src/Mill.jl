@@ -52,6 +52,7 @@ include("replacein.jl")
 export replacein, findin
 
 include("hierarchical_utils.jl")
+export printtree
 
 Base.show(io::IO, ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = show(io, Base.typename(T))
 Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel}) = HierarchicalUtils.printtree(io, n; htrunc=3)
@@ -71,6 +72,10 @@ function terseprint(a)
 end
 
 function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
+# function Base_show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
+    # print(io, "\ntvoje máma: calling base show, typeof: $(typeof(x))\n")
+    # print(io, "\ntvoje máma: calling base show, <: Type: $(x <: Type)\n")
+    # print(io, "\ntvoje máma: calling base show, isa Type: $(x isa Type)\n")
     if _terseprint[]
         if !hasproperty(x, :name) && hasproperty(x, :body)
             print(io, "$(x.body.name){…}")
@@ -80,21 +85,48 @@ function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMill
             return
         end
         # basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
+        # specifically function show(io::IO, @nospecialize(x::Type))
     elseif x isa DataType
+        print(io, "\ntvoje máma: elseif x isa DataType\n")
         Base.show_datatype(io, x)
         return
     elseif x isa Union
+        print(io, "\ntvoje máma: elseif x isa Union\n")
+        if x.a isa DataType && Core.Compiler.typename(x.a) === Core.Compiler.typename(DenseArray)
+            T2, N = x.a.parameters
+            if x == StridedArray{T2,N}
+                print(io, "StridedArray")
+                Base.show_delim_array(io, (T2,N), '{', ',', '}', false)
+                return
+            elseif x == StridedVecOrMat{T2}
+                print(io, "StridedVecOrMat")
+                Base.show_delim_array(io, (T2,), '{', ',', '}', false)
+                return
+            elseif StridedArray{T2,N} <: x
+                print(io, "Union")
+                Base.show_delim_array(io, vcat(StridedArray{T2,N}, Base.uniontypes(Core.Compiler.typesubtract(x, StridedArray{T2,N}))), '{', ',', '}', false)
+                return
+            end
+        end
         print(io, "Union")
         Base.show_delim_array(io, Base.uniontypes(x), '{', ',', '}', false)
         return
     end
-    x::UnionAll
 
+    if x isa DataType
+        print(io, "\ntvoje máma: if x isa DataType\n")
+        Base.show_datatype(io, x)
+        return
+    end
+
+    x::UnionAll
     if Base.print_without_params(x)
+        print(io, "\ntvoje máma: if Base.print_without_params(x)\n")
         return show(io, Base.unwrap_unionall(x).name)
     end
 
     if x.var.name === :_ || Base.io_has_tvar_name(io, x.var.name, x)
+        print(io, "\ntvoje máma: if x.var.name === :_ || Base.io_has_tvar_name(io, x.var.name, x)\n")
         counter = 1
         while true
             newname = Symbol(x.var.name, counter)
@@ -107,11 +139,12 @@ function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMill
         end
     end
 
+    print(io, "\ntvoje máma před: show(IOContext(io, :unionall_env => x.var), x.body)\n")
+    print(io, "tvoje máma typeof(x): \n$(typeof(x))\n")
+    print(io, "tvoje máma fieldnames(x): \n$(fieldnames(x))\n")
     show(IOContext(io, :unionall_env => x.var), x.body)
     print(io, " where ")
     show(io, x.var)
 end
-
-export printtree
 
 end
