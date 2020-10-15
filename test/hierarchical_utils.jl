@@ -45,12 +45,12 @@ noderepr(n::Vector{<:AbstractString}) = "Array $(length(n)) items"
 NodeType(n::AbstractString) = LeafNode()
 children(n::Vector{<:AbstractString}) = (n...,)
 
-t2 = treemap((n2, n2m)) do (k1, k2), chs
+t2 = treemap(n2, n2m) do (k1, k2), chs
     NumberNode(rand(1:10), collect(chs))
 end
 
 @testset "list traversal" begin
-    for (n1, n2) in NodeIterator((n2, n2m))
+    for (n1, n2) in NodeIterator(n2, n2m)
         @test list_traversal(n1) == list_traversal(n2)
     end
 end
@@ -132,17 +132,17 @@ end
 end
 
 @testset "TypeIterator" begin
-    @test Set(TypeIterator(n2, AbstractNode)) == Set(NodeIterator(n2))
-    @test Set(TypeIterator(n2, AbstractBagNode)) == Set([b, wb])
-    @test Set(TypeIterator(n2, AbstractProductNode)) == Set([n1, n2])
+    @test Set(TypeIterator(AbstractNode, n2)) == Set(NodeIterator(n2))
+    @test Set(TypeIterator(AbstractBagNode, n2)) == Set([b, wb])
+    @test Set(TypeIterator(AbstractProductNode, n2)) == Set([n1, n2])
 
-    @test Set(TypeIterator(n2m, AbstractMillModel)) == Set(NodeIterator(n2m))
-    @test Set(TypeIterator(n2m, BagModel)) == Set([bm, wbm])
-    @test Set(TypeIterator(n2m, ProductModel)) == Set([n1m, n2m])
+    @test Set(TypeIterator(AbstractMillModel, n2m)) == Set(NodeIterator(n2m))
+    @test Set(TypeIterator(BagModel, n2m)) == Set([bm, wbm])
+    @test Set(TypeIterator(ProductModel, n2m)) == Set([n1m, n2m])
 end
 
 @testset "Iteration over multiple trees" begin
-    @test NodeIterator((n2, n2m)) |> collect == collect(zip(NodeIterator(n2) |> collect, NodeIterator(n2m) |> collect))
+    @test NodeIterator(n2, n2m) |> collect == collect(zip(NodeIterator(n2) |> collect, NodeIterator(n2m) |> collect))
 end
 
 @testset "printtree" begin
