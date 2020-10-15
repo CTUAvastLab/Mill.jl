@@ -7,6 +7,7 @@ using Statistics
 using Combinatorics
 using Zygote
 using HierarchicalUtils
+using ThreadsX
 using Zygote: @adjoint
 using LinearAlgebra
 import Base.reduce

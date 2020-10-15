@@ -20,41 +20,33 @@ ProductModel(ms::TT) where {TT<:TupleOfModels} = ProductModel(ms, identity_model
 ProductModel(ms, f::MillFunction) = ProductModel(ms, ArrayModel(f))
 
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
-Base.keys(m::ProductModel) = keys(m.ms)
+Base.keys(m::ProductModel{P,T}) where {P<:NamedTuple,T} = keys(m.ms)
+Base.keys(m::ProductModel{P,T}) where {P<:Tuple,T} = 1:length(m.ms)
 
-function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:Tuple,T,MS<:Tuple, M} 
-    xx = vcat([m.ms[i](x.data[i]) for i in 1:length(m.ms)]...)
-    m.m(xx)
+function (m::ProductModel)(x::ProductNode)
+    xx = ThreadsX.map(i -> m.ms[i](x.data[i]), keys(m))
+    # xx = map(i -> m.ms[i](x.data[i]), keys(m))
+    m.m(vcat(xx...))
 end
 
 
-function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:NamedTuple,T,MS<:NamedTuple, M} 
-    xx = vcat([m.ms[k](x.data[k]) for k in keys(m.ms)]...)
-    m.m(xx)
+
+function ∇tmap(cx, f, args...)
+    ys_and_backs = ThreadsX.map((args...) -> Zygote._pullback(cx, f, args...), args...)
+    if isempty(ys_and_backs)
+      ys_and_backs, _ -> nothing
+    else
+      ys, backs = Zygote.unzip(ys_and_backs)
+      ys, function (Δ)
+        # Apply pullbacks in reverse order. Needed for correctness if `f` is stateful.
+        Δf_and_args_zipped = ThreadsX.map((f, δ) -> f(δ), Zygote._tryreverse(ThreadsX.map, backs, Δ)...)
+        Δf_and_args = Zygote.unzip(Zygote._tryreverse(ThreadsX.map, Δf_and_args_zipped))
+        Δf = reduce(Zygote.accum, Δf_and_args[1])
+        (Δf, Δf_and_args[2:end]...)
+      end
+    end
 end
 
-function HiddenLayerModel(m::ProductModel, x::ProductNode, k::Int)
-    ks = keys(m.ms)
-    hxms = [HiddenLayerModel(m.ms[i], x.data[i], k) for i in keys(m.ms)]
-    hms = (;[ks[i] => hxms[i][1] for i in 1:length(ks)]...)
-    xms = vcat([hxms[i][2] for i in 1:length(ks)]...)
-
-    hm, o = HiddenLayerModel(m.m, xms, k)
-    ProductModel(hms, hm), o
-end
-
-function mapactivations(hm::ProductModel, x::ProductNode, m::ProductModel)
-    ks = keys(m.ms)
-    _xxs = [mapactivations(hm.ms[i], x.data[i], m.ms[i]) for i in keys(m.ms)]
-    hxs = foldl( +, [_xxs[i][1].data for i in 1:length(ks)])
-    xxs = vcat([_xxs[i][2] for i in 1:length(ks)]...)
-
-    ho, o = mapactivations(hm.m, xxs, m.m)
-    (ArrayNode(ho.data + hxs), o)
-end
-
-function fold(f, m::ProductModel, x)
-    o₁ = map(k -> fold(f, m.ms[k], x.data[k]), keys(m.ms))
-    o₂ = f(o₁)
-    f(m.m, o₂)
+Zygote.@adjoint function ThreadsX.map(f, args::Union{AbstractArray,Tuple}...)
+    ∇tmap(__context__, f, args...)
 end
