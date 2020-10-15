@@ -318,6 +318,7 @@ end
     buf = IOBuffer()
     Base.show(buf, t)
     str_repr = String(take!(buf))
+    @test str_repr == "LazyNode{…}"
 
 	Mill.terseprint(false)
 	buf = IOBuffer()

@@ -77,7 +77,10 @@ function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMill
     # print(io, "\ntvoje máma: calling base show, <: Type: $(x <: Type)\n")
     # print(io, "\ntvoje máma: calling base show, isa Type: $(x isa Type)\n")
     if _terseprint[]
-        if !hasproperty(x, :name) && hasproperty(x, :body)
+        if hasproperty(x, :body) && !hasproperty(x.body, :name) && hasproperty(x.body, :body)
+            print(io, "$(x.body.body.name){…}")
+            return
+        elseif hasproperty(x, :body) && !hasproperty(x, :name)
             print(io, "$(x.body.name){…}")
             return
         else
