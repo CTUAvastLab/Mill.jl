@@ -2,6 +2,7 @@ using Mill, BenchmarkTools, Serialization, ThreadsX, Zygote, Flux
 using LinearAlgebra
 (m, ds) = deserialize("/tmp/testdata.jls")
 ps = Flux.params(m);
+m(ds)
 @btime gradient(() -> sum(m(ds).data), ps)
 ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())
 @btime gradient(() -> sum(m(ds).data), ps)
@@ -18,7 +19,6 @@ ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())
 
 
 dss = [ds[i] for i in 1:Mill.nobs(ds)];
-m(ds)
 #time of the inference
 @btime m(ds)
 @btime ThreadsX.map(oneds -> m(oneds), dss)
