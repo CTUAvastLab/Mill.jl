@@ -314,6 +314,13 @@ end
     	@show ds
     	@show T
     end
+    a = methods(experiment)
+    a_method = a.ms[1]
+    b = getfield(a_method.sig, 2)
+    c = getfield(b, 3)
+    d = c[2]
+    e = d.body
+
     t = UnionAll(TypeVar(:t), LazyNode)
     u = typeof(LazyNode(:oh_hi, ["Mark"]))
 
@@ -323,6 +330,8 @@ end
     @test occursin("(ds::LazyNode{…}) where T<:Symbol", buf_show(methods(experiment)))
     @test buf_show(t) == "LazyNode{…}"
     @test buf_show(u) == "LazyNode{…}"
+    @test buf_show(d) == "LazyNode{…}"
+    @test buf_show(e) == "LazyNode{…}"
 
     # extremely weird behavior, see https://github.com/pevnak/Mill.jl/issues/45
 	Mill.terseprint(false)
@@ -330,14 +339,10 @@ end
     @test_broken buf_show(methods(experiment))
     @test buf_show(t) == "LazyNode"
     @test buf_show(u) == "LazyNode{:oh_hi,Array{String,1}}"
+    @test_throws ErrorException buf_show(d)
+    @test_broken buf_show(d) == "LazyNode{T<:Symbol,D}"
+	@test_throws ErrorException buf_show(e)
+    @test_broken buf_show(e) == "LazyNode{T<:Symbol,D}"
 
     Mill.terseprint(orig_terse)
-
-    # some code for debugging, show is failing for d and e
-    # a = methods(experiment)
-    # a_method = a.ms[1]
-    # b = getfield(a_method.sig, 2)
-    # c = getfield(b, 3)
-    # d = c[2]
-    # e = d.body
 end
