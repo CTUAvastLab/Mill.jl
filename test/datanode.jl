@@ -316,6 +316,8 @@ end
     end
     t = UnionAll(TypeVar(:t), LazyNode)
 
+    orig_terse = Mill._terseprint[]
+
     Mill.terseprint(true)
     @test occursin("(ds::LazyNode{…}) where T<:Symbol", buf_show(methods(experiment)))
     @test buf_show(t) == "LazyNode{…}"
