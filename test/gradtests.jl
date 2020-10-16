@@ -234,6 +234,8 @@ end
     end
 end
 
+println("<HEARTBEAT>")
+
 @testset "model aggregation grad check w.r.t. params" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2)
