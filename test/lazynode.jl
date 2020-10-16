@@ -5,7 +5,7 @@ using Mill: LazyNode
 	ss = ["Hello world.", "Make peace.", "Make food.", "Eat penam."]
 
 	function Mill.unpack2mill(ds::LazyNode{:Sentence})
-		s = ds.data 
+		s = ds.data
 		ss = map(x -> split(x, " "),s)
 		x = NGramMatrix(reduce(vcat, ss), 3, 256, 2053)
 		BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
