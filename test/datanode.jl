@@ -322,6 +322,7 @@ end
     @test occursin("(ds::LazyNode{…}) where T<:Symbol", buf_show(methods(experiment)))
     @test buf_show(t) == "LazyNode{…}"
 
+    # extremely weird behavior, see https://github.com/pevnak/Mill.jl/issues/45
 	Mill.terseprint(false)
     @test_broken startswith("(ds::LazyNode{T,D} where D) where T<:Symbol", buf_show(methods(experiment)))
     @test_broken buf_show(t) == "LazyNode{T} where T<:Symbol"
