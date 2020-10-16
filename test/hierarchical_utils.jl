@@ -49,6 +49,12 @@ t2 = treemap(n2, n2m) do (k1, k2), chs
     NumberNode(rand(1:10), collect(chs))
 end
 
+function buf_printtree(data; kwargs...)
+    buf = IOBuffer()
+	printtree(buf, data; kwargs...)
+	String(take!(buf))
+end
+
 @testset "list traversal" begin
     for (n1, n2) in NodeIterator(n2, n2m)
         @test list_traversal(n1) == list_traversal(n2)
@@ -146,10 +152,7 @@ end
 end
 
 @testset "printtree" begin
-    buf = IOBuffer()
-    printtree(buf, n2, trav=true)
-    str_repr = String(take!(buf))
-    @test str_repr ==
+    @test buf_printtree(n2, trav=true) ==
 """
 ProductNode [""]
   ├── ProductNode ["E"]
@@ -159,10 +162,7 @@ ProductNode [""]
   │               └── ArrayNode(17, 4) ["O"]
   └── ArrayNode(10, 2) ["U"]"""
 
-    buf = IOBuffer()
-    printtree(buf, n2m, trav=true)
-    str_repr = String(take!(buf))
-    @test str_repr ==
+    @test buf_printtree(n2m, trav=true) ==
 """
 ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
   ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"]
@@ -179,10 +179,7 @@ end
 	@test nchildren(ds) == 1
 	@test nleafs(ds) == 4
 
-    buf = IOBuffer()
-    printtree(buf, ds, trav=true)
-    str_repr = String(take!(buf))
-    @test str_repr ==
+    @test buf_printtree(ds, trav=true) ==
 """
 Codons 4 items [""]
   └── Array 4 items ["U"]
@@ -191,12 +188,25 @@ Codons 4 items [""]
         ├── "TTTTCGCTATTTATGAAAATT" ["g"]
         └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]"""
 
-    buf = IOBuffer()
-    printtree(buf, m, trav=true)
-    str_repr = String(take!(buf))
-    @test str_repr ==
+    @test buf_printtree(m, trav=true) ==
 """
 LazyCodonsModel [""]
   └── BagModel ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(4, 2)) ["U"]
         └── ArrayModel(Dense(64, 2)) ["k"]"""
+
+	orig_terse = Mill._terseprint[]
+
+	Mill.terseprint(true)
+    buf = IOBuffer()
+	Base.show(buf, typeof(ds))
+    str_repr = String(take!(buf))
+	@test str_repr == "LazyNode{…}"
+
+	Mill.terseprint(false)
+	buf = IOBuffer()
+	Base.show(buf, typeof(ds))
+    str_repr = String(take!(buf))
+	@test str_repr == "LazyNode{:Codons,Array{String,1}}"
+
+	Mill.terseprint(orig_terse)
 end
