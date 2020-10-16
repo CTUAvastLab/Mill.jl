@@ -30,6 +30,11 @@ function segmented_max_forw(x::AbstractMatrix, C::AbstractVector, bags::Abstract
     y
 end
 
+function segmented_max_forw(x::VCatView, C::AbstractVector, bags::AbstractBags) 
+    b = map(i -> segmented_max_forw(x.matrices[i], C[band(x,i)], bags), 1:length(x.matrices))
+    vcat(b...)
+end
+
 function segmented_max_back(Δ, y, x, C, bags) 
     dx = zero(x)
     dC = zero(C)

@@ -215,7 +215,7 @@ end
 function mulkernel!(C, A, jB, mA, nA, idxs)
     for iB in idxs
         miB = mod(iB, nA) + 1
-        @inbounds for iA in 1:mA
+        @avx for iA in 1:mA
             C[iA, jB] += A[iA, miB]
         end
     end
@@ -227,7 +227,7 @@ function mulkernel!(C, A, jB, mA, nA, s, N, B)
     for j in 1:l
         iB = nextgram(s, iB, j, N, B)
         miB = mod(iB, nA) + 1
-        @inbounds for iA in 1:mA
+        @avx for iA in 1:mA
             C[iA, jB] += A[iA, miB]
         end
     end
@@ -261,7 +261,7 @@ end
 function multkernel!(C, A, jB, mA, bm, idxs)
     for iB in idxs
         miB = mod(iB, bm) + 1
-        @inbounds for iA in 1:mA
+        @avx for iA in 1:mA
             C[iA, miB] += A[iA, jB]
         end
     end
@@ -273,7 +273,7 @@ function multkernel!(C, A, jB, mA, bm, s, N, B)
     for j in 1:l
         iB = nextgram(s, iB, j, N, B)
         miB = mod(iB, bm) + 1
-        @inbounds for iA in 1:mA
+        @avx for iA in 1:mA
             C[iA, miB] += A[iA, jB]
         end
     end

@@ -8,6 +8,7 @@ using Combinatorics
 using Zygote
 using HierarchicalUtils
 using ThreadsX
+using LoopVectorization
 using Zygote: @adjoint
 using LinearAlgebra
 import Base.reduce
@@ -23,10 +24,12 @@ const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 """
 function catobs end;
 
+include("catviews/vcatviews.jl")
 include("bags.jl")
 export AlignedBags, ScatteredBags, length2bags
 
 include("util.jl")
+include("tmap.jl")
 include("threadfuns.jl")
 
 include("datanodes/datanode.jl")

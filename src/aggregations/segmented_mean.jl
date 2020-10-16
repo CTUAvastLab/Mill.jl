@@ -31,6 +31,11 @@ function segmented_mean_forw(x::AbstractMatrix, C::AbstractVector, bags::Abstrac
     y
 end
 
+function segmented_mean_forw(x::VCatView, C::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
+    b = map(i -> segmented_mean_forw(x.matrices[i], C[band(x,i)], bags, w), 1:length(x.matrices))
+    o = vcat(b...)
+end
+
 function segmented_mean_back(Δ, y, x, C, bags, w) 
     dx = zero(x)
     dC = zero(C)
