@@ -136,15 +136,7 @@ function base_show_full(io::IO, x::Type{T}) where {T<:Union{AbstractNode,Abstrac
     show(io, x.var)
 end
 
-function Base.show(io::IO, x::Type{<:AbstractNode})
-    if _terseprint[]
-        return base_show_terse(io, x)
-    else
-        return base_show_full(io, x)
-    end
-end
-
-function Base.show(io::IO, x::Type{<:AbstractMillModel})
+function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
     if _terseprint[]
         return base_show_terse(io, x)
     else
