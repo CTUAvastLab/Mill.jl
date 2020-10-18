@@ -18,6 +18,7 @@ julia> mapdata(i -> sparsify(i,0.05),x)
 sparsify(x,nnzrate) = x
 sparsify(x::Matrix,nnzrate) = (mean(x .!= 0) <nnzrate) ? sparse(x) : x
 
+# can be removed when https://github.com/FluxML/Flux.jl/pull/1357 is merged
 function Base.:*(A::AbstractMatrix, B::Adjoint{Bool,<: Flux.OneHotMatrix})
     m = size(A,1)
     Y = similar(A, m, size(B,2))
