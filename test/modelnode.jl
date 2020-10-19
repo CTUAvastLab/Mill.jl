@@ -71,6 +71,7 @@ end
     @test mbca[:,3] ≈ ma
 end
 
+# pn.m should be identity for any product node pn with a single key
 @testset "single key dictionary reflect in model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
     x1 = (ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
