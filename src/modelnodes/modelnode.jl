@@ -23,18 +23,34 @@ end
 
 function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s)
     n = length(x.data)
-    mm = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n)) for (i, xx) in enumerate(x.data)]
-    im = tuple([i[1] for i in mm]...)
-    tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s)
-    ProductModel(im, tm), d
+    ms = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n), ski) for (i, xx) in enumerate(x.data)]
+    if ski && n == 1
+        # use for julia 1.5 and higher
+        # im, d = only(ms)
+        im, d = ms[1]
+        ProductModel(im), d
+    else
+        im = tuple([i[1] for i in ms]...)
+        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski)
+        ProductModel(im, tm), d
+    end
 end
 
 function _reflectinmodel(x::ProductNode{T,C}, db, da, b, a, s) where {T<:NamedTuple, C}
     n = length(x.data)
     ks = keys(x.data)
-    ms = (;[k => _reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n))[1] for (i, k) in enumerate(ks)]...)
-    tm, d = _reflectinmodel(ProductModel(ms)(x), db, da, b, a, s)
-    ProductModel(ms, tm), d
+    ms = [_reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n), ski) for (i, k) in enumerate(ks)]
+    if ski && n == 1
+        # use for julia 1.5 and higher
+        # im, d = only(ms)
+        # ProductModel((; only(ks)=>im)), d
+        im, d = ms[1]
+        ProductModel((; ks[1]=>im)), d
+    else
+        im = (; (k=>v[1] for (k,v) in zip(ks, ms))...)
+        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski)
+        ProductModel(im, tm), d
+    end
 end
 
 function _reflectinmodel(x::ArrayNode, db, da, b, a, s)
