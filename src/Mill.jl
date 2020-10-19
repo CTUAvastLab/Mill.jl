@@ -72,16 +72,11 @@ function terseprint(a)
 end
 
 function base_show_terse(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
-    if hasproperty(x, :body) && !hasproperty(x.body, :name) && hasproperty(x.body, :body)
-        print(io, "$(x.body.body.name){…}")
-        return
-    elseif hasproperty(x, :body) && !hasproperty(x, :name)
-        print(io, "$(x.body.name){…}")
-        return
-    else
-        print(io, "$(x.name){…}")
-        return
+    while hasproperty(x, :body) && !hasproperty(x, :name)
+        x = x.body
     end
+    print(io, "$(x.name){…}")
+    return
 end
 
 function base_show_full(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
