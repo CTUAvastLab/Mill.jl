@@ -17,6 +17,12 @@ MLDataPattern.nobs(::Missing) = nothing
 
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 
+# GLOBAL SWITCHES
+const _emptyismissing = Ref(false)
+const _terseprint = Ref(true)
+emptyismissing(a) = _emptyismissing[] = a
+terseprint(a) = _terseprint[] = a
+
 """
 	catobs(xs...)
 
@@ -67,17 +73,6 @@ end
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 include("partialeval.jl")
-const _emptyismissing = Ref(false)
-
-function emptyismissing(a)
-    _emptyismissing[] = a
-end
-
-const _terseprint = Ref(true)
-
-function terseprint(a)
-    _terseprint[] = a
-end
 
 function base_show_terse(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
     if hasproperty(x, :body) && !hasproperty(x.body, :name) && hasproperty(x.body, :body)
