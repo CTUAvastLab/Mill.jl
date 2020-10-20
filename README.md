@@ -1,5 +1,5 @@
 <a href="https://github.com/pevnak/Mill.jl#references">
-<img align="right" width="90" height="120" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/logo.svg" alt="Mill icon">
+<img align="right" width="90" height="140" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/logo.svg" alt="Mill icon">
 </a>
 
 [![Build Status](https://travis-ci.org/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.org/pevnak/Mill.jl)
