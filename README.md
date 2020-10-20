@@ -1,15 +1,14 @@
 <a href="https://github.com/pevnak/Mill.jl#references">
-<img align="right" width="90" height="140" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/logo.svg" alt="Mill icon">
+<img align="left" width="105" height="180" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/logo.svg" alt="Mill icon">
 </a>
-
-[![Build Status](https://travis-ci.org/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.org/pevnak/Mill.jl)
-[![Coverage Status](https://coveralls.io/repos/github/pevnak/Mill.jl/badge.svg?branch=master)](https://coveralls.io/github/pevnak/Mill.jl?branch=master)
-[![codecov.io](http://codecov.io/github/Pevnak/Mill.jl/coverage.svg?branch=master)](http://codecov.io/github/Pevnak/Mill.jl?branch=master)
 
 # Mill – Multiple Instance Learning Library
 
 Mill is a library build on top of Flux.jl aimed to prototype flexible multi-instance learning models as described in  [[1](#cit1)] and  [[2](#cit2)]
 
+[![Build Status](https://travis-ci.org/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.org/pevnak/Mill.jl)
+[![Coverage Status](https://coveralls.io/repos/github/pevnak/Mill.jl/badge.svg?branch=master)](https://coveralls.io/github/pevnak/Mill.jl?branch=master)
+[![codecov.io](http://codecov.io/github/Pevnak/Mill.jl/coverage.svg?branch=master)](http://codecov.io/github/Pevnak/Mill.jl?branch=master)
 
 ## What is Multiple instance learning (MIL) problem?
  In the prototypical machine learning problem the input sample ![equation](https://latex.codecogs.com/gif.latex?x) is a vector or matrix of a fixed dimension, or a sequence. In MIL problems the sample ![equation](https://latex.codecogs.com/gif.latex?x) is a set of vectors (or matrices) ![equation](https://latex.codecogs.com/gif.latex?%28x_1%2C%20x_2%2C%20...%2C%20x_n%29), which means that order does not matter, and which is also the feature making MIL problems different from sequences.
