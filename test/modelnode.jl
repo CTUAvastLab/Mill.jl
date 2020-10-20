@@ -140,7 +140,7 @@ end
     @test eltype(m2(x2).data) == Float32
     @test m2 isa BagModel
     @test m2.im isa ArrayModel{<:Dense}
-    @test size(m2_sci(x2).data) == (1, 2)
+    @test size(m2_sci(x2).data) == (2, 2)
     @test eltype(m2_sci(x2).data) == Float32
     @test m2_sci isa BagModel
     @test m2_sci.im isa IdentityModel

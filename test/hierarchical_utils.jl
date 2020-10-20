@@ -166,9 +166,9 @@ ProductNode [""]
 """
 ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
   ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"]
-  │     ├─── b: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(10, 10)) ["I"]
+  │     ├─── b: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)) ["I"]
   │     │         └── ArrayModel(Dense(3, 10)) ["K"]
-  │     └── wb: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(10, 10)) ["M"]
+  │     └── wb: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)) ["M"]
   │               └── ArrayModel(Dense(17, 10)) ["O"]
   └── ArrayModel(Dense(10, 10)) ["U"]"""
 end
@@ -197,6 +197,6 @@ Codons 4 items [""]
     @test str_repr ==
 """
 LazyCodonsModel [""]
-  └── BagModel ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(4, 2)) ["U"]
+  └── BagModel ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5, 2)) ["U"]
         └── ArrayModel(Dense(64, 2)) ["k"]"""
 end
