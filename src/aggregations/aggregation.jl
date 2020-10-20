@@ -8,7 +8,9 @@ end
 
 Flux.@functor Aggregation
 
-(a::Aggregation)(x::Union{AbstractArray, Missing}, args...) = vcat([f(x, args...) for f in a.fs]...)
+function (a::Aggregation)(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...)
+    vcat(vcat([f(x, bags, args...) for f in a.fs]...), Zygote.@ignore length.(bags)')
+end
 (a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
 Base.getindex(a::Aggregation, i) = a.fs[i]
