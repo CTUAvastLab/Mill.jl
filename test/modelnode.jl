@@ -79,11 +79,11 @@ end
     x3 = (a = ArrayNode(randn(Float32, 3, 4)), b = ArrayNode(randn(Float32, 3, 4))) |> ProductNode
 
     m1 = reflectinmodel(x1, layerbuilder; single_key_identity=false)
-    m1_ski = reflectinmodel(x1, layerbuilder)
+    m1_ski = reflectinmodel(x1, layerbuilder; single_key_identity=true)
     m2 = reflectinmodel(x2, layerbuilder; single_key_identity=false)
-    m2_ski = reflectinmodel(x2, layerbuilder)
+    m2_ski = reflectinmodel(x2, layerbuilder; single_key_identity=true)
     m3 = reflectinmodel(x3, layerbuilder; single_key_identity=false)
-    m3_ski = reflectinmodel(x3, layerbuilder)
+    m3_ski = reflectinmodel(x3, layerbuilder; single_key_identity=true)
 
     for m in [m1, m1_ski]
         @test eltype(m(x1).data) == Float32
@@ -123,11 +123,11 @@ end
     x3 = (a = ArrayNode(randn(Float32, 1, 4)), b = ArrayNode(randn(Float32, 2, 4))) |> ProductNode
 
     m1 = reflectinmodel(x1, layerbuilder; single_scalar_identity=false)
-    m1_sci = reflectinmodel(x1, layerbuilder)
+    m1_sci = reflectinmodel(x1, layerbuilder; single_scalar_identity=true)
     m2 = reflectinmodel(x2, layerbuilder; single_scalar_identity=false)
-    m2_sci = reflectinmodel(x2, layerbuilder)
+    m2_sci = reflectinmodel(x2, layerbuilder; single_scalar_identity=true)
     m3 = reflectinmodel(x3, layerbuilder; single_scalar_identity=false)
-    m3_sci = reflectinmodel(x3, layerbuilder)
+    m3_sci = reflectinmodel(x3, layerbuilder; single_scalar_identity=true)
 
     @test size(m1(x1).data) == (2, 3)
     @test eltype(m1(x1).data) == Float32
