@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.org/pevnak/Mill.jl)
+[![Build Status](https://travis-ci.com/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.com/pevnak/Mill.jl)
 [![Coverage Status](https://coveralls.io/repos/github/pevnak/Mill.jl/badge.svg?branch=master)](https://coveralls.io/github/pevnak/Mill.jl?branch=master)
 [![codecov.io](http://codecov.io/github/Pevnak/Mill.jl/coverage.svg?branch=master)](http://codecov.io/github/Pevnak/Mill.jl?branch=master)
 
