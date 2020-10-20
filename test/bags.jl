@@ -141,3 +141,10 @@ end
     @test hash(a) !== hash(b)
     @test hash(b) === hash(c)
 end
+
+@testset "type stability" begin
+    @test length.(AlignedBags([])) isa Vector{Int}
+    @test length.(AlignedBags([1:2, 3:5])) isa Vector{Int}
+    @test length.(ScatteredBags([])) isa Vector{Int}
+    @test length.(ScatteredBags([[1,2], [3,4,5]])) isa Vector{Int}
+end
