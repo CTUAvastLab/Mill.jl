@@ -45,18 +45,16 @@ Base.show(io::IO, m::MIME"text/plain", a::Aggregation{N}) where N = print(io, "â
 export SegmentedSum, SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedLSE
 
 const names = ["Sum", "Mean", "Max", "PNorm", "LSE"]
-for idxs in powerset(collect(1:length(names)))
-    length(idxs) > 1 || continue
-    for p in permutations(idxs)
-        s = Symbol("Segmented", names[p]...)
-        @eval function $s(d::Int)
-            Aggregation($((Expr(:call, Symbol("Segmented" * n), :d)
-                           for n in names[p])...))
-        end
-        @eval function $s(D::Vararg{Int, $(length(p))})
-            Aggregation($((Expr(:call, Symbol("Segmented" * n), :(D[$i]))
-                           for (i,n) in enumerate(names[p]))...))
-        end
-        @eval export $s
+for p in powerset(collect(1:length(names)))
+    length(p) > 1 || continue
+    s = Symbol("Segmented", names[p]...)
+    @eval function $s(d::Int)
+        Aggregation($((Expr(:call, Symbol("Segmented" * n), :d)
+                       for n in names[p])...))
     end
+    @eval function $s(D::Vararg{Int, $(length(p))})
+        Aggregation($((Expr(:call, Symbol("Segmented" * n), :(D[$i]))
+                       for (i,n) in enumerate(names[p]))...))
+    end
+    @eval export $s
 end
