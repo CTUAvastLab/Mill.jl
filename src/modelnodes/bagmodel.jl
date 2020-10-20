@@ -32,12 +32,12 @@ function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
     im, o = HiddenLayerModel(m.im, x.data, k)
     a = SegmentedMax(k)
     b = m.a(o, x.bags)
-    bm, o = HiddenLayerModel(m.bm, b, k)
+    bm, o = HiddenLayerModel(m.bm, b, k+1)
     BagModel(im, a, bm), o
 end
 
 
-function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<: AbstractNode,B,C}
+function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<:AbstractNode,B,C}
     hmi, mi = mapactivations(hm.im, x.data, m.im)
     ai = m.a(mi, x.bags)
     hai = hm.a(hmi, x.bags)
@@ -45,7 +45,7 @@ function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<:
     (ArrayNode(hbo.data + hai.data), bo)
 end
 
-function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<: Missing,B,C}
+function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<:Missing,B,C}
     ai = m.a(missing, x.bags)
     hai = hm.a(missing, x.bags)
     hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)
