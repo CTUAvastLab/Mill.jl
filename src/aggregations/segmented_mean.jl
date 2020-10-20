@@ -4,7 +4,7 @@ end
 
 Flux.@functor SegmentedMean
 
-SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
+_SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
 (m::SegmentedMean)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_mean_forw(x, m.C, bags, w)
 function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)

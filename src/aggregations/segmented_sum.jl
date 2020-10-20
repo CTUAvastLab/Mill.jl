@@ -4,7 +4,7 @@ end
 
 Flux.@functor SegmentedSum
 
-SegmentedSum(d::Int) = SegmentedSum(zeros(Float32, d))
+_SegmentedSum(d::Int) = SegmentedSum(zeros(Float32, d))
 
 (m::SegmentedSum)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_sum_forw(x, m.C, bags, w)
 function (m::SegmentedSum)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)

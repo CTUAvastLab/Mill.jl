@@ -43,19 +43,18 @@ include("segmented_lse.jl")
 Base.show(io::IO, ::MIME"text/plain", a::T) where T <: AggregationFunction = print(io, "$(T.name)($(length(a.C)))")
 Base.show(io::IO, m::MIME"text/plain", a::Aggregation{N}) where N = print(io, "⟨" * join(repr(m, f) for f in a.fs ", ") * "⟩")
 
-export SegmentedSum, SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedLSE
-
 const names = ["Sum", "Mean", "Max", "PNorm", "LSE"]
 for p in powerset(collect(1:length(names)))
-    length(p) > 1 || continue
     s = Symbol("Segmented", names[p]...)
     @eval function $s(d::Int)
-        Aggregation($((Expr(:call, Symbol("Segmented" * n), :d)
+        Aggregation($((Expr(:call, Symbol("_Segmented" * n), :d)
                        for n in names[p])...))
     end
-    @eval function $s(D::Vararg{Int, $(length(p))})
-        Aggregation($((Expr(:call, Symbol("Segmented" * n), :(D[$i]))
-                       for (i,n) in enumerate(names[p]))...))
+    if length(p) > 1
+        @eval function $s(D::Vararg{Int, $(length(p))})
+            Aggregation($((Expr(:call, Symbol("_Segmented" * n), :(D[$i]))
+                           for (i,n) in enumerate(names[p]))...))
+        end
     end
     @eval export $s
 end
