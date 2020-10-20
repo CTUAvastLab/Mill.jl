@@ -41,7 +41,7 @@ end
     @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
     @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
      
-    fs = [:SegmentedSum, :SegmentedMax, :SegmentedMean, :SegmentedPNorm, :SegmentedLSE]
+    fs = [:SegmentedSum, :SegmentedMean, :SegmentedMax, :SegmentedPNorm, :SegmentedLSE]
     params = [(:C1,), (:C2,), (:C3,), (:ρ1, :c, :C4), (:ρ2, :C5)]
 
     for idxs in powerset(collect(1:length(fs)))
@@ -186,7 +186,7 @@ end
 
         bn = BagNode(ArrayNode(z), bags3)
         bnn = BagNode(bn, bags1)
-        abuilder = d -> SegmentedPNormLSESumMax(d)
+        abuilder = d -> SegmentedSumMaxPNormLSE(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
         @test mgradtest(z) do z
             bn = BagNode(ArrayNode(z), bags3)
@@ -224,7 +224,7 @@ end
 
         bn = BagNode(ArrayNode(z), bags3, w3)
         bnn = BagNode(bn, bags1)
-        abuilder = d -> SegmentedPNormLSESumMax(d)
+        abuilder = d -> SegmentedSumMaxPNormLSE(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
         @test mgradtest(z) do z
             bn = BagNode(ArrayNode(z), bags3, w3)
@@ -277,29 +277,29 @@ println("<HEARTBEAT>")
         end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
-        abuilder = d -> SegmentedPNormLSESumMax(d)
+        abuilder = d -> SegmentedSumMaxPNormLSE(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
-        @test mgradtest(params(m)...) do W1, b1, ρ11, c1, C11, ρ12, C12, C13, C14,
-            W2, b2, W3, b3, ρ21, c2, C21, ρ22, C22, C23, C24, W4, b4, W5, b5
+        @test mgradtest(params(m)...) do W1, b1, C11, C12, ρ11, c1, C13, ρ12, C14,
+            W2, b2, W3, b3, C21, C22, ρ21, c2, C23, ρ22, C24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, a1),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ11, c1, C11),
-                                                   SegmentedLSE(ρ12, C12),
-                                                   SegmentedSum(C13),
-                                                   SegmentedMax(C14)
+                                                   SegmentedSum(C11),
+                                                   SegmentedMax(C12),
+                                                   SegmentedPNorm(ρ11, c1, C13),
+                                                   SegmentedLSE(ρ12, C14)
                                                   ),
                                        Dense(W2, b2, a2)
                                       ),
                               BagModel(
                                        Dense(W3, b3, a3),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ21, c2, C21),
-                                                   SegmentedLSE(ρ22, C22),
-                                                   SegmentedSum(C23),
-                                                   SegmentedMax(C24)
+                                                   SegmentedSum(C21),
+                                                   SegmentedMax(C22),
+                                                   SegmentedPNorm(ρ21, c2, C23),
+                                                   SegmentedLSE(ρ22, C24)
                                                   ),
                                        Dense(W4, b4, a4)
                                       ),
@@ -358,29 +358,29 @@ end
         end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
-        abuilder = d -> SegmentedPNormLSESumMax(d)
+        abuilder = d -> SegmentedSumMaxPNormLSE(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
-        @test mgradtest(params(m)...) do W1, b1, ρ11, c1, C11, ρ12, C12, C13, C14,
-            W2, b2, W3, b3, ρ21, c2, C21, ρ22, C22, C23, C24, W4, b4, W5, b5
+        @test mgradtest(params(m)...) do W1, b1, C11, C12, ρ11, c1, C13, ρ12, C14,
+            W2, b2, W3, b3, C21, C22, ρ21, c2, C23, ρ22, C24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, a1),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ11, c1, C11),
-                                                   SegmentedLSE(ρ12, C12),
-                                                   SegmentedSum(C13),
-                                                   SegmentedMax(C14)
+                                                   SegmentedSum(C11),
+                                                   SegmentedMax(C12),
+                                                   SegmentedPNorm(ρ11, c1, C13),
+                                                   SegmentedLSE(ρ12, C14),
                                                   ),
                                        Dense(W2, b2, a2)
                                       ),
                               BagModel(
                                        Dense(W3, b3, a3),
                                        Aggregation(
-                                                   SegmentedPNorm(ρ21, c2, C21),
-                                                   SegmentedLSE(ρ22, C22),
-                                                   SegmentedSum(C23),
-                                                   SegmentedMax(C24)
+                                                   SegmentedSum(C21),
+                                                   SegmentedMax(C22),
+                                                   SegmentedPNorm(ρ21, c2, C23),
+                                                   SegmentedLSE(ρ22, C24)
                                                   ),
                                        Dense(W4, b4, a4)
                                       ),
