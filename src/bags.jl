@@ -2,17 +2,15 @@ using DataStructures: SortedDict, OrderedDict
 
 abstract type AbstractBags end
 
-Base.getindex(b::AbstractBags, i) = b.bags[i]
-Base.setindex!(b::AbstractBags, v, i) = setindex!(b.bags, v, i)
-Base.iterate(b::AbstractBags) = iterate(b.bags)
-Base.iterate(b::AbstractBags, s) = iterate(b.bags, s)
-Base.length(b::AbstractBags) = length(b.bags)
-
 # one instance belongs to only one bag
 # sorted from left to right
 struct AlignedBags <: AbstractBags
     bags::Vector{UnitRange{Int}}
 end
+
+@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
+        Base.first, Base.last, Base.iterate, Base.eltype, Base.length
+
 
 AlignedBags() = AlignedBags(Vector{UnitRange{Int}}())
 AlignedBags(ks::UnitRange{Int}...) = AlignedBags(collect(ks))
@@ -38,6 +36,10 @@ end
 struct ScatteredBags <: AbstractBags
     bags::Vector{Vector{Int}}
 end
+
+@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
+        Base.first, Base.last, Base.iterate, Base.eltype, Base.length
+
 
 ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
 function ScatteredBags(k::Vector{T}) where {T<:Integer}

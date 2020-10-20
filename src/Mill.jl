@@ -10,8 +10,10 @@ using HierarchicalUtils
 using Zygote: @adjoint
 using LinearAlgebra
 using LearnBase
+using MacroTools: @forward
 
-import Base: *, ==, hash, show, cat, vcat, hcat, _cat, lastindex, getindex, reduce
+import Base: *, ==, hash, show, cat, vcat, hcat, _cat
+import Base: length, first, last, firstindex, lastindex, getindex, setindex!, reduce, eltype
 
 MLDataPattern.nobs(::Missing) = nothing
 
