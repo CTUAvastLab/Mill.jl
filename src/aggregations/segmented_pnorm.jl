@@ -7,7 +7,7 @@ end
 
 Flux.@functor SegmentedPNorm
 
-SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
+_SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
 
 p_map(ρ) = 1 .+ softplus.(ρ)
 inv_p_map = (p) -> max.(p .- 1, 0) .+ log1p.(-exp.(-abs.(p .- 1)))

@@ -6,7 +6,7 @@ end
 
 Flux.@functor SegmentedLSE
 
-SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
+_SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 
 r_map(ρ) = softplus.(ρ)
 inv_r_map = (r) -> max.(r, 0) .+ log1p.(-exp.(-abs.(r)))
