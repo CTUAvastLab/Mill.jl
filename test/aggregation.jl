@@ -6,12 +6,16 @@ import Mill: bagnorm
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
     X = Matrix{Float64}(reshape(1:12, 2, 6))
     bags = BAGS[1]
-    @test SegmentedMean(2)(X, bags) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0]
-    @test SegmentedSum(2)(X, bags) ≈ length.(bags)' .* SegmentedMean(2)(X, bags)
-    @test SegmentedMax(2)(X, bags) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0]
-    @test SegmentedMeanMax(2)(X, bags) ≈ cat(SegmentedMean(2)(X, bags), SegmentedMax(2)(X, bags), dims=1)
-    @test SegmentedMean(2)(X, bags, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24]
-    @test SegmentedSum(2)(X, bags, W) ≈ [bagnorm(W, b) for b in bags]' .* SegmentedMean(2)(X, bags, W)
+    baglengths = [1.0 2.0 3.0]
+    @assert baglengths == length.(bags)'
+    @test SegmentedMean(2)(X, bags) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0; baglengths]
+    @test SegmentedSum(2)(X, bags) ≈ [length.(bags)' .* SegmentedMean(2)(X, bags)[1:2, :]; baglengths]
+    @test SegmentedMax(2)(X, bags) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0; baglengths]
+    @test SegmentedMeanMax(2)(X, bags) ≈ vcat(SegmentedMean(2)(X, bags)[1:2, :],
+                                              SegmentedMax(2)(X, bags)[1:2, :], baglengths)
+    @test SegmentedMean(2)(X, bags, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24; baglengths]
+    bagnorms = [bagnorm(W, b) for b in bags]
+    @test SegmentedSum(2)(X, bags, W) ≈ [bagnorms' .* SegmentedMean(2)(X, bags, W)[1:2, :]; baglengths]
     @test SegmentedMax(2)(X, bags, W) ≈ SegmentedMax(2)(X, bags)
 end
 
@@ -50,7 +54,7 @@ end
         for bags in BAGS
             X = randn(2, 6)
             agg = SegmentedPNorm(inv_p_map.([1+1e-16, 1+1e-16]), [0, 0], dummy)
-            @test agg(X, bags) ≈ SegmentedMean(2)(abs.(X), bags)
+            @test agg(X, bags) ≈ SegmentedMean(dummy)(abs.(X), bags)
             agg = SegmentedPNorm(inv_p_map.([2, 2]), [0, 0], dummy)
             @test agg(X, bags) ≈ hcat([sqrt.(sum(X[:, b] .^ 2, dims=2) ./ length(b)) for b in bags]...)
         end
@@ -73,7 +77,7 @@ end
             # doesn't use weights
             @test all(SegmentedLSE([ρ1, ρ2], dummy)(X, bags) .== SegmentedLSE([ρ1, ρ2], dummy)(X, bags, W))
             # the bigger value of r, the closer we are to the real maximum
-            @test isapprox(SegmentedLSE([100, 100], dummy)(X, bags), SegmentedMax(2)(X, bags), atol=0.1)
+            @test isapprox(SegmentedLSE([100, 100], dummy)(X, bags), SegmentedMax(dummy)(X, bags), atol=0.1)
         end
     end
 end
