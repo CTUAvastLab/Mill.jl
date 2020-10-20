@@ -115,6 +115,48 @@ end
     @test m3_ski.m isa ArrayModel{<:Dense}
 end
 
+# array model for matrices with one row should implement identity
+@testset "single scalar as identity" begin
+    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    x1 = ArrayNode(randn(Float32, 1, 3))
+    x2 = BagNode(ArrayNode(randn(Float32, 1, 5)), [1:2, 3:5])
+    x3 = (a = ArrayNode(randn(Float32, 1, 4)), b = ArrayNode(randn(Float32, 2, 4))) |> ProductNode
+
+    m1 = reflectinmodel(x1, layerbuilder; single_scalar_identity=false)
+    m1_sci = reflectinmodel(x1, layerbuilder)
+    m2 = reflectinmodel(x2, layerbuilder; single_scalar_identity=false)
+    m2_sci = reflectinmodel(x2, layerbuilder)
+    m3 = reflectinmodel(x3, layerbuilder; single_scalar_identity=false)
+    m3_sci = reflectinmodel(x3, layerbuilder)
+
+    @test size(m1(x1).data) == (2, 3)
+    @test eltype(m1(x1).data) == Float32
+    @test m1 isa ArrayModel
+    @test size(m1_sci(x1).data) == (1, 3)
+    @test eltype(m1_sci(x1).data) == Float32
+    @test m1_sci isa ArrayModel
+
+    @test size(m2(x2).data) == (2, 2)
+    @test eltype(m2(x2).data) == Float32
+    @test m2 isa BagModel
+    @test m2.im isa ArrayModel{<:Dense}
+    @test size(m2_sci(x2).data) == (1, 2)
+    @test eltype(m2_sci(x2).data) == Float32
+    @test m2_sci isa BagModel
+    @test m2_sci.im isa IdentityModel
+
+    @test size(m3(x3).data) == (2, 4)
+    @test eltype(m3(x3).data) == Float32
+    @test m3 isa ProductModel
+    @test m3.ms[1] isa ArrayModel{<:Dense}
+    @test m3.ms[2] isa ArrayModel{<:Dense}
+    @test size(m3_sci(x3).data) == (2, 4)
+    @test eltype(m3_sci(x3).data) == Float32
+    @test m3_sci isa ProductModel
+    @test m3_sci.ms[1] isa IdentityModel
+    @test m3_sci.ms[2] isa ArrayModel{<:Dense}
+end
+
 # Defining this is a bad idea - in Flux all models do not implement == and hash
 # it may break AD
 # @testset "testing equals and hash" begin
