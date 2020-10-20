@@ -2,7 +2,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/pevnak/Mill.jl/badge.svg?branch=master)](https://coveralls.io/github/pevnak/Mill.jl?branch=master)
 [![codecov.io](http://codecov.io/github/Pevnak/Mill.jl/coverage.svg?branch=master)](http://codecov.io/github/Pevnak/Mill.jl?branch=master)
 
+<a href="https://github.com/pevnak/Mill.jl#references">
 <img align="left" width="80" height="112" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/logo.svg" alt="Mill icon">
+</a>
 
 # Mill – Multiple Instance Learning Library
 
@@ -297,3 +299,6 @@ The advantage of the first approach, default, is that types are always the same,
  <a name="cit3"><b>3</b></a> *Approximation capability of neural networks on sets of probability measures and tree-structured data, Tomáš Pevný, Vojtěch Kovařík, 2019*, https://openreview.net/forum?id=HklJV3A9Ym
  
  <a name="cit4"><b>4</b></a> *Solving the multiple instance problem with axis-parallel rectangles, Dietterich, Thomas G., Richard H. Lathrop, and Tomás Lozano-Pérez, 1997*
+ 
+<a href="https://flyclipart.com/wind-turbine-png-clipart-windmill-pictures-windmill-png-471749">Icon source</a>
+
