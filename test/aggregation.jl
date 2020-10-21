@@ -155,3 +155,24 @@ end
         @test SegmentedPNorm(dummy, dummy, C)(X, bags)[:, idcs] == repeat(C, 1, sum(idcs))
     end
 end
+
+@testset "bagcount switch" begin
+    X = Matrix{Float64}(reshape(1:12, 2, 6))
+    d = 2
+    bags = BAGS[1]
+    baglengths = [1.0 2.0 3.0]
+
+    function test_count(a)
+        Mill.bagcount(false)
+        a1 = a(X, bags)
+        Mill.bagcount(true)
+        a2 = a(X, bags)
+        @test [a1; baglengths] == a2
+    end
+
+    test_count(SegmentedSum(2))
+    test_count(SegmentedMean(2))
+    test_count(SegmentedMax(2))
+    test_count(SegmentedPNorm(2))
+    test_count(SegmentedLSE(2))
+end
