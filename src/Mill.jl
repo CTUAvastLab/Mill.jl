@@ -22,8 +22,10 @@ const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 # GLOBAL SWITCHES
 const _emptyismissing = Ref(false)
 const _terseprint = Ref(true)
+const _bagcount = Ref(true)
 emptyismissing(a) = _emptyismissing[] = a
 terseprint(a) = _terseprint[] = a
+bagcount(a) = _bagcount[] = a
 
 """
 	catobs(xs...)
