@@ -8,7 +8,7 @@ struct AlignedBags <: AbstractBags
     bags::Vector{UnitRange{Int}}
 end
 
-@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
+Flux.@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
         Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
 
@@ -37,7 +37,7 @@ struct ScatteredBags <: AbstractBags
     bags::Vector{Vector{Int}}
 end
 
-@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
+Flux.@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
         Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
 
