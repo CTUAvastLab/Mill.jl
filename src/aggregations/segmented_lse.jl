@@ -106,14 +106,14 @@ function segmented_lse_back(Δ, ::Missing, C, bags)
     nothing, dC, nothing, nothing, nothing
 end
 
-@adjoint function segmented_lse_forw(x::AbstractMatrix, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
+Zygote.@adjoint function segmented_lse_forw(x::AbstractMatrix, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
     M = _lse_precomp(x, r, bags)
     y = _segmented_lse_norm(x, C, r, bags, M)
     grad = Δ -> segmented_lse_back(Δ, y, x, C, r, bags, M)
     y, grad
 end
 
-@adjoint function segmented_lse_forw(x::Missing, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
+Zygote.@adjoint function segmented_lse_forw(x::Missing, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
     y = segmented_lse_forw(x, C, r, bags)
     grad = Δ -> segmented_lse_back(Δ, x, C, bags)
     y, grad

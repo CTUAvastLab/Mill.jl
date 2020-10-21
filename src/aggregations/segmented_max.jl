@@ -70,7 +70,7 @@ function segmented_max_back(Δ, y, x::Missing, C, bags)
     nothing, dC, nothing, nothing
 end
 
-@adjoint function segmented_max_forw(args...)
+Zygote.@adjoint function segmented_max_forw(args...)
     y = segmented_max_forw(args...)
     grad = Δ -> segmented_max_back(Δ, y, args...)
     y, grad

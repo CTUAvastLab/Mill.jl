@@ -71,7 +71,7 @@ function ∇dw_segmented_mean!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, 
     dw[i, j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws[i]
 end
 
-@adjoint function segmented_mean_forw(args...)
+Zygote.@adjoint function segmented_mean_forw(args...)
     y = segmented_mean_forw(args...)
     grad = Δ -> segmented_mean_back(Δ, y, args...)
     y, grad

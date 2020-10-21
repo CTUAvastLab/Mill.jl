@@ -69,7 +69,7 @@ function ∇dw_segmented_sum!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, i
     dw[i, j] += Δ[i, bi] * (x[i, j])
 end
 
-@adjoint function segmented_sum_forw(args...)
+Zygote.@adjoint function segmented_sum_forw(args...)
     y = segmented_sum_forw(args...)
     grad = Δ -> segmented_sum_back(Δ, y, args...)
     y, grad
