@@ -19,16 +19,16 @@ end
 
 Base.getindex(a::Aggregation, i) = a.fs[i]
 
-bagnorm(w::Nothing, b) = length(b)
-bagnorm(w::AbstractVector, b) = @views sum(w[b])
-bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))
+@inline bagnorm(w::Nothing, b) = length(b)
+@inline bagnorm(w::AbstractVector, b) = @views sum(w[b])
+@inline bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))
 
-weight(w::Nothing, _, _) = 1
-weight(w::AbstractVector, _, j) = w[j]
-weight(w::AbstractMatrix, i, j) = w[i, j]
+@inline weight(w::Nothing, _, _) = 1
+@inline weight(w::AbstractVector, _, j) = w[j]
+@inline weight(w::AbstractMatrix, i, j) = w[i, j]
 
-weightsum(ws::Real, _) = ws
-weightsum(ws::AbstractVector, i) = ws[i]
+@inline weightsum(ws::Real, _) = ws
+@inline weightsum(ws::AbstractVector, i) = ws[i]
 
 # more stable definitions for r_map and p_map
 Zygote.@adjoint softplus(x) = softplus.(x), Δ -> (Δ .* σ.(x),)
