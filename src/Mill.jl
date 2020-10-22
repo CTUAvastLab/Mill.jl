@@ -14,6 +14,8 @@ import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: length, first, last, firstindex, lastindex, getindex, setindex!
 import Base: reduce, eltype, print_matrix
 
+import Flux: Params, params!, IdSet
+
 # GLOBAL SWITCHES
 const _emptyismissing = Ref(false)
 const _terseprint = Ref(true)
