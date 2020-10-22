@@ -23,7 +23,7 @@ function segmented_sum_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstrac
         else
             for j in b
                 for i in 1:size(x, 1)
-                    y[i, bi] += weight(w, i, j) * x[i, j]
+                    y[i, bi] += weight(w, i, j, x[i,j]) * x[i, j]
                 end
             end
         end
@@ -43,7 +43,7 @@ function segmented_sum_back(Δ, y, x, ψ, bags, w)
         else
             for j in b
                 for i in 1:size(x, 1)
-                    dx[i, j] = weight(w, i, j) * Δ[i, bi]
+                    dx[i, j] = weight(w, i, j, x[i,j]) * Δ[i, bi]
                     ∇dw_segmented_sum!(dw, Δ, x, y, w, i, j, bi)
                 end
             end

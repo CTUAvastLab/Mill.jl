@@ -9,8 +9,8 @@ Flux.@functor SegmentedPNorm
 
 _SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
 
-p_map(ρ) = 1 .+ softplus.(ρ)
-inv_p_map = (p) -> max.(p .- 1, 0) .+ log1p.(-exp.(-abs.(p .- 1)))
+p_map(ρ::T) where T = one(T) .+ softplus.(ρ)
+inv_p_map = (p) -> max.(p .- one(T), zero(T)) .+ log1p.(-exp.(-abs.(p .- one(T))))
 
 (m::SegmentedPNorm)(x::Missing, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x, m.ψ, nothing, bags, w)
 (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x .- m.c, m.ψ, p_map(m.ρ), bags, w)
@@ -32,9 +32,10 @@ function _pnorm_precomp(x::AbstractMatrix, bags)
     M
 end
 
-function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::AbstractVector, bags::AbstractBags, w, M) 
+function _segmented_pnorm_norm(a::AbstractMatrix{T}, ψ::AbstractVector{T}, p::AbstractVector{T},
+                               bags::AbstractBags, w, M) where T
     isnothing(w) || @assert all(w .> 0)
-    y = zeros(eltype(a), size(a, 1), length(bags))
+    y = zeros(T, size(a, 1), length(bags))
     M = _pnorm_precomp(a, bags)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
@@ -45,11 +46,11 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
             ws = bagnorm(w, b)
             for j in b
                 for i in 1:size(a, 1)
-                    y[i, bi] += weight(w, i, j) * abs(a[i, j]/M[i, bi]) ^ p[i]
+                    y[i, bi] += weight(w, i, j, x[i, j]) * abs(a[i, j]/M[i, bi]) ^ p[i]
                 end
             end
             for i in 1:size(a, 1)
-                y[i, bi] = M[i, bi] * (y[i, bi] / weightsum(ws, i))^(1/p[i])
+                y[i, bi] = M[i, bi] * (y[i, bi] / weightsum(ws, i))^(one(T)/p[i])
             end
         end
     end
@@ -62,7 +63,8 @@ function segmented_pnorm_forw(a::MaybeAbstractMatrix{<:Real}, ψ::AbstractVector
     _segmented_pnorm_norm(a, ψ, p, bags, w, M)
 end
 
-function segmented_pnorm_back(Δ, y, a::AbstractMatrix, ψ, p, bags::AbstractBags, w::AggregationWeights, M)
+function segmented_pnorm_back(Δ, y, a::AbstractMatrix{T}, ψ::AbstractVector{T}, p::AbstractVector{T},
+                              bags::AbstractBags, w::AggregationWeights, M) where T
     da = similar(a)
     dp = zero(p)
     dps1 = zero(p)
@@ -76,14 +78,14 @@ function segmented_pnorm_back(Δ, y, a::AbstractMatrix, ψ, p, bags::AbstractBag
             end
         else
             ws = bagnorm(w, b)
-            dps1 .= 0
-            dps2 .= 0
+            dps1 .= zero(T)
+            dps2 .= zero(T)
             for j in b
                 for i in 1:size(a, 1)
                     ab = abs(a[i, j])
-                    da[i, j] = Δ[i, bi] * weight(w, i, j) * sign(a[i, j]) / weightsum(ws, i) 
-                    da[i, j] *= (ab / y[i, bi]) ^ (p[i] - 1)
-                    ww = weight(w, i, j) * (ab / M[i, bi]) ^ p[i]
+                    da[i, j] = Δ[i, bi] * weight(w, i, j, x[i, j]) * sign(a[i, j]) / weightsum(ws, i) 
+                    da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(T))
+                    ww = weight(w, i, j, x[i, j]) * (ab / M[i, bi]) ^ p[i]
                     dps1[i] +=  ww * log(ab)
                     dps2[i] +=  ww
                 end
