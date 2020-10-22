@@ -9,6 +9,13 @@ ImputingMatrix(W::AbstractMatrix{T}) where T = ImputingMatrix(W, zeros(T, size(W
 
 Flux.@forward ImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
 
+function print_matrix(io::IO, im::ImputingMatrix)
+    println(io, "W:")
+    print_matrix(io, im.W)
+    println(io, "\nψ:")
+    print_matrix(io, im.ψ)
+end
+
 Base.vcat(As::ImputingMatrix...) = ImputingMatrix(vcat((A.W for A in As)...), vcat((A.ψ for A in As)...))
 
 _fill_in(::ImputingMatrix{T}, B::AbstractVecOrMat{T}) where T = B
