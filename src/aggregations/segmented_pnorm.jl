@@ -1,7 +1,7 @@
 # https://arxiv.org/pdf/1311.1780.pdf
-struct SegmentedPNorm{T, U, V} <: AggregationFunction
-    ρ::T
-    c::U
+struct SegmentedPNorm{T, V <: AbstractVector{T}} <: AggregationFunction
+    ρ::V
+    c::V
     ψ::V
 end
 
@@ -9,8 +9,10 @@ Flux.@functor SegmentedPNorm
 
 _SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
 
-p_map(ρ::T) where T = one(T) .+ softplus.(ρ)
-inv_p_map = (p) -> max.(p .- one(T), zero(T)) .+ log1p.(-exp.(-abs.(p .- one(T))))
+p_map(ρ::T) where T = one(T) + softplus(ρ)
+p_map(ρ::AbstractArray) = p_map.(ρ)
+inv_p_map(p::T) where T = relu(p - one(T)) + log1p(-exp(-abs(p - one(T))))
+inv_p_map(ρ::AbstractArray) = inv_p_map.(ρ)
 
 (m::SegmentedPNorm)(x::Missing, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x, m.ψ, nothing, bags, w)
 (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x .- m.c, m.ψ, p_map(m.ρ), bags, w)
@@ -32,10 +34,10 @@ function _pnorm_precomp(x::AbstractMatrix, bags)
     M
 end
 
-function _segmented_pnorm_norm(a::AbstractMatrix{T}, ψ::AbstractVector{T}, p::AbstractVector{T},
-                               bags::AbstractBags, w, M) where T
+function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::AbstractVector,
+                               bags::AbstractBags, w, M)
     isnothing(w) || @assert all(w .> 0)
-    y = zeros(T, size(a, 1), length(bags))
+    y = zeros(eltype(a), size(a, 1), length(bags))
     M = _pnorm_precomp(a, bags)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
@@ -46,11 +48,11 @@ function _segmented_pnorm_norm(a::AbstractMatrix{T}, ψ::AbstractVector{T}, p::A
             ws = bagnorm(w, b)
             for j in b
                 for i in 1:size(a, 1)
-                    y[i, bi] += weight(w, i, j, x[i, j]) * abs(a[i, j]/M[i, bi]) ^ p[i]
+                    y[i, bi] += weight(w, i, j, eltype(a)) * abs(a[i, j]/M[i, bi])^p[i]
                 end
             end
             for i in 1:size(a, 1)
-                y[i, bi] = M[i, bi] * (y[i, bi] / weightsum(ws, i))^(one(T)/p[i])
+                y[i, bi] = M[i, bi] * (y[i, bi] / weightsum(ws, i))^(one(eltype(a))/p[i])
             end
         end
     end
@@ -58,13 +60,12 @@ function _segmented_pnorm_norm(a::AbstractMatrix{T}, ψ::AbstractVector{T}, p::A
 end
 
 segmented_pnorm_forw(::Missing, ψ::AbstractVector, p, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
-function segmented_pnorm_forw(a::MaybeAbstractMatrix{<:Real}, ψ::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
+function segmented_pnorm_forw(a::MaybeAbstractMatrix, ψ::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
     M = _pnorm_precomp(a, bags)
     _segmented_pnorm_norm(a, ψ, p, bags, w, M)
 end
 
-function segmented_pnorm_back(Δ, y, a::AbstractMatrix{T}, ψ::AbstractVector{T}, p::AbstractVector{T},
-                              bags::AbstractBags, w::AggregationWeights, M) where T
+function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
     da = similar(a)
     dp = zero(p)
     dps1 = zero(p)
@@ -78,14 +79,14 @@ function segmented_pnorm_back(Δ, y, a::AbstractMatrix{T}, ψ::AbstractVector{T}
             end
         else
             ws = bagnorm(w, b)
-            dps1 .= zero(T)
-            dps2 .= zero(T)
+            dps1 .= zero(eltype(p))
+            dps2 .= zero(eltype(p))
             for j in b
                 for i in 1:size(a, 1)
                     ab = abs(a[i, j])
-                    da[i, j] = Δ[i, bi] * weight(w, i, j, x[i, j]) * sign(a[i, j]) / weightsum(ws, i) 
-                    da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(T))
-                    ww = weight(w, i, j, x[i, j]) * (ab / M[i, bi]) ^ p[i]
+                    da[i, j] = Δ[i, bi] * weight(w, i, j, eltype(p)) * sign(a[i, j]) / weightsum(ws, i) 
+                    da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
+                    ww = weight(w, i, j, eltype(p)) * (ab / M[i, bi]) ^ p[i]
                     dps1[i] +=  ww * log(ab)
                     dps2[i] +=  ww
                 end

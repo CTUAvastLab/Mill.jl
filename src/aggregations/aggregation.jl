@@ -23,7 +23,7 @@ Base.getindex(a::Aggregation, i) = a.fs[i]
 @inline bagnorm(w::AbstractVector, b) = @views sum(w[b])
 @inline bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))
 
-@inline weight(w::Nothing, _, _, ::T) where T = one(T)
+@inline weight(w::Nothing, _, _, ::Type{T}) where T = one(T)
 @inline weight(w::AbstractVector, _, j, _) = w[j]
 @inline weight(w::AbstractMatrix, i, j, _) = w[i, j]
 

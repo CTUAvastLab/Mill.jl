@@ -1,14 +1,17 @@
-struct SegmentedMean{T} <: AggregationFunction
-    ψ::T
+struct SegmentedMean{T, V <: AbstractVector{T}} <: AggregationFunction
+    ψ::V
 end
 
 Flux.@functor SegmentedMean
 
 _SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
-(m::SegmentedMean)(x::MaybeAbstractMatrix{<:Real}, bags::AbstractBags, w=nothing) =
+function (m::SegmentedMean{T})(x::MaybeAbstractMatrix{T}, bags::AbstractBags,
+                               w::AggregationWeights{T}=nothing) where T
     segmented_mean_forw(x, m.ψ, bags, w)
-function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
+end
+function (m::SegmentedMean{T})(x::AbstractMatrix{T}, bags::AbstractBags,
+                               w::AggregationWeights{T}, mask::AbstractVector) where T
     segmented_mean_forw(x .* mask', m.ψ, bags, w)
 end
 
@@ -23,7 +26,7 @@ function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstra
         else
             for j in b
                 for i in 1:size(x, 1)
-                    y[i, bi] += weight(w, i, j, x[i, j]) * x[i, j]
+                    y[i, bi] += weight(w, i, j, eltype(x)) * x[i, j]
                 end
             end
             y[:, bi] ./= bagnorm(w, b)
@@ -45,7 +48,7 @@ function segmented_mean_back(Δ, y, x, ψ, bags, w)
             ws = bagnorm(w, b)
             for j in b
                 for i in 1:size(x, 1)
-                    dx[i, j] += weight(w, i, j, x[i, j]) * Δ[i, bi] / weightsum(ws, i)
+                    dx[i, j] += weight(w, i, j, eltype(x)) * Δ[i, bi] / weightsum(ws, i)
                     ∇dw_segmented_mean!(dw, Δ, x, y, w, ws, i, j, bi)
                 end
             end
