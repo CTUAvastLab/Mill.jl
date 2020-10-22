@@ -31,7 +31,7 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T <: ProductNode}
     ProductNode(data, metadata)
 end
 
-Base.getindex(x::ProductNode, i::VecOrRange) = ProductNode(subset(x.data, i), subset(x.metadata, i))
+Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(x.data, i), subset(x.metadata, i))
 
 Base.hash(e::ProductNode{T,C}, h::UInt) where {T,C} = hash((T, C, e.data, e.metadata), h)
 (e1::ProductNode{T,C} == e2::ProductNode{T,C}) where {T,C} =

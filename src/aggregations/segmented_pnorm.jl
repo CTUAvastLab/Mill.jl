@@ -57,7 +57,7 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
 end
 
 segmented_pnorm_forw(::Missing, ψ::AbstractVector, p, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
-function segmented_pnorm_forw(a::MaybeMatrix, ψ::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
+function segmented_pnorm_forw(a::MaybeAbstractMatrix{<:Real}, ψ::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
     M = _pnorm_precomp(a, bags)
     _segmented_pnorm_norm(a, ψ, p, bags, w, M)
 end

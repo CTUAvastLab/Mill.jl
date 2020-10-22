@@ -29,7 +29,7 @@ end
 get_present_index(present, i::Int) = sum(view(present, 1:i))
 get_present_index(present, ii::Vector{Int}) = map(i -> get_present_index(present, i), ii)
 
-function Base.getindex(x::MissingNode, i::VecOrRange)
+function Base.getindex(x::MissingNode, i::VecOrRange{<:Int})
 	p = x.present[i]
 	!any(p) && return(MissingNode(x.data[1:0], p))
 	ii = get_present_index(x.present, i[p])

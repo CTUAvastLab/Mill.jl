@@ -6,7 +6,8 @@ Flux.@functor SegmentedMean
 
 _SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
-(m::SegmentedMean)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_mean_forw(x, m.ψ, bags, w)
+(m::SegmentedMean)(x::MaybeAbstractMatrix{<:Real}, bags::AbstractBags, w=nothing) =
+    segmented_mean_forw(x, m.ψ, bags, w)
 function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
     segmented_mean_forw(x .* mask', m.ψ, bags, w)
 end

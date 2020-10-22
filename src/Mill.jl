@@ -13,10 +13,6 @@ using Zygote
 import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: length, first, last, firstindex, lastindex, getindex, setindex!, reduce, eltype
 
-MLDataPattern.nobs(::Missing) = nothing
-
-const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
-
 # GLOBAL SWITCHES
 const _emptyismissing = Ref(false)
 const _terseprint = Ref(true)
@@ -24,6 +20,14 @@ const _bagcount = Ref(true)
 emptyismissing(a) = _emptyismissing[] = a
 terseprint(a) = _terseprint[] = a
 bagcount(a) = _bagcount[] = a
+
+# COMMON ALIASES
+const VecOrRange{T} = Union{UnitRange{T},AbstractVector{T}}
+const AbstractMatOrVec{T} = Union{AbstractVector{T}, AbstractMatrix{T}}
+const MaybeAbstractMatrix{T} = Union{Missing, AbstractMatrix{T}}
+const AggregationWeights = Union{Nothing, AbstractMatOrVec{<:Real}}
+
+MLDataPattern.nobs(::Missing) = nothing
 
 """
 	catobs(xs...)
