@@ -81,7 +81,7 @@ end
 
     bags corresponding to indices with collected indices
 """
-function remapbag(b::AlignedBags, idcs::VecOrRange)
+function remapbag(b::AlignedBags, idcs::VecOrRange{Int})
     rb = AlignedBags(Vector{UnitRange{Int}}(undef, length(idcs)))
     offset = 1
     for (i,j) in enumerate(idcs)
@@ -91,7 +91,7 @@ function remapbag(b::AlignedBags, idcs::VecOrRange)
     rb, Array{Int}(vcat([collect(b[i]) for i in idcs]...))
 end
 
-function remapbag(b::ScatteredBags, idcs::VecOrRange)
+function remapbag(b::ScatteredBags, idcs::VecOrRange{<:Int})
     rb = ScatteredBags(Vector{Vector{Int}}(undef, length(idcs)))
     m = OrderedDict{Int, Int}((v => i for (i, v) in enumerate(unique(vcat(b.bags[idcs]...)))))
     for (i,j) in enumerate(idcs)

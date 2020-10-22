@@ -11,7 +11,8 @@ _SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 r_map(ρ) = softplus.(ρ)
 inv_r_map = (r) -> max.(r, 0) .+ log1p.(-exp.(-abs.(r)))
 
-(m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
+(m::SegmentedLSE)(x::MaybeAbstractMatrix{<:Real}, bags::AbstractBags, w=nothing) = 
+    segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
 function (m::SegmentedLSE)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
     segmented_lse_forw(x .+ typemin(T) * mask', m.ψ, r_map(m.ρ), bags)
 end

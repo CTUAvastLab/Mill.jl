@@ -19,12 +19,6 @@ end
 
 Base.getindex(a::Aggregation, i) = a.fs[i]
 
-const AggregationWeights = Union{Nothing,
-                                 AbstractVector{T} where T <: Real,
-                                 AbstractMatrix{T} where T <: Real}
-const MaybeMatrix = Union{Missing,
-                          AbstractMatrix{T} where T <: Real}
-
 bagnorm(w::Nothing, b) = length(b)
 bagnorm(w::AbstractVector, b) = @views sum(w[b])
 bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))

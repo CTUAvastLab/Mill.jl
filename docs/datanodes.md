@@ -41,7 +41,7 @@ function Base.reduce(::typeof(Mill.catobs), as::Vector{T}) where {T<:PathNode}
     PathNode(data, metadata)
 end
 
-Base.getindex(x::PathNode, i::VecOrRange) = PathNode(subset(x.data, i), subset(x.metadata, i))
+Base.getindex(x::PathNode, i::VecOrRange{<:Int}) = PathNode(subset(x.data, i), subset(x.metadata, i))
 
 Mill.dsprint(io::IO, n::PathNode; pad=[], s="", tr=false) = paddedprint(io, "PathNode$(size(n.data))$(tr_repr(s, tr))")
 ```
