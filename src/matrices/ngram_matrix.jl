@@ -177,7 +177,8 @@ Base.reduce(::typeof(hcat), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
 Base.hcat(a::NGramMatrix...) = reduce(catobs, collect(a))
 catobs(a::NGramMatrix...) = _catobs(collect(a))
 _lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
-_catobs(a::AbstractVecOrTuple{NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
+_catobs(a::AbstractVector{<:NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
+_catobs(a::Tuple{Vararg{NGramMatrix}}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
 
 Base.Matrix(x::NGramMatrix) = Matrix(SparseMatrixCSC(x))
 
