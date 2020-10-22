@@ -11,7 +11,7 @@ struct WeightedBagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, W, 
 end
 
 WeightedBagNode(x::T, b::Vector, weights::Vector{W}, metadata::C=nothing) where {T, W, C} =
-WeightedBagNode(x, bags(b), weights, metadata)
+    WeightedBagNode(x, bags(b), weights, metadata)
 
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 

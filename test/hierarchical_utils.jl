@@ -3,12 +3,12 @@ import Base.Iterators: partition, accumulate, product, flatten
 using Mill: nobs
 
 metadata = fill("metadata", 4)
-an1 = ArrayNode(rand(3,4))
+an1 = ArrayNode(rand(Float32, 3,4))
 b = BagNode(an1, [1:4, 0:-1], metadata)
 an2 = ArrayNode(NGramMatrix(["test", "skunk", "mill", "julia"], 3, 10, 17))
-wb = WeightedBagNode(an2, [1:2,3:4], rand(1:4, 4), metadata)
+wb = WeightedBagNode(an2, [1:2,3:4], Vector{Float32}(rand(1:4, 4)), metadata)
 n1 = ProductNode((b=b,wb=wb))
-an3 = ArrayNode(SparseMatrixCSC(rand(10, 2)))
+an3 = ArrayNode(SparseMatrixCSC(rand(Float32, 10, 2)))
 n2 = ProductNode((n1, an3))
 
 n2m = reflectinmodel(n2)
@@ -155,7 +155,7 @@ ProductNode [""]
   ├── ProductNode ["E"]
   │     ├─── b: BagNode with 2 bag(s) ["I"]
   │     │         └── ArrayNode(3, 4) ["K"]
-  │     └── wb: WeightedNode with 2 bag(s) and weights Σw = 11 ["M"]
+  │     └── wb: WeightedNode with 2 bag(s) and weights Σw = 11.0 ["M"]
   │               └── ArrayNode(17, 4) ["O"]
   └── ArrayNode(10, 2) ["U"]"""
 

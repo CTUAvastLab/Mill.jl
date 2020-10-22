@@ -1,14 +1,17 @@
-struct SegmentedSum{T} <: AggregationFunction
-    ψ::T
+struct SegmentedSum{T, V <: AbstractVector{T}} <: AggregationFunction
+    ψ::V
 end
 
 Flux.@functor SegmentedSum
 
 _SegmentedSum(d::Int) = SegmentedSum(zeros(Float32, d))
 
-(m::SegmentedSum)(x::MaybeAbstractMatrix{<:Real}, bags::AbstractBags, w=nothing) =
+function (m::SegmentedSum{T})(x::MaybeAbstractMatrix{T}, bags::AbstractBags,
+                              w::AggregationWeights{T}=nothing) where T
     segmented_sum_forw(x, m.ψ, bags, w)
-function (m::SegmentedSum)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
+end
+function (m::SegmentedSum{T})(x::AbstractMatrix{T}, bags::AbstractBags,
+                              w::AggregationWeights{T}, mask::AbstractVector) where T
     segmented_sum_forw(x .* mask', m.ψ, bags, w)
 end
 
@@ -23,7 +26,7 @@ function segmented_sum_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstrac
         else
             for j in b
                 for i in 1:size(x, 1)
-                    y[i, bi] += weight(w, i, j, x[i,j]) * x[i, j]
+                    y[i, bi] += weight(w, i, j, eltype(x)) * x[i, j]
                 end
             end
         end
@@ -43,7 +46,7 @@ function segmented_sum_back(Δ, y, x, ψ, bags, w)
         else
             for j in b
                 for i in 1:size(x, 1)
-                    dx[i, j] = weight(w, i, j, x[i,j]) * Δ[i, bi]
+                    dx[i, j] = weight(w, i, j, eltype(x)) * Δ[i, bi]
                     ∇dw_segmented_sum!(dw, Δ, x, y, w, i, j, bi)
                 end
             end

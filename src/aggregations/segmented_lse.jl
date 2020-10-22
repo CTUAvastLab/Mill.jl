@@ -1,19 +1,22 @@
 # https://arxiv.org/abs/1511.05286
-struct SegmentedLSE{T, U} <: AggregationFunction
-    ρ::T
-    ψ::U
+struct SegmentedLSE{T, V <: AbstractVector{T}} <: AggregationFunction
+    ρ::V
+    ψ::V
 end
 
 Flux.@functor SegmentedLSE
 
 _SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 
-r_map(ρ) = softplus.(ρ)
-inv_r_map(r::T) where T = max.(r, zero(T)) .+ log1p.(-exp.(-abs.(r)))
+r_map(ρ) = @. softplus(ρ)
+inv_r_map(r) = @. relu(r) + log1p(-exp(-abs(r)))
 
-(m::SegmentedLSE)(x::MaybeAbstractMatrix{<:Real}, bags::AbstractBags, w=nothing) = 
+function (m::SegmentedLSE{T})(x::MaybeAbstractMatrix{T}, bags::AbstractBags,
+                              w::AggregationWeights{T}=nothing) where T
     segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
-function (m::SegmentedLSE)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
+end
+function (m::SegmentedLSE{T})(x::AbstractMatrix{T}, bags::AbstractBags,
+                              w::AggregationWeights{T}, mask::AbstractVector) where T
     segmented_lse_forw(x .+ typemin(T) * mask', m.ψ, r_map(m.ρ), bags)
 end
 

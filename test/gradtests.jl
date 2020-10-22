@@ -6,6 +6,8 @@ using Combinatorics
 # see e.g. https://stackoverflow.com/questions/40623512/how-to-check-relu-gradient
 const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, lisht]
 
+# in this file we use Float64 to compute precise gradients
+
 @testset "aggregation grad check w.r.t. input" begin
     for bags in BAGS2
         d = rand(1:20)
@@ -22,7 +24,7 @@ const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, l
             # for idxs in permutations(idxs)
 
             s = Symbol("Segmented", anames[idxs]...)
-            a = @eval $s($d)
+            a = @eval $s($d) |> f64
             @test mgradtest(x) do x
                 a(x, bags)
             end
@@ -111,11 +113,11 @@ end
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
 
-        a1 = f64(SegmentedSum(d))
-        a2 = f64(SegmentedMean(d))
-        a3 = f64(SegmentedMax(d))
-        a4 = f64(SegmentedPNorm(d))
-        a5 = f64(SegmentedLSE(d))
+        a1 = SegmentedSum(d) |> f64
+        a2 = SegmentedMean(d) |> f64
+        a3 = SegmentedMax(d) |> f64
+        a4 = SegmentedPNorm(d) |> f64
+        a5 = SegmentedLSE(d) |> f64
         for g in [
                   w -> a1(x, bags, w),
                   w -> a2(x, bags, w),
@@ -155,7 +157,7 @@ end
         z = randn(2, 8)
 
         n = ArrayNode(x)
-        m = f64(reflectinmodel(n, layerbuilder))
+        m = reflectinmodel(n, layerbuilder) |> f64
         @test mgradtest(x) do x
             n = ArrayNode(x)
             m(n).data
@@ -163,14 +165,14 @@ end
 
         bn = BagNode(ArrayNode(x), bags1)
         abuilder = d -> SegmentedPNormLSE(d)
-        m = f64(reflectinmodel(bn, layerbuilder))
+        m = reflectinmodel(bn, layerbuilder) |> f64
         @test mgradtest(x) do x
             bn = BagNode(ArrayNode(x), bags1)
             m(bn).data
         end
 
         tn = ProductNode((ArrayNode(x), ArrayNode(y)))
-        m = f64(reflectinmodel(tn, layerbuilder))
+        m = reflectinmodel(tn, layerbuilder) |> f64
         @test mgradtest(x, y) do x, y
             tn = ProductNode((ArrayNode(x), ArrayNode(y)))
             m(tn).data
@@ -178,7 +180,7 @@ end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
         abuilder = d -> SegmentedMeanMax(d)
-        m = f64(reflectinmodel(tn, layerbuilder, abuilder))
+        m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         @test mgradtest(x, y) do x, y
             tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
             m(tn).data
@@ -187,7 +189,7 @@ end
         bn = BagNode(ArrayNode(z), bags3)
         bnn = BagNode(bn, bags1)
         abuilder = d -> SegmentedSumMaxPNormLSE(d)
-        m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
+        m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
         @test mgradtest(z) do z
             bn = BagNode(ArrayNode(z), bags3)
             bnn = BagNode(bn, bags1)
@@ -208,7 +210,7 @@ end
 
         bn = BagNode(ArrayNode(x), bags1, w)
         abuilder = d -> SegmentedPNormLSE(d)
-        m = f64(reflectinmodel(bn, layerbuilder))
+        m = reflectinmodel(bn, layerbuilder) |> f64
         @test mgradtest(x) do x
             bn = BagNode(ArrayNode(x), bags1, w)
             m(bn).data
@@ -216,7 +218,7 @@ end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
         abuilder = d -> SegmentedMeanMax(d)
-        m = f64(reflectinmodel(tn, layerbuilder, abuilder))
+        m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         @test mgradtest(x, y) do x, y
             tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
             m(tn).data
@@ -225,7 +227,7 @@ end
         bn = BagNode(ArrayNode(z), bags3, w3)
         bnn = BagNode(bn, bags1)
         abuilder = d -> SegmentedSumMaxPNormLSE(d)
-        m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
+        m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
         @test mgradtest(z) do z
             bn = BagNode(ArrayNode(z), bags3, w3)
             bnn = BagNode(bn, bags1, w)
@@ -242,7 +244,7 @@ end
         z = randn(2, 8)
 
         n = ArrayNode(x)
-        m = f64(reflectinmodel(n, layerbuilder))
+        m = reflectinmodel(n, layerbuilder) |> f64
         a = rand(ACTIVATIONS)
         @test mgradtest(params(m)...) do W, b
             m = ArrayModel(Dense(W, b, a))
@@ -251,7 +253,7 @@ end
 
         bn = BagNode(ArrayNode(x), bags1)
         abuilder = d -> SegmentedPNormLSE(d)
-        m = f64(reflectinmodel(bn, layerbuilder, abuilder))
+        m = reflectinmodel(bn, layerbuilder, abuilder) |> f64
         a1, a2 = rand(ACTIVATIONS, 2)
         @test mgradtest(params(m)...) do W1, b1, ρ1, c, ψ1, ρ2, ψ2, W2, b2
             m = BagModel(Dense(W1, b1, a1),
@@ -264,7 +266,7 @@ end
         end
 
         tn = ProductNode((ArrayNode(x), ArrayNode(y)))
-        m = f64(reflectinmodel(tn, layerbuilder))
+        m = reflectinmodel(tn, layerbuilder) |> f64
         a1, a2, a3 = rand(ACTIVATIONS, 3)
         @test mgradtest(params(m)...) do W1, b1, W2, b2, W3, b3
             m = ProductModel(ArrayModel.((
@@ -276,7 +278,7 @@ end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
         abuilder = d -> SegmentedSumMaxPNormLSE(d)
-        m = f64(reflectinmodel(tn, layerbuilder, abuilder))
+        m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
         @test mgradtest(params(m)...) do W1, b1, ψ11, ψ12, ρ11, c1, ψ13, ρ12, ψ14,
             W2, b2, W3, b3, ψ21, ψ22, ρ21, c2, ψ23, ρ22, ψ24, W4, b4, W5, b5
@@ -308,7 +310,7 @@ end
         bn = BagNode(ArrayNode(z), bags3)
         bnn = BagNode(bn, bags1)
         abuilder = d -> SegmentedMeanMax(d)
-        m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
+        m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
         a1, a2, a3 = rand(ACTIVATIONS, 3)
         @test mgradtest(params(m)...) do W1, b1, ψ11, ψ12, W2, b2, ψ21, ψ22, W3, b3
             m = BagModel(
@@ -343,7 +345,7 @@ end
 
         bn = BagNode(ArrayNode(x), bags1, w)
         abuilder = d -> SegmentedPNormLSE(d)
-        m = f64(reflectinmodel(bn, layerbuilder, abuilder))
+        m = reflectinmodel(bn, layerbuilder, abuilder) |> f64
         a1, a2 = rand(ACTIVATIONS, 2)
         @test mgradtest(params(m)...) do W1, b1, ρ1, c, ψ1, ρ2, ψ2, W2, b2
             m = BagModel(Dense(W1, b1, a1),
@@ -357,7 +359,7 @@ end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
         abuilder = d -> SegmentedSumMaxPNormLSE(d)
-        m = f64(reflectinmodel(tn, layerbuilder, abuilder))
+        m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
         @test mgradtest(params(m)...) do W1, b1, ψ11, ψ12, ρ11, c1, ψ13, ρ12, ψ14,
             W2, b2, W3, b3, ψ21, ψ22, ρ21, c2, ψ23, ρ22, ψ24, W4, b4, W5, b5
@@ -389,7 +391,7 @@ end
         bn = BagNode(ArrayNode(z), bags3, w3)
         bnn = BagNode(bn, bags1, w)
         abuilder = d -> SegmentedMeanMax(d)
-        m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
+        m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
         a1, a2, a3 = rand(ACTIVATIONS, 3)
         @test mgradtest(params(m)...) do W1, b1, ψ11, ψ12, W2, b2, ψ21, ψ22, W3, b3
             m = BagModel(
@@ -417,10 +419,10 @@ end
                          a = ArrayNode(randn(2, 4)),
         b = ArrayNode(randn(3, 4))
        ))
-        m = f64(ProductModel((
-                              a = ArrayModel(Dense(2, 2, a1)),
-                              b = ArrayModel(Dense(3, 1, a2))
-                             ), Dense(3, 2, a3)))
+        m = ProductModel((
+                          a = ArrayModel(Dense(2, 2, a1)),
+                          b = ArrayModel(Dense(3, 1, a2))
+                         ), Dense(3, 2, a3)) |> f64
         @test mgradtest(params(m)...) do W1, b1, W2, b2, W3, b3 
             m = ProductModel((
                               a = ArrayModel(Dense(W1, b1, a1)),

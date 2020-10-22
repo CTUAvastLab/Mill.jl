@@ -24,9 +24,9 @@ bagcount(a) = _bagcount[] = a
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T},AbstractVector{T}}
 const AbstractMatOrVec{T} = Union{AbstractVector{T}, AbstractMatrix{T}}
-const MissingElement{T <: Real} = Union{T, Missing}
+const MissingElement{T} = Union{T, Missing}
 const MaybeAbstractMatrix{T} = Union{Missing, AbstractMatrix{T}}
-const AggregationWeights = Union{Nothing, AbstractMatOrVec{<:Real}}
+const AggregationWeights{T} = Union{Nothing, AbstractMatOrVec{<:T}}
 
 MLDataPattern.nobs(::Missing) = nothing
 

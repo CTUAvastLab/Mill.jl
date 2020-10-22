@@ -1,14 +1,17 @@
-struct SegmentedMax{T} <: AggregationFunction
-    ψ::T
+struct SegmentedMax{T, V <: AbstractVector{T}} <: AggregationFunction
+    ψ::V
 end
 
 Flux.@functor SegmentedMax
 
 _SegmentedMax(d::Int) = SegmentedMax(zeros(Float32, d))
 
-(m::SegmentedMax)(x::MaybeAbstractMatrix{<:Real}, bags::AbstractBags, w=nothing) =
+function (m::SegmentedMax{T})(x::MaybeAbstractMatrix{T}, bags::AbstractBags,
+                              w::AggregationWeights{T}=nothing) where T
     segmented_max_forw(x, m.ψ, bags)
-function (m::SegmentedMax)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
+end
+function (m::SegmentedMax{T})(x::AbstractMatrix{T}, bags::AbstractBags,
+                              w::AggregationWeights{T}, mask::AbstractVector) where T
     segmented_max_forw(x .+ typemin(T) * mask', m.ψ, bags)
 end
 

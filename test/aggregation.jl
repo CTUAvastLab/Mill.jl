@@ -3,8 +3,8 @@ using Mill: p_map, inv_p_map, r_map, inv_r_map
 import Mill: bagnorm
 
 @testset "basic aggregation functionality" begin
-    W = [1, 1/2, 1/2, 1/8, 1/3, 13/24]
-    X = Matrix{Float64}(reshape(1:12, 2, 6))
+    W = [1, 1/2, 1/2, 1/8, 1/3, 13/24] |> f32
+    X = reshape(1:12, 2, 6) |> f32
     bags = BAGS[1]
     baglengths = [1.0 2.0 3.0]
     @assert baglengths == length.(bags)'
@@ -20,9 +20,9 @@ import Mill: bagnorm
 end
 
 @testset "matrix weights" begin
-    W = abs.(randn(6))
+    W = abs.(rand(Float32, 6))
     W_mat = vcat(W, 2*W)
-    X = Matrix{Float64}(reshape(1:12, 2, 6))
+    X = reshape(1:12, 2, 6) |> f32
     for bags in BAGS
         @test SegmentedSum(2)(X, bags, W_mat) ≈ SegmentedSum(2)(X, bags, W)
         @test SegmentedMean(2)(X, bags, W_mat) ≈ SegmentedMean(2)(X, bags, W)
@@ -53,9 +53,9 @@ end
                                               ]
         for bags in BAGS
             X = randn(2, 6)
-            agg = SegmentedPNorm(inv_p_map.([1+1e-16, 1+1e-16]), [0, 0], dummy)
+            agg = SegmentedPNorm(inv_p_map([1+1e-16, 1+1e-16]), [0.0, 0.0], dummy)
             @test agg(X, bags) ≈ SegmentedMean(dummy)(abs.(X), bags)
-            agg = SegmentedPNorm(inv_p_map.([2, 2]), [0, 0], dummy)
+            agg = SegmentedPNorm(inv_p_map([2.0, 2.0]), [0.0, 0.0], dummy)
             @test agg(X, bags) ≈ hcat([sqrt.(sum(X[:, b] .^ 2, dims=2) ./ length(b)) for b in bags]...)
         end
     end
@@ -77,7 +77,7 @@ end
             # doesn't use weights
             @test all(SegmentedLSE([ρ1, ρ2], dummy)(X, bags) .== SegmentedLSE([ρ1, ρ2], dummy)(X, bags, W))
             # the bigger value of r, the closer we are to the real maximum
-            @test isapprox(SegmentedLSE([100, 100], dummy)(X, bags), SegmentedMax(dummy)(X, bags), atol=0.1)
+            @test isapprox(SegmentedLSE([100.0, 100.0], dummy)(X, bags), SegmentedMax(dummy)(X, bags), atol=0.1)
         end
     end
 end
@@ -86,7 +86,7 @@ end
     k, d = 10, 5
     dummy, c = randn(d), zeros(d)
     b = AlignedBags([1:k])
-    ρ1 = inv_p_map.(ones(d))
+    ρ1 = inv_p_map(ones(d))
     ρ2 = randn(d)
     p2 = p_map(ρ2)
     Z = 1e5 .+ 1e3 .* randn(d, k)
@@ -110,8 +110,8 @@ end
     k, d = 10, 5
     dummy = randn(d)
     b = AlignedBags([1:k])
-    ρ1 = inv_r_map.(1e15 .+ 1e5 .* randn(d))
-    ρ2 = inv_r_map.(abs.(1e5 .* randn(d)))
+    ρ1 = inv_r_map(1e15 .+ 1e5 .* randn(d))
+    ρ2 = inv_r_map(abs.(1e5 .* randn(d)))
     Z = 1e5 .+ 1e3 .* randn(d, k)
     W = abs.(randn(k)) .+ 1e-2
     for X in [Z, -Z, randn(d, k)]
@@ -157,7 +157,7 @@ end
 end
 
 @testset "bagcount switch" begin
-    X = Matrix{Float64}(reshape(1:12, 2, 6))
+    X = Matrix{Float32}(reshape(1:12, 2, 6))
     d = 2
     bags = BAGS[1]
     baglengths = [1.0 2.0 3.0]
