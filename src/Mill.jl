@@ -11,7 +11,8 @@ using Statistics
 using Zygote
 
 import Base: *, ==, hash, show, cat, vcat, hcat, _cat
-import Base: length, first, last, firstindex, lastindex, getindex, setindex!, reduce, eltype
+import Base: length, first, last, firstindex, lastindex, getindex, setindex!
+import Base: reduce, eltype, print_matrix
 
 # GLOBAL SWITCHES
 const _emptyismissing = Ref(false)
