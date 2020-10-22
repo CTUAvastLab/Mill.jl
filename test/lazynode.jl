@@ -1,4 +1,4 @@
-using Mill, Flux, Test, LearnBase
+using Mill, Flux, Test
 using Mill: LazyNode
 
 @testset "LazyNode" begin

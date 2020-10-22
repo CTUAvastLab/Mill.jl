@@ -1,6 +1,7 @@
 println("<HEARTBEAT>")
 using Test, Mill, Flux
 using Random
+using Mill: nobs
 
 function ngradient(f, xs::AbstractArray...)
   grads = zero.(xs)
