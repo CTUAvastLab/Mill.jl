@@ -1,7 +1,7 @@
 # https://arxiv.org/abs/1511.05286
 struct SegmentedLSE{T, U} <: AggregationFunction
     ρ::T
-    C::U
+    ψ::U
 end
 
 Flux.@functor SegmentedLSE
@@ -11,9 +11,9 @@ _SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 r_map(ρ) = softplus.(ρ)
 inv_r_map = (r) -> max.(r, 0) .+ log1p.(-exp.(-abs.(r)))
 
-(m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_forw(x, m.C, r_map(m.ρ), bags)
+(m::SegmentedLSE)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
 function (m::SegmentedLSE)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_lse_forw(x .+ typemin(T) * mask', m.C, r_map(m.ρ), bags)
+    segmented_lse_forw(x .+ typemin(T) * mask', m.ψ, r_map(m.ρ), bags)
 end
 
 function _lse_precomp(x::AbstractMatrix, r, bags)
@@ -33,12 +33,12 @@ function _lse_precomp(x::AbstractMatrix, r, bags)
     M
 end
 
-function _segmented_lse_norm(x::AbstractMatrix, C, r, bags::AbstractBags, M)
+function _segmented_lse_norm(x::AbstractMatrix, ψ, r, bags::AbstractBags, M)
     y = zeros(eltype(x), length(r), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(C)
-                y[i, bi] = C[i]
+            for i in eachindex(ψ)
+                y[i, bi] = ψ[i]
             end
         else
             for j in b
@@ -54,23 +54,23 @@ function _segmented_lse_norm(x::AbstractMatrix, C, r, bags::AbstractBags, M)
     y
 end
 
-segmented_lse_forw(::Missing, C::AbstractVector, r, bags::AbstractBags) = repeat(C, 1, length(bags))
-function segmented_lse_forw(x::AbstractMatrix, C, r, bags::AbstractBags)
+segmented_lse_forw(::Missing, ψ::AbstractVector, r, bags::AbstractBags) = repeat(ψ, 1, length(bags))
+function segmented_lse_forw(x::AbstractMatrix, ψ, r, bags::AbstractBags)
     M = _lse_precomp(x, r, bags)
-    _segmented_lse_norm(x, C, r, bags, M)
+    _segmented_lse_norm(x, ψ, r, bags, M)
 end
 
-function segmented_lse_back(Δ, y, x, C, r, bags, M)
+function segmented_lse_back(Δ, y, x, ψ, r, bags, M)
     dx = zero(x)
-    dC = zero(C)
+    dψ = zero(ψ)
     dr = zero(r)
     s1 = zeros(eltype(x), length(r))
     s2 = zeros(eltype(x), length(r))
 
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(C)
-                dC[i] += Δ[i, bi]
+            for i in eachindex(ψ)
+                dψ[i] += Δ[i, bi]
             end
         else
             for i in eachindex(r)
@@ -93,28 +93,28 @@ function segmented_lse_back(Δ, y, x, C, r, bags, M)
             end
         end
     end
-    dx, dC, dr, nothing, nothing
+    dx, dψ, dr, nothing, nothing
 end
 
-function segmented_lse_back(Δ, ::Missing, C, bags)
-    dC = zero(C)
+function segmented_lse_back(Δ, ::Missing, ψ, bags)
+    dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
-        for i in eachindex(C)
-            dC[i] += Δ[i, bi]
+        for i in eachindex(ψ)
+            dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dC, nothing, nothing, nothing
+    nothing, dψ, nothing, nothing, nothing
 end
 
-Zygote.@adjoint function segmented_lse_forw(x::AbstractMatrix, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
+Zygote.@adjoint function segmented_lse_forw(x::AbstractMatrix, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
     M = _lse_precomp(x, r, bags)
-    y = _segmented_lse_norm(x, C, r, bags, M)
-    grad = Δ -> segmented_lse_back(Δ, y, x, C, r, bags, M)
+    y = _segmented_lse_norm(x, ψ, r, bags, M)
+    grad = Δ -> segmented_lse_back(Δ, y, x, ψ, r, bags, M)
     y, grad
 end
 
-Zygote.@adjoint function segmented_lse_forw(x::Missing, C::AbstractVector, r::AbstractVector, bags::AbstractBags)
-    y = segmented_lse_forw(x, C, r, bags)
-    grad = Δ -> segmented_lse_back(Δ, x, C, bags)
+Zygote.@adjoint function segmented_lse_forw(x::Missing, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
+    y = segmented_lse_forw(x, ψ, r, bags)
+    grad = Δ -> segmented_lse_back(Δ, x, ψ, bags)
     y, grad
 end

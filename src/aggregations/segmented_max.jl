@@ -1,23 +1,23 @@
 struct SegmentedMax{T} <: AggregationFunction
-    C::T
+    ψ::T
 end
 
 Flux.@functor SegmentedMax
 
 _SegmentedMax(d::Int) = SegmentedMax(zeros(Float32, d))
 
-(m::SegmentedMax)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_max_forw(x, m.C, bags)
+(m::SegmentedMax)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_max_forw(x, m.ψ, bags)
 function (m::SegmentedMax)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_max_forw(x .+ typemin(T) * mask', m.C, bags)
+    segmented_max_forw(x .+ typemin(T) * mask', m.ψ, bags)
 end
 
-segmented_max_forw(::Missing, C::AbstractVector, bags::AbstractBags) = repeat(C, 1, length(bags))
-function segmented_max_forw(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags) 
+segmented_max_forw(::Missing, ψ::AbstractVector, bags::AbstractBags) = repeat(ψ, 1, length(bags))
+function segmented_max_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags) 
     y = fill(typemin(eltype(x)), size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(C)
-                y[i, bi] = C[i]
+            for i in eachindex(ψ)
+                y[i, bi] = ψ[i]
             end
         else
             for j in b
@@ -30,15 +30,15 @@ function segmented_max_forw(x::AbstractMatrix, C::AbstractVector, bags::Abstract
     y
 end
 
-function segmented_max_back(Δ, y, x, C, bags) 
+function segmented_max_back(Δ, y, x, ψ, bags) 
     dx = zero(x)
-    dC = zero(C)
+    dψ = zero(ψ)
     v = similar(x, size(x, 1))
     idxs = zeros(Int, size(x, 1))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(C)
-                dC[i] += Δ[i, bi]
+            for i in eachindex(ψ)
+                dψ[i] += Δ[i, bi]
             end
         else
             fi = first(b)
@@ -57,17 +57,17 @@ function segmented_max_back(Δ, y, x, C, bags)
             end
         end
     end
-    dx, dC, nothing, nothing
+    dx, dψ, nothing, nothing
 end
 
-function segmented_max_back(Δ, y, x::Missing, C, bags) 
-    dC = zero(C)
+function segmented_max_back(Δ, y, x::Missing, ψ, bags) 
+    dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
-        for i in eachindex(C)
-            dC[i] += Δ[i, bi]
+        for i in eachindex(ψ)
+            dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dC, nothing, nothing
+    nothing, dψ, nothing, nothing
 end
 
 Zygote.@adjoint function segmented_max_forw(args...)

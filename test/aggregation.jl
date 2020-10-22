@@ -134,25 +134,25 @@ end
 
 @testset "missing values" begin
     dummy = randn(2)
-    C = randn(2)
+    ψ = randn(2)
     for bags in [AlignedBags([0:-1]), AlignedBags([0:-1, 0:-1, 0:-1])]
-        @test SegmentedMean(C)(missing, bags) == repeat(C, 1, length(bags))
-        @test SegmentedSum(C)(missing, bags) == repeat(C, 1, length(bags))
-        @test SegmentedMax(C)(missing, bags) == repeat(C, 1, length(bags))
-        @test SegmentedLSE(dummy, C)(missing, bags) == repeat(C, 1, length(bags))
-        @test SegmentedPNorm(dummy, dummy, C)(missing, bags) == repeat(C, 1, length(bags)) 
+        @test SegmentedMean(ψ)(missing, bags) == repeat(ψ, 1, length(bags))
+        @test SegmentedSum(ψ)(missing, bags) == repeat(ψ, 1, length(bags))
+        @test SegmentedMax(ψ)(missing, bags) == repeat(ψ, 1, length(bags))
+        @test SegmentedLSE(dummy, ψ)(missing, bags) == repeat(ψ, 1, length(bags))
+        @test SegmentedPNorm(dummy, dummy, ψ)(missing, bags) == repeat(ψ, 1, length(bags)) 
     end
 
-    # default values C are indeed filled in
+    # default values ψ are indeed filled in
     for bags in vcat(BAGS2)
         idcs = isempty.(bags.bags)
         l = maximum(maximum.(bags.bags[.!idcs]))
         X = randn(2, l)
-        @test SegmentedMean(C)(X, bags)[:, idcs] == repeat(C, 1, sum(idcs))
-        @test SegmentedSum(C)(X, bags)[:, idcs] == repeat(C, 1, sum(idcs))
-        @test SegmentedMax(C)(X, bags)[:, idcs] == repeat(C, 1, sum(idcs))
-        @test SegmentedLSE(dummy, C)(X, bags)[:, idcs] == repeat(C, 1, sum(idcs))
-        @test SegmentedPNorm(dummy, dummy, C)(X, bags)[:, idcs] == repeat(C, 1, sum(idcs))
+        @test SegmentedMean(ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
+        @test SegmentedSum(ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
+        @test SegmentedMax(ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
+        @test SegmentedLSE(dummy, ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
+        @test SegmentedPNorm(dummy, dummy, ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
     end
 end
 
