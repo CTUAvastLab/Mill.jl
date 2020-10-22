@@ -5,12 +5,6 @@ abstract type AbstractNode end
 abstract type AbstractProductNode <: AbstractNode end
 abstract type AbstractBagNode <: AbstractNode end
 
-# FIXME: this alias would better be Union{AbstractVector{T}, Tuple{Vararg{T}}}
-# and method signatures should do AbstractVecOrTuple{<:T} when they want covariance,
-# but that solution currently fails (see #27188 and #27224)
-AbstractVecOrTuple{T} = Union{AbstractVector{<:T}, Tuple{Vararg{T}}}
-
-
 """
     data(x::AbstractNode)
 
@@ -85,7 +79,6 @@ Base.ndims(x::AbstractBagNode) = Colon()
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")
-include("ngrams.jl")
 include("productnode.jl")
 include("missingnode.jl")
 include("lazynode.jl")
