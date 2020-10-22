@@ -24,6 +24,7 @@ bagcount(a) = _bagcount[] = a
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T},AbstractVector{T}}
 const AbstractMatOrVec{T} = Union{AbstractVector{T}, AbstractMatrix{T}}
+const MissingElement{T <: Real} = Union{T, Missing}
 const MaybeAbstractMatrix{T} = Union{Missing, AbstractMatrix{T}}
 const AggregationWeights = Union{Nothing, AbstractMatOrVec{<:Real}}
 
@@ -44,6 +45,7 @@ include("threadfuns.jl")
 
 include("matrices/matrix.jl")
 export NGramMatrix, NGramIterator
+export ImputingMatrix
 
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
