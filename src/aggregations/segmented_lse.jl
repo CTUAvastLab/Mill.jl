@@ -9,7 +9,7 @@ Flux.@functor SegmentedLSE
 _SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 
 r_map(ρ) = softplus.(ρ)
-inv_r_map = (r) -> max.(r, 0) .+ log1p.(-exp.(-abs.(r)))
+inv_r_map(r::T) where T = max.(r, zero(T)) .+ log1p.(-exp.(-abs.(r)))
 
 (m::SegmentedLSE)(x::MaybeAbstractMatrix{<:Real}, bags::AbstractBags, w=nothing) = 
     segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
@@ -75,7 +75,7 @@ function segmented_lse_back(Δ, y, x, ψ, r, bags, M)
             end
         else
             for i in eachindex(r)
-                s1[i] = s2[i] = 0
+                s1[i] = s2[i] = zero(eltype(x))
             end
             for j in b
                 for i in eachindex(r)
