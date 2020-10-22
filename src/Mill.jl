@@ -38,10 +38,12 @@ export AlignedBags, ScatteredBags, length2bags
 include("util.jl")
 include("threadfuns.jl")
 
+include("matrices/matrix.jl")
+export NGramMatrix, NGramIterator
+
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
-export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode, IdentityModel
-export NGramMatrix, NGramIterator
+export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export catobs, removeinstances
 
 include("aggregations/aggregation.jl")
