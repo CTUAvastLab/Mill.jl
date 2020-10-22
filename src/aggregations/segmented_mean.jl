@@ -1,23 +1,23 @@
 struct SegmentedMean{T} <: AggregationFunction
-    C::T
+    ψ::T
 end
 
 Flux.@functor SegmentedMean
 
 _SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
-(m::SegmentedMean)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_mean_forw(x, m.C, bags, w)
+(m::SegmentedMean)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_mean_forw(x, m.ψ, bags, w)
 function (m::SegmentedMean)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_mean_forw(x .* mask', m.C, bags, w)
+    segmented_mean_forw(x .* mask', m.ψ, bags, w)
 end
 
-segmented_mean_forw(::Missing, C::AbstractVector, bags::AbstractBags, w) = repeat(C, 1, length(bags))
-function segmented_mean_forw(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
+segmented_mean_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
+function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
     y = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(C)
-                y[i, bi] = C[i]
+            for i in eachindex(ψ)
+                y[i, bi] = ψ[i]
             end
         else
             for j in b
@@ -31,14 +31,14 @@ function segmented_mean_forw(x::AbstractMatrix, C::AbstractVector, bags::Abstrac
     y
 end
 
-function segmented_mean_back(Δ, y, x, C, bags, w) 
+function segmented_mean_back(Δ, y, x, ψ, bags, w) 
     dx = zero(x)
-    dC = zero(C)
+    dψ = zero(ψ)
     dw = isnothing(w) ? nothing : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(C)
-                dC[i] += Δ[i, bi]
+            for i in eachindex(ψ)
+                dψ[i] += Δ[i, bi]
             end
         else
             ws = bagnorm(w, b)
@@ -50,17 +50,17 @@ function segmented_mean_back(Δ, y, x, C, bags, w)
             end
         end
     end
-    dx, dC, nothing, dw
+    dx, dψ, nothing, dw
 end
 
-function segmented_mean_back(Δ, y, x::Missing, C, bags, w) 
-    dC = zero(C)
+function segmented_mean_back(Δ, y, x::Missing, ψ, bags, w) 
+    dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
-        for i in eachindex(C)
-            dC[i] += Δ[i, bi]
+        for i in eachindex(ψ)
+            dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dC, nothing, nothing
+    nothing, dψ, nothing, nothing
 end
 
 ∇dw_segmented_mean!(dw::Nothing, Δ, x, y, w::Nothing, ws, i, j, bi) = nothing

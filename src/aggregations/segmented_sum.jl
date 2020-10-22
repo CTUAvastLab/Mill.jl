@@ -1,23 +1,23 @@
 struct SegmentedSum{T} <: AggregationFunction
-    C::T
+    ψ::T
 end
 
 Flux.@functor SegmentedSum
 
 _SegmentedSum(d::Int) = SegmentedSum(zeros(Float32, d))
 
-(m::SegmentedSum)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_sum_forw(x, m.C, bags, w)
+(m::SegmentedSum)(x::MaybeMatrix, bags::AbstractBags, w=nothing) = segmented_sum_forw(x, m.ψ, bags, w)
 function (m::SegmentedSum)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
-    segmented_sum_forw(x .* mask', m.C, bags, w)
+    segmented_sum_forw(x .* mask', m.ψ, bags, w)
 end
 
-segmented_sum_forw(::Missing, C::AbstractVector, bags::AbstractBags, w) = repeat(C, 1, length(bags))
-function segmented_sum_forw(x::AbstractMatrix, C::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
+segmented_sum_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
+function segmented_sum_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
     y = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(C)
-                y[i, bi] = C[i]
+            for i in eachindex(ψ)
+                y[i, bi] = ψ[i]
             end
         else
             for j in b
@@ -30,14 +30,14 @@ function segmented_sum_forw(x::AbstractMatrix, C::AbstractVector, bags::Abstract
     y
 end
 
-function segmented_sum_back(Δ, y, x, C, bags, w) 
+function segmented_sum_back(Δ, y, x, ψ, bags, w) 
     dx = similar(x)
-    dC = zero(C)
+    dψ = zero(ψ)
     dw = isnothing(w) ? nothing : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(C)
-                dC[i] += Δ[i, bi]
+            for i in eachindex(ψ)
+                dψ[i] += Δ[i, bi]
             end
         else
             for j in b
@@ -48,17 +48,17 @@ function segmented_sum_back(Δ, y, x, C, bags, w)
             end
         end
     end
-    dx, dC, nothing, dw
+    dx, dψ, nothing, dw
 end
 
-function segmented_sum_back(Δ, y, x::Missing, C, bags, w::Nothing) 
-    dC = zero(C)
+function segmented_sum_back(Δ, y, x::Missing, ψ, bags, w::Nothing) 
+    dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
-        for i in eachindex(C)
-            dC[i] += Δ[i, bi]
+        for i in eachindex(ψ)
+            dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dC, nothing, nothing
+    nothing, dψ, nothing, nothing
 end
 
 ∇dw_segmented_sum!(dw::Nothing, Δ, x, y, w::Nothing, i, j, bi) = nothing

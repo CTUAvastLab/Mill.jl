@@ -42,7 +42,7 @@ end
     @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
      
     fs = [:SegmentedSum, :SegmentedMean, :SegmentedMax, :SegmentedPNorm, :SegmentedLSE]
-    params = [(:C1,), (:C2,), (:C3,), (:ρ1, :c, :C4), (:ρ2, :C5)]
+    params = [(:ψ1,), (:ψ2,), (:ψ3,), (:ρ1, :c, :ψ4), (:ρ2, :ψ5)]
 
     for idxs in powerset(collect(1:length(fs)))
         !isempty(idxs) || continue;
@@ -255,11 +255,11 @@ println("<HEARTBEAT>")
         abuilder = d -> SegmentedPNormLSE(d)
         m = f64(reflectinmodel(bn, layerbuilder, abuilder))
         a1, a2 = rand(ACTIVATIONS, 2)
-        @test mgradtest(params(m)...) do W1, b1, ρ1, c, C1, ρ2, C2, W2, b2
+        @test mgradtest(params(m)...) do W1, b1, ρ1, c, ψ1, ρ2, ψ2, W2, b2
             m = BagModel(Dense(W1, b1, a1),
                          Aggregation(
-                                     SegmentedPNorm(ρ1, c, C1),
-                                     SegmentedLSE(ρ2, C2)
+                                     SegmentedPNorm(ρ1, c, ψ1),
+                                     SegmentedLSE(ρ2, ψ2)
                                     ),
                          Dense(W2, b2, a2))
             m(bn).data
@@ -280,26 +280,26 @@ println("<HEARTBEAT>")
         abuilder = d -> SegmentedSumMaxPNormLSE(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
-        @test mgradtest(params(m)...) do W1, b1, C11, C12, ρ11, c1, C13, ρ12, C14,
-            W2, b2, W3, b3, C21, C22, ρ21, c2, C23, ρ22, C24, W4, b4, W5, b5
+        @test mgradtest(params(m)...) do W1, b1, ψ11, ψ12, ρ11, c1, ψ13, ρ12, ψ14,
+            W2, b2, W3, b3, ψ21, ψ22, ρ21, c2, ψ23, ρ22, ψ24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, a1),
                                        Aggregation(
-                                                   SegmentedSum(C11),
-                                                   SegmentedMax(C12),
-                                                   SegmentedPNorm(ρ11, c1, C13),
-                                                   SegmentedLSE(ρ12, C14)
+                                                   SegmentedSum(ψ11),
+                                                   SegmentedMax(ψ12),
+                                                   SegmentedPNorm(ρ11, c1, ψ13),
+                                                   SegmentedLSE(ρ12, ψ14)
                                                   ),
                                        Dense(W2, b2, a2)
                                       ),
                               BagModel(
                                        Dense(W3, b3, a3),
                                        Aggregation(
-                                                   SegmentedSum(C21),
-                                                   SegmentedMax(C22),
-                                                   SegmentedPNorm(ρ21, c2, C23),
-                                                   SegmentedLSE(ρ22, C24)
+                                                   SegmentedSum(ψ21),
+                                                   SegmentedMax(ψ22),
+                                                   SegmentedPNorm(ρ21, c2, ψ23),
+                                                   SegmentedLSE(ρ22, ψ24)
                                                   ),
                                        Dense(W4, b4, a4)
                                       ),
@@ -312,19 +312,19 @@ println("<HEARTBEAT>")
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
         a1, a2, a3 = rand(ACTIVATIONS, 3)
-        @test mgradtest(params(m)...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
+        @test mgradtest(params(m)...) do W1, b1, ψ11, ψ12, W2, b2, ψ21, ψ22, W3, b3
             m = BagModel(
                          BagModel(
                                   Dense(W1, b1, a1),
                                   Aggregation(
-                                              SegmentedMean(C11),
-                                              SegmentedMax(C12)
+                                              SegmentedMean(ψ11),
+                                              SegmentedMax(ψ12)
                                              ),
                                   Dense(W2, b2, a2)
                                  ),
                          Aggregation(
-                                     SegmentedMean(C21),
-                                     SegmentedMax(C22)
+                                     SegmentedMean(ψ21),
+                                     SegmentedMax(ψ22)
                                     ),
                          Dense(W3, b3, a3)
                         )
@@ -347,11 +347,11 @@ end
         abuilder = d -> SegmentedPNormLSE(d)
         m = f64(reflectinmodel(bn, layerbuilder, abuilder))
         a1, a2 = rand(ACTIVATIONS, 2)
-        @test mgradtest(params(m)...) do W1, b1, ρ1, c, C1, ρ2, C2, W2, b2
+        @test mgradtest(params(m)...) do W1, b1, ρ1, c, ψ1, ρ2, ψ2, W2, b2
             m = BagModel(Dense(W1, b1, a1),
                          Aggregation(
-                                     SegmentedPNorm(ρ1, c, C1),
-                                     SegmentedLSE(ρ2, C2)
+                                     SegmentedPNorm(ρ1, c, ψ1),
+                                     SegmentedLSE(ρ2, ψ2)
                                     ),
                          Dense(W2, b2, a2))
             m(bn).data
@@ -361,26 +361,26 @@ end
         abuilder = d -> SegmentedSumMaxPNormLSE(d)
         m = f64(reflectinmodel(tn, layerbuilder, abuilder))
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
-        @test mgradtest(params(m)...) do W1, b1, C11, C12, ρ11, c1, C13, ρ12, C14,
-            W2, b2, W3, b3, C21, C22, ρ21, c2, C23, ρ22, C24, W4, b4, W5, b5
+        @test mgradtest(params(m)...) do W1, b1, ψ11, ψ12, ρ11, c1, ψ13, ρ12, ψ14,
+            W2, b2, W3, b3, ψ21, ψ22, ρ21, c2, ψ23, ρ22, ψ24, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, a1),
                                        Aggregation(
-                                                   SegmentedSum(C11),
-                                                   SegmentedMax(C12),
-                                                   SegmentedPNorm(ρ11, c1, C13),
-                                                   SegmentedLSE(ρ12, C14),
+                                                   SegmentedSum(ψ11),
+                                                   SegmentedMax(ψ12),
+                                                   SegmentedPNorm(ρ11, c1, ψ13),
+                                                   SegmentedLSE(ρ12, ψ14),
                                                   ),
                                        Dense(W2, b2, a2)
                                       ),
                               BagModel(
                                        Dense(W3, b3, a3),
                                        Aggregation(
-                                                   SegmentedSum(C21),
-                                                   SegmentedMax(C22),
-                                                   SegmentedPNorm(ρ21, c2, C23),
-                                                   SegmentedLSE(ρ22, C24)
+                                                   SegmentedSum(ψ21),
+                                                   SegmentedMax(ψ22),
+                                                   SegmentedPNorm(ρ21, c2, ψ23),
+                                                   SegmentedLSE(ρ22, ψ24)
                                                   ),
                                        Dense(W4, b4, a4)
                                       ),
@@ -393,19 +393,19 @@ end
         abuilder = d -> SegmentedMeanMax(d)
         m = f64(reflectinmodel(bnn, layerbuilder, abuilder))
         a1, a2, a3 = rand(ACTIVATIONS, 3)
-        @test mgradtest(params(m)...) do W1, b1, C11, C12, W2, b2, C21, C22, W3, b3
+        @test mgradtest(params(m)...) do W1, b1, ψ11, ψ12, W2, b2, ψ21, ψ22, W3, b3
             m = BagModel(
                          BagModel(
                                   Dense(W1, b1, a1),
                                   Aggregation(
-                                              SegmentedMean(C11),
-                                              SegmentedMax(C12)
+                                              SegmentedMean(ψ11),
+                                              SegmentedMax(ψ12)
                                              ),
                                   Dense(W2, b2, a2)
                                  ),
                          Aggregation(
-                                     SegmentedMean(C21),
-                                     SegmentedMax(C22)
+                                     SegmentedMean(ψ21),
+                                     SegmentedMax(ψ22)
                                     ),
                          Dense(W3, b3, a3)
                         )
