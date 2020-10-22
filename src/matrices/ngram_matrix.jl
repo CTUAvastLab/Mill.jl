@@ -170,10 +170,10 @@ Base.getindex(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramMatrix(a.s[
 function Base.getindex(a::NGramMatrix{T}, i::Union{Integer, CartesianIndex{1}}) where {T<:AbstractString}
     NGramMatrix([a.s[i]], a.n, a.b, a.m)
 end
-Base.reduce(::typeof(catobs), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:])
-Base.reduce(::typeof(catobs), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
-Base.reduce(::typeof(hcat), a::Vector{S}) where {S<:NGramMatrix} = _catobs(a[:])
-Base.reduce(::typeof(hcat), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(a[:])
+Base.reduce(::typeof(catobs), a::Vector{S}) where {S<:NGramMatrix} = _catobs(vec(a))
+Base.reduce(::typeof(catobs), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(vec(a))
+Base.reduce(::typeof(hcat), a::Vector{S}) where {S<:NGramMatrix} = _catobs(vec(a))
+Base.reduce(::typeof(hcat), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(vec(a))
 Base.hcat(a::NGramMatrix...) = reduce(catobs, collect(a))
 catobs(a::NGramMatrix...) = _catobs(collect(a))
 _lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
