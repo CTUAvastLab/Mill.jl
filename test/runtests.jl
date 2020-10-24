@@ -1,7 +1,20 @@
-println("<HEARTBEAT>")
-using Test, Mill, Flux
+@info "<HEARTBEAT>"
+
+using Test
+using Mill
+using Mill: nobs, reflectinmodel, sparsify, mapdata
+using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, ∇xbagconv, ∇convsum
+using Mill: ngrams, string2ngrams, countngrams, multrans, catobs
+using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
+using Base.Iterators: partition, product
+using Flux
 using Random
-using Mill: nobs
+using FiniteDifferences
+using Combinatorics
+using SparseArrays
+using DataFrames
+using HierarchicalUtils
+using BenchmarkTools: @btime
 
 function ngradient(f, xs::AbstractArray...)
   grads = zero.(xs)
@@ -89,47 +102,10 @@ const BAGS3 = [
          (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1,3], [2,4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
-println("<HEARTBEAT>")
-
-@testset "Data nodes" begin
-    include("datanode.jl")
-end
-@testset "Model nodes" begin
-    include("modelnode.jl")
-end
-@testset "Missing" begin
-    include("missing.jl")
-end
-println("<HEARTBEAT>")
-@testset "Aggregation" begin
-    include("aggregation.jl")
-end
-println("<HEARTBEAT>")
-@testset "Gradtests" begin
-    include("gradtests.jl")
-end
-println("<HEARTBEAT>")
-@testset "Conv" begin
-    include("conv.jl")
-end
-@testset "Bags" begin
-    include("bags.jl")
-end
-@testset "NGrams" begin
-    include("ngrams.jl")
-end
-@testset "Activations" begin
-    include("activations.jl")
-end
-@testset "Hierarchical Utils" begin
-    include("hierarchical_utils.jl")
-end
-@testset "Replace in" begin
-    include("replacein.jl")
-end
-@testset "Partial Eval" begin
-    include("partialeval.jl")
-end
-@testset "Lazy Node" begin
-    include("lazynode.jl")
+for test_f in readdir(".")
+    (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
+    @eval @testset $test_f begin
+        include($test_f)
+    end
+    @info "<HEARTBEAT>"
 end

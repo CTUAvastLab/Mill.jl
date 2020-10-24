@@ -44,7 +44,7 @@ MLDataPattern.nobs(::Missing) = nothing
 function catobs end
 
 include("bags.jl")
-export AlignedBags, ScatteredBags, length2bags
+export AlignedBags, ScatteredBags, length2bags, remapbag
 
 include("util.jl")
 include("threadfuns.jl")
@@ -64,7 +64,8 @@ export AggregationFunction, Aggregation
 
 include("modelnodes/modelnode.jl")
 export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel, IdentityModel, identity_model
-export reflectinmodel
+export HiddenLayerModel
+export mapactivations, reflectinmodel
 
 include("conv.jl")
 export bagconv, BagConv
@@ -82,6 +83,7 @@ Base.show(io::IO, ::MIME"text/plain", n::Union{AbstractNode, AbstractMillModel})
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 include("partialeval.jl")
+export partialeval
 
 function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
     if _terseprint[]

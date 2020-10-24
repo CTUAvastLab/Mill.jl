@@ -1,7 +1,3 @@
-using Test, Mill, Flux
-using Mill: p_map, inv_p_map, r_map, inv_r_map
-import Mill: bagnorm
-
 @testset "basic aggregation functionality" begin
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24] |> f32
     X = reshape(1:12, 2, 6) |> f32

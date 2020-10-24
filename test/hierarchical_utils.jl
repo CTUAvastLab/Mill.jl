@@ -1,7 +1,3 @@
-using SparseArrays, HierarchicalUtils
-import Base.Iterators: partition, accumulate, product, flatten
-using Mill: nobs
-
 metadata = fill("metadata", 4)
 an1 = ArrayNode(rand(Float32, 3,4))
 b = BagNode(an1, [1:4, 0:-1], metadata)

@@ -1,6 +1,3 @@
-using Mill, Flux, Test
-using Mill: ArrayNode, BagNode, ProductNode, catobs
-
 @testset "testing catobs & getindex operations missing values" begin
     a = BagNode(ArrayNode(rand(3,4)), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
