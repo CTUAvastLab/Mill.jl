@@ -9,7 +9,6 @@ using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
 using Base.Iterators: partition, product
 using Flux
 using Random
-using FiniteDifferences
 using Combinatorics
 using SparseArrays
 using DataFrames
