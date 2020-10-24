@@ -8,7 +8,7 @@ end
 
 Flux.@functor ImputingMatrix
 
-ImputingMatrix(W::AbstractMatrix{T}) where T = ImputingMatrix(W, zeros(T, size(W, 1)))
+ImputingMatrix(W::AbstractMatrix{T}) where T = ImputingMatrix(W, zeros(T, size(W, 2)))
 
 Flux.@forward ImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
 
@@ -29,6 +29,8 @@ Base.vcat(As::ImputingMatrix...) = ImputingMatrix(vcat((A.W for A in As)...), vc
 
 # TODO define adjoint here?
 A::ImputingMatrix * B::AbstractVecOrMat = A.W * B
+A::ImputingMatrix * B::AbstractVector{<:Missing} = A.W * A.ψ
+A::ImputingMatrix * B::AbstractMatrix{<:Missing} = A.W * repeat(A.ψ, 1, size(B, 2))
 A::ImputingMatrix * b::AbstractVector{<:MissingElement} = A.W * _fill_in(A.ψ, b)
 A::ImputingMatrix * B::AbstractMatrix{<:MissingElement} = A.W * _fill_in(A.ψ, B)
 
@@ -47,3 +49,7 @@ function _fill_mask(ψ::AbstractVector{T}, B::AbstractVecOrMat{<:MissingElement{
     X[m] = B[m]
     X, m
 end
+
+# # # TODO create imputting Dense in models/
+# # ImputingDense(d::Dense) = Dense(ImputingMatrix(d.W), d.b)
+# # ImputingDense(args...) = ImputingDense(Dense(args...))
