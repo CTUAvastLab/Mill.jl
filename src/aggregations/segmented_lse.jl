@@ -97,7 +97,7 @@ function segmented_lse_back(Δ, y, x, ψ, r, bags, M)
             end
         end
     end
-    dx, dψ, dr, nothing, nothing
+    dx, dψ, dr, DoesNotExist(), Zero()
 end
 
 function segmented_lse_back(Δ, ::Missing, ψ, bags)
@@ -107,18 +107,18 @@ function segmented_lse_back(Δ, ::Missing, ψ, bags)
             dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dψ, nothing, nothing, nothing
+    Zero(), dψ, Zero(), DoesNotExist(), Zero()
 end
 
-Zygote.@adjoint function segmented_lse_forw(x::AbstractMatrix, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
+function rrule(::typeof(segmented_lse_forw), x::AbstractMatrix, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
     M = _lse_precomp(x, r, bags)
     y = _segmented_lse_norm(x, ψ, r, bags, M)
-    grad = Δ -> segmented_lse_back(Δ, y, x, ψ, r, bags, M)
+    grad = Δ -> (NO_FIELDS, segmented_lse_back(Δ, y, x, ψ, r, bags, M)...)
     y, grad
 end
 
-Zygote.@adjoint function segmented_lse_forw(x::Missing, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
+function segmented_lse_forw(::typeof(segmented_lse_forw), x::Missing, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
     y = segmented_lse_forw(x, ψ, r, bags)
-    grad = Δ -> segmented_lse_back(Δ, x, ψ, bags)
+    grad = Δ -> (NO_FIELDS, segmented_lse_back(Δ, x, ψ, bags)...)
     y, grad
 end

@@ -26,8 +26,9 @@ function fillmissing(present, x, θ)
     o
 end
 
-Zygote.@adjoint function fillmissing(present, x, θ)
-    fillmissing(present, x, θ), Δ -> (nothing, Δ[:,present], sum(Δ[:,.!present], dims = 2)[:])
+function rrule(::typeof(fillmissing), present, x, θ)
+    fillmissing(present, x, θ), Δ -> (NO_FIELDS, DoesNotExist(),
+                                      Δ[:,present], sum(Δ[:,.!present], dims = 2)[:])
 end
 
 find_struct(p, m::AbstractArray{<:Number}, path=[]) = return p === m ? path : nothing

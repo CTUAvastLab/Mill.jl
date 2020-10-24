@@ -38,7 +38,7 @@ end
 function segmented_mean_back(Δ, y, x, ψ, bags, w) 
     dx = zero(x)
     dψ = zero(ψ)
-    dw = isnothing(w) ? nothing : zero(w)
+    dw = isnothing(w) ? Zero() : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)
@@ -54,7 +54,7 @@ function segmented_mean_back(Δ, y, x, ψ, bags, w)
             end
         end
     end
-    dx, dψ, nothing, dw
+    dx, dψ, DoesNotExist(), dw
 end
 
 function segmented_mean_back(Δ, y, x::Missing, ψ, bags, w) 
@@ -64,10 +64,10 @@ function segmented_mean_back(Δ, y, x::Missing, ψ, bags, w)
             dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dψ, nothing, nothing
+    Zero(), dψ, DoesNotExist(), Zero()
 end
 
-∇dw_segmented_mean!(dw::Nothing, Δ, x, y, w::Nothing, ws, i, j, bi) = nothing
+∇dw_segmented_mean!(dw::Zero, Δ, x, y, w::Nothing, ws, i, j, bi) = nothing
 function ∇dw_segmented_mean!(dw::AbstractVector, Δ, x, y, w::AbstractVector, ws, i, j, bi) 
     dw[j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws
 end
@@ -75,8 +75,8 @@ function ∇dw_segmented_mean!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, 
     dw[i, j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws[i]
 end
 
-Zygote.@adjoint function segmented_mean_forw(args...)
+function rrule(::typeof(segmented_mean_forw), args...)
     y = segmented_mean_forw(args...)
-    grad = Δ -> segmented_mean_back(Δ, y, args...)
+    grad = Δ -> (NO_FIELDS, segmented_mean_back(Δ, y, args...)...)
     y, grad
 end
