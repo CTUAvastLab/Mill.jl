@@ -1,5 +1,3 @@
-using Mill: AlignedBags, ScatteredBags, bags, length2bags, remapbag
-
 @testset "Constructors" begin
     @test AlignedBags().bags == UnitRange{Int}[]
     @test AlignedBags([1]).bags == [1:1]

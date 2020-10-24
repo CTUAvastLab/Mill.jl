@@ -1,5 +1,3 @@
-using Mill, Test, Flux
-using Mill: HiddenLayerModel, mapactivations
 @testset "activations of simple matrix model" begin
     x = ArrayNode(randn(2, 4))
     m = ArrayModel(Chain(Dense(2,2,leakyrelu), Dense(2,2)))

@@ -7,7 +7,6 @@ const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
 include("arraymodel.jl")
 include("bagmodel.jl")
 include("productmodel.jl")
-include("missingmodel.jl")
 include("lazymodel.jl")
 
 function reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict(),
@@ -72,10 +71,4 @@ end
 function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s, ski, sci) where Name
     pm, d = Mill._reflectinmodel(unpack2mill(ds), db, da, b, a, s * Mill.encode(1, 1), ski, sci)
     LazyModel{Name}(pm), d
-end
-
-function _reflectinmodel(x::MissingNode, db, da, b, a, s, ski, sci)
-    im, d = _reflectinmodel(x.data, db, da, b, a, s, ski, sci)
-    θ = zeros(Float32, d)
-    MissingModel(im, θ), d
 end

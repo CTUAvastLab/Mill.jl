@@ -1,8 +1,3 @@
-using Test
-using Mill, SparseArrays, Random, Flux
-using Mill: NGramIterator, ngrams, string2ngrams, countngrams, mul, multrans, NGramMatrix, catobs
-import BenchmarkTools: @btime
-
 @testset "ngrams" begin
     x = [1,3,5,2,6,8,3]
     b = 8 + 1

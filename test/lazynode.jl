@@ -1,6 +1,3 @@
-using Mill, Flux, Test
-using Mill: LazyNode
-
 @testset "LazyNode" begin
     ss = ["Hello world.", "Make peace.", "Make food.", "Eat penam."]
 

@@ -1,6 +1,3 @@
-using Mill, Test, Flux
-using Mill: partialeval, identity_model
-
 @testset "partialeval" begin
     metadata = fill("metadata", 4)
     an1 = ArrayNode(rand(3,4))

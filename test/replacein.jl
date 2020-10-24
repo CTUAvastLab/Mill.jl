@@ -1,5 +1,3 @@
-using Test, Mill, HierarchicalUtils
-
 @testset "replacein" begin
     metadata = fill("metadata", 4)
     an1 = ArrayNode(rand(3,4))
