@@ -1,4 +1,3 @@
-using Flux
 _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 """
 	_addmatvec!(o, i, W, x, j)
@@ -7,23 +6,23 @@ _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 
 """
 function _addmatvec!(o::Matrix, i, W::Matrix, x::Matrix, j)
-	@inbounds for s in 1:size(W, 2)
-		for r in 1:size(W, 1)
-			o[r, i] += W[r, s] * x[s, j]
-		end
-	end
+    @inbounds for s in 1:size(W, 2)
+        for r in 1:size(W, 1)
+            o[r, i] += W[r, s] * x[s, j]
+        end
+    end
 end
 
 function _addmatvec!(o::Matrix, i, W::Matrix, x::SparseMatrixCSC, j)
-	rn = x.colptr[j]:x.colptr[j+1] - 1
-	isempty(rn) && return
-	rowptr = x.rowval[rn]
-	vals = x.nzval[rn]
-	@inbounds for (s, v) in zip(rowptr, vals)
-		for r in 1:size(W, 1)
-			o[r, i] += W[r, s] * v
-		end
-	end
+    rn = x.colptr[j]:x.colptr[j+1] - 1
+    isempty(rn) && return
+    rowptr = x.rowval[rn]
+    vals = x.nzval[rn]
+    @inbounds for (s, v) in zip(rowptr, vals)
+        for r in 1:size(W, 1)
+            o[r, i] += W[r, s] * v
+        end
+    end
 end
 
 
@@ -208,8 +207,9 @@ function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector
 	∇x, tuple(∇W...)
 end
 
-Zygote.@adjoint function bagconv(x, bags, fs::Matrix...)
-  bagconv(x, bags, fs...), Δ -> (∇xbagconv(Δ, x, bags,  fs...), nothing,  ∇wbagconv(Δ, x, bags,  fs...)...)
+function rrule(::typeof(bagconv), x, bags, fs::Matrix...)
+    bagconv(x, bags, fs...), Δ -> (NO_FIELDS, @thunk(∇xbagconv(Δ, x, bags,  fs...)),
+                                   DoesNotExist(),  ∇wbagconv(Δ, x, bags,  fs...)...)
 end
 
 """
@@ -248,38 +248,37 @@ end
 
 convsum(bags, xs::AbstractMatrix) = xs
 function convsum(bags, xs...)
-	offsets = _convshift(length(xs))
-	o = similar(xs[1]) .= 0
-	for b in bags
-		for ri in b 
-			for (i, k) in enumerate(offsets)
-				if first(b) <= k + ri  <= last(b)
-					o[:, ri] .+= view(xs[i], :, k + ri)
-				end
-			end
-		end
-	end
-	o
+    offsets = _convshift(length(xs))
+    o = similar(xs[1]) .= 0
+    for b in bags
+        for ri in b 
+            for (i, k) in enumerate(offsets)
+                if first(b) <= k + ri  <= last(b)
+                    o[:, ri] .+= view(xs[i], :, k + ri)
+                end
+            end
+        end
+    end
+    o
 end
 
 function ∇convsum(Δ, bags, n)
-	offsets = _convshift(n)
-	o = [zero(Δ) for i in 1:n]
-	for b in bags
-		for ri in b 
-			for (i, k) in enumerate(offsets)
-				if first(b) <= k + ri  <= last(b)
-					o[i][:, k + ri] .+= view(Δ, :, ri)
-				end
-			end
-		end
-	end
-	tuple(o...)
+    offsets = _convshift(n)
+    o = [zero(Δ) for i in 1:n]
+    for b in bags
+        for ri in b 
+            for (i, k) in enumerate(offsets)
+                if first(b) <= k + ri  <= last(b)
+                    o[i][:, k + ri] .+= view(Δ, :, ri)
+                end
+            end
+        end
+    end
+    tuple(o...)
 end
 
-
-Zygote.@adjoint function convsum(bags, xs...)
-  convsum(bags, xs...), Δ -> (nothing,  ∇convsum(Δ, bags, length(xs))...)
+function rrule(::typeof(convsum), bags, xs...)
+    convsum(bags, xs...), Δ -> (NO_FIELDS, DoesNotExist(),  ∇convsum(Δ, bags, length(xs))...)
 end
 
 legacy_bagconv(x, bags, f::AbstractArray{T, 3}) where {T} = convsum(bags, [f[:, :, i]*x for i in 1:size(f, 3)]...)

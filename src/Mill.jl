@@ -9,12 +9,15 @@ using MLDataPattern
 using SparseArrays
 using Statistics
 using Zygote
+using ChainRulesCore
 
 import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: length, first, last, firstindex, lastindex, getindex, setindex!
 import Base: reduce, eltype, print_matrix
 
 import Flux: Params, params!, IdSet
+
+import ChainRulesCore: rrule
 
 # GLOBAL SWITCHES
 const _emptyismissing = Ref(false)

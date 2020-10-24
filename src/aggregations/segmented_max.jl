@@ -61,7 +61,7 @@ function segmented_max_back(Δ, y, x, ψ, bags)
             end
         end
     end
-    dx, dψ, nothing, nothing
+    dx, dψ, DoesNotExist()
 end
 
 function segmented_max_back(Δ, y, x::Missing, ψ, bags) 
@@ -71,11 +71,11 @@ function segmented_max_back(Δ, y, x::Missing, ψ, bags)
             dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dψ, nothing, nothing
+    Zero(), dψ, DoesNotExist()
 end
 
-Zygote.@adjoint function segmented_max_forw(args...)
+function rrule(::typeof(segmented_max_forw), args...)
     y = segmented_max_forw(args...)
-    grad = Δ -> segmented_max_back(Δ, y, args...)
+    grad = Δ -> (NO_FIELDS, segmented_max_back(Δ, y, args...)...)
     y, grad
 end

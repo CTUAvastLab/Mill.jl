@@ -98,7 +98,7 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
             end
         end
     end
-    da, dψ, dp, nothing, dw
+    da, dψ, dp, DoesNotExist(), dw
 end
 
 function segmented_pnorm_back(Δ, y, ψ, bags) 
@@ -108,10 +108,10 @@ function segmented_pnorm_back(Δ, y, ψ, bags)
             dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dψ, nothing, nothing, nothing
+    Zero(), dψ, Zero(), DoesNotExist(), Zero()
 end
 
-∇dw_segmented_pnorm!(dw::Nothing, Δ, a, y, w::Nothing, ws, i, j, bi) = error("Not implemented yet!")
+∇dw_segmented_pnorm!(dw::Zero, Δ, a, y, w::Nothing, ws, i, j, bi) = error("Not implemented yet!")
 function ∇dw_segmented_pnorm!(dw::AbstractVector, Δ, a, y, w::AbstractVector, ws, i, j, bi) 
     error("Not implemented yet!")
 end
@@ -119,15 +119,15 @@ function ∇dw_segmented_pnorm!(dw::AbstractMatrix, Δ, a, y, w::AbstractMatrix,
     error("Not implemented yet!")
 end
 
-Zygote.@adjoint function segmented_pnorm_forw(a::AbstractMatrix, ψ, p, bags, w)
+function rrule(::typeof(segmented_pnorm_forw), a::AbstractMatrix, ψ, p, bags, w)
     M = _pnorm_precomp(a, bags)
     y = _segmented_pnorm_norm(a, ψ, p, bags, w, M)
-    grad = Δ -> segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
+    grad = Δ -> (NO_FIELDS, segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)...)
     y, grad
 end
 
-Zygote.@adjoint function segmented_pnorm_forw(a::Missing, ψ, p, bags, w)
+function rrule(::typeof(segmented_pnorm_forw), a::Missing, ψ, p, bags, w)
     y = segmented_pnorm_forw(a, ψ, p, bags, w)
-    grad = Δ -> segmented_pnorm_back(Δ, y, ψ, bags)
+    grad = Δ -> (NO_FIELDS, segmented_pnorm_back(Δ, y, ψ, bags)...)
     y, grad
 end

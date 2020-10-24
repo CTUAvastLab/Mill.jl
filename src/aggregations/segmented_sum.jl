@@ -37,7 +37,7 @@ end
 function segmented_sum_back(Δ, y, x, ψ, bags, w) 
     dx = similar(x)
     dψ = zero(ψ)
-    dw = isnothing(w) ? nothing : zero(w)
+    dw = isnothing(w) ? Zero() : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)
@@ -52,7 +52,7 @@ function segmented_sum_back(Δ, y, x, ψ, bags, w)
             end
         end
     end
-    dx, dψ, nothing, dw
+    dx, dψ, DoesNotExist(), dw
 end
 
 function segmented_sum_back(Δ, y, x::Missing, ψ, bags, w::Nothing) 
@@ -62,10 +62,10 @@ function segmented_sum_back(Δ, y, x::Missing, ψ, bags, w::Nothing)
             dψ[i] += Δ[i, bi]
         end
     end
-    nothing, dψ, nothing, nothing
+    Zero(), dψ, DoesNotExist(), Zero()
 end
 
-∇dw_segmented_sum!(dw::Nothing, Δ, x, y, w::Nothing, i, j, bi) = nothing
+∇dw_segmented_sum!(dw::Zero, Δ, x, y, w::Nothing, i, j, bi) = nothing
 function ∇dw_segmented_sum!(dw::AbstractVector, Δ, x, y, w::AbstractVector, i, j, bi) 
     dw[j] += Δ[i, bi] * (x[i, j])
 end
@@ -73,8 +73,8 @@ function ∇dw_segmented_sum!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, i
     dw[i, j] += Δ[i, bi] * (x[i, j])
 end
 
-Zygote.@adjoint function segmented_sum_forw(args...)
+function rrule(::typeof(segmented_sum_forw), args...)
     y = segmented_sum_forw(args...)
-    grad = Δ -> segmented_sum_back(Δ, y, args...)
+    grad = Δ -> (NO_FIELDS, segmented_sum_back(Δ, y, args...)...)
     y, grad
 end

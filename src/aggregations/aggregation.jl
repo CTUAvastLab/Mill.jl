@@ -31,7 +31,7 @@ Base.getindex(a::Aggregation, i) = a.fs[i]
 @inline weightsum(ws::AbstractVector, i) = ws[i]
 
 # more stable definitions for r_map and p_map
-Zygote.@adjoint softplus(x) = softplus.(x), Δ -> (Δ .* σ.(x),)
+rrule(::typeof(softplus), x) = softplus.(x), Δ -> (NO_FIELDS, Δ .* σ.(x))
 
 include("segmented_sum.jl")
 include("segmented_mean.jl")
