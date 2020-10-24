@@ -185,20 +185,17 @@ end
         # generate all combinations of aggregations
         anames = ["Sum", "Mean", "Max", "PNorm", "LSE"]
         for idxs in powerset(collect(1:length(anames)))
-            !isempty(idxs) || continue
-            # not a thorough testing of all functions, but fast enough
-            length(idxs) <= 3 || continue
-            # for idxs in permutations(idxs)
+            1 ≤ length(idxs) ≤ 3 || continue
 
             s = Symbol("Segmented", anames[idxs]...)
             a = @eval $s($d) |> f64
-            @test mgradtest(x) do x
+            @test gradtest(x) do x
                 a(x, bags)
             end
-            @test mgradtest(x) do x
+            @test gradtest(x) do x
                 a(x, bags, w)
             end
-            @test mgradtest(x) do x
+            @test gradtest(x) do x
                 a(x, bags, w_mat)
             end
         end
@@ -214,8 +211,7 @@ end
     params = [(:ψ1,), (:ψ2,), (:ψ3,), (:ρ1, :c, :ψ4), (:ρ2, :ψ5)]
 
     for idxs in powerset(collect(1:length(fs)))
-        !isempty(idxs) || continue;
-        length(idxs) <= 2 || continue
+        1 ≤ length(idxs) <= 2 || continue
 
         d = rand(1:20)
         x = randn(d, 0)
@@ -226,19 +222,19 @@ end
             push!(cs, Expr(:call, f, ps...))
         end
         @eval begin
-            @test mgradtest($(map(eval, rs)...)) do $(as...)
+            @test gradtest($(map(eval, rs)...)) do $(as...)
                 a = Aggregation($(cs...))
                 a(missing, ScatteredBags([Int[], Int[]]))
             end
-            @test mgradtest($(map(eval, rs)...)) do $(as...)
+            @test gradtest($(map(eval, rs)...)) do $(as...)
                 a = Aggregation($(cs...))
                 a(missing, AlignedBags([0:-1]), nothing)
             end
-            @test mgradtest($(map(eval, rs)...)) do $(as...)
+            @test gradtest($(map(eval, rs)...)) do $(as...)
                 a = Aggregation($(cs...))
                 a($x, ScatteredBags([Int[]]))
             end
-            @test mgradtest($(map(eval, rs)...)) do $(as...)
+            @test gradtest($(map(eval, rs)...)) do $(as...)
                 a = Aggregation($(cs...))
                 a($x, AlignedBags([0:-1, 0:-1]), nothing)
             end
@@ -256,15 +252,15 @@ end
                 push!(cs, Expr(:call, f, ps...))
             end
             @eval begin
-                @test mgradtest($(map(eval, rs)...)) do $(as...)
+                @test gradtest($(map(eval, rs)...)) do $(as...)
                     a = Aggregation($(cs...))
                     a($x, $bags)
                 end
-                @test mgradtest($(map(eval, rs)...)) do $(as...)
+                @test gradtest($(map(eval, rs)...)) do $(as...)
                     a = Aggregation($(cs...))
                     a($x, $bags, $w)
                 end
-                @test mgradtest($(map(eval, rs)...)) do $(as...)
+                @test gradtest($(map(eval, rs)...)) do $(as...)
                     a = Aggregation($(cs...))
                     a($x, $bags, $w_mat)
                 end
@@ -291,7 +287,7 @@ end
                   w -> a3(x, bags, w),
                   w -> a5(x, bags, w)
                  ]
-            @test mgradtest(g, w)
+            @test gradtest(g, w)
         end
         for g in [
                   w_mat -> a1(x, bags, w_mat),
@@ -299,19 +295,19 @@ end
                   w_mat -> a3(x, bags, w_mat),
                   w_mat -> a5(x, bags, w_mat)
                  ]
-            @test mgradtest(g, w_mat)
+            @test gradtest(g, w_mat)
         end
         # for g in [
         #           w -> a4(x, bags, w_mat)
         #          ]
         #     # NOT IMPLEMENTED YET
-        #     @test_throws Exception mgradtest(g, w_mat)
+        #     @test_throws Exception gradtest(g, w_mat)
         # end
         # for g in [
         #           w -> a4(x, bags, w_mat)
         #          ]
         #     # NOT IMPLEMENTED YET
-        #     @test_throws Exception mgradtest(g, w_mat)
+        #     @test_throws Exception gradtest(g, w_mat)
         # end
     end
 end
