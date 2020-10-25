@@ -37,7 +37,7 @@ end
         ψ = randn(n)
         A = ImputingMatrix(W, ψ)
         b = randn(n)
-        (dW, dψ), db = gradient((A, b) -> sum(A*b), A, b)
+        (dW, dψ), db = gradient(sum ∘ *, A, b)
 
         @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*b), W) |> only
         @test dW ≈ gradient(W -> sum(W*b), W) |> only
@@ -56,7 +56,7 @@ end
         ψ = randn(n)
         A = ImputingMatrix(W, ψ)
         B = randn(n, k)
-        (dW, dψ), dB = gradient((A, B) -> sum(A*B), A, B)
+        (dW, dψ), dB = gradient(sum ∘ *, A, B)
 
         @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*B), W) |> only
         @test dW ≈ gradient(W -> sum(W*B), W) |> only
@@ -75,7 +75,7 @@ end
         ψ = randn(n)
         A = ImputingMatrix(W, ψ)
         b = fill(missing, n)
-        (dW, dψ), db = gradient((A, b) -> sum(A*b), A, b)
+        (dW, dψ), db = gradient(sum ∘ *, A, b)
 
         @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*b), W) |> only
         @test dW ≈ gradient(W -> sum(W*ψ), W) |> only
@@ -94,7 +94,7 @@ end
         ψ = randn(n)
         A = ImputingMatrix(W, ψ)
         b = fill(missing, n, k)
-        (dW, dψ), db = gradient((A, b) -> sum(A*b), A, b)
+        (dW, dψ), db = gradient(sum ∘ *, A, b)
 
         @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*b), W) |> only
         @test dW ≈ gradient(W -> sum(W*repeat(ψ, 1, k)), W) |> only
