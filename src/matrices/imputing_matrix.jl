@@ -50,6 +50,11 @@ function _fill_mask(ψ::AbstractVector{T}, B::AbstractVecOrMat{<:MissingElement{
     X, m
 end
 
-# # # TODO create imputting Dense in models/
-# # ImputingDense(d::Dense) = Dense(ImputingMatrix(d.W), d.b)
-# # ImputingDense(args...) = ImputingDense(Dense(args...))
+ImputingDense(d::Dense) = Dense(ImputingMatrix(d.W), d.b, d.σ)
+ImputingDense(args...) = ImputingDense(Dense(args...))
+
+function Base.show(io::IO, l::Dense{F, <:ImputingMatrix}) where F
+  print(io, "ImputingDense(", size(l.W, 2), ", ", size(l.W, 1))
+  l.σ == identity || print(io, ", ", l.σ)
+  print(io, ")")
+end
