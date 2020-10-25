@@ -30,6 +30,8 @@ function ngradient(f, xs::AbstractArray...)
   return grads
 end
 
+# TODO rewrite this check
+# https://github.com/FluxML/Zygote.jl/issues/603
 gradcheck((ag, ng)) = isnothing(ag) ? all(ng .== 0) : isapprox(ng, ag, rtol = 1e-5, atol = 1e-5)
 gradcheck(f::Function, xs...) = all(gradcheck, zip(gradient(f, xs...), ngradient(f, xs...)))
 
