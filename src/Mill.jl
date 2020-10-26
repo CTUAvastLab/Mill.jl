@@ -51,7 +51,7 @@ include("threadfuns.jl")
 
 include("matrices/matrix.jl")
 export NGramMatrix, NGramIterator
-export ImputingMatrix
+export ImputingMatrix, ImputingDense
 
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
