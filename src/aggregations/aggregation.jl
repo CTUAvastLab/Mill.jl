@@ -9,11 +9,8 @@ end
 Flux.@functor Aggregation
 
 function (a::Aggregation)(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...)
-    if _bagcount[]
-        vcat(vcat([f(x, bags, args...) for f in a.fs]...), Zygote.@ignore length.(bags)')
-    else
-        vcat(vcat([f(x, bags, args...) for f in a.fs]...))
-    end
+    o = vcat([f(x, bags, args...) for f in a.fs]...)
+    _bagcount[] ? vcat(o, Zygote.@ignore length.(bags)') : o
 end
 (a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
