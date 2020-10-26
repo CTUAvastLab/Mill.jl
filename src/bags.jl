@@ -11,7 +11,6 @@ end
 Flux.@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
         Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
-
 AlignedBags() = AlignedBags(Vector{UnitRange{Int}}())
 AlignedBags(ks::UnitRange{Int}...) = AlignedBags(collect(ks))
 function AlignedBags(k::Vector{T}) where {T<:Integer}
@@ -39,7 +38,6 @@ end
 
 Flux.@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
         Base.first, Base.last, Base.iterate, Base.eltype, Base.length
-
 
 ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
 function ScatteredBags(k::Vector{T}) where {T<:Integer}
