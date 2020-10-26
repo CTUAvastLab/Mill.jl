@@ -42,8 +42,8 @@ end
         @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*b), W) |> only
         @test dW ≈ gradient(W -> sum(W*b), W) |> only
 
-        @test dψ ≈ gradient(ψ -> sum(ImputingMatrix(W,ψ)*b), ψ) |> only
-        @test all(dψ .== 0)
+        @test dψ === gradient(ψ -> sum(ImputingMatrix(W,ψ)*b), ψ) |> only
+        @test isnothing(dψ)
 
         @test db ≈ gradient(b -> sum(ImputingMatrix(W,ψ)*b), b) |> only
         @test db ≈ gradient(b -> sum(W*b), b) |> only
@@ -61,8 +61,8 @@ end
         @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*B), W) |> only
         @test dW ≈ gradient(W -> sum(W*B), W) |> only
 
-        @test dψ ≈ gradient(ψ -> sum(ImputingMatrix(W,ψ)*B), ψ) |> only
-        @test all(dψ .== 0)
+        @test dψ === gradient(ψ -> sum(ImputingMatrix(W,ψ)*B), ψ) |> only
+        @test isnothing(dψ)
 
         @test dB ≈ gradient(B -> sum(ImputingMatrix(W,ψ)*B), B) |> only
         @test dB ≈ gradient(B -> sum(W*B), B) |> only
