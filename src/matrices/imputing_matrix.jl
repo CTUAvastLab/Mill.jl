@@ -30,8 +30,8 @@ A::ImputingMatrix * B::AbstractMatrix = _mul(A, B)
 Zygote.@adjoint A::ImputingMatrix * B::AbstractMatrix = Zygote.pullback(_mul, A, B)
 
 _mul(A::ImputingMatrix, B::AbstractVecOrMat) = A.W * B
-_mul(A::ImputingMatrix, b::AbstractVector{Missing}) = A.W * A.ψ
-_mul(A::ImputingMatrix, B::AbstractMatrix{Missing}) = A.W * repeat(A.ψ, 1, size(B, 2))
+_mul(A::ImputingMatrix, ::AbstractVector{Missing}) = A.W * A.ψ
+_mul(A::ImputingMatrix, B::AbstractMatrix{Missing}) = repeat(A.W * A.ψ, 1, size(B, 2))
 _mul(A::ImputingMatrix, B::AbstractVecOrMat{MissingElement{T}}) where T = A.W * _fill_in(A.ψ, B)
 
 _fill_in(ψ, B) = _fill_mask(ψ, B)[1]
