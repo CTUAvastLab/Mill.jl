@@ -36,8 +36,6 @@ const AggregationWeights{T} = Union{Nothing, AbstractVecOrMat{<:T}}
 
 MLDataPattern.nobs(::Missing) = nothing
 
-(::Flux.LayerNorm)(x::Flux.OneHotMatrix) = x
-
 """
 	catobs(xs...)
 
@@ -87,6 +85,9 @@ export replacein, findin
 include("hierarchical_utils.jl")
 export printtree
 
+include("partialeval.jl")
+export partialeval
+
 Base.show(io::IO, @nospecialize ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = show(io, Base.typename(T))
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel}
     if get(io, :compact, false)
@@ -96,9 +97,6 @@ function Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Un
     end
 end
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
-
-include("partialeval.jl")
-export partialeval
 
 function base_show_terse(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
     if hasproperty(x, :body) && !hasproperty(x.body, :name) && hasproperty(x.body, :body)
