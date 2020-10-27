@@ -36,6 +36,8 @@ const AggregationWeights{T} = Union{Nothing, AbstractVecOrMat{<:T}}
 
 MLDataPattern.nobs(::Missing) = nothing
 
+(::Flux.LayerNorm)(x::Flux.OneHotMatrix) = x
+
 """
 	catobs(xs...)
 
@@ -54,6 +56,7 @@ export MaybeHotVector, MaybeHotMatrix
 
 include("matrices/ngram_matrix.jl")
 export NGramMatrix, NGramIterator
+(::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
 
 include("matrices/imputing_matrix.jl")
 export ImputingMatrix, ImputingDense

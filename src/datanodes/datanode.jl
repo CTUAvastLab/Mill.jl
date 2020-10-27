@@ -21,17 +21,19 @@ data(x) = x
 catobs(as...) = reduce(catobs, collect(as))
 
 # reduction of common datatypes the way we like it
-reduce(::typeof(catobs), as::Vector{<: AbstractMatrix}) = reduce(hcat, as)
-@adjoint function reduce(::typeof(catobs), as::Vector{<: AbstractMatrix})
+reduce(::typeof(catobs), as::Vector{<:AbstractMatrix}) = reduce(hcat, as)
+
+reduce(::typeof(catobs), as::Vector{<:AbstractVector}) = reduce(vcat, as)
+Zygote.@adjoint function reduce(::typeof(catobs), as::Vector{<:AbstractMatrix})
   sz = cumsum(size.(as, 2))
   return reduce(hcat, as), Δ -> (nothing, map(n -> Zygote.pull_block_horz(sz[n], Δ, as[n]), eachindex(as)))
 end
-reduce(::typeof(catobs), as::Vector{<: AbstractVector}) = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{<: DataFrame}) = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{<: Missing}) = missing
-reduce(::typeof(catobs), as::Vector{<: Nothing}) = nothing
-reduce(::typeof(catobs), as::Vector{<: Union{Missing, Nothing}}) = nothing
-function reduce(::typeof(catobs), as::Vector{T}) where {T <: Union{Missing, AbstractNode}}
+
+reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
+reduce(::typeof(catobs), as::Vector{<:Missing}) = missing
+reduce(::typeof(catobs), as::Vector{<:Nothing}) = nothing
+reduce(::typeof(catobs), as::Vector{<:Union{Missing, Nothing}}) = nothing
+function reduce(::typeof(catobs), as::Vector{T}) where {T<:Union{Missing, AbstractNode}}
     reduce(catobs, [a for a in as if !ismissing(a)])
 end
 

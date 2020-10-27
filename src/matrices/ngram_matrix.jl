@@ -182,8 +182,6 @@ _catobs(a::Tuple{Vararg{NGramMatrix}}) = NGramMatrix(reduce(vcat, [i.s for i in 
 
 Base.Matrix(x::NGramMatrix) = Matrix(SparseMatrixCSC(x))
 
-(m::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
-
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Float32, UInt}(x)
 
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}
@@ -313,6 +311,3 @@ end
 
 Base.hash(e::NGramMatrix{T}, h::UInt) where {T} = hash((T, e.s, e.n, e.b, e.m), h)
 (e1::NGramMatrix{T} == e2::NGramMatrix{T}) where {T} = e1.s == e2.s && e1.n === e2.n && e1.b === e2.b && e1.m === e2.m
-
-(m::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
-(a::Flux.LayerNorm)(x::Flux.OneHotMatrix) = x

@@ -15,7 +15,6 @@ struct MaybeHotMatrix{T <: MissingElement{Integer}, U, V <: AbstractVector{T}} <
     l::U
 end
 
-
 function print_array(io::IO, X::MaybeHotMatrix)
     println(io, "I:")
     print_array(io, X.I)
