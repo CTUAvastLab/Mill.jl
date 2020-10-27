@@ -1,5 +1,3 @@
-@info "<HEARTBEAT>"
-
 using Test
 using Mill
 using Mill: nobs, reflectinmodel, sparsify, mapdata
@@ -67,9 +65,9 @@ const BAGS3 = [
         ]
 
 for test_f in readdir(".")
+    @info "<HEARTBEAT>"
     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
     @eval @testset $test_f begin
         include($test_f)
     end
-    @info "<HEARTBEAT>"
 end
