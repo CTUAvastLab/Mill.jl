@@ -11,11 +11,11 @@ Flux.@forward ImputingMatrix.W Base.size, Base.length, Base.getindex, Base.setin
 
 Base.vcat(As::ImputingMatrix...) = ImputingMatrix(vcat((A.W for A in As)...), vcat((A.ψ for A in As)...))
 
-function print_matrix(io::IO, A::ImputingMatrix)
+function print_array(io::IO, A::ImputingMatrix)
     println(io, "W:")
-    print_matrix(io, A.W)
+    print_array(io, A.W)
     println(io, "\nψ:")
-    print_matrix(io, A.ψ)
+    print_array(io, A.ψ)
 end
 
 function Flux.params!(p::Params, A::ImputingMatrix, seen=IdSet())
