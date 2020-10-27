@@ -13,7 +13,7 @@ using ChainRulesCore
 
 import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, getindex, setindex!
-import Base: reduce, eltype, print_matrix
+import Base: reduce, eltype, print_array
 
 import Flux: Params, params!, IdSet
 
@@ -49,8 +49,13 @@ export AlignedBags, ScatteredBags, length2bags, remapbag
 include("util.jl")
 include("threadfuns.jl")
 
-include("matrices/matrix.jl")
+include("matrices/maybehot.jl")
+export MaybeHotVector, MaybeHotMatrix
+
+include("matrices/ngram_matrix.jl")
 export NGramMatrix, NGramIterator
+
+include("matrices/imputing_matrix.jl")
 export ImputingMatrix, ImputingDense
 
 include("datanodes/datanode.jl")
