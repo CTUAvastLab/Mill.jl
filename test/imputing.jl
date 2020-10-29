@@ -1,3 +1,5 @@
+# TODO inferrable tests
+#
 function _test_imput(W, ob::Vector, b::Vector)
     IM = ImputingMatrix(W, ob)
     @test IM*b == W*ob
