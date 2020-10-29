@@ -1,4 +1,4 @@
-struct MaybeHotVector{T <: MissingElement{Integer}} <: AbstractVector{Bool}
+struct MaybeHotVector{T <: Maybe{Integer}} <: AbstractVector{Bool}
     i::T
     l::Int
 end
@@ -20,7 +20,7 @@ end
 Base.hash(x::MaybeHotVector{T}, h::UInt) where {T} = hash((T, x.i, x.l), h)
 (x1::MaybeHotVector{T} == x2::MaybeHotVector{T}) where {T} = x1.i == x2.i && x1.l == x2.l
 
-struct MaybeHotMatrix{T <: MissingElement{Integer}, V <: AbstractVector{T}} <: AbstractMatrix{Bool}
+struct MaybeHotMatrix{T <: Maybe{Integer}, V <: AbstractVector{T}} <: AbstractMatrix{Bool}
     I::V
     l::Int
 end
