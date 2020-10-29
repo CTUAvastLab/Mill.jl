@@ -1,0 +1,116 @@
+# TODO inferred tests
+
+@testset "attributes" begin
+    l = 10
+    I = [1, missing, 3, missing, 5]
+
+    for i in I
+        mhv = MaybeHotVector(i, l)
+        @test size(mhv) == (l,)
+        @test length(mhv) == l
+    end
+
+    mhm = MaybeHotMatrix(I, l)
+    @test size(mhm) == (l, length(I))
+    @test length(mhm) == l * length(I)
+end
+
+@testset "hcat" begin
+    l = 10
+    I = [1, missing, 3, missing, 5]
+    mhm = MaybeHotMatrix(I, l)
+    mhvs = MaybeHotVector.(I, l)
+    @test all(mhv -> isequal(hcat(mhv), mhv), mhvs)
+    @test isequal(hcat(mhm), mhm)
+    @test isequal(hcat(mhvs...), mhm)
+    @test_throws DimensionMismatch hcat(MaybeHotVector.([1, 2], [l, l+1])...)
+    @test_throws DimensionMismatch hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
+end
+
+@testset "indexing" begin
+    l = 10
+    I = [1, missing, 3, missing, 5]
+
+    for i in I
+        mhv = MaybeHotVector(i, l)
+        if ismissing(i)
+            @test all(isequal.(missing, mhv))
+        else
+            @test Vector(mhv) == OneHotVector(i, l)
+        end
+        @test_throws BoundsError mhv[0]
+        @test_throws BoundsError mhv[l+1]
+        @test all(isequal.(mhv[:], mhv))
+    end
+
+    mhm = MaybeHotMatrix(I, l)
+    m = Matrix(mhm)
+    for (k,i) in I |> enumerate
+        if ismissing(i)
+            @test all(isequal.(missing, m[:, k]))
+            @test all(isequal.(missing, mhm[:, k]))
+        else
+            @test mhm[:, k] == m[:, k] == OneHotVector(i, l)
+        end
+    end
+    @test isequal(mhm[[1,2,7], 3], m[[1,2,7], 3])
+    @test isequal(mhm[CartesianIndex(2, 4)], m[2,4])
+    for k in eachindex(I)
+        @test isequal(mhm[:, k], MaybeHotVector(I[k], l))
+    end
+    @test isequal(mhm, mhm[:, eachindex(I)])
+    @test isequal(mhm, mhm[:, eachindex(I) |> collect])
+    @test isequal(mhm, mhm[:, :])
+    @test isequal(mhm, hcat(MaybeHotVector.(I, l)...))
+    @test isequal(mhm[:, [1,2,5]], hcat(MaybeHotVector.(I[[1,2,5]], l)...))
+
+    @test_throws BoundsError mhm[0, 1]
+    @test_throws BoundsError mhm[2, -1]
+    @test_throws BoundsError mhm[CartesianIndex()]
+    @test_throws BoundsError mhm[CartesianIndex(1)]
+end
+
+@testset "multiplication" begin
+    W = rand(10, 10)
+    x1 = MaybeHotVector(1, 10)
+    x2 = MaybeHotVector(8, 10)
+    x3 = MaybeHotVector(missing, 10)
+    X1 = MaybeHotMatrix([7, 10], 10)
+    X2 = MaybeHotMatrix([missing, missing], 10)
+    X3 = MaybeHotMatrix([3, missing, 1, missing], 10)
+
+    @test isequal(W * x1, W * Vector(x1))
+    @test isequal(W * x2, W * Vector(x2))
+    @test isequal(W * x3, W * Vector(x3))
+    @test isequal(W * X1, W * Matrix(X1))
+    @test isequal(W * X2, W * Matrix(X2))
+    @test isequal(W * X3, W * Matrix(X3))
+
+    @test_throws DimensionMismatch W * MaybeHotVector(1, 5)
+    @test_throws DimensionMismatch W * MaybeHotVector(missing, 3)
+    @test_throws DimensionMismatch W * MaybeHotMatrix([1, 2], 9)
+    @test_throws DimensionMismatch W * MaybeHotMatrix([1, missing, 2], 9)
+    @test_throws DimensionMismatch W * MaybeHotMatrix([missing, missing], 9)
+end
+
+@testset "equality" begin
+    mhv1 = MaybeHotVector(1, 10)
+    mhv2 = MaybeHotVector(1, 10)
+    mhv3 = MaybeHotVector(1, 11)
+    mhv4 = MaybeHotVector(missing, 11)
+    mhv5 = MaybeHotVector(2, 10)
+    @test mhv1 == mhv2
+    @test mhv1 != mhv3
+    @test mhv1 != mhv4
+    @test mhv1 != mhv5
+
+    mhm1 = MaybeHotMatrix([1,2], 10)
+    mhm2 = MaybeHotMatrix([1,2], 10)
+    mhm3 = MaybeHotMatrix([1], 10)
+    mhm4 = MaybeHotMatrix([missing], 10)
+    mhm5 = MaybeHotMatrix([1,2], 11)
+    @test mhm1 == mhm2
+    @test mhm1 != mhm3
+    @test mhm1 != mhm4
+    @test mhm1 != mhm5
+end
