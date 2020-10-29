@@ -2,7 +2,6 @@ struct LazyNode{Name,D} <: AbstractNode
 	data::D
 end
 
-const LazyNode{Name} = LazyNode{Name, D} where {D}
 LazyNode(Name::Symbol, values::T) where {T} = LazyNode{Name,T}(values)
 LazyNode{Name}(values::T) where {Name, T} = LazyNode{Name,T}(values)
 
@@ -10,9 +9,7 @@ Base.ndims(x::LazyNode) = Colon()
 LearnBase.nobs(a::LazyNode) = length(a.data)
 LearnBase.nobs(a::LazyNode, ::Type{ObsDim.Last}) = nobs(a.data)
 
-
-const VectorOfLazy{N} = Vector{T} where {T<:LazyNode{N,M} where {M}}
-function Base.reduce(::typeof(Mill.catobs), as::VectorOfLazy{N}) where {N}
+function Base.reduce(::typeof(Mill.catobs), as::Vector{LazyNode{N,M}}) where {N, M}
     data = reduce(vcat, [x.data for x in as])
     LazyNode{N}(data)
 end

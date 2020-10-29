@@ -164,7 +164,6 @@ end
 # Defining this is a bad idea - in Flux all models do not implement == and hash
 # it may break AD
 # @testset "testing equals and hash" begin
-#     # TODO lazy and missing models should be tested in a similar fashion
 #     @eval layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
 #     @eval x1 = ArrayNode(randn(Float32, 3, 4)) 
 #     @eval x2 = ArrayNode(randn(Float32, 4, 4)) 
