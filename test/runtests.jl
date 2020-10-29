@@ -65,8 +65,8 @@ const BAGS3 = [
         ]
 
 for test_f in readdir(".")
-    @info "<HEARTBEAT>"
     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
+    @info "<HEARTBEAT>"
     @eval @testset $test_f begin
         include($test_f)
     end
