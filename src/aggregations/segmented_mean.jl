@@ -49,7 +49,7 @@ function segmented_mean_back(Δ, y, x, C, bags, w)
             ws = bagnorm(w, b)
             for j in b
                 for i in 1:size(x, 1)
-                    dx[i, j] += weight(w, i, j) * Δ[i, bi] / weightsum(ws, i)
+                    dx[i, j] += w[j] * Δ[i, bi] / ws
                     ∇dw_segmented_mean!(dw, Δ, x, y, w, ws, i, j, bi)
                 end
             end

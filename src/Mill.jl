@@ -8,6 +8,7 @@ using Combinatorics
 using Zygote
 using HierarchicalUtils
 using ThreadsX
+using ThreadTools
 using LoopVectorization
 using Zygote: @adjoint
 using LinearAlgebra

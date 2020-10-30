@@ -1,10 +1,10 @@
 using Mill, BenchmarkTools, Serialization, ThreadsX, Zygote, Flux
 using LinearAlgebra
+# ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())
 (m, ds) = deserialize("/tmp/testdata.jls")
 ps = Flux.params(m);
 m(ds)
 @btime gradient(() -> sum(m(ds).data), ps)
-ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())
 @btime gradient(() -> sum(m(ds).data), ps)
 
 #Just 4 openblas threads, julia threadding disabled, 
