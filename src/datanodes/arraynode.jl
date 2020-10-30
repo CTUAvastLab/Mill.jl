@@ -18,8 +18,8 @@ Flux.@functor ArrayNode
 mapdata(f, x::ArrayNode) = ArrayNode(mapdata(f, x.data), x.metadata)
 
 Base.ndims(x::ArrayNode) = Colon()
-LearnBase.nobs(a::ArrayNode) = size(a.data, 2)
-LearnBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
+StatsBase.nobs(a::ArrayNode) = size(a.data, 2)
+StatsBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
 
 function reduce(::typeof(catobs), as::Vector{T}) where {T<:ArrayNode}
     data = reduce(catobs, [x.data for x in as])

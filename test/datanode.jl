@@ -2,7 +2,7 @@ using Mill
 using SparseArrays, DataFrames
 
 import Mill: sparsify, mapdata
-import LearnBase: nobs
+import StatsBase: nobs
 
 @testset "creating bags" begin
     k = [2, 2, 2, 1, 1, 3]

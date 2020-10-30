@@ -13,7 +13,7 @@ end
 ```
 
 
-`ArrayNode` had overloaded a `getindex` to support indexing. But the `getindex` just calls `subset(x::ArrayNode, idxs)`, which is used to correctly slice arrays according to the last dimension. 
+`ArrayNode` had overloaded a `getindex` to support indexing. But the `getindex` just calls `subset(x::ArrayNode, idxs)`, which is used to correctly slice arrays according to the last dimension.
 
 **This mean that if you want to define your own DataNode, in order to be compatible with the rest of the library it has to implement `subset` and `reduce(::typeof{catobs}, Vector{T}) where {T<:YourType}`**
 
@@ -32,8 +32,8 @@ end
 PathNode(data::Vector{S}) where {S<:AbstractString} = PathNode(data, nothing)
 
 Base.ndims(x::PathNode) = Colon()
-LearnBase.nobs(a::PathNode) = length(a.data)
-LearnBase.nobs(a::PathNode, ::Type{ObsDim.Last}) = nobs(a)
+StatsBase.nobs(a::PathNode) = length(a.data)
+StatsBase.nobs(a::PathNode, ::Type{ObsDim.Last}) = nobs(a)
 
 function Base.reduce(::typeof(Mill.catobs), as::Vector{T}) where {T<:PathNode}
     data = reduce(vcat, [x.data for x in as])
@@ -58,7 +58,7 @@ Flux.@functor PathModel
 
 (m::PathModel)(x::PathNode)  = m.m(m.path2mill(x))
 
-function Mill.modelprint(io::IO, m::PathModel; pad=[], s="", tr=false) 
+function Mill.modelprint(io::IO, m::PathModel; pad=[], s="", tr=false)
     c = COLORS[(length(pad)%length(COLORS))+1]
     paddedprint(io, "PathModel$(tr_repr(s, tr))\n", color=c)
     paddedprint(io, "  └── ", color=c, pad=pad)
@@ -66,10 +66,10 @@ function Mill.modelprint(io::IO, m::PathModel; pad=[], s="", tr=false)
 end
 ```
 
-Finally, let's define function path2mill, which converts 
+Finally, let's define function path2mill, which converts
 a list of strings to Mill internal structure.
 ```
-function path2mill(s::String) 
+function path2mill(s::String)
 	ss = String.(split(s, "/"))
 	BagNode(ArrayNode(Mill.NGramMatrix(ss, 3, 256, 2053)), AlignedBags([1:length(ss)]))
 end
@@ -87,7 +87,7 @@ pm = PathModel(reflectinmodel(path2mill(ds), d -> Dense(d, 10, relu)), path2mill
 pm(ds).data
 ```
 
-A final touch would be to overload the `reflectinmodel` as 
+A final touch would be to overload the `reflectinmodel` as
 ```
 
 function Mill.reflectinmodel(ds::PathNode, args...)
@@ -102,4 +102,3 @@ ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
 pm = reflectinmodel(ds, d -> Dense(d, 10, relu))
 pm(ds).data
 ```
-
