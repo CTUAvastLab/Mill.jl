@@ -1,7 +1,10 @@
 # TODO inferrable tests
-#
+# TODO hcat tests,
+# TODO (Dense) constructor tests
+# test multiplication with MaybeHot and Ngrams
+
 function _test_imput(W, ob::Vector, b::Vector)
-    IM = ImputingMatrix(W, ob)
+    IM = RowImputingMatrix(W, ob)
     @test IM*b == W*ob
 end
 
@@ -21,7 +24,7 @@ end
 
     W = [1 2; 3 4]
     ψ = [2, 1]
-    IM = ImputingMatrix(W, ψ)
+    IM = RowImputingMatrix(W, ψ)
     B1 = [4 3; 2 1]
     B2 = [missing missing; missing missing]
     B3 = [missing 3; 1 missing]
@@ -37,17 +40,17 @@ end
     for (m, n) in product(fill((1, 2, 5, 10), 2)...)
         W = randn(m, n)
         ψ = randn(n)
-        A = ImputingMatrix(W, ψ)
+        A = RowImputingMatrix(W, ψ)
         b = randn(n)
         (dW, dψ), db = gradient(sum ∘ *, A, b)
 
-        @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*b), W) |> only
+        @test dW ≈ gradient(W -> sum(RowImputingMatrix(W,ψ)*b), W) |> only
         @test dW ≈ gradient(W -> sum(W*b), W) |> only
 
-        @test dψ === gradient(ψ -> sum(ImputingMatrix(W,ψ)*b), ψ) |> only
+        @test dψ === gradient(ψ -> sum(RowImputingMatrix(W,ψ)*b), ψ) |> only
         @test isnothing(dψ)
 
-        @test db ≈ gradient(b -> sum(ImputingMatrix(W,ψ)*b), b) |> only
+        @test db ≈ gradient(b -> sum(RowImputingMatrix(W,ψ)*b), b) |> only
         @test db ≈ gradient(b -> sum(W*b), b) |> only
     end
 end
@@ -56,17 +59,17 @@ end
     for (m, n, k) in product(fill((1, 2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(n)
-        A = ImputingMatrix(W, ψ)
+        A = RowImputingMatrix(W, ψ)
         B = randn(n, k)
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
 
-        @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*B), W) |> only
+        @test dW ≈ gradient(W -> sum(RowImputingMatrix(W,ψ)*B), W) |> only
         @test dW ≈ gradient(W -> sum(W*B), W) |> only
 
-        @test dψ === gradient(ψ -> sum(ImputingMatrix(W,ψ)*B), ψ) |> only
+        @test dψ === gradient(ψ -> sum(RowImputingMatrix(W,ψ)*B), ψ) |> only
         @test isnothing(dψ)
 
-        @test dB ≈ gradient(B -> sum(ImputingMatrix(W,ψ)*B), B) |> only
+        @test dB ≈ gradient(B -> sum(RowImputingMatrix(W,ψ)*B), B) |> only
         @test dB ≈ gradient(B -> sum(W*B), B) |> only
     end
 end
@@ -75,17 +78,17 @@ end
     for (m, n) in product(fill((1, 2, 5, 10), 2)...)
         W = randn(m, n)
         ψ = randn(n)
-        A = ImputingMatrix(W, ψ)
+        A = RowImputingMatrix(W, ψ)
         b = fill(missing, n)
         (dW, dψ), db = gradient(sum ∘ *, A, b)
 
-        @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*b), W) |> only
+        @test dW ≈ gradient(W -> sum(RowImputingMatrix(W,ψ)*b), W) |> only
         @test dW ≈ gradient(W -> sum(W*ψ), W) |> only
 
-        @test dψ ≈ gradient(ψ -> sum(ImputingMatrix(W,ψ)*b), ψ) |> only
+        @test dψ ≈ gradient(ψ -> sum(RowImputingMatrix(W,ψ)*b), ψ) |> only
         @test dψ ≈ gradient(ψ -> sum(W*ψ), ψ) |> only
 
-        @test db === gradient(b -> sum(ImputingMatrix(W,ψ)*b), b) |> only
+        @test db === gradient(b -> sum(RowImputingMatrix(W,ψ)*b), b) |> only
         @test isnothing(db)
     end
 end
@@ -94,17 +97,17 @@ end
     for (m, n, k) in product(fill((1, 2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(n)
-        A = ImputingMatrix(W, ψ)
+        A = RowImputingMatrix(W, ψ)
         b = fill(missing, n, k)
         (dW, dψ), db = gradient(sum ∘ *, A, b)
 
-        @test dW ≈ gradient(W -> sum(ImputingMatrix(W,ψ)*b), W) |> only
+        @test dW ≈ gradient(W -> sum(RowImputingMatrix(W,ψ)*b), W) |> only
         @test dW ≈ gradient(W -> sum(W*repeat(ψ, 1, k)), W) |> only
 
-        @test dψ ≈ gradient(ψ -> sum(ImputingMatrix(W,ψ)*b), ψ) |> only
+        @test dψ ≈ gradient(ψ -> sum(RowImputingMatrix(W,ψ)*b), ψ) |> only
         @test dψ ≈ gradient(ψ -> sum(W*repeat(ψ, 1, k)), ψ) |> only
 
-        @test db === gradient(b -> sum(ImputingMatrix(W,ψ)*b), b) |> only
+        @test db === gradient(b -> sum(RowImputingMatrix(W,ψ)*b), b) |> only
         @test isnothing(db)
     end
 end
@@ -116,10 +119,10 @@ end
         b = Vector{Union{Float64, Missing}}(randn(n))
         b[rand(eachindex(b), rand(2:n-1))] .= missing
 
-        @test gradtest(W -> ImputingMatrix(W, ψ) * b, W)
-        @test gradtest(ψ -> ImputingMatrix(W, ψ) * b, ψ)
-        @test gradtest(b -> ImputingMatrix(W, ψ) * b, b)
-        @test gradtest((W, ψ, b) -> ImputingMatrix(W, ψ) * b, W, ψ, b)
+        @test gradtest(W -> RowImputingMatrix(W, ψ) * b, W)
+        @test gradtest(ψ -> RowImputingMatrix(W, ψ) * b, ψ)
+        @test gradtest(b -> RowImputingMatrix(W, ψ) * b, b)
+        @test gradtest((W, ψ, b) -> RowImputingMatrix(W, ψ) * b, W, ψ, b)
     end
 end
 
@@ -130,9 +133,9 @@ end
         B = Matrix{Union{Float64, Missing}}(randn(n, k))
         B[rand(eachindex(B), rand(2:n*k-1))] .= missing
 
-        @test gradtest(W -> ImputingMatrix(W, ψ) * B, W)
-        @test gradtest(ψ -> ImputingMatrix(W, ψ) * B, ψ)
-        @test gradtest(B -> ImputingMatrix(W, ψ) * B, B)
-        @test gradtest((W, ψ, B) -> ImputingMatrix(W, ψ) * B, W, ψ, B)
+        @test gradtest(W -> RowImputingMatrix(W, ψ) * B, W)
+        @test gradtest(ψ -> RowImputingMatrix(W, ψ) * B, ψ)
+        @test gradtest(B -> RowImputingMatrix(W, ψ) * B, B)
+        @test gradtest((W, ψ, B) -> RowImputingMatrix(W, ψ) * B, W, ψ, B)
     end
 end
