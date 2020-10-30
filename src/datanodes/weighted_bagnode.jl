@@ -4,7 +4,7 @@ struct WeightedBagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, W, 
     weights::Vector{W}
     metadata::C
 
-    function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C=nothing) where {T <: Union{Missing, AbstractNode}, B <: AbstractBags, W, C}
+    function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C=nothing) where {T <: Maybe{AbstractNode}, B <: AbstractBags, W, C}
         ismissing(d) && any(_len.(b.bags) .!= 0) && error("WeightedBagNode with nothing in data cannot have a non-empty bag")
         new{T, B, W, C}(d, b, w, m)
     end

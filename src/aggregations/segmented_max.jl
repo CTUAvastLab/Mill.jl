@@ -6,12 +6,12 @@ Flux.@functor SegmentedMax
 
 _SegmentedMax(d::Int) = SegmentedMax(zeros(Float32, d))
 
-function (m::SegmentedMax{T})(x::MaybeAbstractMatrix{T}, bags::AbstractBags,
-                              w::AggregationWeights{T}=nothing) where T
+function (m::SegmentedMax{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+                              w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_max_forw(x, m.ψ, bags)
 end
 function (m::SegmentedMax{T})(x::AbstractMatrix{T}, bags::AbstractBags,
-                              w::AggregationWeights{T}, mask::AbstractVector) where T
+                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
     segmented_max_forw(x .+ typemin(T) * mask', m.ψ, bags)
 end
 

@@ -28,11 +28,10 @@ terseprint(a) = _terseprint[] = a
 bagcount(a) = _bagcount[] = a
 
 # COMMON ALIASES
-const VecOrRange{T} = Union{UnitRange{T},AbstractVector{T}}
+const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
 using Base: AbstractVecOrMat
 const Maybe{T} = Union{T, Missing}
-const MaybeAbstractMatrix{T} = Maybe{AbstractMatrix{T}}
-const AggregationWeights{T} = Union{Nothing, AbstractVecOrMat{<:T}}
+const Optional{T} = Union{T, Nothing}
 
 MLDataPattern.nobs(::Missing) = nothing
 
@@ -49,7 +48,7 @@ export AlignedBags, ScatteredBags, length2bags, remapbag
 include("util.jl")
 include("threadfuns.jl")
 
-include("matrices/maybehot.jl")
+include("matrices/maybe_hot.jl")
 export MaybeHotVector, MaybeHotMatrix
 
 include("matrices/ngram_matrix.jl")
@@ -163,7 +162,7 @@ function base_show_full(io::IO, x::Type{T}) where {T<:Union{AbstractNode,Abstrac
     show(io, x.var)
 end
 
-function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
+function Base.show(io::IO, x::Type{<:Union{AbstractNode, AbstractMillModel}})
     if _terseprint[]
         return base_show_terse(io, x)
     else

@@ -16,7 +16,7 @@ inv_p_map(ρ::AbstractArray) = inv_p_map.(ρ)
 
 (m::SegmentedPNorm)(x::Missing, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x, m.ψ, nothing, bags, w)
 (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x .- m.c, m.ψ, p_map(m.ρ), bags, w)
-function (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w::AggregationWeights, mask::AbstractVector)
+function (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w::Optional{AbstractVecOrMat}, mask::AbstractVector)
     segmented_pnorm_forw((x.-m.c) .* mask', m.ψ, p_map(m.ρ), bags, w)
 end
 
@@ -60,7 +60,7 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
 end
 
 segmented_pnorm_forw(::Missing, ψ::AbstractVector, p, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
-function segmented_pnorm_forw(a::MaybeAbstractMatrix, ψ::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
+function segmented_pnorm_forw(a::Maybe{AbstractMatrix}, ψ::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
     M = _pnorm_precomp(a, bags)
     _segmented_pnorm_norm(a, ψ, p, bags, w, M)
 end

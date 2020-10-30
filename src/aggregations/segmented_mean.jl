@@ -6,17 +6,17 @@ Flux.@functor SegmentedMean
 
 _SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
 
-function (m::SegmentedMean{T})(x::MaybeAbstractMatrix{T}, bags::AbstractBags,
-                               w::AggregationWeights{T}=nothing) where T
+function (m::SegmentedMean{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_mean_forw(x, m.ψ, bags, w)
 end
 function (m::SegmentedMean{T})(x::AbstractMatrix{T}, bags::AbstractBags,
-                               w::AggregationWeights{T}, mask::AbstractVector) where T
+                               w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
     segmented_mean_forw(x .* mask', m.ψ, bags, w)
 end
 
 segmented_mean_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
-function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::AggregationWeights) 
+function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::Optional{AbstractVecOrMat}) 
     y = zeros(eltype(x), size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
