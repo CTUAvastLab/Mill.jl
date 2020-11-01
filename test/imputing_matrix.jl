@@ -25,8 +25,8 @@ end
 
 @testset "correct row imputing behavior for standard vector (maybe missing)" begin
     function _test_imput(W, ob::Vector, b::Vector)
-        IM = RowImputingMatrix(W, ob)
-        @test IM * b == W * ob
+        A = RowImputingMatrix(W, ob)
+        @test A * b == W * ob
     end
 
     function _test_imput(W, ob::Vector, t=10, p=0.2)
@@ -45,49 +45,49 @@ end
 @testset "correct row imputing behavior for standard matrix (maybe missing)" begin
     W = [1 2; 3 4]
     ψ = [2, 1]
-    IM = RowImputingMatrix(W, ψ)
+    A = RowImputingMatrix(W, ψ)
     B1 = [4 3; 2 1]
     B2 = [missing missing; missing missing]
     B3 = [missing 3; 1 missing]
     B4 = [3 missing; missing 1]
 
-    @test IM * B1 == W * B1
-    @test IM * B2 == [W * ψ W * ψ]
-    @test IM * B3 == W * [2 3; 1 1]
-    @test IM * B4 == W * [3 2; 1 1]
+    @test A * B1 == W * B1
+    @test A * B2 == [W * ψ W * ψ]
+    @test A * B3 == W * [2 3; 1 1]
+    @test A * B4 == W * [3 2; 1 1]
 end
 
-@testset "correct col imputing behavior for standard arrays (full)" begin
+@testset "correct col imputing behavior for full standard arrays" begin
     W = [1 2; 3 4]
     ψ = [2, 1]
-    IM = ColImputingMatrix(W, ψ)
+    A = ColImputingMatrix(W, ψ)
     B = [4 3; 2 1]
     b = [3, 1]
-    @test IM * B == W * B
-    @test IM * b == W * b
+    @test A * B == W * B
+    @test A * b == W * b
 
     B = [missing 3; missing 1]
     b = [3, 1]
-    @test isequal(IM * B, W * B)
-    @test isequal(IM * b, W * b)
+    @test isequal(A * B, W * B)
+    @test isequal(A * b, W * b)
 
     W = randn(2,3)
     ψ = randn(2)
-    IM = ColImputingMatrix(W, ψ)
+    A = ColImputingMatrix(W, ψ)
 
     B = randn(3, 5)
     b = randn(3)
-    @test IM * B ≈ W * B
-    @test IM * b ≈ W * b
+    @test A * B ≈ W * B
+    @test A * b ≈ W * b
 
     B = fill(missing, 3, 5)
     b = fill(missing, 3)
-    @test isequal(IM * B, W * B)
-    @test isequal(IM * b, W * b)
+    @test isequal(A * B, W * B)
+    @test isequal(A * b, W * b)
 end
 
 @testset "correct col imputing behavior for maybe hot vector" begin
-    for (m, n) in product(fill((1, 2, 5, 10), 2)...)
+    for (m, n) in product(fill((1, 5, 10, 20), 2)...)
         W = randn(m, n)
         ψ = randn(m)
         A = ColImputingMatrix(W, ψ)
@@ -100,7 +100,7 @@ end
 end
 
 @testset "correct col imputing behavior for maybe hot matrix" begin
-    for (m, n, k) in product(fill((1, 2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = ColImputingMatrix(W, ψ)
@@ -119,7 +119,7 @@ end
 end
 
 @testset "imputing matrix * full vector gradient testing" begin
-    for (m, n) in product(fill((1, 2, 5, 10), 2)...)
+    for (m, n) in product(fill((1, 5, 10, 20), 2)...)
         b = randn(n)
         W = randn(m, n)
 
@@ -127,11 +127,15 @@ end
         A = RowImputingMatrix(W, ψ)
         (dW, dψ), db = gradient(sum ∘ *, A, b)
 
+        @test gradtest((W, ψ) -> sum(RowImputingMatrix(W, ψ) * b), W, ψ)
+
         @test dW ≈ gradient(W -> sum(RowImputingMatrix(W, ψ) * b), W) |> only
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
+        @test gradtest(W -> sum(RowImputingMatrix(W, ψ) * b), W)
 
         @test dψ === gradient(ψ -> sum(RowImputingMatrix(W, ψ) * b), ψ) |> only
         @test isnothing(dψ)
+        @test gradtest(ψ -> sum(RowImputingMatrix(W, ψ) * b), ψ)
 
         @test db ≈ gradient(b -> sum(RowImputingMatrix(W, ψ) * b), b) |> only
         @test db ≈ gradient(b -> sum(W * b), b) |> only
@@ -140,11 +144,15 @@ end
         A = ColImputingMatrix(W, ψ)
         (dW, dψ), db = gradient(sum ∘ *, A, b)
 
+        @test gradtest((W, ψ) -> sum(RowImputingMatrix(W, ψ) * b), W, ψ)
+
         @test dW ≈ gradient(W -> sum(ColImputingMatrix(W, ψ) * b), W) |> only
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
+        @test gradtest(W -> sum(ColImputingMatrix(W, ψ) * b), W)
 
         @test dψ === gradient(ψ -> sum(ColImputingMatrix(W, ψ) * b), ψ) |> only
         @test isnothing(dψ)
+        @test gradtest(ψ -> sum(ColImputingMatrix(W, ψ) * b), ψ)
 
         @test db ≈ gradient(b -> sum(ColImputingMatrix(W, ψ) * b), b) |> only
         @test db ≈ gradient(b -> sum(W * b), b) |> only
@@ -152,7 +160,7 @@ end
 end
 
 @testset "imputing matrix * full matrix gradient testing" begin
-    for (m, n, k) in product(fill((1, 2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
         B = randn(n, k)
         W = randn(m, n)
 
@@ -160,11 +168,15 @@ end
         A = RowImputingMatrix(W, ψ)
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
 
+        @test gradtest((W, ψ) -> sum(RowImputingMatrix(W, ψ) * B), W, ψ)
+
         @test dW ≈ gradient(W -> sum(RowImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
+        @test gradtest(W -> sum(RowImputingMatrix(W, ψ) * B), W)
 
         @test dψ === gradient(ψ -> sum(RowImputingMatrix(W, ψ) * B), ψ) |> only
         @test isnothing(dψ)
+        @test gradtest(ψ -> sum(RowImputingMatrix(W, ψ) * B), ψ)
 
         @test dB ≈ gradient(B -> sum(RowImputingMatrix(W, ψ) * B), B) |> only
         @test dB ≈ gradient(B -> sum(W * B), B) |> only
@@ -173,11 +185,15 @@ end
         A = ColImputingMatrix(W, ψ)
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
 
+        @test gradtest((W, ψ) -> sum(ColImputingMatrix(W, ψ) * B), W, ψ)
+
         @test dW ≈ gradient(W -> sum(ColImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
+        @test gradtest(W -> sum(ColImputingMatrix(W, ψ) * B), W)
 
         @test dψ === gradient(ψ -> sum(ColImputingMatrix(W, ψ) * B), ψ) |> only
         @test isnothing(dψ)
+        @test gradtest(ψ -> sum(ColImputingMatrix(W, ψ) * B), ψ)
 
         @test dB ≈ gradient(B -> sum(ColImputingMatrix(W, ψ) * B), B) |> only
         @test dB ≈ gradient(B -> sum(W * B), B) |> only
@@ -185,19 +201,23 @@ end
 end
 
 @testset "col imputing matrix * full maybe hot vector gradient testing" begin
-    for (m, n) in product(fill((1, 2, 5, 10), 2)...), i in [rand(1:n) for _ in 1:3]
-        b = MaybeHotVector(i, n)
+    for (m, n) in product(fill((1, 5, 10, 20), 2)...), i in [rand(1:n) for _ in 1:3]
         W = randn(m, n)
-
         ψ = randn(m)
         A = ColImputingMatrix(W, ψ)
+        b = MaybeHotVector(i, n)
+
         (dW, dψ), db = gradient(sum ∘ *, A, b)
+
+        @test gradtest((W, ψ) -> sum(ColImputingMatrix(W, ψ) * b), W, ψ)
 
         @test dW ≈ gradient(W -> sum(ColImputingMatrix(W, ψ) * b), W) |> only
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
+        @test gradtest(W -> sum(ColImputingMatrix(W, ψ) * b), W)
 
         @test dψ === gradient(ψ -> sum(ColImputingMatrix(W, ψ) * b), ψ) |> only
         @test isnothing(dψ)
+        @test gradtest(ψ -> sum(ColImputingMatrix(W, ψ) * b), ψ)
 
         @test db === gradient(b -> sum(ColImputingMatrix(W, ψ) * b), b) |> only
         @test isnothing(db)
@@ -205,69 +225,156 @@ end
 end
 
 @testset "col imputing matrix * full maybe hot matrix gradient testing" begin
-    for (m, n, k) in product(fill((1, 2, 5, 10), 3)...), I in [rand(1:n, k) for _ in 1:3]
-        B = MaybeHotMatrix(I, n)
+    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...), I in [rand(1:n, k) for _ in 1:3]
         W = randn(m, n)
-
         ψ = randn(m)
         A = ColImputingMatrix(W, ψ)
+        B = MaybeHotMatrix(I, n)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
+
+        @test gradtest((W, ψ) -> sum(ColImputingMatrix(W, ψ) * B), W, ψ)
 
         @test dW ≈ gradient(W -> sum(ColImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
+        @test gradtest(W -> sum(ColImputingMatrix(W, ψ) * B), W)
 
         @test dψ === gradient(ψ -> sum(ColImputingMatrix(W, ψ) * B), ψ) |> only
         @test isnothing(dψ)
+        @test gradtest(ψ -> sum(ColImputingMatrix(W, ψ) * B), ψ)
 
         @test dB === gradient(B -> sum(ColImputingMatrix(W, ψ) * B), B) |> only
         @test isnothing(dB)
     end
 end
 
-@testset "row imputing matrix * fully missing vector gradient testing" begin
-    for (m, n) in product(fill((1, 2, 5, 10), 2)...)
+@testset "col imputing matrix * empty maybe hot vector gradient testing" begin
+    for (m, n) in product(fill((1, 5, 10, 20), 2)...)
+        W = randn(m, n)
+        ψ = randn(m)
+        A = ColImputingMatrix(W, ψ)
+        b = MaybeHotVector(missing, n)
+
+        (dW, dψ), db = gradient(sum ∘ *, A, b)
+
+        @test gradtest((W, ψ) -> sum(ColImputingMatrix(W, ψ) * b), W, ψ)
+
+        @test dW === gradient(W -> sum(ColImputingMatrix(W, ψ) * b), W) |> only
+        @test gradtest(W -> sum(ColImputingMatrix(W, ψ) * b), W)
+        @test isnothing(dW)
+
+        @test dψ ≈ gradient(ψ -> sum(ColImputingMatrix(W, ψ) * b), ψ) |> only
+        @test gradtest(ψ -> sum(ColImputingMatrix(W, ψ) * b), ψ)
+        @test all(dψ .== 1)
+
+        @test db === gradient(b -> sum(ColImputingMatrix(W, ψ) * b), b) |> only
+        @test isnothing(db)
+    end
+end
+
+@testset "col imputing matrix * empty maybe hot matrix gradient testing" begin
+    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
+        W = randn(m, n)
+        ψ = randn(m)
+        A = ColImputingMatrix(W, ψ)
+        B = MaybeHotMatrix(fill(missing, k), n)
+
+        (dW, dψ), dB = gradient(sum ∘ *, A, B)
+
+        @test gradtest((W, ψ) -> sum(ColImputingMatrix(W, ψ) * B), W, ψ)
+
+        @test dW === gradient(W -> sum(ColImputingMatrix(W, ψ) * B), W) |> only
+        @test gradtest(W -> sum(ColImputingMatrix(W, ψ) * B), W)
+        @test isnothing(dW)
+
+        @test dψ ≈ gradient(ψ -> sum(ColImputingMatrix(W, ψ) * B), ψ) |> only
+        @test gradtest(ψ -> sum(ColImputingMatrix(W, ψ) * B), ψ)
+        @test all(dψ .== k)
+
+        @test dB === gradient(B -> sum(ColImputingMatrix(W, ψ) * B), B) |> only
+        @test isnothing(dB)
+    end
+end
+
+@testset "col imputing matrix * mixed maybe hot matrix gradient testing" begin
+    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...), I in [rand(vcat(fill(missing, 1:n), 1:n), k) for _ in 1:3]
+        W = randn(m, n)
+        ψ = randn(m)
+        A = ColImputingMatrix(W, ψ)
+        B = MaybeHotMatrix(I, n)
+
+        (dW, dψ), dB = gradient(sum ∘ *, A, B)
+
+        @test gradtest((W, ψ) -> sum(ColImputingMatrix(W, ψ) * B), W, ψ)
+
+        @test dW ≈ gradient(W -> sum(ColImputingMatrix(W, ψ) * B), W) |> only
+        Bskip = MaybeHotMatrix(skipmissing(I) |> collect, n)
+        @test dW ≈ gradient(W -> sum(ColImputingMatrix(W, ψ) * Bskip), W) |> only
+        @test gradtest(W -> sum(ColImputingMatrix(W, ψ) * B), W)
+
+        @test dψ ≈ gradient(ψ -> sum(ColImputingMatrix(W, ψ) * B), ψ) |> only
+        Bmiss = MaybeHotMatrix(filter(ismissing, I) |> collect, n)
+        @test dψ ≈ gradient(ψ -> sum(ColImputingMatrix(W, ψ) * Bmiss), ψ) |> only
+        @test gradtest(ψ -> sum(ColImputingMatrix(W, ψ) * B), ψ)
+        @test all(dψ .== count(ismissing, I))
+
+        @test dB === gradient(B -> sum(ColImputingMatrix(W, ψ) * B), B) |> only
+        @test isnothing(dB)
+    end
+end
+
+@testset "row imputing matrix * empty vector gradient testing" begin
+    for (m, n) in product(fill((1, 5, 10, 20), 2)...)
         W = randn(m, n)
         ψ = randn(n)
         A = RowImputingMatrix(W, ψ)
         b = fill(missing, n)
         (dW, dψ), db = gradient(sum ∘ *, A, b)
 
+        @test gradtest((W, ψ) -> sum(RowImputingMatrix(W, ψ) * b), W, ψ)
+
         @test dW ≈ gradient(W -> sum(RowImputingMatrix(W, ψ) * b), W) |> only
         @test dW ≈ gradient(W -> sum(W * ψ), W) |> only
+        @test gradtest(W -> sum(RowImputingMatrix(W, ψ) * b), W)
 
         @test dψ ≈ gradient(ψ -> sum(RowImputingMatrix(W, ψ) * b), ψ) |> only
         @test dψ ≈ gradient(ψ -> sum(W * ψ), ψ) |> only
+        @test gradtest(ψ -> sum(RowImputingMatrix(W, ψ) * b), ψ)
 
         @test db === gradient(b -> sum(RowImputingMatrix(W, ψ) * b), b) |> only
         @test isnothing(db)
     end
 end
 
-@testset "row imputing matrix * fully missing matrix gradient testing" begin
-    for (m, n, k) in product(fill((1, 2, 5, 10), 3)...)
+@testset "row imputing matrix * empty missing matrix gradient testing" begin
+    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
         W = randn(m, n)
         ψ = randn(n)
         A = RowImputingMatrix(W, ψ)
-        b = fill(missing, n, k)
-        (dW, dψ), db = gradient(sum ∘ *, A, b)
+        B = fill(missing, n, k)
+        (dW, dψ), dB = gradient(sum ∘ *, A, B)
 
-        @test dW ≈ gradient(W -> sum(RowImputingMatrix(W, ψ) * b), W) |> only
+        @test gradtest((W, ψ) -> sum(RowImputingMatrix(W, ψ) * B), W, ψ)
+
+        @test dW ≈ gradient(W -> sum(RowImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * repeat(ψ, 1, k)), W) |> only
+        @test gradtest(W -> sum(RowImputingMatrix(W, ψ) * B), W)
 
-        @test dψ ≈ gradient(ψ -> sum(RowImputingMatrix(W, ψ) * b), ψ) |> only
+        @test dψ ≈ gradient(ψ -> sum(RowImputingMatrix(W, ψ) * B), ψ) |> only
         @test dψ ≈ gradient(ψ -> sum(W * repeat(ψ, 1, k)), ψ) |> only
+        @test gradtest(ψ -> sum(RowImputingMatrix(W, ψ) * B), ψ)
 
-        @test db === gradient(b -> sum(RowImputingMatrix(W, ψ) * b), b) |> only
-        @test isnothing(db)
+        @test dB === gradient(B -> sum(RowImputingMatrix(W, ψ) * B), B) |> only
+        @test isnothing(dB)
     end
 end
 
 @testset "row imputing matrix * mixed vector gradient testing" begin
-    for (m, n) in product(fill((3, 5, 10, 20), 2)...)
+    for (m, n) in product(fill((1, 5, 10, 20), 2)...)
         W = randn(m, n)
         ψ = randn(n)
         b = Vector{Union{Float64, Missing}}(randn(n))
-        b[rand(eachindex(b), rand(2:n-1))] .= missing
+        b[rand(eachindex(b), rand(1:n))] .= missing
 
         @test gradtest(W -> RowImputingMatrix(W, ψ) * b, W)
         @test gradtest(ψ -> RowImputingMatrix(W, ψ) * b, ψ)
@@ -277,11 +384,11 @@ end
 end
 
 @testset "row imputing matrix * mixed matrix gradient testing" begin
-    for (m, n, k) in product(fill((3, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
         W = randn(m, n)
         ψ = randn(n)
         B = Matrix{Union{Float64, Missing}}(randn(n, k))
-        B[rand(eachindex(B), rand(2:n*k-1))] .= missing
+        B[rand(eachindex(B), rand(1:n*k))] .= missing
 
         @test gradtest(W -> RowImputingMatrix(W, ψ) * B, W)
         @test gradtest(ψ -> RowImputingMatrix(W, ψ) * B, ψ)

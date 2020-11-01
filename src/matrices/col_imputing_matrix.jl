@@ -29,12 +29,13 @@ _mul(A::ColImputingMatrix, B::MaybeHotMatrix{Maybe{T}}) where {T <: Integer} =
 
 _impute_maybe_hot(W, ψ, I) = _fill_col_mask(W, ψ, I)[1]
 function rrule(::typeof(_impute_maybe_hot), W, ψ, I)
-    @show "rrule"
     C, m = _fill_col_mask(W, ψ, I)
     function dW_thunk(Δ)
         dW = zero(W)
-        for i in skipmissing(I)
-            dW[:, i] .+= Δ[:, i]
+        for (k, i) in enumerate(I)
+            if !ismissing(i)
+                dW[:, i] .+= Δ[:, k]
+            end
         end
         dW
     end
