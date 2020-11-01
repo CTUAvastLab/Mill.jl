@@ -36,7 +36,7 @@ end
         if ismissing(i)
             @test all(isequal.(missing, mhv))
         else
-            @test Vector(mhv) == OneHotVector(i, l)
+            @test Vector(mhv) == onehot(i, 1:l)
         end
         @test_throws BoundsError mhv[0]
         @test_throws BoundsError mhv[l+1]
@@ -50,7 +50,7 @@ end
             @test all(isequal.(missing, m[:, k]))
             @test all(isequal.(missing, mhm[:, k]))
         else
-            @test mhm[:, k] == m[:, k] == OneHotVector(i, l)
+            @test mhm[:, k] == m[:, k] == onehot(i, 1:l)
         end
     end
     @test isequal(mhm[[1,2,7], 3], m[[1,2,7], 3])
@@ -113,4 +113,53 @@ end
     @test mhm1 != mhm3
     @test mhm1 != mhm4
     @test mhm1 != mhm5
+end
+
+@testset "onehot and onehotbatch" begin
+    i = 1
+    b = MaybeHotVector(i, 10)
+    @test onehot(b) == onehot(i, 1:length(b))
+    b = MaybeHotVector(missing, n)
+    @test_throws MethodError onehot(b)
+    I = [3, 1, 2]
+    B = MaybeHotMatrix(I, 10)
+    @test onehotbatch(B) == onehotbatch(I, 1:size(B, 1))
+    B = MaybeHotMatrix([3, missing, 2], 10)
+    @test_throws MethodError onehotbatch(B)
+end
+
+@testset "AbstractMatrix * MaybeHotVector{<:Integer} gradtest" begin
+    # for MaybeHot types with missing elements, it doesn't make sense to compute gradient
+    for (m, n) in product(fill((1, 2, 5, 10), 2)...), i in [rand(1:n) for _ in 1:3]
+        A = randn(m, n)
+        b = MaybeHotVector(i, n)
+        dA, db = gradient(sum ∘ *, A, b)
+
+        @test dA ≈ gradient(A -> sum(A * onehot(b)), A) |> only
+        ddA = zero(A)
+        ddA[:, i] .+= 1 
+        @test dA ≈ ddA
+
+        @test db === gradient(b -> sum(A * b), b) |> only
+        @test isnothing(db)
+    end
+end
+
+@testset "AbstractMatrix * MaybeHotMatrix{<:Integer} gradtest" begin
+    # for MaybeHot types with missing elements, it doesn't make sense to compute gradient
+    for (m, n, k) in product(fill((1, 2, 5, 10), 3)...), I in [rand(1:n, k) for _ in 1:3]
+        A = randn(m, n)
+        B = MaybeHotMatrix(I, n)
+        dA, dB = gradient(sum ∘ *, A, B)
+
+        @test dA ≈ gradient(A -> sum(A * onehotbatch(B)), A) |> only
+        ddA = zero(A)
+        for i in I
+            ddA[:, i] .+= 1 
+        end
+        @test dA ≈ ddA
+
+        @test dB === gradient(B -> sum(A * B), B) |> only
+        @test isnothing(dB)
+    end
 end
