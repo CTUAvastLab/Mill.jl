@@ -15,7 +15,7 @@ import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, getindex, setindex!
 import Base: reduce, eltype, print_array
 
-import Flux: Params, params!, IdSet
+import Flux: Params, params!, IdSet, onehot, onehotbatch
 
 import ChainRulesCore: rrule
 
@@ -48,16 +48,13 @@ export AlignedBags, ScatteredBags, length2bags, remapbag
 include("util.jl")
 include("threadfuns.jl")
 
-include("matrices/maybe_hot.jl")
+include("matrices/matrix.jl")
 export MaybeHotVector, MaybeHotMatrix
-
-include("matrices/ngram_matrix.jl")
 export NGramMatrix, NGramIterator
-(::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
-
-include("matrices/imputing_matrix.jl")
 export ImputingMatrix, RowImputingMatrix, ColImputingMatrix
 export ImputingDense, RowImputingDense, ColImputingDense
+
+(::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
 
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
