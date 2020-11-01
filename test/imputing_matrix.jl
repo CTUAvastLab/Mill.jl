@@ -42,6 +42,24 @@ end
     _test_imput(reshape(1:9 |> collect, (3,3)), rand(1:3, 3), fill(missing, 3))
 end
 
+@testset "Wrong dimensions" begin
+    A = RowImputingMatrix(rand(2,3), rand(3))
+    @test_throws DimensionMismatch A * []
+    @test_throws DimensionMismatch A * [[]]
+    @test_throws DimensionMismatch A * [1, 2]
+    @test_throws DimensionMismatch A * [missing, missing]
+    @test_throws DimensionMismatch A * [1, 2, 3, 4]
+    @test_throws DimensionMismatch A * [1, 2, 3, missing]
+
+    A = ColImputingMatrix(rand(2,3), rand(2))
+    @test_throws DimensionMismatch A * MaybeHotVector(2, 2)
+    @test_throws DimensionMismatch A * MaybeHotVector(missing, 4)
+    @test_throws DimensionMismatch A * MaybeHotMatrix(Int[], 1)
+    @test_throws DimensionMismatch A * MaybeHotMatrix([1, 2], 5)
+    @test_throws DimensionMismatch A * MaybeHotMatrix([missing, 5, 8], 10)
+    @test_throws DimensionMismatch A * MaybeHotMatrix([missing, missing], 2)
+end
+
 @testset "correct row imputing behavior for standard matrix (maybe missing)" begin
     W = [1 2; 3 4]
     ψ = [2, 1]

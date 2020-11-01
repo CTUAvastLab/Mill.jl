@@ -119,7 +119,7 @@ end
     i = 1
     b = MaybeHotVector(i, 10)
     @test onehot(b) == onehot(i, 1:length(b))
-    b = MaybeHotVector(missing, n)
+    b = MaybeHotVector(missing, 10)
     @test_throws MethodError onehot(b)
     I = [3, 1, 2]
     B = MaybeHotMatrix(I, 10)
