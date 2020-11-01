@@ -3,6 +3,8 @@ struct MaybeHotMatrix{T <: Maybe{Integer}, V <: AbstractVector{T}} <: AbstractMa
     l::Int
 end
 
+MaybeHotMatrix(x::MaybeHotVector) = MaybeHotMatrix([x.i], x.l)
+
 Base.size(X::MaybeHotMatrix) = (X.l, length(X.I))
 Base.length(X::MaybeHotMatrix) = X.l * length(X.I)
 function Base.getindex(X::MaybeHotMatrix, idcs...)
@@ -16,14 +18,16 @@ _getindex(X::MaybeHotMatrix, ::Colon, i::Integer) = MaybeHotVector(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, i::AbstractArray) = MaybeHotMatrix(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, ::Colon) = MaybeHotMatrix(copy(X.I), X.l)
 
-function Base.hcat(X::MaybeHotMatrix, Xs::MaybeHotMatrix...)
-    ls = unique(vcat(X.l, [X.l for X in Xs])) 
+Base.hcat(X::MaybeHotMatrix) = X
+Base.hcat(X::MaybeHotMatrix, Xs::MaybeHotMatrix...) = reduce(hcat, vcat([X], collect(Xs)))
+function Base.reduce(::typeof(hcat), Xs::Vector{<:MaybeHotMatrix})
+    ls = unique([X.l for X in Xs]) 
     if length(ls) > 1
         DimensionMismatch(
             "Number of rows of MaybeHot to hcat must correspond"
         ) |> throw
     end
-    MaybeHotMatrix(vcat(X.I, [X.I for X in Xs]...), only(ls))
+    MaybeHotMatrix(reduce(vcat, [X.I for X in Xs]), only(ls))
 end
 
 A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))

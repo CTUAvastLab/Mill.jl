@@ -9,7 +9,10 @@ Base.getindex(x::MaybeHotVector, i::Integer) = (@boundscheck checkbounds(x, i); 
 Base.getindex(x::MaybeHotVector, ::Colon) = MaybeHotVector(x.i, x.l)
 
 Base.hcat(x::MaybeHotVector) = x
-Base.hcat(x::MaybeHotVector, xs::MaybeHotVector...) = hcat((MaybeHotMatrix([x.i], x.l) for x in [x, xs...])...)
+Base.hcat(x::MaybeHotVector, xs::MaybeHotVector...) = reduce(hcat, vcat([x], collect(xs)))
+function Base.reduce(::typeof(hcat), xs::Vector{<:MaybeHotVector})
+    reduce(hcat,  MaybeHotMatrix.(xs))
+end
 
 A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); _mul(A, b))
 Zygote.@adjoint A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
