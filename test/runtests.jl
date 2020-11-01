@@ -6,7 +6,7 @@ using Mill: ngrams, string2ngrams, countngrams, multrans, catobs
 using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
 using Base.Iterators: partition, product
 using Flux
-using Flux: OneHotVector
+using Flux: onehot, onehotbatch
 using Random
 using Combinatorics
 using SparseArrays
@@ -68,7 +68,8 @@ const BAGS3 = [
 for test_f in readdir(".")
     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
     @info "<HEARTBEAT>"
-    @eval @testset $test_f begin
-        include($test_f)
-    end
+    # @eval @testset $test_f begin
+    #     include($test_f)
+    # end
+    @eval include($test_f)
 end
