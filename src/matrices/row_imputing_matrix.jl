@@ -14,10 +14,10 @@ function Base.vcat(As::RowImputingMatrix...)
     ArgumentError("It doesn't make sense to vcat RowImputingMatrices") |> throw
 end
 
-A::RowImputingMatrix * B::AbstractVector = _mul(A, B)
-Zygote.@adjoint A::RowImputingMatrix * B::AbstractVector = Zygote.pullback(_mul, A, B)
-A::RowImputingMatrix * B::AbstractMatrix = _mul(A, B)
-Zygote.@adjoint A::RowImputingMatrix * B::AbstractMatrix = Zygote.pullback(_mul, A, B)
+A::RowImputingMatrix * b::AbstractVector = (_check_mul(A, b); _mul(A, b))
+Zygote.@adjoint A::RowImputingMatrix * b::AbstractVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
+A::RowImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
+Zygote.@adjoint A::RowImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
 _mul(A::RowImputingMatrix, B::AbstractVecOrMat) = A.W * B
 _mul(A::RowImputingMatrix, ::AbstractVector{Missing}) = A.W * A.ψ

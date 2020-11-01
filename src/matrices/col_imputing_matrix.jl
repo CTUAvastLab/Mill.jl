@@ -14,10 +14,14 @@ function Base.hcat(As::ColImputingMatrix...)
     ArgumentError("It doesn't make sense to hcat ColImputingMatrices") |> throw
 end
 
-A::ColImputingMatrix * B::MaybeHotMatrix = _mul(A, B)
-Zygote.@adjoint A::ColImputingMatrix * B::MaybeHotMatrix = Zygote.pullback(_mul, A, B)
-A::ColImputingMatrix * B::MaybeHotVector = _mul(A, B)
-Zygote.@adjoint A::ColImputingMatrix * B::MaybeHotVector = Zygote.pullback(_mul, A, B)
+A::ColImputingMatrix * b::AbstractVector = (_check_mul(A, b); _mul(A, b))
+Zygote.@adjoint A::ColImputingMatrix * b::AbstractVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
+A::ColImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
+Zygote.@adjoint A::ColImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
+A::ColImputingMatrix * b::MaybeHotVector = (_check_mul(A, b); _mul(A, b))
+Zygote.@adjoint A::ColImputingMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
+A::ColImputingMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))
+Zygote.@adjoint A::ColImputingMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
 _mul(A::ColImputingMatrix, B::AbstractVecOrMat) = A.W * B
 _mul(A::ColImputingMatrix, b::MaybeHotVector{Missing}) = A.ψ
