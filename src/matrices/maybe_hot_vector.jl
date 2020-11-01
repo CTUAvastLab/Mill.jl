@@ -14,6 +14,8 @@ function Base.reduce(::typeof(hcat), xs::Vector{<:MaybeHotVector})
     reduce(hcat,  MaybeHotMatrix.(xs))
 end
 
+Base.reduce(::typeof(catobs), xs::Vector{<:MaybeHotVector}) = reduce(hcat, xs)
+
 A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); _mul(A, b))
 Zygote.@adjoint A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
 

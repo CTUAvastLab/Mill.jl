@@ -20,14 +20,23 @@ end
     I = [1, missing, 3, missing, 5]
     mhm = MaybeHotMatrix(I, l)
     mhvs = MaybeHotVector.(I, l)
+
     @test all(mhv -> isequal(hcat(mhv), mhv), mhvs)
     @test all(mhv -> isequal(reduce(hcat, [mhv]), MaybeHotMatrix(mhv)), mhvs)
+    @test all(mhv -> isequal(reduce(catobs, [mhv]), MaybeHotMatrix(mhv)), mhvs)
+
     @test isequal(hcat(mhm), mhm)
     @test isequal(reduce(hcat, [mhm]), mhm)
+    @test isequal(reduce(catobs, [mhm]), mhm)
+
     @test isequal(hcat(mhvs...), mhm)
     @test isequal(reduce(hcat, mhvs), mhm)
+    @test isequal(reduce(catobs, mhvs), mhm)
+
     @test_throws DimensionMismatch hcat(MaybeHotVector.([1, 2], [l, l+1])...)
     @test_throws DimensionMismatch hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
+    @test_throws DimensionMismatch catobs(MaybeHotVector.([1, 2], [l, l+1])...)
+    @test_throws DimensionMismatch catobs(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
 end
 
 @testset "indexing" begin
