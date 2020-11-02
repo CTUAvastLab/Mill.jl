@@ -30,14 +30,12 @@ Zygote.@adjoint function reduce(::typeof(catobs), as::Vector{<:AbstractMatrix})
 end
 
 reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{<:Missing}) = missing
-reduce(::typeof(catobs), as::Vector{<:Nothing}) = nothing
-reduce(::typeof(catobs), as::Vector{<:Union{Missing, Nothing}}) = nothing
-function reduce(::typeof(catobs), as::Vector{T}) where {T<:Union{Missing, AbstractNode}}
-    reduce(catobs, [a for a in as if !ismissing(a)])
-end
+reduce(::typeof(catobs), as::Vector{Missing}) = missing
+reduce(::typeof(catobs), as::Vector{Nothing}) = nothing
+reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
+reduce(::typeof(catobs), as::Vector{<:Maybe{AbstractNode}}) = reduce(catobs, [a for a in as if !ismissing(a)])
 
-function reduce(::typeof(catobs), as::Vector{<: Any})
+function reduce(::typeof(catobs), as::Vector{<:Any})
     isempty(as) && return(as)
     T = mapreduce(typeof, typejoin, as)
     T === Any && @error "cannot reduce Any"
@@ -50,7 +48,7 @@ _cattrees(as::Vector{T}) where T <: Union{Tuple, Vector}  = tuple([reduce(catobs
 function _cattrees(as::Vector{T}) where T <: NamedTuple
     ks = keys(as[1])
     vs = [k => reduce(catobs, [a[k] for a in as]) for k in ks]
-    (;vs...)
+    (; vs...)
 end
 
 mapdata(f, x) = f(x)
@@ -64,7 +62,7 @@ MLDataPattern.getobs(x::AbstractNode, i) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Undefined) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Last) = x[i]
 
-#subset of common datatypes the way we like them
+# subset of common datatypes the way we like them
 subset(x::AbstractMatrix, i) = x[:, i]
 subset(x::AbstractVector, i) = x[i]
 subset(x::AbstractNode, i) = x[i]

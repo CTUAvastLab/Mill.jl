@@ -18,13 +18,13 @@ Base.ndims(x::ArrayNode) = Colon()
 LearnBase.nobs(a::ArrayNode) = size(a.data, 2)
 LearnBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
 
-function reduce(::typeof(catobs), as::Vector{T}) where {T<:ArrayNode}
+function reduce(::typeof(catobs), as::Vector{<:ArrayNode})
     data = reduce(catobs, [x.data for x in as])
     metadata = reduce(catobs, [a.metadata for a in as])
     ArrayNode(data, metadata)
 end
 
-function reduce(::typeof(vcat), as::Vector{T}) where {T<:ArrayNode}
+function reduce(::typeof(vcat), as::Vector{<:ArrayNode})
     data = reduce(vcat, [a.data for a in as])
     metadata = as[1].metadata == nothing ? nothing : as[1].metadata
     ArrayNode(data, metadata)
