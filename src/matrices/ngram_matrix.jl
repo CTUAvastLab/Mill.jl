@@ -1,4 +1,3 @@
-# struct NGramIterator{T} where {T<:Union{Base.CodeUnits{UInt8,S} where S,Vector{I} where I<:Integer}}
 """
 struct NGramIterator{T}
 s::T
@@ -15,7 +14,7 @@ In order to reduce collisions when mixing ngrams of different order one should a
 julia> it = Mill.NGramIterator(collect(1:10), 3, 10)
 Mill.NGramIterator{Array{Int64,1}}([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, 10)
 
-julia> [gram for gram in it]
+julia> collect(it)
 12-element Array{Int64,1}:
 1
 12
@@ -33,7 +32,7 @@ julia> [gram for gram in it]
 julia> sit = Mill.NGramIterator(codeunits("deadbeef"), 3, 256)    # creates collisions as codeunits returns tokens from 0x00:0xff
 Mill.NGramIterator{Base.CodeUnits{UInt8,String}}(UInt8[0x64, 0x65, 0x61, 0x64, 0x62, 0x65, 0x65, 0x66], 3, 256)
 
-julia> [gram for gram in sit]
+julia> collect(sit)
 10-element Array{Int64,1}:
 100
 25701
@@ -51,13 +50,9 @@ struct NGramIterator{T}
     s::T
     n::Int
     b::Int
-    # function NGramIterator{T}(x, n, b) where {T}
-    # new(s, n, b)
-    # end
 end
 
-# NGramIterator(s::AbstractString) = NGramIterator(codeunits(s), 3, 256)
-# NGramIterator(s::AbstractString, n, b) = NGramIterator(codeunits(s), n, b)
+NGramIterator(s::AbstractString, n::Int=3, b::Int=256) = NGramIterator(codeunits(s), n, b)
 
 Base.length(it::NGramIterator) = length(it.s) + it.n - 1
 
@@ -66,13 +61,13 @@ function Base.iterate(it::NGramIterator, s = (0, 1))
     b, n = it.b, it.n
     if i <= length(it.s)
         idx = idx * b + it.s[i]
-        idx = (i>n) ? idx - it.s[i - n]*b^n : idx
-        return(idx, (idx, i + 1))
+        idx = i > n ? idx - it.s[i - n] * b^n : idx
+        return idx, (idx, i + 1)
     elseif i < length(it.s) + n
-        idx = (i>n) ? idx - it.s[i - n]*b^(n - (i - length(it.s))) : idx
-        return(idx, (idx, i + 1))
+        idx = i > n ? idx - it.s[i - n] * b^(n - (i - length(it.s))) : idx
+        return idx, (idx, i + 1)
     else
-        return(nothing)
+        return nothing
     end
 end
 
@@ -82,7 +77,7 @@ ngrams!(o,x,n::Int,b::Int)
 store indexes of `n` grams of `x` with base `b` to `o`
 
 """
-function ngrams!(o,x::T,n::Int,b::Int) where {T<:Union{Base.CodeUnits{UInt8,S} where S,Vector{I} where I<:Integer}}
+function ngrams!(o, x::T, n::Int, b::Int) where {T<:Union{CodeUnits{UInt8}, Vector{<:Integer}}}
     @assert length(o) >= length(x) + n - 1
     for (i, idx) in enumerate(NGramIterator(x, n, b))
         o[i] = idx
@@ -96,8 +91,8 @@ ngrams(x,n::Int,b::Int)
 indexes of `n` grams of `x` with base `b`
 
 """
-ngrams(x::T,n::Int,b::Int) where {T<:Union{Base.CodeUnits{UInt8,S} where S,Vector{I} where I<:Integer}} =   collect(NGramIterator(x, n, b))
-ngrams(x::T,n::Int,b::Int) where {T<:AbstractString} = ngrams(codeunits(x),n,b)
+ngrams(x::Union{CodeUnits{UInt8}, Vector{<:Integer}}, n::Int, b::Int) = collect(NGramIterator(x, n, b))
+ngrams(x::AbstractString, n::Int, b::Int) = ngrams(codeunits(x),n,b)
 
 """
 function countngrams!(o,x,n::Int,b::Int)
@@ -105,14 +100,14 @@ function countngrams!(o,x,n::Int,b::Int)
 counts number of of `n` grams of `x` with base `b` to `o` and store it to o
 
 """
-function countngrams!(o,x::T,n::Int,b::Int) where {T<:Union{Base.CodeUnits{UInt8,S} where S,Vector{I} where I<:Integer}}
+function countngrams!(o, x::Union{CodeUnits{UInt8},Vector{<:Integer}}, n::Int, b::Int)
     for idx in NGramIterator(x, n, b)
-        o[mod(idx, length(o))+1] += 1
+        o[mod(idx, length(o)) + 1] += 1
     end
     o
 end
 
-countngrams!(o,x::T,n::Int,b::Int) where {T<:AbstractString} = countngrams!(o,codeunits(x),n,b)
+countngrams!(o, x::AbstractString, n::Int, b::Int) = countngrams!(o, codeunits(x), n, b)
 
 """
 function countngrams(x,n::Int,b::Int)
@@ -120,20 +115,18 @@ function countngrams(x,n::Int,b::Int)
 counts number of of `n` grams of `x` with base `b` to `o`
 
 """
-countngrams(x,n::Int,b::Int,m) = countngrams!(zeros(Int,m),x,n,b)
-function countngrams(x::Vector{T},n::Int,b::Int,m) where {T<:AbstractString}
-    o = zeros(Int,m,length(x))
+countngrams(x, n::Int, b::Int, m) = countngrams!(zeros(Int,m), x, n, b)
+function countngrams(x::Vector{<:AbstractString}, n::Int, b::Int, m)
+    o = zeros(Int, m, length(x))
     for (i,s) in enumerate(x)
-        countngrams!(view(o,:,i),x[i],n,b)
+        countngrams!(view(o,:,i), x[i], n, b)
     end
     o
 end
 
-
-string2ngrams(x::T, n, m) where {T <: AbstractArray{I} where I<: AbstractString} = countngrams(Vector(x[:]),n,256,m)
-string2ngrams(x::T, n, m) where {T<: AbstractString} = countngrams(x, n, 256, m)
+string2ngrams(x::AbstractArray{<:AbstractString}, n, m) = countngrams(Vector(x[:]), n, 256, m)
+string2ngrams(x::AbstractString, n, m) = countngrams(x, n, 256, m)
 string2ngrams(x, n, m) = x
-
 
 """
 struct NGramMatrix{T}
@@ -149,6 +142,7 @@ dense matrix is overloaded and `b` is a base for calculation of trigrams. Finall
 The structure essentially represents module one-hot representation of strings, where each columns contains one observation (string).
 Therefore the structure can be viewed as a matrix with `m` rows and `length(s)` columns
 """
+# TODO use better type here
 struct NGramMatrix{T} <: AbstractMatrix{T}
     s::Vector{T}
     n::Int
@@ -156,42 +150,57 @@ struct NGramMatrix{T} <: AbstractMatrix{T}
     m::Int
 end
 
-Base.show(io::IO, n::NGramMatrix) = (print(io, "NGramMatrix($(n.b), $(n.m))"); show(io, n.s))
-Base.show(io::IO, ::MIME"text/plain", n::NGramMatrix) = Base.show(io, n)
+NGramMatrix(s::Vector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: AbstractString = NGramMatrix{T}(s, n, b, m)
+NGramMatrix(s::AbstractString, args...) = NGramMatrix([s], args...)
 
-NGramIterator(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramIterator(codeunits(a.s[i]), a.n, a.b)
-NGramIterator(a::NGramMatrix{T}, i) where {T<:Vector{U}} where {U<:Integer} = NGramIterator(a.s[i], a.n, a.b)
+function Base.show(io::IO, X::NGramMatrix)
+    if get(io, :compact, false)
+        print(io, size(X, 1), "x", size(X, 2), " NGramMatrix")
+    else
+        print(io, "NGramMatrix(s = ", X.s, ", n = ", X.n, 
+              ", b = ", X.b, ", m = ", X.m, ")")
+    end
+end
 
-Base.length(a::NGramMatrix) = length(a.s)
+print_array(io::IO, A::NGramMatrix) = print_array(io, A.s)
+
+NGramIterator(a::NGramMatrix{<:AbstractString}, i::Integer) = NGramIterator(codeunits(a.s[i]), a.n, a.b)
+NGramIterator(a::NGramMatrix{<:Vector{<:Integer}}, i::Integer) = NGramIterator(a.s[i], a.n, a.b)
+
+Base.length(a::NGramMatrix) = a.m * length(a.s)
 Base.size(a::NGramMatrix) = (a.m, length(a.s))
 Base.size(a::NGramMatrix, d) = (d == 1) ? a.m : length(a.s)
-subset(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramMatrix(a.s[i], a.n, a.b, a.m)
-Base.getindex(a::NGramMatrix{T}, i) where {T<:AbstractString} = NGramMatrix(a.s[i], a.n, a.b, a.m)
-function Base.getindex(a::NGramMatrix{T}, i::Union{Integer, CartesianIndex{1}}) where {T<:AbstractString}
-    NGramMatrix([a.s[i]], a.n, a.b, a.m)
+Base.getindex(a::NGramMatrix{<:AbstractString}, ::Colon, i::Integer) = NGramMatrix([a.s[i]], a.n, a.b, a.m)
+Base.getindex(a::NGramMatrix{<:AbstractString}, ::Colon, i::AbstractArray) = NGramMatrix(a.s[i], a.n, a.b, a.m)
+
+subset(a::NGramMatrix{<:AbstractString}, i) = NGramMatrix(a.s[i], a.n, a.b, a.m)
+
+Base.reduce(::typeof(catobs), As::Vector{<:NGramMatrix}) = reduce(hcat, As)
+Base.hcat(As::NGramMatrix...) = reduce(hcat, collect(As))
+function Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix})
+    ns = unique([A.n for A in As])
+    bs = unique([A.b for A in As])
+    ms = unique([A.m for A in As])
+    if length(ns) > 1 || length(bs) > 1 || length(ms) > 1
+        DimensionMismatch(
+            "Matrices do not have the same n, b, or m."
+        ) |> throw
+    end
+    NGramMatrix(reduce(vcat, [i.s for i in As]), only(ns), only(bs), only(ms))
 end
-Base.reduce(::typeof(catobs), a::Vector{S}) where {S<:NGramMatrix} = _catobs(vec(a))
-Base.reduce(::typeof(catobs), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(vec(a))
-Base.reduce(::typeof(hcat), a::Vector{S}) where {S<:NGramMatrix} = _catobs(vec(a))
-Base.reduce(::typeof(hcat), a::Matrix{S}) where {S<:NGramMatrix} = _catobs(vec(a))
-Base.hcat(a::NGramMatrix...) = reduce(catobs, collect(a))
-catobs(a::NGramMatrix...) = _catobs(collect(a))
-_lastcat(a::Array{S}) where {S<:NGramMatrix} = _catobs(a)
-_catobs(a::AbstractVector{<:NGramMatrix}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
-_catobs(a::Tuple{Vararg{NGramMatrix}}) = NGramMatrix(reduce(vcat, [i.s for i in a]), a[1].n, a[1].b, a[1].m)
 
 Base.Matrix(x::NGramMatrix) = Matrix(SparseMatrixCSC(x))
 
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Float32, UInt}(x)
 
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}
-    length(x) == 0 && return sparse(Ti[],Ti[],Tv[], size(x,1), size(x,2))
-    l = sum(map(i -> length(NGramIterator(x, i)), 1:length(x)))
+    size(x, 2) == 0 && return sparse(Ti[],Ti[],Tv[], size(x,1), size(x,2))
+    l = sum(map(i -> length(NGramIterator(x, i)), 1:size(x, 2)))
     I = zeros(Ti, l)
     J = zeros(Ti, l)
     V = ones(Tv, l)
     vid = 1
-    for j in 1:length(x)
+    for j in 1:size(x, 2)
         for i in NGramIterator(x, j)
             I[vid] = mod(i, x.m) + 1
             J[vid] = j
@@ -200,7 +209,6 @@ function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: I
     end
     sparse(I, J, V, size(x,1), size(x,2))
 end
-
 
 function nextgram(s, idx, i, N, B)
     if i <= length(s)
@@ -237,9 +245,8 @@ end
 function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T<:AbstractString}
     mA, nA = size(A)
     @assert nA == size(B,1)
-    nB = length(B)
-    C = zeros(eltype(A), mA, nB)
-    for jB in 1:length(B)
+    C = zeros(eltype(A), mA, size(B, 2))
+    for jB in 1:size(B, 2)
         # mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
         mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
     end
@@ -249,9 +256,8 @@ end
 function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T}
     mA, nA = size(A)
     @assert nA == size(B,1)
-    nB = length(B)
-    C = zeros(eltype(A), mA, nB)
-    for jB in 1:length(B)
+    C = zeros(eltype(A), mA, size(B, 2))
+    for jB in 1:size(B, 2)
         # mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
         mulkernel!(C, A, jB, mA, nA, B.s[jB], B.n, B.b)
     end
@@ -281,9 +287,8 @@ end
 
 function multrans(A::AbstractMatrix, B::NGramMatrix{T}) where {T<:AbstractString}
     mA, nA = size(A)
-    mB = length(B)
     C = zeros(eltype(A), mA, B.m)
-    for jB in 1:length(B)
+    for jB in 1:size(B, 2)
         # multkernel!(C, A, jB, mA, B.m, NGramIterator(B, jB))
         multkernel!(C, A, jB, mA, B.m, codeunits(B.s[jB]), B.n, B.b)
     end
@@ -292,21 +297,27 @@ end
 
 function multrans(A::AbstractMatrix, B::NGramMatrix{T}) where {T}
     mA, nA = size(A)
-    mB = length(B)
     C = zeros(eltype(A), mA, B.m)
-    for jB in 1:length(B)
+    for jB in 1:size(B, 2)
         # multkernel!(C, A, jB, mA, B.m, NGramIterator(B, jB))
         multkernel!(C, A, jB, mA, B.m, B.s[jB], B.n, B.b)
     end
     return C
 end
 
+# TODO change to rrule once this gets resolved
+# https://github.com/FluxML/Zygote.jl/issues/811
+# function rrule(::typeof(mul), a::AbstractMatrix, b::NGramMatrix)
+#     return mul(a, b), Δ -> (NO_FIELDS, multrans(Δ, b), DoesNotExist())
+# end
 Zygote.@adjoint function mul(a::AbstractMatrix, b::NGramMatrix)
-    return mul(a,b) , Δ -> (multrans(Δ, b),nothing)
+    return mul(a,b) , Δ -> (multrans(Δ, b), nothing)
 end
-
+# function rrule(::typeof(*), a::AbstractMatrix, b::NGramMatrix)
+#     return mul(a, b), Δ -> (NO_FIELDS, multrans(Δ, b), DoesNotExist())
+# end
 Zygote.@adjoint function *(a::AbstractMatrix, b::NGramMatrix)
-    return mul(a,b) , Δ -> (multrans(Δ, b),nothing)
+    return mul(a,b) , Δ -> (multrans(Δ, b), nothing)
 end
 
 Base.hash(e::NGramMatrix{T}, h::UInt) where {T} = hash((T, e.s, e.n, e.b, e.m), h)

@@ -1,3 +1,6 @@
+# TODO test hcat and catobs, empty arrays included
+# TODO test indexing
+
 @testset "ngrams" begin
     x = [1,3,5,2,6,8,3]
     b = 8 + 1
@@ -42,10 +45,10 @@
         si = map(i -> Int.(codeunits(i)), s)
         B = NGramMatrix(s, 3, 256, n)
         Bi = NGramMatrix(si, 3, 256, n)
-        @test all(A * B ≈ A*string2ngrams(s, 3, n))
+        @test all(A * B ≈ A * string2ngrams(s, 3, n))
         @test all(A * Bi ≈ A * B)
         A = randn(5,3)
-        @test all(multrans(A , B) ≈ A*transpose(string2ngrams(s, 3, n)))
+        @test all(multrans(A , B) ≈ A * transpose(string2ngrams(s, 3, n)))
         @test all(multrans(A , B) ≈ multrans(A , B))
     end
 
