@@ -26,9 +26,7 @@ function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s, ski, sci)
     n = length(x.data)
     ms = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n), ski, sci) for (i, xx) in enumerate(x.data)]
     if ski && n == 1
-        # use for julia 1.5 and higher
-        # im, d = only(ms)
-        im, d = ms[1]
+        im, d = only(ms)
         ProductModel(im), d
     else
         im = tuple([i[1] for i in ms]...)
@@ -42,11 +40,8 @@ function _reflectinmodel(x::ProductNode{T}, db, da, b, a, s, ski, sci) where T <
     ks = keys(x.data)
     ms = [_reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n), ski, sci) for (i, k) in enumerate(ks)]
     if ski && n == 1
-        # use for julia 1.5 and higher
-        # im, d = only(ms)
-        # ProductModel((; only(ks)=>im)), d
-        im, d = ms[1]
-        ProductModel((; ks[1]=>im)), d
+        im, d = only(ms)
+        ProductModel((; only(ks)=>im)), d
     else
         im = (; (k=>v[1] for (k,v) in zip(ks, ms))...)
         tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski, sci)
