@@ -11,9 +11,6 @@ end
 ProductNode(data::T) where {T} = ProductNode{T, Nothing}(data, nothing)
 ProductNode(data::T, metadata::C) where {T, C} = ProductNode{T, C}(data, metadata)
 
-@deprecate TreeNode(data) ProductNode(data)
-@deprecate TreeNode(data, metadata) ProductNode(data, metadata)
-
 Flux.@functor ProductNode
 
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)
