@@ -25,7 +25,15 @@ include("col_imputing_matrix.jl")
 
 const ImputingMatrix{T, C, U} = Union{RowImputingMatrix{T, C, U}, ColImputingMatrix{T, C, U}}
 
-_print_params(io::IO, A::RowImputingMatrix) = print_array(io, A.ψ')
+function Base.show(io::IO, X::ImputingMatrix)
+    if get(io, :compact, false)
+        print(io, size(X, 1), "x", size(X, 2), " ", _name(X), "Matrix")
+    else
+        print(io, _name(X), "Matrix(W = ", X.W, ", ψ = ", X.ψ, ")")
+    end
+end
+
+_print_params(io::IO, A::RowImputingMatrix) = print_array(io, A.ψ |> permutedims)
 _print_params(io::IO, A::ColImputingMatrix) = print_array(io, A.ψ)
 
 function print_array(io::IO, A::ImputingMatrix)
@@ -33,14 +41,6 @@ function print_array(io::IO, A::ImputingMatrix)
     print_array(io, A.W)
     println(io, "\n\nψ:")
     _print_params(io, A)
-end
-
-function Base.show(io::IO, X::ImputingMatrix)
-    if get(io, :compact, false)
-        print(io, size(X))
-    else
-        print(io, _name(X), "Matrix(W=", X.W, ", ψ=", X.ψ, ")")
-    end
 end
 
 function Flux.params!(p::Params, A::ImputingMatrix, seen=IdSet())

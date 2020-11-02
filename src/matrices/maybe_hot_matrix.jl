@@ -44,9 +44,10 @@ _mul(A::AbstractMatrix, B::MaybeHotMatrix) = hcat((A * MaybeHotVector(i, B.l) fo
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{<:Integer}) = A[:, B.I]
 
 function Base.show(io::IO, X::MaybeHotMatrix)
-    print(io, "MaybeHotMatrix")
-    if !get(io, :compact, false)
-        print(io, "(", X.I, ", ", X.l, ")")
+    if get(io, :compact, false)
+        print(io, size(X, 1), "x", size(X, 2), " MaybeHotMatrix")
+    else
+        print(io, "MaybeHotMatrix(", X.I, ", ", X.l, ")")
     end
 end
 
