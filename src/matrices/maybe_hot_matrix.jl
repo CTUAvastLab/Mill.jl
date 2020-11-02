@@ -18,10 +18,9 @@ _getindex(X::MaybeHotMatrix, ::Colon, i::Integer) = MaybeHotVector(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, i::AbstractArray) = MaybeHotMatrix(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, ::Colon) = MaybeHotMatrix(copy(X.I), X.l)
 
-Base.hcat(X::MaybeHotMatrix) = X
-Base.hcat(X::MaybeHotMatrix, Xs::MaybeHotMatrix...) = reduce(hcat, vcat([X], collect(Xs)))
+Base.hcat(Xs::MaybeHotMatrix...) = reduce(hcat, collect(Xs))
 function Base.reduce(::typeof(hcat), Xs::Vector{<:MaybeHotMatrix})
-    ls = unique([X.l for X in Xs]) 
+    ls = unique([X.l for X in Xs])
     if length(ls) > 1
         DimensionMismatch(
             "Number of rows of MaybeHot to hcat must correspond"

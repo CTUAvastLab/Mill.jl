@@ -37,6 +37,9 @@ end
     @test_throws DimensionMismatch hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
     @test_throws DimensionMismatch catobs(MaybeHotVector.([1, 2], [l, l+1])...)
     @test_throws DimensionMismatch catobs(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
+
+    @test_throws ArgumentError reduce(hcat, MaybeHotVector[])
+    @test_throws ArgumentError reduce(hcat, MaybeHotMatrix[])
 end
 
 @testset "indexing" begin
