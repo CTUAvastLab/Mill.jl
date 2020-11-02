@@ -1,9 +1,15 @@
-struct MaybeHotMatrix{T <: Maybe{Integer}, V <: AbstractVector{T}} <: AbstractMatrix{T}
-    I::V
-    l::Int
+struct MaybeHotMatrix{T, U, V, W} <: AbstractMatrix{W}
+    I::U
+    l::V
+    MaybeHotMatrix(I::U, l::V) where {T <: Integer, U <: AbstractVector{T}, V <: Integer} = new{T, U, V, Bool}(I, l)
+    MaybeHotMatrix(I::U, l::V) where {U <: AbstractVector{Missing}, V <: Integer} = new{Missing, U, V, Missing}(I, l)
+    function MaybeHotMatrix(I::U, l::V) where {T <: Maybe{Integer}, U <: AbstractVector{T}, V <: Integer}
+        new{T, U, V, Union{Bool, Missing}}(I, l)
+    end
 end
 
 MaybeHotMatrix(x::MaybeHotVector) = MaybeHotMatrix([x.i], x.l)
+MaybeHotMatrix(i::Integer, l::Integer) = MaybeHotMatrix([i], l)
 
 Base.size(X::MaybeHotMatrix) = (X.l, length(X.I))
 Base.length(X::MaybeHotMatrix) = X.l * length(X.I)
@@ -37,7 +43,7 @@ Zygote.@adjoint A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygot
 _mul(A::AbstractMatrix, B::MaybeHotMatrix) = hcat((A * MaybeHotVector(i, B.l) for i in B.I)...)
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{<:Integer}) = A[:, B.I]
 
-Base.hash(X::MaybeHotMatrix{T, V}, h::UInt) where {T, V} = hash((T, V, X.I, X.l), h)
+Base.hash(X::MaybeHotMatrix{T, U, V, W}, h::UInt) where {T, U, V, W} = hash((T, U, V, W, X.I, X.l), h)
 (X1::MaybeHotMatrix == X2::MaybeHotMatrix) = isequal(X1.I, X2.I) && X1.l == X2.l
 
 Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = onehotbatch(X.I, 1:X.l)

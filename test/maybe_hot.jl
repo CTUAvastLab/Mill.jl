@@ -15,6 +15,14 @@
     @test length(mhm) == l * length(I)
 end
 
+@testset "type construction" begin
+    @test MaybeHotVector(1, 10) isa AbstractVector{Bool}
+    @test MaybeHotVector(missing, 10) isa AbstractVector{Missing}
+    @test MaybeHotMatrix([1, 2], 10) isa AbstractMatrix{Bool}
+    @test MaybeHotMatrix([missing, missing], 10) isa AbstractMatrix{Missing}
+    @test MaybeHotMatrix([1, missing], 10) isa AbstractMatrix{Union{Bool, Missing}}
+end
+
 @testset "hcat" begin
     l = 10
     I = [1, missing, 3, missing, 5]
