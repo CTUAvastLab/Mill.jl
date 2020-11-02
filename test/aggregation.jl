@@ -19,7 +19,7 @@ end
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24] |> f32
     X = reshape(1:12, 2, 6) |> f32
     bags = BAGS[1]
-    baglengths = log.(1.0 .+ [1.0 2.0 3.0])
+    baglengths = log.(1.0 .+ [1.0 2.0 3.0]) |> f32
     @assert baglengths == log.(1 .+ length.(bags)')
     @test SegmentedMean(2)(X, bags) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0; baglengths]
     @test SegmentedSum(2)(X, bags) ≈ [length.(bags)' .* SegmentedMean(2)(X, bags)[1:2, :]; baglengths]
@@ -170,10 +170,10 @@ end
 end
 
 @testset "bagcount switch" begin
-    X = Matrix{Float32}(reshape(1:12, 2, 6))
+    X = reshape(1:12, 2, 6) |> f32
     d = 2
     bags = BAGS[1]
-    baglengths = log.(1 .+ [1.0 2.0 3.0])
+    baglengths = log.(1 .+ [1.0 2.0 3.0]) |> f32
 
     function test_count(a)
         Mill.bagcount(false)
@@ -188,6 +188,9 @@ end
     test_count(SegmentedMax(2))
     test_count(SegmentedPNorm(2))
     test_count(SegmentedLSE(2))
+    test_count(SegmentedMeanMax(2))
+    test_count(SegmentedPNormLSE(2))
+    test_count(SegmentedMeanMaxPNormLSE(2))
 end
 
 # we use Float64 to compute precise gradients
