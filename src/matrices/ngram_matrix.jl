@@ -153,17 +153,6 @@ end
 NGramMatrix(s::Vector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: AbstractString = NGramMatrix{T}(s, n, b, m)
 NGramMatrix(s::AbstractString, args...) = NGramMatrix([s], args...)
 
-function Base.show(io::IO, X::NGramMatrix)
-    if get(io, :compact, false)
-        print(io, size(X, 1), "x", size(X, 2), " NGramMatrix")
-    else
-        print(io, "NGramMatrix(s = ", X.s, ", n = ", X.n, 
-              ", b = ", X.b, ", m = ", X.m, ")")
-    end
-end
-
-print_array(io::IO, A::NGramMatrix) = print_array(io, A.s)
-
 NGramIterator(a::NGramMatrix{<:AbstractString}, i::Integer) = NGramIterator(codeunits(a.s[i]), a.n, a.b)
 NGramIterator(a::NGramMatrix{<:Vector{<:Integer}}, i::Integer) = NGramIterator(a.s[i], a.n, a.b)
 

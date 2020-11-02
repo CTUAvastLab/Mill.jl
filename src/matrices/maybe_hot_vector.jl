@@ -26,14 +26,6 @@ Zygote.@adjoint A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygot
 _mul(A::AbstractMatrix, b::MaybeHotVector{Missing}) = fill(missing, size(A, 1))
 _mul(A::AbstractMatrix, b::MaybeHotVector{<:Integer}) = A[:, b.i]
 
-function Base.show(io::IO, x::MaybeHotVector)
-    if get(io, :compact, false)
-        print(io, size(x, 1), "x", size(x, 2), " MaybeHotVector")
-    else
-        print(io, "MaybeHotVector(i = ", x.i, ", l = ", x.l, ")")
-    end
-end
-
 Base.hash(x::MaybeHotVector{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, x.i, x.l), h)
 (x1::MaybeHotVector == x2::MaybeHotVector) = isequal(x1.i, x2.i) && x1.l == x2.l
 

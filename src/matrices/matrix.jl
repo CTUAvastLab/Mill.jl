@@ -25,13 +25,20 @@ include("col_imputing_matrix.jl")
 
 const ImputingMatrix{T, C, U} = Union{RowImputingMatrix{T, C, U}, ColImputingMatrix{T, C, U}}
 
-function Base.show(io::IO, X::ImputingMatrix)
+function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix,
+                                             MaybeHotVector, NGramMatrix}
     if get(io, :compact, false)
-        print(io, size(X, 1), "x", size(X, 2), " ", _name(X), "Matrix")
+        print(io, size(X, 1), "x", size(X, 2), " ", typename(T))
     else
-        print(io, _name(X), "Matrix(W = ", X.W, ", ψ = ", X.ψ, ")")
+        _show(io, X)
     end
 end
+
+_show(io, X::ImputingMatrix) = print(io, _name(X), "Matrix(W = ", X.W, ", ψ = ", X.ψ, ")")
+_show(io, x::MaybeHotVector) = print(io, "MaybeHotVector(i = ", x.i, ", l = ", x.l, ")")
+_show(io, X::MaybeHotMatrix) = print(io, "MaybeHotMatrix(I = ", X.I, ", l = ", X.l, ")")
+_show(io, X::NGramMatrix) = print(io, "NGramMatrix(s = ", X.s, ", n = ", X.n, 
+              ", b = ", X.b, ", m = ", X.m, ")")
 
 _print_params(io::IO, A::RowImputingMatrix) = print_array(io, A.ψ |> permutedims)
 _print_params(io::IO, A::ColImputingMatrix) = print_array(io, A.ψ)
@@ -42,6 +49,8 @@ function print_array(io::IO, A::ImputingMatrix)
     println(io, "\n\nψ:")
     _print_params(io, A)
 end
+
+print_array(io::IO, A::NGramMatrix) = print_array(io, A.s)
 
 function Flux.params!(p::Params, A::ImputingMatrix, seen=IdSet())
     A in seen && return
