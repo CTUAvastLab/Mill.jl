@@ -20,7 +20,7 @@ end
     X = reshape(1:12, 2, 6) |> f32
     bags = BAGS[1]
     baglengths = log.(1.0 .+ [1.0 2.0 3.0]) |> f32
-    @assert baglengths == log.(1 .+ length.(bags)')
+    @assert baglengths == log.(1 .+ length.(bags)') |> f32
     @test SegmentedMean(2)(X, bags) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0; baglengths]
     @test SegmentedSum(2)(X, bags) ≈ [length.(bags)' .* SegmentedMean(2)(X, bags)[1:2, :]; baglengths]
     @test SegmentedMax(2)(X, bags) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0; baglengths]
@@ -188,7 +188,6 @@ end
     test_count(SegmentedMax(2))
     test_count(SegmentedPNorm(2))
     test_count(SegmentedLSE(2))
-    test_count(SegmentedMeanMax(2))
     test_count(SegmentedPNormLSE(2))
     test_count(SegmentedMeanMaxPNormLSE(2))
 end
