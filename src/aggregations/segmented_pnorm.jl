@@ -1,5 +1,5 @@
 # https://arxiv.org/pdf/1311.1780.pdf
-struct SegmentedPNorm{T, V <: AbstractVector{T}} <: AggregationFunction
+struct SegmentedPNorm{T, V <: AbstractVector{T}} <: AggregationFunction{T}
     ρ::V
     c::V
     ψ::V

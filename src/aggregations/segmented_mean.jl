@@ -1,4 +1,4 @@
-struct SegmentedMean{T, V <: AbstractVector{T}} <: AggregationFunction
+struct SegmentedMean{T, V <: AbstractVector{T}} <: AggregationFunction{T}
     ψ::V
 end
 

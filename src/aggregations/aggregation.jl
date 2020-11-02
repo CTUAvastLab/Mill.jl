@@ -1,20 +1,27 @@
-abstract type AggregationFunction end
+abstract type AggregationFunction{T <: Number} end
 
-struct Aggregation{N} <: AggregationFunction
-    fs::NTuple{N, AggregationFunction}
-    Aggregation(fs::Vararg{AggregationFunction, N}) where N = new{N}(fs)
-    Aggregation(fs::NTuple{N, AggregationFunction}) where N = new{N}(fs)
+struct Aggregation{T, N} <: AggregationFunction{T}
+    fs::NTuple{N, AggregationFunction{T}}
+    Aggregation(fs::AggregationFunction...) = Aggregation(fs)
+    Aggregation(fs::Tuple{Vararg{AggregationFunction{T}}}) where {T} = let ffs = _flatten_agg(fs)
+        new{T, length(ffs)}(_flatten_agg(ffs))
+    end
 end
+
+_flatten_agg(t::Tuple) = tuple(vcat(map(_flatten_agg, t)...)...)
+_flatten_agg(a::Aggregation) = vcat(map(_flatten_agg, a.fs)...)
+_flatten_agg(a::AggregationFunction) = [a]
 
 Flux.@functor Aggregation
 
-function (a::Aggregation)(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...)
+function (a::Aggregation{T})(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...) where T
     o = vcat([f(x, bags, args...) for f in a.fs]...)
-    _bagcount[] ? vcat(o, Zygote.@ignore length.(bags)') : o
+    _bagcount[] ? vcat(o, Zygote.@ignore log.(one(T) .+ length.(bags)')) : o
 end
 (a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
-Base.getindex(a::Aggregation, i) = a.fs[i]
+Flux.@forward Aggregation.fs Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
+        Base.first, Base.last, Base.iterate, Base.eltype
 
 @inline bagnorm(w::Nothing, b) = length(b)
 @inline bagnorm(w::AbstractVector, b) = @views sum(w[b])

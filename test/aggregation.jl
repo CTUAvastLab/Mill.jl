@@ -1,9 +1,26 @@
+@testset "flattening" begin
+    as = [
+          Aggregation(SegmentedMean(2), SegmentedMax(2)),
+          Aggregation(SegmentedMean(2), Aggregation(SegmentedMax(2))),
+          Aggregation((SegmentedMean(2), SegmentedMax(2))),
+          Aggregation((Aggregation(SegmentedMean(2)), SegmentedMax(2))),
+          Aggregation(SegmentedMeanMax(2)),
+          Aggregation(Aggregation(SegmentedMeanMax(2))),
+          Aggregation((SegmentedMeanMax(2),)),
+          SegmentedMeanMax(2)
+         ]
+
+    @test all(length.(as) .== 2)
+    @test all(isa.(getindex.(as, 1), SegmentedMean))
+    @test all(isa.(getindex.(as, 2), SegmentedMax))
+end
+
 @testset "basic aggregation functionality" begin
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24] |> f32
     X = reshape(1:12, 2, 6) |> f32
     bags = BAGS[1]
-    baglengths = [1.0 2.0 3.0]
-    @assert baglengths == length.(bags)'
+    baglengths = log.(1.0 .+ [1.0 2.0 3.0])
+    @assert baglengths == log.(1 .+ length.(bags)')
     @test SegmentedMean(2)(X, bags) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0; baglengths]
     @test SegmentedSum(2)(X, bags) ≈ [length.(bags)' .* SegmentedMean(2)(X, bags)[1:2, :]; baglengths]
     @test SegmentedMax(2)(X, bags) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0; baglengths]
@@ -156,7 +173,7 @@ end
     X = Matrix{Float32}(reshape(1:12, 2, 6))
     d = 2
     bags = BAGS[1]
-    baglengths = [1.0 2.0 3.0]
+    baglengths = log.(1 .+ [1.0 2.0 3.0])
 
     function test_count(a)
         Mill.bagcount(false)
@@ -206,7 +223,7 @@ end
     # r_map and p_map are stable
     @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
     @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
-     
+
     fs = [:SegmentedSum, :SegmentedMean, :SegmentedMax, :SegmentedPNorm, :SegmentedLSE]
     params = [(:ψ1,), (:ψ2,), (:ψ3,), (:ρ1, :c, :ψ4), (:ρ2, :ψ5)]
 

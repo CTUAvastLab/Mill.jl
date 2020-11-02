@@ -1,5 +1,5 @@
 # https://arxiv.org/abs/1511.05286
-struct SegmentedLSE{T, V <: AbstractVector{T}} <: AggregationFunction
+struct SegmentedLSE{T, V <: AbstractVector{T}} <: AggregationFunction{T}
     ρ::V
     ψ::V
 end
