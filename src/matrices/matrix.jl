@@ -35,6 +35,14 @@ function print_array(io::IO, A::ImputingMatrix)
     _print_params(io, A)
 end
 
+function Base.show(io::IO, X::ImputingMatrix)
+    if get(io, :compact, false)
+        print(io, size(X))
+    else
+        print(io, _name(X), "Matrix(W=", X.W, ", ψ=", X.ψ, ")")
+    end
+end
+
 function Flux.params!(p::Params, A::ImputingMatrix, seen=IdSet())
     A in seen && return
     push!(seen, A)

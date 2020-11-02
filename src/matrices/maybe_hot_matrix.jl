@@ -43,6 +43,13 @@ Zygote.@adjoint A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygot
 _mul(A::AbstractMatrix, B::MaybeHotMatrix) = hcat((A * MaybeHotVector(i, B.l) for i in B.I)...)
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{<:Integer}) = A[:, B.I]
 
+function Base.show(io::IO, X::MaybeHotMatrix)
+    print(io, "MaybeHotMatrix")
+    if !get(io, :compact, false)
+        print(io, "(", X.I, ", ", X.l, ")")
+    end
+end
+
 Base.hash(X::MaybeHotMatrix{T, U, V, W}, h::UInt) where {T, U, V, W} = hash((T, U, V, W, X.I, X.l), h)
 (X1::MaybeHotMatrix == X2::MaybeHotMatrix) = isequal(X1.I, X2.I) && X1.l == X2.l
 

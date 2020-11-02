@@ -11,6 +11,8 @@ using Statistics
 using Zygote
 using ChainRulesCore
 
+using Base: CodeUnits
+
 import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, getindex, setindex!
 import Base: reduce, eltype, print_array
@@ -85,14 +87,15 @@ export printtree
 include("partialeval.jl")
 export partialeval
 
-Base.show(io::IO, @nospecialize ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = show(io, Base.typename(T))
+Base.show(io::IO, @nospecialize ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = print(io, Base.typename(T))
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel}
     if get(io, :compact, false)
-        show(io, Base.typename(T))
+        print(io, Base.typename(T))
     else
         HierarchicalUtils.printtree(io, n; htrunc=3)
     end
 end
+
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 function base_show_terse(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
