@@ -27,10 +27,10 @@ noderepr(n::NumberNode) = string(n.n)
 children(n::NumberNode) = n.chs
 
 function Mill.unpack2mill(ds::LazyNode{:Codons})
-	s = ds.data
-	ss = map(x -> reduce.(*, partition(x, 3)),s)
-	x = reduce(hcat, map(x->Flux.onehotbatch(x, possibilities), ss))
-	BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
+    s = ds.data
+    ss = map(x -> reduce.(*, partition(x, 3)),s)
+    x = reduce(hcat, map(x->Flux.onehotbatch(x, possibilities), ss))
+    BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
 end
 
 # specification of printing
