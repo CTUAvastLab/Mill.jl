@@ -20,8 +20,33 @@ function (a::Aggregation{T})(x::Union{AbstractArray, Missing}, bags::AbstractBag
 end
 (a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
-Flux.@forward Aggregation.fs Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
-        Base.first, Base.last, Base.iterate, Base.eltype
+Flux.@forward Aggregation.fs Base.getindex, Base.firstindex, Base.lastindex, Base.first, Base.last, Base.iterate, Base.eltype
+
+Base.length(a::Aggregation) = sum(length.(a.fs))
+Base.size(a::Aggregation) = tuple(sum(only, size.(a.fs)))
+Base.vcat(as::Aggregation...) = reduce(vcat, as |> collect)
+Base.reduce(::typeof(vcat), as::Vector{<:Aggregation}) = Aggregation(tuple(vcat((collect(a.fs) for a in as)...)...))
+
+function Base.show(io::IO, @nospecialize a::Aggregation)
+    if get(io, :compact, false)
+        print(io, "Aggregation(", join(length.(a.fs), ", "), ")")
+    else
+        print(io, "⟨" * join(repr(f; context=:compact => true) for f in a.fs ", ") * "⟩")
+    end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", @nospecialize a::T) where T <: Aggregation
+    print(io, T, ":\n")
+    print_array(io, a.fs |> collect)
+end
+
+function Base.show(io::IO, @nospecialize a::T) where T <: AggregationFunction
+    if get(io, :compact, false)
+        print(io, nameof(T), "(", length(a), ")")
+    else
+        _show_fields(io, a)
+    end
+end
 
 @inline bagnorm(w::Nothing, b) = length(b)
 @inline bagnorm(w::AbstractVector, b) = @views sum(w[b])
@@ -43,9 +68,6 @@ include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 # include("transformer.jl")
-
-Base.show(io::IO, ::MIME"text/plain", a::T) where T <: AggregationFunction = print(io, "$(T.name)($(length(a.ψ)))")
-Base.show(io::IO, m::MIME"text/plain", a::Aggregation{N}) where N = print(io, "⟨" * join(repr(m, f) for f in a.fs ", ") * "⟩")
 
 const names = ["Sum", "Mean", "Max", "PNorm", "LSE"]
 for p in powerset(collect(1:length(names)))
