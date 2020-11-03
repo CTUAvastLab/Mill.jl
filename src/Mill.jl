@@ -107,8 +107,8 @@ Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{Abstr
 
 _show(io, x) = _show_fields(io, x)
 
-function _show_fields(io, x::T) where T
-    print(io, nameof(T), "(", join(["$f = $(getfield(x, f))" for f in fieldnames(T)],", "), ")")
+function _show_fields(io, x::T;context=:compact=>true) where T
+    print(io, nameof(T), "(", join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)],", "), ")")
 end
 
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
