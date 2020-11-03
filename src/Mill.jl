@@ -92,16 +92,6 @@ export printtree
 include("partialeval.jl")
 export partialeval
 
-
-function Base.show(io::IO, @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel}
-    if get(io, :compact, false)
-        print(io, nameof(T))
-    else
-        print(io, nobs(n), " × ") 
-        _show(io, n)
-    end
-end
-
 Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel} = 
     HierarchicalUtils.printtree(io, n; htrunc=3)
 

@@ -9,7 +9,18 @@ include("bagmodel.jl")
 include("productmodel.jl")
 include("lazymodel.jl")
 
-Base.show(io::IO, @nospecialize m::T) where T <: AbstractMillModel = print(io, nameof(T))
+function Base.show(io::IO, @nospecialize m::T) where T <: AbstractMillModel
+    print(io, nameof(T))
+    if !get(io, :compact, false)
+        _show_submodels(io, m)
+    end
+end
+
+_show_submodels(io, m::ArrayModel) = print(io, "(", m.m, ")")
+_show_submodels(io, m::BagModel) = print(io, " ↦ ", m.a, " ↦ ", m.bm)
+_show_submodels(io, m::ProductModel) = print(io, " ↦ ", m.m)
+_show_submodels(io, m::LazyModel{Name}) where {Name} = print(io, "(", Name, ")")
+_show_submodels(io, _) = print(io)
 
 function reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict(),
                single_key_identity=true, single_scalar_identity=true)
