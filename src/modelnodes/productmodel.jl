@@ -24,7 +24,7 @@ Base.keys(m::ProductModel{P,T}) where {P<:NamedTuple,T} = keys(m.ms)
 Base.keys(m::ProductModel{P,T}) where {P<:Tuple,T} = 1:length(m.ms)
 
 function (m::ProductModel)(x::ProductNode)
+    length(m.ms) == 1 && return(m.m(m.ms[1](x.data[1])))
     xs = ThreadsX.map(i -> m.ms[i](x.data[i]), keys(m))
-    # xs = ThreadTools.tmap(i -> m.ms[i](x.data[i]), keys(m))
     m.m(vcat(xs...))
 end

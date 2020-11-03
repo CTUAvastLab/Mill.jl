@@ -1,10 +1,13 @@
 using Mill, BenchmarkTools, Serialization, ThreadsX, Zygote, Flux
 using LinearAlgebra
 # ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())
-(m, ds) = deserialize("/tmp/testdata.jls")
+
+using Setfield
+include("../../../Avast/HicSvntPevnak/FeatureSelection/src/importance.jl")
+(m, ds, y) = deserialize("debug_threadding.jls")
 ps = Flux.params(m);
-m(ds)
-@btime gradient(() -> sum(m(ds).data), ps)
+@btime m(ds)								#  2.949 ms (5.717 / 5.174 ms 1 thread with / without ThreadsX)
+@btime gradient(() -> sum(m(ds).data), ps)  #  8.260 ms (18.549 / 15.939 ms 1 thread with / without ThreadsX)
 @btime gradient(() -> sum(m(ds).data), ps)
 
 #Just 4 openblas threads, julia threadding disabled, 
