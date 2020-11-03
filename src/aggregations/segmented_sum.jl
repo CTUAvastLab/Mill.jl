@@ -6,6 +6,9 @@ Flux.@functor SegmentedSum
 
 _SegmentedSum(d::Int) = SegmentedSum(zeros(Float32, d))
 
+Flux.@forward SegmentedSum.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
+        Base.first, Base.last, Base.iterate, Base.eltype
+
 function (m::SegmentedSum{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_sum_forw(x, m.ψ, bags, w)

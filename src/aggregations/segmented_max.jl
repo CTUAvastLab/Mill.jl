@@ -6,6 +6,9 @@ Flux.@functor SegmentedMax
 
 _SegmentedMax(d::Int) = SegmentedMax(zeros(Float32, d))
 
+Flux.@forward SegmentedMax.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
+        Base.first, Base.last, Base.iterate, Base.eltype
+
 function (m::SegmentedMax{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_max_forw(x, m.ψ, bags)

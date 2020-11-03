@@ -8,6 +8,9 @@ Flux.@functor SegmentedLSE
 
 _SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 
+Flux.@forward SegmentedLSE.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
+        Base.first, Base.last, Base.iterate, Base.eltype
+
 r_map(ρ) = @. softplus(ρ)
 inv_r_map(r) = @. relu(r) + log1p(-exp(-abs(r)))
 

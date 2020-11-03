@@ -9,6 +9,9 @@ Flux.@functor SegmentedPNorm
 
 _SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
 
+Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
+        Base.first, Base.last, Base.iterate, Base.eltype
+
 p_map(ρ::T) where T = one(T) + softplus(ρ)
 p_map(ρ::AbstractArray) = p_map.(ρ)
 inv_p_map(p::T) where T = relu(p - one(T)) + log1p(-exp(-abs(p - one(T))))
