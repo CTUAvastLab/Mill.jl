@@ -149,24 +149,24 @@ end
 
 @testset "printtree" begin
     @test buf_printtree(n2, trav=true) ==
-"""
-ProductNode [""]
-  ├── ProductNode ["E"]
-  │     ├─── b: BagNode with 2 bag(s) ["I"]
-  │     │         └── ArrayNode(3, 4) ["K"]
-  │     └── wb: WeightedNode with 2 bag(s) and weights Σw = 10.0 ["M"]
-  │               └── ArrayNode(17, 4) ["O"]
-  └── ArrayNode(10, 2) ["U"]"""
+        """
+        ProductNode with 2 obs [""]
+          ├── ProductNode with 2 obs ["E"]
+          │     ├─── b: BagNode with 2 obs ["I"]
+          │     │         └── ArrayNode(3×4 Array{Float32,2}) with 4 obs ["K"]
+          │     └── wb: WeightedBagNode with 2 obs ["M"]
+          │               └── ArrayNode(17×4 NGramMatrix{String}) with 4 obs ["O"]
+          └── ArrayNode(10×2 SparseMatrixCSC{Float32,Int64}) with 2 obs ["U"]"""
 
     @test buf_printtree(n2m, trav=true) ==
-"""
-ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
-  ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"]
-  │     ├─── b: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)) ["I"]
-  │     │         └── ArrayModel(Dense(3, 10)) ["K"]
-  │     └── wb: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)) ["M"]
-  │               └── ArrayModel(Dense(17, 10)) ["O"]
-  └── ArrayModel(Dense(10, 10)) ["U"]"""
+        """
+        ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
+          ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"]
+          │     ├─── b: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)) ["I"]
+          │     │         └── ArrayModel(Dense(3, 10)) ["K"]
+          │     └── wb: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)) ["M"]
+          │               └── ArrayModel(Dense(17, 10)) ["O"]
+          └── ArrayModel(Dense(10, 10)) ["U"]"""
 end
 
 @testset "LazyNode" begin
@@ -176,33 +176,17 @@ end
 	@test nleafs(ds) == 4
 
     @test buf_printtree(ds, trav=true) ==
-"""
-Codons 4 items [""]
-  └── Array 4 items ["U"]
-        ├── "GGGCGGCGA" ["Y"]
-        ├── "CCTCGCGGG" ["c"]
-        ├── "TTTTCGCTATTTATGAAAATT" ["g"]
-        └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]"""
+        """
+        LazyNode{Codons} with 4 obs [""]
+          └── Array 4 items ["U"]
+                ├── "GGGCGGCGA" ["Y"]
+                ├── "CCTCGCGGG" ["c"]
+                ├── "TTTTCGCTATTTATGAAAATT" ["g"]
+                └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]"""
 
     @test buf_printtree(m, trav=true) ==
-"""
-LazyCodonsModel [""]
-  └── BagModel ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5, 2)) ["U"]
-        └── ArrayModel(Dense(64, 2)) ["k"]"""
-
-	orig_terse = Mill._terseprint[]
-
-	Mill.terseprint(true)
-    buf = IOBuffer()
-	Base.show(buf, typeof(ds))
-    str_repr = String(take!(buf))
-	@test str_repr == "LazyNode{…}"
-
-	Mill.terseprint(false)
-	buf = IOBuffer()
-	Base.show(buf, typeof(ds))
-    str_repr = String(take!(buf))
-	@test str_repr == "LazyNode{:Codons,Array{String,1}}"
-
-	Mill.terseprint(orig_terse)
+        """
+        LazyModel{Codons} [""]
+          └── BagModel ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5, 2)) ["U"]
+                └── ArrayModel(Dense(64, 2)) ["k"]"""
 end

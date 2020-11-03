@@ -65,6 +65,13 @@ const BAGS3 = [
          (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1,3], [2,4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
+function Mill.unpack2mill(ds::LazyNode{:Sentence})
+    s = ds.data 
+    ss = map(x -> split(x, " "),s)
+    x = NGramMatrix(reduce(vcat, ss), 3, 256, 2053)
+    BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
+end
+
 for test_f in readdir(".")
     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
     @eval include($test_f)

@@ -1,13 +1,6 @@
 @testset "LazyNode" begin
     ss = ["Hello world.", "Make peace.", "Make food.", "Eat penam."]
 
-    function Mill.unpack2mill(ds::LazyNode{:Sentence})
-        s = ds.data 
-        ss = map(x -> split(x, " "),s)
-        x = NGramMatrix(reduce(vcat, ss), 3, 256, 2053)
-        BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
-    end
-
     @test LazyNode{:Sentence,Vector{String}}(ss).data == ss
     @test LazyNode(:Sentence, ss).data == ss
     @test LazyNode{:Sentence}(ss).data == ss
