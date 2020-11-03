@@ -1,4 +1,4 @@
-struct SegmentedMax{T, V <: AbstractVector{T}} <: AggregationFunction{T}
+struct SegmentedMax{T, V <: AbstractVector{T}} <: AggregationOperator{T}
     ψ::V
 end
 

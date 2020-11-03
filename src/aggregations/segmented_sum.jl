@@ -1,4 +1,4 @@
-struct SegmentedSum{T, V <: AbstractVector{T}} <: AggregationFunction{T}
+struct SegmentedSum{T, V <: AbstractVector{T}} <: AggregationOperator{T}
     ψ::V
 end
 
