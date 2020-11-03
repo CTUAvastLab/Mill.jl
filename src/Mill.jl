@@ -25,9 +25,14 @@ import ChainRulesCore: rrule
 const _emptyismissing = Ref(false)
 const _terseprint = Ref(true)
 const _bagcount = Ref(true)
-emptyismissing(a) = _emptyismissing[] = a
-terseprint(a) = _terseprint[] = a
-bagcount(a) = _bagcount[] = a
+
+emptyismissing!(a) = _emptyismissing[] = a
+terseprint!(a) = _terseprint[] = a
+bagcount!(a) = _bagcount[] = a
+
+emptyismissing() = _emptyismissing[]
+terseprint() = _terseprint[]
+bagcount() = _bagcount[]
 
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
