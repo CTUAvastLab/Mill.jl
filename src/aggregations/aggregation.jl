@@ -44,7 +44,7 @@ function Base.show(io::IO, @nospecialize a::T) where T <: AggregationFunction
     if get(io, :compact, false)
         print(io, nameof(T), "(", length(a), ")")
     else
-        _show_fields(io, a)
+        _show(io, a)
     end
 end
 

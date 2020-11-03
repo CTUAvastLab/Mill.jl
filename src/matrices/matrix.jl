@@ -41,7 +41,7 @@ function Base.show(io::IO, @nospecialize X::T) where T <: Union{ImputingMatrix, 
     if get(io, :compact, false)
         print(io, size(X, 1), "x", size(X, 2), " ", nameof(T))
     else
-        _show_fields(io, X)
+        _show(io, X)
     end
 end
 

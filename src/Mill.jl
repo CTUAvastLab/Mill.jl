@@ -11,7 +11,7 @@ using Statistics
 using Zygote
 using ChainRulesCore
 
-using Base: CodeUnits, typename
+using Base: CodeUnits, nameof
 
 import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, getindex, setindex!
@@ -87,13 +87,23 @@ export printtree
 include("partialeval.jl")
 export partialeval
 
-Base.show(io::IO, @nospecialize ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = print(io, typename(T))
-function Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel}
+
+function Base.show(io::IO, @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel}
     if get(io, :compact, false)
-        print(io, typename(T))
+        print(io, nameof(T))
     else
-        HierarchicalUtils.printtree(io, n; htrunc=3)
+        print(io, nobs(n), " × ") 
+        _show(io, n)
     end
+end
+
+Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel} = 
+    HierarchicalUtils.printtree(io, n; htrunc=3)
+
+_show(io, x) = _show_fields(io, x)
+
+function _show_fields(io, x::T) where T
+    print(io, nameof(T), "(", join(["$f = $(getfield(x, f))" for f in fieldnames(T)],", "), ")")
 end
 
 Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)

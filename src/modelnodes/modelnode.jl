@@ -9,6 +9,8 @@ include("bagmodel.jl")
 include("productmodel.jl")
 include("lazymodel.jl")
 
+Base.show(io::IO, @nospecialize m::T) where T <: AbstractMillModel = print(io, nameof(T))
+
 function reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict(),
                single_key_identity=true, single_scalar_identity=true)
     _reflectinmodel(x, db, da, b, a, "", single_key_identity, single_scalar_identity)[1]

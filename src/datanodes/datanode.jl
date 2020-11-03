@@ -85,3 +85,5 @@ include("bagnode.jl")
 include("weighted_bagnode.jl")
 include("productnode.jl")
 include("lazynode.jl")
+
+Base.show(io::IO, @nospecialize n::T) where T <: AbstractNode = print(io, nameof(T))

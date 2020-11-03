@@ -5,22 +5,21 @@ NodeType(::Type{<:AbstractNode}) = InnerNode()
 NodeType(::Type{<:AbstractMillModel}) = InnerNode()
 NodeType(::Type{<:LazyModel}) = InnerNode()
 
-noderepr(::T) where T <: Union{AbstractNode, AbstractMillModel} = "$(Base.nameof(T))"
 noderepr(::Missing) = "∅"
-noderepr(n::ArrayNode) = "ArrayNode$(size(n.data))"
-noderepr(n::ArrayModel) = "ArrayModel($(n.m))"
-noderepr(n::BagNode) = if ismissing(n.data) || nobs(n.data) == 0
-    "BagNode with $(length(n.bags)) empty bag(s)"
-else
-    "BagNode with $(length(n.bags)) bag(s)"
-end
-noderepr(n::BagModel) = "BagModel ↦ $(repr("text/plain", n.a)) ↦ $(repr("text/plain", n.bm))"
-noderepr(n::WeightedBagNode) = "WeightedNode with $(length(n.bags)) bag(s) and weights Σw = $(sum(n.weights))"
-noderepr(n::AbstractProductNode) = "ProductNode"
-noderepr(n::ProductModel) = "ProductModel ↦ $(noderepr(n.m))"
-noderepr(n::LazyNode{N,D}) where {N,D} = (data_len = length(n.data); "$N $data_len item$(data_len > 1 ? "s" : "")")
-noderepr(n::LazyNode{N,D}) where {N,D<:Nothing} = "$(N) ∅"
-noderepr(n::LazyModel{Name}) where {Name} = "Lazy$(Name)Model"
+noderepr(n::LazyNode{N, Nothing}) where {N} = "LazyNode{$N} ∅"
+
+noderepr(n::AbstractNode) = "$(nobs(n)) × " * _noderepr(n)
+_noderepr(n::ArrayNode) = "ArrayNode($(summary(n.data)))"
+_noderepr(n::BagNode) = "BagNode"
+_noderepr(n::WeightedBagNode) = "WeightedNode (Σw = $(sum(n.weights)))"
+_noderepr(n::AbstractProductNode) = "ProductNode"
+_noderepr(n::LazyNode{N}) where {N} = "LazyNode{$N}"
+
+noderepr(::T) where T <: Union{AbstractMillModel} = string(nameof(T))
+noderepr(m::ArrayModel) = "ArrayModel($(m.m))"
+noderepr(m::BagModel) = "BagModel ↦ $(m.a) ↦ $(noderepr(m.bm))"
+noderepr(m::ProductModel) = "ProductModel ↦ $(noderepr((m.m)))"
+noderepr(m::LazyModel{Name}) where {Name} = "Lazy$(Name)Model"
 
 children(n::AbstractBagNode) = (n.data,)
 children(n::BagModel) = (n.im,)
