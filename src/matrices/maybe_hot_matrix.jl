@@ -48,6 +48,4 @@ Base.hash(X::MaybeHotMatrix{T, U, V, W}, h::UInt) where {T, U, V, W} = hash((T, 
 
 Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = onehotbatch(X.I, 1:X.l)
 
-maybehotbatch(L, labels) = let ohvs = [maybehot(l, labels) for l in L]
-    MaybeHotMatrix([ohv.i for ohv in ohvs], length(labels))
-end
+maybehotbatch(L, labels) = MaybeHotMatrix([maybehot(l, labels).i for l in L], length(labels))

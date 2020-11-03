@@ -32,6 +32,8 @@ Base.hash(x::MaybeHotVector{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, 
 Flux.onehot(x::MaybeHotVector{<:Integer}) = onehot(x.i, 1:x.l)
 
 maybehot(::Missing, labels) = MaybeHotVector(missing, length(labels))
-maybehot(l, labels) = let ohv = onehot(l, labels)
-    MaybeHotVector(ohv.ix, ohv.of)
+function maybehot(l, labels)
+    i = findfirst(isequal(l), labels)
+    isnothing(i) && ArgumentError("Value $l not in labels $labels") |> throw
+    MaybeHotVector(i, length(labels))
 end
