@@ -45,7 +45,7 @@ MLDataPattern.nobs(::Missing) = nothing
 function catobs end
 
 include("bags.jl")
-export AlignedBags, ScatteredBags, length2bags, remapbag
+export AlignedBags, ScatteredBags, length2bags, remapbag, bags
 
 include("util.jl")
 include("threadfuns.jl")
