@@ -30,3 +30,8 @@ Base.hash(x::MaybeHotVector{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, 
 (x1::MaybeHotVector == x2::MaybeHotVector) = isequal(x1.i, x2.i) && x1.l == x2.l
 
 Flux.onehot(x::MaybeHotVector{<:Integer}) = onehot(x.i, 1:x.l)
+
+maybehot(::Missing, labels) = MaybeHotVector(missing, length(labels))
+maybehot(l, labels) = let ohv = onehot(l, labels)
+    MaybeHotVector(ohv.ix, ohv.of)
+end

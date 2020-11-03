@@ -56,7 +56,7 @@ include("util.jl")
 include("threadfuns.jl")
 
 include("matrices/matrix.jl")
-export MaybeHotVector, MaybeHotMatrix
+export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
 export NGramMatrix, NGramIterator
 export ImputingMatrix, RowImputingMatrix, ColImputingMatrix
 export ImputingDense, RowImputingDense, ColImputingDense
