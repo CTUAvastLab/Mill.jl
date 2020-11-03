@@ -74,9 +74,6 @@ subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
 
 include("arraynode.jl")
 
-# definitions needed for all types of bag nodes
-_len(a::UnitRange) = max(a.stop - a.start + 1, 0)
-_len(a::Vector) = length(a)
 LearnBase.nobs(a::AbstractBagNode) = length(a.bags)
 LearnBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 Base.ndims(x::AbstractBagNode) = Colon()

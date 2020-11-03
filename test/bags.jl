@@ -140,9 +140,17 @@ end
     @test hash(b) === hash(c)
 end
 
-@testset "type stability" begin
-    @test length.(AlignedBags([])) isa Vector{Int}
-    @test length.(AlignedBags([1:2, 3:5])) isa Vector{Int}
-    @test length.(ScatteredBags([])) isa Vector{Int}
-    @test length.(ScatteredBags([[1,2], [3,4,5]])) isa Vector{Int}
+@testset "length." begin
+    @test length.(AlignedBags([])) == []
+    @test length.(AlignedBags([1:2, 0:-1, 3:5])) == [2, 0, 3]
+    @test length.(ScatteredBags([])) == []
+    @test length.(ScatteredBags([[1,2], [], [3,4,5]])) == [2, 0, 3]
 end
+
+@testset "length type stability" begin
+    @test length.(AlignedBags([])) isa Vector{Int}
+    @test length.(AlignedBags([1:2, 0:-1, 3:5])) isa Vector{Int}
+    @test length.(ScatteredBags([])) isa Vector{Int}
+    @test length.(ScatteredBags([[1,2], [], [3,4,5]])) isa Vector{Int}
+end
+
