@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Mill – Multiple Instance Learning Library · Mill</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Mill</span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Mill – Multiple Instance Learning Library</a><ul class="internal"><li><a class="tocitem" href="#What-is-Multiple-instance-learning-(MIL)-problem?"><span>What is Multiple instance learning (MIL) problem?</span></a></li><li><a class="tocitem" href="#Hierarchical-utils"><span>Hierarchical utils</span></a></li><li><a class="tocitem" href="#Default-aggregation-values"><span>Default aggregation values</span></a></li><li><a class="tocitem" href="#Representing-missing-values"><span>Representing missing values</span></a></li><li><a class="tocitem" href="#References"><span>References</span></a></li></ul></li><li><a class="tocitem" href="datanodes/">Architecture of Data nodes</a></li><li><a class="tocitem" href="missing/">Missing values</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Mill – Multiple Instance Learning Library</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Mill – Multiple Instance Learning Library</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/pevnak/Mill.jl/blob/master/docs/src/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Mill-–-Multiple-Instance-Learning-Library"><a class="docs-heading-anchor" href="#Mill-–-Multiple-Instance-Learning-Library">Mill – Multiple Instance Learning Library</a><a id="Mill-–-Multiple-Instance-Learning-Library-1"></a><a class="docs-heading-anchor-permalink" href="#Mill-–-Multiple-Instance-Learning-Library" title="Permalink"></a></h1><p>Mill is a library build on top of <code>Flux.jl</code> aimed to flexibly prototype hierarchical multi-instance learning models as described in [<a href="#cit1">1</a>] and  [<a href="#cit2">2</a>]</p><h2 id="What-is-Multiple-instance-learning-(MIL)-problem?"><a class="docs-heading-anchor" href="#What-is-Multiple-instance-learning-(MIL)-problem?">What is Multiple instance learning (MIL) problem?</a><a id="What-is-Multiple-instance-learning-(MIL)-problem?-1"></a><a class="docs-heading-anchor-permalink" href="#What-is-Multiple-instance-learning-(MIL)-problem?" title="Permalink"></a></h2><p>In the prototypical machine learning problem the input sample <img src="https://latex.codecogs.com/gif.latex?x" alt="equation"/> is a vector or matrix of a fixed dimension, or a sequence. In MIL problems the sample <img src="https://latex.codecogs.com/gif.latex?x" alt="equation"/> is a set of vectors (or matrices) <img src="https://latex.codecogs.com/gif.latex?%28x_1%2C%20x_2%2C%20...%2C%20x_n%29" alt="equation"/>, which means that order does not matter, and which is also the feature making MIL problems different from sequences. The multi-instance problems have been introduced in by Tom Diettrich in [<a href="#cit4">4</a>] in 1997.</p><p>Pevný and Somol ([<a href="#cit1">1</a>] and  [<a href="#cit2">2</a>]) (and later &quot;indepently&quot; Zaheer et al. [<a href="#cit5">5</a>]) have proposed simple way to solve MIL problems with neural networks. The network consists from two non-linear layers, with aggregation operator like <code>mean</code> (or <code>maximum</code>) sandwiched between nonlinearities. Denoting <img src="https://latex.codecogs.com/gif.latex?f_1" alt="equation"/>, <img src="https://latex.codecogs.com/gif.latex?f_2" alt="equation"/> layers of neural network, the output is calculated as <img src="https://latex.codecogs.com/gif.latex?f%28x%29%20%3D%20f_2%20%5Cleft%28%5Cfrac%7B1%7D%7Bn%7D%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%20f_1%28x_i%29%5Cright%29" alt="equation"/>. In [<a href="#cit3">3</a>], authors have further extended the universal approximation theorem to MIL problems.</p><h3 id="Multiple-instance-learning-on-Musk-1"><a class="docs-heading-anchor" href="#Multiple-instance-learning-on-Musk-1">Multiple instance learning on Musk 1</a><a id="Multiple-instance-learning-on-Musk-1-1"></a><a class="docs-heading-anchor-permalink" href="#Multiple-instance-learning-on-Musk-1" title="Permalink"></a></h3><p>Musk dataset is a classic problem of the field used in publication [<a href="#cit4">4</a>], which has given the class of problems its name. </p><p>Below is a little walk-through how to solve the problem using Mill library. The full example is shown in <a href="example/musk.jl">example/musk.jl</a>, which also contains Julia environment to run the whole thing.</p><p>Let&#39;s start by importing all libraries</p><pre><code class="language-julia">julia&gt; using FileIO, JLD2, Statistics, Mill, Flux
+julia&gt; using Flux: throttle, @epochs
+julia&gt; using Mill: reflectinmodel
+julia&gt; using Base.Iterators: repeated</code></pre><p>Loading a dataset from file and folding it in Mill&#39;s data-structures is done in the following function. <code>musk.jld2</code> contains matrix with features, <code>fMat</code>, the id of sample (called bag in MIL terminology) to which each instance (column in <code>fMat</code>) belongs to, and finally a label of each instance in <code>y</code>.  <code>BagNode</code> is a structure which holds feature matrix and ranges of columns of each bag. Finally, <code>BagNode</code> can be concatenated (use <code>catobs</code>) and you can get subset using <code>getindex</code>.</p><pre><code class="language-julia">julia&gt; fMat = load(&quot;musk.jld2&quot;, &quot;fMat&quot;);         # matrix with instances, each column is one sample
+julia&gt; bagids = load(&quot;musk.jld2&quot;, &quot;bagids&quot;);     # ties instances to bags
+julia&gt; x = BagNode(ArrayNode(fMat), bagids);     # create BagDataset
+julia&gt; y = load(&quot;musk.jld2&quot;, &quot;y&quot;);               # load labels
+julia&gt; y = map(i -&gt; maximum(y[i]) + 1, x.bags);  # create labels on bags
+julia&gt; y_oh = Flux.onehotbatch(y, 1:2);          # one-hot encoding</code></pre><p>Once we have data, we can manually create a model. <code>BagModel</code> is designed to implement a basic multi-instance learning model as described above. Below, we use a simple model, where instances are first passed through a single layer with 10 neurons (input dimension is 166) with <code>tanh</code> non-linearity, then we use <code>mean</code> and <code>max</code> aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and <code>tanh</code> nonlinearity followed by output linear layer with 2 neurons (output dimension).</p><pre><code class="language-julia">julia&gt; model = BagModel(
+    ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
+    SegmentedMeanMax(10),                                       # aggregation
+    ArrayModel(Chain(Dense(20, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
+    
+BagModel ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Chain(Dense(20, 10, tanh), Dense(10, 2)))
+  └── ArrayModel(Dense(166, 10, tanh))</code></pre><p>The loss function is standard <code>cross-entropy</code>:</p><pre><code class="language-julia">julia&gt; loss(x, y_oh) = Flux.logitcrossentropy(model(x).data, y_oh);</code></pre><p>Finally, we put everything together. The below code should resemble an example from <code>Flux.jl</code> library.</p><pre><code class="language-julia">julia&gt; evalcb = () -&gt; @show(loss(x, y_oh));
+julia&gt; opt = Flux.ADAM();
+julia&gt; @epochs 10 Flux.train!(loss, params(model), repeated((x, y_oh), 1000), opt, cb=throttle(evalcb, 1))
+
+[ Info: Epoch 1
+loss(x, y_oh) = 87.793724f0
+[ Info: Epoch 2
+loss(x, y_oh) = 4.3207192f0
+[ Info: Epoch 3
+loss(x, y_oh) = 4.2778687f0
+[ Info: Epoch 4
+loss(x, y_oh) = 0.662226f0
+[ Info: Epoch 5
+loss(x, y_oh) = 5.76351f-6
+[ Info: Epoch 6
+loss(x, y_oh) = 3.8146973f-6
+[ Info: Epoch 7
+loss(x, y_oh) = 2.8195589f-6
+[ Info: Epoch 8
+loss(x, y_oh) = 2.4878461f-6
+[ Info: Epoch 9
+loss(x, y_oh) = 2.1561332f-6
+[ Info: Epoch 10
+loss(x, y_oh) = 1.7414923f-6</code></pre><p>Because we did not leave any data for validation, we can only calculate error on the training data, which should be not so surprisingly low.</p><pre><code class="language-julia">mean(mapslices(argmax, model(x).data, dims=1)&#39; .!= y)
+
+0.0</code></pre><h3 id="More-complicated-models"><a class="docs-heading-anchor" href="#More-complicated-models">More complicated models</a><a id="More-complicated-models-1"></a><a class="docs-heading-anchor-permalink" href="#More-complicated-models" title="Permalink"></a></h3><p>The main advantage of the Mill library is that it allows to arbitrarily nest and cross-product <code>BagModels</code>, as is described in Theorem 5 of [<a href="#cit3">3</a>].  Let&#39;s start the demonstration by nesting two MIL problems. The outer MIL model contains three samples. The first sample contains another bag (inner MIL) problem with two instances, the second sample contains two inner bags with total of three instances, and finally the third sample contains two inner bags with four instances.</p><pre><code class="language-julia">julia&gt; ds = BagNode(BagNode(ArrayNode(randn(4,10)),[1:2,3:4,5:5,6:7,8:10]),[1:1,2:3,4:5])
+BagNode with 3 bag(s)
+  └── BagNode with 5 bag(s)
+        └── ArrayNode(4, 10)</code></pre><p>We can create the model manually as in the case of Musk as</p><pre><code class="language-julia">julia&gt; m = BagModel(
+    BagModel(
+        ArrayModel(Dense(4, 3, Flux.relu)),   
+        SegmentedMeanMax(3),
+        ArrayModel(Dense(6, 3, Flux.relu))),
+    SegmentedMeanMax(3),
+    ArrayModel(Chain(Dense(6, 3, Flux.relu), Dense(3,2))))
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Chain(Dense(6, 3, relu), Dense(3, 2)))
+  └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        └── ArrayModel(Dense(4, 3, relu))</code></pre><p>and we can apply the model as</p><pre><code class="language-julia">julia&gt; m(ds)
+
+ArrayNode(2, 3)</code></pre><p>Since constructions of large models can be a process prone to errors, there is a function <code>reflectinmodel</code> which tries to automatize it keeping track of dimensions. It accepts as a first parameter a sample <code>ds</code>. Using the function on the above example creates a model:</p><pre><code class="language-julia">julia&gt; m = reflectinmodel(ds)
+
+BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
+  └── BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
+        └── ArrayModel(Dense(4, 10))</code></pre><p>To have better control over the topology, <code>reflectinmodel</code> accepts up to four additional parameters. The second parameter is a function returning layer (or set of layers) with input dimension <code>d</code>, and the third function is a function returning aggregation functions for <code>BagModel</code>:</p><pre><code class="language-julia">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; SegmentedMeanMax(d))
+
+BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
+  └── BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
+        └── ArrayModel(Dense(4, 5, relu))</code></pre><p>Let&#39;s test the model</p><pre><code class="language-julia">julia&gt; m(ds).data
+
+5×3 Array{Float32,2}:
+ 0.0542484   0.733629  0.553823
+ 0.062246    0.866254  1.03062 
+ 0.027454    1.04703   1.63135 
+ 0.00796955  0.36415   1.18108 
+ 0.034735    0.17383   0.0</code></pre><h3 id="Even-more-complicated-models"><a class="docs-heading-anchor" href="#Even-more-complicated-models">Even more complicated models</a><a id="Even-more-complicated-models-1"></a><a class="docs-heading-anchor-permalink" href="#Even-more-complicated-models" title="Permalink"></a></h3><p>As already mentioned above, the datasets can contain Cartesian products of MIL and normal (non-MIL) problems. Let&#39;s do a quick demo.</p><pre><code class="language-julia">julia&gt; ds = BagNode(
+    ProductNode(
+        (BagNode(ArrayNode(randn(4,10)),[1:2,3:4,5:5,6:7,8:10]),
+        ArrayNode(randn(3,5)),
+        BagNode(
+            BagNode(ArrayNode(randn(2,30)),[i:i+1 for i in 1:2:30]),
+            [1:3,4:6,7:9,10:12,13:15]),
+        ArrayNode(randn(2,5)))),
+    [1:1,2:3,4:5])
+
+BagNode with 3 bag(s)
+  └── ProductNode
+        ├── BagNode with 5 bag(s)
+        │     ⋮
+        ├── ArrayNode(3, 5)
+        ├── BagNode with 5 bag(s)
+        │     ⋮
+        └── ArrayNode(2, 5)</code></pre><p>For this, we really want to create model automatically despite it being sub-optimal.</p><pre><code class="language-julia">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 3, relu), d -&gt; SegmentedMeanMax(d))
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     ⋮
+        ├── ArrayModel(Dense(3, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     ⋮
+        └── ArrayModel(Dense(2, 3, relu))</code></pre><h2 id="Hierarchical-utils"><a class="docs-heading-anchor" href="#Hierarchical-utils">Hierarchical utils</a><a id="Hierarchical-utils-1"></a><a class="docs-heading-anchor-permalink" href="#Hierarchical-utils" title="Permalink"></a></h2><p>Mill.jl uses <a href="https://github.com/Sheemon7/HierarchicalUtils.jl">HierarchicalUtils.jl</a> which brings a lot of additional features. For instance, if you want to print a non-truncated version of a model, call:</p><pre><code class="language-julia">julia&gt; printtree(m; trunc=Inf)
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     └── ArrayModel(Dense(4, 3, relu))
+        ├── ArrayModel(Dense(3, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │           └── ArrayModel(Dense(2, 3, relu))
+        └── ArrayModel(Dense(2, 3, relu))</code></pre><p>Callling with <code>trav=true</code> enables convenient traversal functionality with string indexing:</p><pre><code class="language-julia">julia&gt;  printtree(m; trunc=Inf, trav=true)
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) [&quot;&quot;]
+  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu)) [&quot;U&quot;]
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) [&quot;Y&quot;]
+        │     └── ArrayModel(Dense(4, 3, relu)) [&quot;a&quot;]
+        ├── ArrayModel(Dense(3, 3, relu)) [&quot;c&quot;]
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) [&quot;g&quot;]
+        │     └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) [&quot;i&quot;]
+        │           └── ArrayModel(Dense(2, 3, relu)) [&quot;j&quot;]
+        └── ArrayModel(Dense(2, 3, relu)) [&quot;k&quot;]</code></pre><p>This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree (for instance when constructing adversarial samples). All tree nodes are accessible by indexing with the traversal code:.</p><pre><code class="language-julia">julia&gt; m[&quot;Y&quot;]
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+  └── ArrayModel(Dense(4, 3, relu))</code></pre><p>The following two approaches give the same result:</p><pre><code class="language-julia">julia&gt; m[&quot;Y&quot;] === m.im.ms[1]
+
+true</code></pre><p>Other functions provided by <code>HierarchicalUtils.jl</code>:</p><pre><code class="language-none">julia&gt; nnodes(m)
+
+9
+
+julia&gt; nleafs(m)
+
+4
+
+julia&gt; NodeIterator(m) |&gt; collect
+
+9-element Array{AbstractMillModel,1}:
+ BagModel
+ ProductModel
+ BagModel
+ ArrayModel
+ ArrayModel
+ BagModel
+ BagModel
+ ArrayModel
+ ArrayModel
+
+julia&gt; LeafIterator(m) |&gt; collect
+
+4-element Array{ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}},1}:
+ ArrayModel
+ ArrayModel
+ ArrayModel
+ ArrayModel
+
+julia&gt; TypeIterator(m, BagModel) |&gt; collect
+
+4-element Array{BagModel{T,Aggregation{2},ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}}} where T&lt;:AbstractMillModel,1}:
+ BagModel
+ BagModel
+ BagModel
+ BagModel</code></pre><p>... and many others, see <a href="https://github.com/Sheemon7/HierarchicalUtils.jl">HierarchicalUtils.jl</a>.</p><h2 id="Default-aggregation-values"><a class="docs-heading-anchor" href="#Default-aggregation-values">Default aggregation values</a><a id="Default-aggregation-values-1"></a><a class="docs-heading-anchor-permalink" href="#Default-aggregation-values" title="Permalink"></a></h2><p>With the latest version of Mill, it is also possible to work with missing data, replacing a missing bag with a default constant value, and even to learn this value as well. Everything is done automatically.</p><h2 id="Representing-missing-values"><a class="docs-heading-anchor" href="#Representing-missing-values">Representing missing values</a><a id="Representing-missing-values-1"></a><a class="docs-heading-anchor-permalink" href="#Representing-missing-values" title="Permalink"></a></h2><p>The library currently support two ways to represent bags with missing values. First one represent missing data using <code>missing</code> as <code>a = BagNode(missing, [0:-1])</code> while the second as an empty vector as <code>a = BagNode(zero(4,0), [0:-1])</code>.  While off the shelf the library supports both approaches transparently, the difference is mainly when one uses getindex, and therefore there is a switch <code>Mill.emptyismissing(false)</code>, which is by default false. Let me demonstrate the difference.</p><pre><code class="language-julia">julia&gt; a = BagNode(ArrayNode(rand(3,2)), [1:2, 0:-1])
+BagNode with 2 bag(s)
+  └── ArrayNode(3, 2)
+
+julia&gt; Mill.emptyismissing(false);
+
+julia&gt; a[2].data
+ArrayNode(3, 0)
+
+julia&gt; Mill.emptyismissing(true)
+true
+
+julia&gt; a[2].data
+missing</code></pre><p>The advantage of the first approach, default, is that types are always the same, which is nice to the compiler (and Zygote). The advantage of the latter is that it is more compact and nicer.</p><h2 id="References"><a class="docs-heading-anchor" href="#References">References</a><a id="References-1"></a><a class="docs-heading-anchor-permalink" href="#References" title="Permalink"></a></h2><p>&lt;a name=&quot;cit1&quot;&gt;&lt;b&gt;1&lt;/b&gt;&lt;/a&gt; <em>Discriminative models for multi-instance problems with tree-structure, Tomáš Pevný, Petr Somol, 2016</em>, https://arxiv.org/abs/1703.02868</p><p>&lt;a name=&quot;cit2&quot;&gt;&lt;b&gt;2&lt;/b&gt;&lt;/a&gt; <em>Using Neural Network Formalism to Solve Multiple-Instance Problems, Tomáš Pevný, Petr Somol, 2016</em>, https://arxiv.org/abs/1609.07257. </p><p>&lt;a name=&quot;cit3&quot;&gt;&lt;b&gt;3&lt;/b&gt;&lt;/a&gt; <em>Approximation capability of neural networks on sets of probability measures and tree-structured data, Tomáš Pevný, Vojtěch Kovařík, 2019</em>, https://openreview.net/forum?id=HklJV3A9Ym</p><p>&lt;a name=&quot;cit4&quot;&gt;&lt;b&gt;4&lt;/b&gt;&lt;/a&gt; <em>Solving the multiple instance problem with axis-parallel rectangles, Dietterich, Thomas G., Richard H. Lathrop, and Tomás Lozano-Pérez, 1997</em></p><p>&lt;a name=&quot;cit5&quot;&gt;&lt;b&gt;5&lt;/b&gt;&lt;/a&gt; <em>Deep sets, Zaheer, Manzil, et al., 2017</em>,</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="datanodes/">Architecture of Data nodes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 4 November 2020 11:24">Wednesday 4 November 2020</span>. Using Julia version 1.5.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
