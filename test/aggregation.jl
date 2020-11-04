@@ -16,7 +16,7 @@ end
     function test_equal(a1::T, a2::T) where T <: Aggregation
         length(a1.fs) == length(a2.fs) && all(test_equal(f1, f2) for (f1, f2) in zip(a1.fs, a2.fs))
     end
-    function test_equal(a1::T, a2::T) where T <: AggregationOperator
+    function test_equal(a1::T, a2::T) where T <: Mill.AggregationOperator
         all(getfield(a1, f) == getfield(a2, f) for f in fieldnames(T))
     end
 
