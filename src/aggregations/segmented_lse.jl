@@ -11,6 +11,12 @@ _SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
 Flux.@forward SegmentedLSE.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype
 
+Base.vcat(as::SegmentedLSE...) = reduce(vcat, as |> collect)
+function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedLSE})
+    SegmentedLSE(reduce(vcat, [a.ρ for a in as]),
+                 reduce(vcat, [a.ψ for a in as]))
+end
+
 r_map(ρ) = @. softplus(ρ)
 inv_r_map(r) = @. relu(r) + log1p(-exp(-abs(r)))
 

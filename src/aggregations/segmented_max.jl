@@ -9,6 +9,11 @@ _SegmentedMax(d::Int) = SegmentedMax(zeros(Float32, d))
 Flux.@forward SegmentedMax.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype
 
+Base.vcat(as::SegmentedMax...) = reduce(vcat, as |> collect)
+function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedMax})
+    SegmentedMax(reduce(vcat, [a.ψ for a in as]))
+end
+
 function (m::SegmentedMax{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_max_forw(x, m.ψ, bags)

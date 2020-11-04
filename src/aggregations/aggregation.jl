@@ -8,7 +8,7 @@ struct Aggregation{T, N} <: AggregationOperator{T}
     end
 end
 
-_flatten_agg(t::Tuple) = tuple(vcat(map(_flatten_agg, t)...)...)
+_flatten_agg(t) = tuple(vcat(map(_flatten_agg, t)...)...)
 _flatten_agg(a::Aggregation) = vcat(map(_flatten_agg, a.fs)...)
 _flatten_agg(a::AggregationOperator) = [a]
 
@@ -25,7 +25,9 @@ Flux.@forward Aggregation.fs Base.getindex, Base.firstindex, Base.lastindex, Bas
 Base.length(a::Aggregation) = sum(length.(a.fs))
 Base.size(a::Aggregation) = tuple(sum(only, size.(a.fs)))
 Base.vcat(as::Aggregation...) = reduce(vcat, as |> collect)
-Base.reduce(::typeof(vcat), as::Vector{<:Aggregation}) = Aggregation(tuple(vcat((collect(a.fs) for a in as)...)...))
+function Base.reduce(::typeof(vcat), as::Vector{<:Aggregation})
+    Aggregation(tuple(vcat((collect(a.fs) for a in as)...)...))
+end
 
 function Base.show(io::IO, @nospecialize a::Aggregation)
     if get(io, :compact, false)

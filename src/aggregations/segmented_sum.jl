@@ -9,6 +9,11 @@ _SegmentedSum(d::Int) = SegmentedSum(zeros(Float32, d))
 Flux.@forward SegmentedSum.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype
 
+Base.vcat(as::SegmentedSum...) = reduce(vcat, as |> collect)
+function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedSum})
+    SegmentedSum(reduce(vcat, [a.ψ for a in as]))
+end
+
 function (m::SegmentedSum{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_sum_forw(x, m.ψ, bags, w)

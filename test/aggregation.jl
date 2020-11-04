@@ -1,3 +1,53 @@
+@testset "basic attributes" begin
+    a1 = SegmentedMean(1:4 |> collect)
+    a2 = SegmentedMean(4)
+    a3 = SegmentedMeanMax(4)
+
+    @test length(a1) == 4
+    @test size(a1) == (4,)
+    @test length(a2) == 4
+    @test size(a2) == (4,)
+    @test length(a3) == 8
+    @test size(a3) == (8,)
+end
+
+@testset "vcat" begin
+    # We do not implement == for models because it messes with Flux implementation
+    function test_equal(a1::T, a2::T) where T <: Aggregation
+        length(a1.fs) == length(a2.fs) && all(test_equal(f1, f2) for (f1, f2) in zip(a1.fs, a2.fs))
+    end
+    function test_equal(a1::T, a2::T) where T <: AggregationOperator
+        all(getfield(a1, f) == getfield(a2, f) for f in fieldnames(T))
+    end
+
+    # Aggregation Operators
+    @test test_equal(
+                     vcat(SegmentedMean(ones(5)), SegmentedMean(ones(5))),
+                     SegmentedMean(ones(10))
+                    )
+    @test test_equal(
+                     vcat(SegmentedMax(ones(5)), SegmentedMax(ones(5))),
+                     SegmentedMax(ones(10))
+                     )
+    @test test_equal(
+                     vcat(SegmentedSum(ones(5)), SegmentedSum(ones(5))),
+                     SegmentedSum(ones(10))
+                    )
+    @test test_equal(
+                     vcat(SegmentedLSE(ones(5), zeros(5)), SegmentedLSE(ones(5), zeros(5))),
+                     SegmentedLSE(ones(10), zeros(10))
+                    )
+    @test test_equal(
+                     vcat(SegmentedPNorm(ones(5), zeros(5), -ones(5)),
+                          SegmentedPNorm(ones(5), zeros(5), -ones(5))),
+                     SegmentedPNorm(ones(10), zeros(10), -ones(10))
+                    )
+
+    # Aggregation
+    @test test_equal(vcat(SegmentedMean(5)), SegmentedMean(5))
+    @test test_equal(vcat(SegmentedMean(5), SegmentedMax(5)), SegmentedMeanMax(5))
+end
+
 @testset "flattening" begin
     as = [
           Aggregation(SegmentedMean(2), SegmentedMax(2)),
@@ -10,7 +60,8 @@
           SegmentedMeanMax(2)
          ]
 
-    @test all(length.(as) .== 2)
+    @test all(length.(as) .== 4)
+    @test all(a -> all(f -> length(f) == 2, a.fs), as)
     @test all(isa.(getindex.(as, 1), SegmentedMean))
     @test all(isa.(getindex.(as, 2), SegmentedMax))
 end
@@ -176,9 +227,9 @@ end
     baglengths = log.(1 .+ [1.0 2.0 3.0]) |> f32
 
     function test_count(a)
-        Mill.bagcount(false)
+        Mill.bagcount!(false)
         a1 = a(X, bags)
-        Mill.bagcount(true)
+        Mill.bagcount!(true)
         a2 = a(X, bags)
         @test [a1; baglengths] == a2
     end

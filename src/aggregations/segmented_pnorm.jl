@@ -12,6 +12,13 @@ _SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), z
 Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype
 
+Base.vcat(as::SegmentedPNorm...) = reduce(vcat, as |> collect)
+function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedPNorm})
+    SegmentedPNorm(reduce(vcat, [a.ρ for a in as]),
+                   reduce(vcat, [a.c for a in as]),
+                   reduce(vcat, [a.ψ for a in as]))
+end
+
 p_map(ρ::T) where T = one(T) + softplus(ρ)
 p_map(ρ::AbstractArray) = p_map.(ρ)
 inv_p_map(p::T) where T = relu(p - one(T)) + log1p(-exp(-abs(p - one(T))))
