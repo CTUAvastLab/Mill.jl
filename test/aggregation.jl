@@ -102,7 +102,7 @@ end
         w1 = abs(w1)
         w2 = abs(w2)
         bags = ScatteredBags([[1,2]])
-        agg = SegmentedPNorm([ρ1, ρ2], [c1, c2], dummy)
+        agg = SegmentedPNorm(dummy, [ρ1, ρ2], [c1, c2])
         @test agg([a b; c d], bags) ≈ [
                                      (1/2*(abs(a-c1)^p1 + abs(b-c1)^p1))^(1/p1);
                                      (1/2*(abs(c-c2)^p2 + abs(d-c2)^p2))^(1/p2)
@@ -117,9 +117,9 @@ end
                                               ]
         for bags in BAGS
             X = randn(2, 6)
-            agg = SegmentedPNorm(inv_p_map([1+1e-16, 1+1e-16]), [0.0, 0.0], dummy)
+            agg = SegmentedPNorm(dummy, inv_p_map([1+1e-16, 1+1e-16]), [0.0, 0.0])
             @test agg(X, bags) ≈ SegmentedMean(dummy)(abs.(X), bags)
-            agg = SegmentedPNorm(inv_p_map([2.0, 2.0]), [0.0, 0.0], dummy)
+            agg = SegmentedPNorm(dummy, inv_p_map([2.0, 2.0]), [0.0, 0.0])
             @test agg(X, bags) ≈ hcat([sqrt.(sum(X[:, b] .^ 2, dims=2) ./ length(b)) for b in bags]...)
         end
     end
@@ -130,7 +130,7 @@ end
     for t = 1:10
         a, b, c, d, ρ1, ρ2 = randn(6)
         r1, r2 = r_map(ρ1), r_map(ρ2)
-        @test SegmentedLSE([ρ1, ρ2], dummy)([a b; c d], ScatteredBags([[1,2]])) ≈ [
+        @test SegmentedLSE(dummy, [ρ1, ρ2])([a b; c d], ScatteredBags([[1,2]])) ≈ [
                                                                                1/r1*log(1/2*(exp(a*r1)+exp(b*r1)));
                                                                                1/r2*log(1/2*(exp(c*r2)+exp(d*r2)))
                                                                               ]
@@ -139,9 +139,9 @@ end
             W = abs.(randn(6))
             r1, r2 = randn(2)
             # doesn't use weights
-            @test all(SegmentedLSE([ρ1, ρ2], dummy)(X, bags) .== SegmentedLSE([ρ1, ρ2], dummy)(X, bags, W))
+            @test all(SegmentedLSE(dummy, [ρ1, ρ2])(X, bags) .== SegmentedLSE(dummy, [ρ1, ρ2])(X, bags, W))
             # the bigger value of r, the closer we are to the real maximum
-            @test isapprox(SegmentedLSE([100.0, 100.0], dummy)(X, bags), SegmentedMax(dummy)(X, bags), atol=0.1)
+            @test isapprox(SegmentedLSE(dummy, [100.0, 100.0])(X, bags), SegmentedMax(dummy)(X, bags), atol=0.1)
         end
     end
 end
@@ -156,16 +156,16 @@ end
     Z = 1e5 .+ 1e3 .* randn(d, k)
     W = abs.(randn(k)) .+ 1e-2
     for X in [Z, -Z, randn(d, k)]
-        @test SegmentedPNorm(ρ1, c, dummy)(X, b) ≈ sum(abs.(X); dims=2) ./ k
-        @test SegmentedPNorm(ρ1, c, dummy)(X, b, W) ≈ sum(W' .* abs.(X); dims=2) / sum(W)
-        @test SegmentedPNorm(ρ1, c, dummy)(X, b, W) ≈ sum(W' .* abs.(X); dims=2) / sum(W)
+        @test SegmentedPNorm(dummy, ρ1, c)(X, b) ≈ sum(abs.(X); dims=2) ./ k
+        @test SegmentedPNorm(dummy, ρ1, c)(X, b, W) ≈ sum(W' .* abs.(X); dims=2) / sum(W)
+        @test SegmentedPNorm(dummy, ρ1, c)(X, b, W) ≈ sum(W' .* abs.(X); dims=2) / sum(W)
         for i in 1:k
-            @test SegmentedPNorm(ρ1, c, dummy)(repeat(X[:, i], 1, k), b) ≈ abs.(X[:, i])
-            @test SegmentedPNorm(ρ2, c, dummy)(repeat(X[:, i], 1, k), b) ≈ abs.(X[:, i])
-            @test SegmentedPNorm(ρ1, c, dummy)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
-            @test SegmentedPNorm(ρ1, c, dummy)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
-            @test SegmentedPNorm(ρ2, c, dummy)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
-            @test SegmentedPNorm(ρ2, c, dummy)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(dummy, ρ1, c)(repeat(X[:, i], 1, k), b) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(dummy, ρ2, c)(repeat(X[:, i], 1, k), b) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(dummy, ρ1, c)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(dummy, ρ1, c)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(dummy, ρ2, c)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
+            @test SegmentedPNorm(dummy, ρ2, c)(repeat(X[:, i], 1, k), b, W) ≈ abs.(X[:, i])
         end
     end
 end
@@ -179,19 +179,19 @@ end
     Z = 1e5 .+ 1e3 .* randn(d, k)
     W = abs.(randn(k)) .+ 1e-2
     for X in [Z, -Z, randn(d, k)]
-        @test SegmentedLSE(ρ1, dummy)(X, b) ≈ maximum(X; dims=2)
+        @test SegmentedLSE(dummy, ρ1)(X, b) ≈ maximum(X; dims=2)
         # doesn't use weights
-        @test SegmentedLSE(ρ1, dummy)(X, b, W) ≈ maximum(X; dims=2)
+        @test SegmentedLSE(dummy, ρ1)(X, b, W) ≈ maximum(X; dims=2)
 
         # implementation immune to underflow not available yet
-        @test_skip @test SegmentedLSE(ρ2, dummy)(X, b) ≈ sum(X; dims=2) ./ k
+        @test_skip @test SegmentedLSE(dummy, ρ2)(X, b) ≈ sum(X; dims=2) ./ k
         # doesn't use weights
-        @test_skip @test SegmentedLSE(ρ2, dummy)(X, b, W) ≈ sum(X; dims=2) ./ k
+        @test_skip @test SegmentedLSE(dummy, ρ2)(X, b, W) ≈ sum(X; dims=2) ./ k
 
         for i in 1:k
-            @test SegmentedLSE(randn(d), dummy)(repeat(X[:, i], 1, k), b) ≈ X[:, i]
+            @test SegmentedLSE(dummy, randn(d))(repeat(X[:, i], 1, k), b) ≈ X[:, i]
             # doesn't use weights
-            @test SegmentedLSE(randn(d), dummy)(repeat(X[:, i], 1, k), b, W) ≈ X[:, i]
+            @test SegmentedLSE(dummy, randn(d))(repeat(X[:, i], 1, k), b, W) ≈ X[:, i]
         end
     end
 end
@@ -203,8 +203,8 @@ end
         @test SegmentedMean(ψ)(missing, bags) == repeat(ψ, 1, length(bags))
         @test SegmentedSum(ψ)(missing, bags) == repeat(ψ, 1, length(bags))
         @test SegmentedMax(ψ)(missing, bags) == repeat(ψ, 1, length(bags))
-        @test SegmentedLSE(dummy, ψ)(missing, bags) == repeat(ψ, 1, length(bags))
-        @test SegmentedPNorm(dummy, dummy, ψ)(missing, bags) == repeat(ψ, 1, length(bags)) 
+        @test SegmentedLSE(ψ, dummy)(missing, bags) == repeat(ψ, 1, length(bags))
+        @test SegmentedPNorm(ψ, dummy, dummy)(missing, bags) == repeat(ψ, 1, length(bags)) 
     end
 
     # default values ψ are indeed filled in
@@ -215,8 +215,8 @@ end
         @test SegmentedMean(ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
         @test SegmentedSum(ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
         @test SegmentedMax(ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
-        @test SegmentedLSE(dummy, ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
-        @test SegmentedPNorm(dummy, dummy, ψ)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
+        @test SegmentedLSE(ψ, dummy)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
+        @test SegmentedPNorm(ψ, dummy, dummy)(X, bags)[:, idcs] == repeat(ψ, 1, sum(idcs))
     end
 end
 
@@ -278,7 +278,7 @@ end
     @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
 
     fs = [:SegmentedSum, :SegmentedMean, :SegmentedMax, :SegmentedPNorm, :SegmentedLSE]
-    params = [(:ψ1,), (:ψ2,), (:ψ3,), (:ρ1, :c, :ψ4), (:ρ2, :ψ5)]
+    params = [(:ψ1,), (:ψ2,), (:ψ3,), (:ψ4, :ρ1, :c), (:ψ5, :ρ2)]
 
     for idxs in powerset(collect(1:length(fs)))
         1 ≤ length(idxs) <= 2 || continue

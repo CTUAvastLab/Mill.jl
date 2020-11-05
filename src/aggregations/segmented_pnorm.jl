@@ -1,8 +1,8 @@
 # https://arxiv.org/pdf/1311.1780.pdf
 struct SegmentedPNorm{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+    ψ::V
     ρ::V
     c::V
-    ψ::V
 end
 
 Flux.@functor SegmentedPNorm
@@ -14,9 +14,9 @@ Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firs
 
 Base.vcat(as::SegmentedPNorm...) = reduce(vcat, as |> collect)
 function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedPNorm})
-    SegmentedPNorm(reduce(vcat, [a.ρ for a in as]),
-                   reduce(vcat, [a.c for a in as]),
-                   reduce(vcat, [a.ψ for a in as]))
+    SegmentedPNorm(reduce(vcat, [a.ψ for a in as]),
+                   reduce(vcat, [a.ρ for a in as]),
+                   reduce(vcat, [a.c for a in as]))
 end
 
 p_map(ρ::T) where T = one(T) + softplus(ρ)

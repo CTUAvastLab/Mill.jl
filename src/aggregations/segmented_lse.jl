@@ -1,7 +1,7 @@
 # https://arxiv.org/abs/1511.05286
 struct SegmentedLSE{T, V <: AbstractVector{T}} <: AggregationOperator{T}
-    ρ::V
     ψ::V
+    ρ::V
 end
 
 Flux.@functor SegmentedLSE
@@ -13,8 +13,8 @@ Flux.@forward SegmentedLSE.ψ Base.getindex, Base.length, Base.size, Base.firsti
 
 Base.vcat(as::SegmentedLSE...) = reduce(vcat, as |> collect)
 function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedLSE})
-    SegmentedLSE(reduce(vcat, [a.ρ for a in as]),
-                 reduce(vcat, [a.ψ for a in as]))
+    SegmentedLSE(reduce(vcat, [a.ψ for a in as]),
+                 reduce(vcat, [a.ρ for a in as]))
 end
 
 r_map(ρ) = @. softplus(ρ)
