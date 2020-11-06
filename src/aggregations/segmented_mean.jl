@@ -37,7 +37,7 @@ function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstra
                     y[i, bi] += weight(w, i, j, eltype(x)) * x[i, j]
                 end
             end
-            y[:, bi] ./= bagnorm(w, b)
+            @views y[:, bi] ./= bagnorm(w, b)
         end
     end
     y
