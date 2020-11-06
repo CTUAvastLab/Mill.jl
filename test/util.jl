@@ -1,3 +1,9 @@
+@testset "findnonempty" begin
+end
+
+@testset "ModelLens" begin
+end
+
 @testset "replacein" begin
     metadata = fill("metadata", 4)
     an1 = ArrayNode(rand(3,4))
@@ -45,5 +51,4 @@ end
         l = findin(m1,  m1[t])
         @test get(m1, l) === m1[t]
     end
-
 end

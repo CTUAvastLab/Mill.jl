@@ -6,6 +6,7 @@ using HierarchicalUtils
 using LearnBase
 using LinearAlgebra
 using MLDataPattern
+using Setfield
 using SparseArrays
 using Statistics
 using Zygote
@@ -49,7 +50,6 @@ function catobs end
 include("bags.jl")
 export AlignedBags, ScatteredBags, length2bags, remapbag, bags
 
-include("util.jl")
 include("threadfuns.jl")
 
 include("matrices/matrix.jl")
@@ -81,14 +81,14 @@ export bagconv, BagConv
 include("bagchain.jl")
 export BagChain
 
-include("replacein.jl")
-export replacein, findin
-
 include("hierarchical_utils.jl")
 export printtree
 
 include("partialeval.jl")
 export partialeval
+
+include("util.jl")
+export sparsify, findnonempty, ModelLens, replacein, findin
 
 Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel} = 
     HierarchicalUtils.printtree(io, n; htrunc=3)
