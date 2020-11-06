@@ -213,18 +213,38 @@ end
     @test repr(X; context=:compact => true) == "2053x3 NGramMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
-        2053×3 NGramMatrix{String}:
+        2053×3 NGramMatrix{String,Array{String,1},Int64}:
          \"a\"
          \"b\"
          \"c\""""
 
     X = NGramMatrix([missing, "b", missing])
-    @test repr(X) == "NGramMatrix(s = [missing, \"b\", missing], n = 3, b = 256, m = 2053)"
+    @test repr(X) == "NGramMatrix(s = Union{Missing, String}[missing, \"b\", missing], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053x3 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
-        2053×3 NGramMatrix{Union{String, Missing}}:
-         missing 
+        2053×3 NGramMatrix{Union{Missing, String},Array{Union{Missing, String},1},Union{Missing, Int64}}:
+         missing
          \"b\"
+         missing"""
+
+    X = NGramMatrix([codeunits("hello"), codeunits("world")])
+    @test repr(X) == "NGramMatrix(s = Base.CodeUnits{UInt8,String}" *
+        "[[0x68, 0x65, 0x6c, 0x6c, 0x6f], [0x77, 0x6f, 0x72, 0x6c, 0x64]], n = 3, b = 256, m = 2053)"
+    @test repr(X; context=:compact => true) == "2053x2 NGramMatrix"
+    @test repr(MIME("text/plain"), X) ==
+        """
+        2053×2 NGramMatrix{Base.CodeUnits{UInt8,String},Array{Base.CodeUnits{UInt8,String},1},Int64}:
+         UInt8[0x68, 0x65, 0x6c, 0x6c, 0x6f]
+         UInt8[0x77, 0x6f, 0x72, 0x6c, 0x64]"""
+
+    X = NGramMatrix([[1,2,3], missing, missing])
+    @test repr(X) == "NGramMatrix(s = Union{Missing, Array{Int64,1}}[[1, 2, 3], missing, missing], n = 3, b = 256, m = 2053)"
+    @test repr(X; context=:compact => true) == "2053x3 NGramMatrix"
+    @test repr(MIME("text/plain"), X) ==
+        """
+        2053×3 NGramMatrix{Union{Missing, Array{Int64,1}},Array{Union{Missing, Array{Int64,1}},1},Union{Missing, Int64}}:
+         [1, 2, 3]
+         missing
          missing"""
 end
