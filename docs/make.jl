@@ -6,14 +6,24 @@ makedocs(
     format = Documenter.HTML(),
     modules = [Mill],
     pages = ["Home" => "index.md",
-# Introduction to MIL, how it is different from GNN, what it is , and walktrough example
-# Advanced example mixing products and bags (suggestions welcomed)
-# Architecture of the library, parallels between Nodes and Models and minimum required functions for integration
-# Handling missing values
-# Performance Primitives (NGramStrings)
-# Conveniences (Lenses)
-# External Tools (JsonGrinder, HierarchicalUtils)
-Suggested by Jan Francu, ?extensions to Graph NN? / Dags?
+    "Examples" => [
+    	"Simple" => "examples/simple.md",
+    	"Advanced" => "examples/advanced.md",
+		# Suggested by Jan Francu, ?extensions to Graph NN? / Dags?
+    ],
+    "Architecture of Mill" => [
+    	"Overview" => "architecture/overview.md",
+    	"ReflectInModel" => "architecture/reflectin.md",
+		"Handling strings" => "architecture/strings.md",
+    	"Aggregations" => "architecture/aggregation.md",
+    	"Missing values" => "architecture/missing.md",
+    	"Custom Nodes" => "architecture/custom.md",
+	],
+    "Helper tools" => [
+    	"HierarichalUtils.jl" => "tools/hierarchical.md",
+		# Conveniences (Lenses)
+		# External Tools (JsonGrinder, HierarchicalUtils)
+    ],
 	],
 
 )

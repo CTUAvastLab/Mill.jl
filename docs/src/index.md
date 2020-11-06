@@ -1,289 +1,41 @@
-# Mill – Multiple Instance Learning Library
- Mill is a library build on top of `Flux.jl` aimed to flexibly prototype hierarchical multi-instance learning models as described in [[1](#cit1)] and  [[2](#cit2)]
+# Mill.jl
+ Mill.jl is a library build on top of `Flux.jl` aimed to flexibly prototype *hierarchical multi-instance learning* models as described in [[1](#cit1)] and  [[2](#cit2)]
 
- ## What is Multiple instance learning (MIL) problem?
- In the prototypical machine learning problem the input sample ``x`` is a vector or matrix of a fixed dimension, or a sequence. In MIL problems the sample ``x`` is a set of vectors (or matrices) ``\{x_1,\ldots,x_l\}`` with ``x_i \in R^d``, which means that order does not matter, and which is also the feature making MIL problems different from sequences. The multi-instance problems have been introduced in by Tom Diettrich in [[4](#cit4)] in 1997.
+## What is Multiple instance learning (MIL) problem?
 
- Pevný and Somol ([[1](#cit1)] and  [[2](#cit2)]) (and later "indepently" Zaheer et al. [[5](#cit5)]) have proposed simple way to solve MIL problems with neural networks. The network consists from two non-linear layers, with aggregation operator like `mean` (or `maximum`) sandwiched between nonlinearities. Denoting ``f_1``  and ``f_2`` two feed-forward neural networks, the output is calculated as ``f_2 \left\(\frac{1}{l}\sum_{i=1}^l f_1(x_i) \right\)``, where we have used `mean` as an aggregation function. In [[3](#cit3)], authors have further extended the universal approximation theorem to MIL problems.
- ### Multiple instance learning on Musk 1
-Musk dataset is a classic problem of the field used in publication [[4](#cit4)], which has given the class of problems its name. 
+Why should I care about MIL problems?
+Since the seminal paper of Ronald Fisher, the majority of machine learning problems deals with a problem shown below, 
 
-Below is a little walk-through how to solve the problem using Mill library. The full example is shown in [example/musk.jl](example/musk.jl), which also contains Julia environment to run the whole thing.
- 
- Let's start by importing all libraries
-```julia
-julia> using FileIO, JLD2, Statistics, Mill, Flux
-julia> using Flux: throttle, @epochs
-julia> using Mill: reflectinmodel
-julia> using Base.Iterators: repeated
-```
- Loading a dataset from file and folding it in Mill's data-structures is done in the following function. `musk.jld2` contains matrix with features, `fMat`, the id of sample (called bag in MIL terminology) to which each instance (column in `fMat`) belongs to, and finally a label of each instance in `y`. 
-`BagNode` is a structure which holds feature matrix and ranges of columns of each bag. Finally, `BagNode` can be concatenated (use `catobs`) and you can get subset using `getindex`.
-```julia
-julia> fMat = load("musk.jld2", "fMat");         # matrix with instances, each column is one sample
-julia> bagids = load("musk.jld2", "bagids");     # ties instances to bags
-julia> x = BagNode(ArrayNode(fMat), bagids);     # create BagDataset
-julia> y = load("musk.jld2", "y");               # load labels
-julia> y = map(i -> maximum(y[i]) + 1, x.bags);  # create labels on bags
-julia> y_oh = Flux.onehotbatch(y, 1:2);          # one-hot encoding
-```
- Once we have data, we can manually create a model. `BagModel` is designed to implement a basic multi-instance learning model as described above. Below, we use a simple model, where instances are first passed through a single layer with 10 neurons (input dimension is 166) with `tanh` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `tanh` nonlinearity followed by output linear layer with 2 neurons (output dimension).
-```julia
-julia> model = BagModel(
-    ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
-    SegmentedMeanMax(10),                                       # aggregation
-    ArrayModel(Chain(Dense(20, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
-    
-BagModel ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Chain(Dense(20, 10, tanh), Dense(10, 2)))
-  └── ArrayModel(Dense(166, 10, tanh))
-```
- The loss function is standard `cross-entropy`:
-```julia
-julia> loss(x, y_oh) = Flux.logitcrossentropy(model(x).data, y_oh);
-```
- Finally, we put everything together. The below code should resemble an example from `Flux.jl` library.
- ```julia
-julia> evalcb = () -> @show(loss(x, y_oh));
-julia> opt = Flux.ADAM();
-julia> @epochs 10 Flux.train!(loss, params(model), repeated((x, y_oh), 1000), opt, cb=throttle(evalcb, 1))
+![mnist_preview](assets/iris.svg)
 
-[ Info: Epoch 1
-loss(x, y_oh) = 87.793724f0
-[ Info: Epoch 2
-loss(x, y_oh) = 4.3207192f0
-[ Info: Epoch 3
-loss(x, y_oh) = 4.2778687f0
-[ Info: Epoch 4
-loss(x, y_oh) = 0.662226f0
-[ Info: Epoch 5
-loss(x, y_oh) = 5.76351f-6
-[ Info: Epoch 6
-loss(x, y_oh) = 3.8146973f-6
-[ Info: Epoch 7
-loss(x, y_oh) = 2.8195589f-6
-[ Info: Epoch 8
-loss(x, y_oh) = 2.4878461f-6
-[ Info: Epoch 9
-loss(x, y_oh) = 2.1561332f-6
-[ Info: Epoch 10
-loss(x, y_oh) = 1.7414923f-6
-```
- 
-Because we did not leave any data for validation, we can only calculate error on the training data, which should be not so surprisingly low.
- ```julia
-mean(mapslices(argmax, model(x).data, dims=1)' .!= y)
+where the input sample ``x`` is a vector (or more generally a tensor) of a fixed dimension, alterantivelly a sequence. 
 
-0.0
-```
+The consequence is that if we want to classify the iris aboce, and we want to use features describing its leafs, blossoms, etc, we will have a hard time, since every flower has different number of them. This implies that to use the usual "fix dimension" paradigm, we have to either use features from a single flower and single leaf, or aggregate the description of their set, such that the output has a fixed dimension. This is clearly undesirable, as we would like a framework that can flexibly and automatically deals with these nuisances. 
 
- ### More complicated models
-The main advantage of the Mill library is that it allows to arbitrarily nest and cross-product `BagModels`, as is described in Theorem 5 of [[3](#cit3)].
- Let's start the demonstration by nesting two MIL problems. The outer MIL model contains three samples. The first sample contains another bag (inner MIL) problem with two instances, the second sample contains two inner bags with total of three instances, and finally the third sample contains two inner bags with four instances.
-```julia
-julia> ds = BagNode(BagNode(ArrayNode(randn(4,10)),[1:2,3:4,5:5,6:7,8:10]),[1:1,2:3,4:5])
-BagNode with 3 bag(s)
-  └── BagNode with 5 bag(s)
-        └── ArrayNode(4, 10)
-```
- We can create the model manually as in the case of Musk as
-```julia
-julia> m = BagModel(
-    BagModel(
-        ArrayModel(Dense(4, 3, Flux.relu)),   
-        SegmentedMeanMax(3),
-        ArrayModel(Dense(6, 3, Flux.relu))),
-    SegmentedMeanMax(3),
-    ArrayModel(Chain(Dense(6, 3, Flux.relu), Dense(3,2))))
 
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Chain(Dense(6, 3, relu), Dense(3, 2)))
-  └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        └── ArrayModel(Dense(4, 3, relu))
-```
-and we can apply the model as
-```julia
-julia> m(ds)
+In Multiple instance learning the sample ``x`` is a set of vectors (or matrices) ``\{x_1,\ldots,x_l\}`` with ``x_i \in R^d``, which means that order does not matter, and which is also the feature making MIL problems different from sequences. The multi-instance problems have been introduced in by Tom Diettrich in [[4](#cit4)] in 1997, and extended and generalized in a series of works [[1](#cit1)], [[2](#cit2)], [[3](#cit3)]. The most comprehensive introduction known to authors is [[6](#cit6)]
 
-ArrayNode(2, 3)
-```
- Since constructions of large models can be a process prone to errors, there is a function `reflectinmodel` which tries to automatize it keeping track of dimensions. It accepts as a first parameter a sample `ds`. Using the function on the above example creates a model:
-```julia
-julia> m = reflectinmodel(ds)
+The **Hierarchical Multiple instance learning** would approach the problem of iris classification as outlined below.
 
-BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
-  └── BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
-        └── ArrayModel(Dense(4, 10))
-```
+![mnist_preview](assets/iris2.svg)
 
-To have better control over the topology, `reflectinmodel` accepts up to four additional parameters. The second parameter is a function returning layer (or set of layers) with input dimension `d`, and the third function is a function returning aggregation functions for `BagModel`:
-```julia
-julia> m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d))
+It will describe each leafs by a vector implying that all leaves are described bu a set of vectors. The same will be done for blossoms. Note that such description allows each flower to have a different numbers of each entity. Finally, there will be a single vector describing a stem, since there is only one.
 
-BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
-  └── BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
-        └── ArrayModel(Dense(4, 5, relu))
-```
+How does the MIL copes with variability in number of flowers and leafs (in MIL parlance they are called instances and their set is called a bag)? For each MIL problem, there are two feed-forward neural networks with element-wise aggregation operator like `mean` (or `maximum`) sandwiched between them. Denoting those feed-forward networks (FFN) by  ``f_1``  and ``f_2``, the output of a bag calculated is calculated as ``f_2 \left\(\frac{1}{l}\sum_{i=1}^l f_1(x_i) \right\)``, where we have used `mean` as an aggregation function. In [[3](#cit3)], authors have further extended the universal approximation theorem to MIL problems, their Cartesian products, and nested  MIL problems, i.e. a case where instances of one bag are in fact bags. 
 
-Let's test the model
-```julia
-julia> m(ds).data
+This means that the flower in the above Iris example would be described by one bag describing leafs, another bag describing blossoms, and a vector describing stem. The HMIL model would have two FFNs to convert set of leafs to a single vector, another set of two FFNs to convert set of blossoms to a single vector. These two outputs would be concatenated with a description of a stem, which would be fed to yet another FFN providing the final classifications. And since whole scheme is differentiable, we can use standard SGD to optimize all FFNs together using only labels on the level of output.
 
-5×3 Array{Float32,2}:
- 0.0542484   0.733629  0.553823
- 0.062246    0.866254  1.03062 
- 0.027454    1.04703   1.63135 
- 0.00796955  0.36415   1.18108 
- 0.034735    0.17383   0.0
-```
+The Mill library simplifies implementation of machine learning problems with (H)MIL representation. In theory, it can represent any problem that can be written represented in JSONs. That is why we have created a separate tool, JsonGrinder, which helps to Mill your JSONs.
 
- ### Even more complicated models
-As already mentioned above, the datasets can contain Cartesian products of MIL and normal (non-MIL) problems. Let's do a quick demo.
-```julia
-julia> ds = BagNode(
-    ProductNode(
-        (BagNode(ArrayNode(randn(4,10)),[1:2,3:4,5:5,6:7,8:10]),
-        ArrayNode(randn(3,5)),
-        BagNode(
-            BagNode(ArrayNode(randn(2,30)),[i:i+1 for i in 1:2:30]),
-            [1:3,4:6,7:9,10:12,13:15]),
-        ArrayNode(randn(2,5)))),
-    [1:1,2:3,4:5])
 
-BagNode with 3 bag(s)
-  └── ProductNode
-        ├── BagNode with 5 bag(s)
-        │     ⋮
-        ├── ArrayNode(3, 5)
-        ├── BagNode with 5 bag(s)
-        │     ⋮
-        └── ArrayNode(2, 5)
-```
-For this, we really want to create model automatically despite it being sub-optimal.
-```julia
-julia> m = reflectinmodel(ds, d -> Dense(d, 3, relu), d -> SegmentedMeanMax(d))
+## Relation to Graph Neural Networks
+HMIL problems can be seen as a special subset of general graphs. They differ in two important ways
+* In general graphs, vertices are of a small number of semantic type, whereas in HMIL problems, the number of semantic types of vertices is much higher (it is helpful to think about HMIL problems as about those for which JSON is a natural representation).
+* The computational graph of HMIL is a **tree**, which implies that there exist an efficient inference. Contrary, in general graphs (with loops) there is no efficient inference and one has to resort to message passing (Loopy belief propagation).
+* One update message in **loopy belief propagation** can be viewed as a MIL problem, as it has to produce a vector based on infomation inthe neighborhood, which can contain arbitrary number of vertices.
 
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        │     ⋮
-        ├── ArrayModel(Dense(3, 3, relu))
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        │     ⋮
-        └── ArrayModel(Dense(2, 3, relu))
-```
+A more detailed overview of this subject can be found in [[6](#cit6)].
 
-## Hierarchical utils
-Mill.jl uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features. For instance, if you want to print a non-truncated version of a model, call:
-
-```julia
-julia> printtree(m; trunc=Inf)
-
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        │     └── ArrayModel(Dense(4, 3, relu))
-        ├── ArrayModel(Dense(3, 3, relu))
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        │     └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        │           └── ArrayModel(Dense(2, 3, relu))
-        └── ArrayModel(Dense(2, 3, relu))
-```
-
-Callling with `trav=true` enables convenient traversal functionality with string indexing:
-```julia
-julia>  printtree(m; trunc=Inf, trav=true)
-
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) [""]
-  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu)) ["U"]
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["Y"]
-        │     └── ArrayModel(Dense(4, 3, relu)) ["a"]
-        ├── ArrayModel(Dense(3, 3, relu)) ["c"]
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["g"]
-        │     └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["i"]
-        │           └── ArrayModel(Dense(2, 3, relu)) ["j"]
-        └── ArrayModel(Dense(2, 3, relu)) ["k"]
-```
-
-This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree (for instance when constructing adversarial samples). All tree nodes are accessible by indexing with the traversal code:.
-
-```julia
-julia> m["Y"]
-
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-  └── ArrayModel(Dense(4, 3, relu))
-```
-
-The following two approaches give the same result:
-```julia
-julia> m["Y"] === m.im.ms[1]
-
-true
-```
-
-Other functions provided by `HierarchicalUtils.jl`:
-```
-julia> nnodes(m)
-
-9
-
-julia> nleafs(m)
-
-4
-
-julia> NodeIterator(m) |> collect
-
-9-element Array{AbstractMillModel,1}:
- BagModel
- ProductModel
- BagModel
- ArrayModel
- ArrayModel
- BagModel
- BagModel
- ArrayModel
- ArrayModel
-
-julia> LeafIterator(m) |> collect
-
-4-element Array{ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}},1}:
- ArrayModel
- ArrayModel
- ArrayModel
- ArrayModel
-
-julia> TypeIterator(m, BagModel) |> collect
-
-4-element Array{BagModel{T,Aggregation{2},ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}}} where T<:AbstractMillModel,1}:
- BagModel
- BagModel
- BagModel
- BagModel
-```
-
-... and many others, see [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl).
-
-## Default aggregation values
-With the latest version of Mill, it is also possible to work with missing data, replacing a missing bag with a default constant value, and even to learn this value as well. Everything is done automatically.
-
-## Representing missing values
-The library currently support two ways to represent bags with missing values. First one represent missing data using `missing` as `a = BagNode(missing, [0:-1])` while the second as an empty vector as `a = BagNode(zero(4,0), [0:-1])`.  While off the shelf the library supports both approaches transparently, the difference is mainly when one uses getindex, and therefore there is a switch
-`Mill.emptyismissing(false)`, which is by default false. Let me demonstrate the difference.
-```julia 
-julia> a = BagNode(ArrayNode(rand(3,2)), [1:2, 0:-1])
-BagNode with 2 bag(s)
-  └── ArrayNode(3, 2)
-
-julia> Mill.emptyismissing(false);
-
-julia> a[2].data
-ArrayNode(3, 0)
-
-julia> Mill.emptyismissing(true)
-true
-
-julia> a[2].data
-missing
-```
-The advantage of the first approach, default, is that types are always the same, which is nice to the compiler (and Zygote). The advantage of the latter is that it is more compact and nicer.
 
 ## References
  <a name="cit1"><b>1</b></a> *Discriminative models for multi-instance problems with tree-structure, Tomáš Pevný, Petr Somol, 2016*, https://arxiv.org/abs/1703.02868
@@ -295,4 +47,6 @@ The advantage of the first approach, default, is that types are always the same,
  <a name="cit4"><b>4</b></a> *Solving the multiple instance problem with axis-parallel rectangles, Dietterich, Thomas G., Richard H. Lathrop, and Tomás Lozano-Pérez, 1997*
 
  <a name="cit5"><b>5</b></a> *Deep sets, Zaheer, Manzil, et al., 2017*,
+
+ <a name="cit6"><b>6</b></a> Simon Mandlik's diploma thesis, 2019*,
 
