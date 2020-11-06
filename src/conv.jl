@@ -254,7 +254,7 @@ function convsum(bags, xs...)
         for ri in b 
             for (i, k) in enumerate(offsets)
                 if first(b) <= k + ri  <= last(b)
-                    o[:, ri] .+= view(xs[i], :, k + ri)
+                    @views o[:, ri] .+= xs[i][:, k + ri]
                 end
             end
         end
@@ -269,7 +269,7 @@ function ∇convsum(Δ, bags, n)
         for ri in b 
             for (i, k) in enumerate(offsets)
                 if first(b) <= k + ri  <= last(b)
-                    o[i][:, k + ri] .+= view(Δ, :, ri)
+                    @views o[i][:, k + ri] .+= Δ[:, ri]
                 end
             end
         end

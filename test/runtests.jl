@@ -2,7 +2,7 @@ using Test
 using Mill
 using Mill: nobs, reflectinmodel, sparsify, mapdata
 using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, ∇xbagconv, ∇convsum
-using Mill: ngrams, string2ngrams, countngrams, multrans, catobs
+using Mill: ngrams, string2ngrams, countngrams, catobs
 using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
 using Base.Iterators: partition, product
 using Flux

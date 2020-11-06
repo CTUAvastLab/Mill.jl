@@ -4,7 +4,7 @@ struct MaybeHotMatrix{T, U, V, W} <: AbstractMatrix{W}
     MaybeHotMatrix(I::U, l::V) where {T <: Integer, U <: AbstractVector{T}, V <: Integer} = new{T, U, V, Bool}(I, l)
     MaybeHotMatrix(I::U, l::V) where {U <: AbstractVector{Missing}, V <: Integer} = new{Missing, U, V, Missing}(I, l)
     function MaybeHotMatrix(I::U, l::V) where {T <: Maybe{Integer}, U <: AbstractVector{T}, V <: Integer}
-        new{T, U, V, Union{Bool, Missing}}(I, l)
+        new{T, U, V, Maybe{Bool}}(I, l)
     end
 end
 
@@ -13,10 +13,8 @@ MaybeHotMatrix(i::Integer, l::Integer) = MaybeHotMatrix([i], l)
 
 Base.size(X::MaybeHotMatrix) = (X.l, length(X.I))
 Base.length(X::MaybeHotMatrix) = X.l * length(X.I)
-function Base.getindex(X::MaybeHotMatrix, idcs...)
-    @boundscheck checkbounds(X, idcs...)
-    _getindex(X, idcs...)
-end
+
+Base.getindex(X::MaybeHotMatrix, idcs...) = (@boundscheck checkbounds(X, idcs...); _getindex(X, idcs...))
 _getindex(X::MaybeHotMatrix, i::Union{Integer, AbstractVector}, j::Integer) = X.I[j] .== i
 _getindex(X::MaybeHotMatrix, i::Integer, ::Colon) = X.I .== i
 _getindex(X::MaybeHotMatrix, idcs::CartesianIndex{2}) = _getindex(X, Tuple(idcs)...)

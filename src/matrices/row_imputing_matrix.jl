@@ -22,14 +22,14 @@ Zygote.@adjoint A::RowImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); Zy
 _mul(A::RowImputingMatrix, B::AbstractVecOrMat) = A.W * B
 _mul(A::RowImputingMatrix, ::AbstractVector{Missing}) = A.W * A.ψ
 _mul(A::RowImputingMatrix, B::AbstractMatrix{Missing}) = repeat(A.W * A.ψ, 1, size(B, 2))
-_mul(A::RowImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * _impute_row(A.ψ, B)
+_mul(A::RowImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * _mul_maybe(A.ψ, B)
 
-_impute_row(ψ, B) = _fill_row_mask(ψ, B)[1]
-function rrule(::typeof(_impute_row), ψ, B)
-    X, m = _fill_row_mask(ψ, B)
+_mul_maybe(ψ, B) = _impute_row(ψ, B)[1]
+function rrule(::typeof(_mul_maybe), ψ, B)
+    X, m = _impute_row(ψ, B)
     X, Δ -> (NO_FIELDS, @thunk(sum(.!m .* Δ, dims=2)), @thunk(m .* Δ))
 end
-function _fill_row_mask(ψ, B)
+function _impute_row(ψ, B)
     m = .!ismissing.(B)
     X = similar(ψ, size(B))
     X .= ψ

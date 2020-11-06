@@ -161,7 +161,8 @@ end
     @test m3_sci.ms[2] isa ArrayModel{<:Dense}
 end
 
-# Defining this is a bad idea - in Flux all models do not implement == and hash
+# Defining this is a bad idea - in Flux all models do not implement hash
+# and == requires hash
 # it may break AD
 # @testset "testing equals and hash" begin
 #     @eval layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
@@ -300,11 +301,11 @@ end
         abuilder = d -> SegmentedPNormLSE(d)
         m = reflectinmodel(bn, layerbuilder, abuilder) |> f64
         a1, a2 = rand(ACTIVATIONS, 2)
-        @test gradtest(params(m)...) do W1, b1, ρ1, c, ψ1, ρ2, ψ2, W2, b2
+        @test gradtest(params(m)...) do W1, b1, ψ1, ρ1, c, ψ2, ρ2, W2, b2
             m = BagModel(Dense(W1, b1, a1),
                          Aggregation(
-                                     SegmentedPNorm(ρ1, c, ψ1),
-                                     SegmentedLSE(ρ2, ψ2)
+                                     SegmentedPNorm(ψ1, ρ1, c),
+                                     SegmentedLSE(ψ2, ρ2)
                                     ),
                          Dense(W2, b2, a2))
             m(bn).data
@@ -325,16 +326,16 @@ end
         abuilder = d -> SegmentedSumMaxPNormLSE(d)
         m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
-        @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, ρ11, c1, ψ13, ρ12, ψ14,
-            W2, b2, W3, b3, ψ21, ψ22, ρ21, c2, ψ23, ρ22, ψ24, W4, b4, W5, b5
+        @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, ψ13, ρ11, c1, ψ14, ρ12,
+            W2, b2, W3, b3, ψ21, ψ22, ψ23, ρ21, c2, ψ24, ρ22, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, a1),
                                        Aggregation(
                                                    SegmentedSum(ψ11),
                                                    SegmentedMax(ψ12),
-                                                   SegmentedPNorm(ρ11, c1, ψ13),
-                                                   SegmentedLSE(ρ12, ψ14)
+                                                   SegmentedPNorm(ψ13, ρ11, c1),
+                                                   SegmentedLSE(ψ14, ρ12)
                                                   ),
                                        Dense(W2, b2, a2)
                                       ),
@@ -343,8 +344,8 @@ end
                                        Aggregation(
                                                    SegmentedSum(ψ21),
                                                    SegmentedMax(ψ22),
-                                                   SegmentedPNorm(ρ21, c2, ψ23),
-                                                   SegmentedLSE(ρ22, ψ24)
+                                                   SegmentedPNorm(ψ23, ρ21, c2),
+                                                   SegmentedLSE(ψ24, ρ22)
                                                   ),
                                        Dense(W4, b4, a4)
                                       ),
@@ -392,11 +393,11 @@ end
         abuilder = d -> SegmentedPNormLSE(d)
         m = reflectinmodel(bn, layerbuilder, abuilder) |> f64
         a1, a2 = rand(ACTIVATIONS, 2)
-        @test gradtest(params(m)...) do W1, b1, ρ1, c, ψ1, ρ2, ψ2, W2, b2
+        @test gradtest(params(m)...) do W1, b1, ψ1, ρ1, c, ψ2, ρ2, W2, b2
             m = BagModel(Dense(W1, b1, a1),
                          Aggregation(
-                                     SegmentedPNorm(ρ1, c, ψ1),
-                                     SegmentedLSE(ρ2, ψ2)
+                                     SegmentedPNorm(ψ1, ρ1, c),
+                                     SegmentedLSE(ψ2, ρ2)
                                     ),
                          Dense(W2, b2, a2))
             m(bn).data
@@ -406,16 +407,16 @@ end
         abuilder = d -> SegmentedSumMaxPNormLSE(d)
         m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
-        @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, ρ11, c1, ψ13, ρ12, ψ14,
-            W2, b2, W3, b3, ψ21, ψ22, ρ21, c2, ψ23, ρ22, ψ24, W4, b4, W5, b5
+        @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, ψ13, ρ11, c1, ψ14, ρ12,
+            W2, b2, W3, b3, ψ21, ψ22, ψ23, ρ21, c2, ψ24, ρ22, W4, b4, W5, b5
             m = ProductModel((
                               BagModel(
                                        Dense(W1, b1, a1),
                                        Aggregation(
                                                    SegmentedSum(ψ11),
                                                    SegmentedMax(ψ12),
-                                                   SegmentedPNorm(ρ11, c1, ψ13),
-                                                   SegmentedLSE(ρ12, ψ14),
+                                                   SegmentedPNorm(ψ13, ρ11, c1),
+                                                   SegmentedLSE(ψ14, ρ12),
                                                   ),
                                        Dense(W2, b2, a2)
                                       ),
@@ -424,8 +425,8 @@ end
                                        Aggregation(
                                                    SegmentedSum(ψ21),
                                                    SegmentedMax(ψ22),
-                                                   SegmentedPNorm(ρ21, c2, ψ23),
-                                                   SegmentedLSE(ρ22, ψ24)
+                                                   SegmentedPNorm(ψ23, ρ21, c2),
+                                                   SegmentedLSE(ψ24, ρ22)
                                                   ),
                                        Dense(W4, b4, a4)
                                       ),

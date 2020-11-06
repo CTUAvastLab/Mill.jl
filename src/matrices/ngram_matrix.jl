@@ -1,3 +1,6 @@
+const Sequence = Union{AbstractString, AbstractVector{<:Integer}, CodeUnits}
+
+# TODO use better alphabet
 """
 struct NGramIterator{T}
 s::T
@@ -46,30 +49,44 @@ julia> collect(sit)
 102
 ```
 """
-struct NGramIterator{T}
+# TODO make this NGrams{N}
+struct NGramIterator{T <: Maybe{Union{CodeUnits, Vector{<:Integer}}}}
     s::T
     n::Int
     b::Int
-end
+    m::Int
 
-NGramIterator(s::AbstractString, n::Int=3, b::Int=256) = NGramIterator(codeunits(s), n, b)
-
-Base.length(it::NGramIterator) = length(it.s) + it.n - 1
-
-function Base.iterate(it::NGramIterator, s = (0, 1))
-    idx, i = s
-    b, n = it.b, it.n
-    if i <= length(it.s)
-        idx = idx * b + it.s[i]
-        idx = i > n ? idx - it.s[i - n] * b^n : idx
-        return idx, (idx, i + 1)
-    elseif i < length(it.s) + n
-        idx = i > n ? idx - it.s[i - n] * b^(n - (i - length(it.s))) : idx
-        return idx, (idx, i + 1)
-    else
-        return nothing
+    function NGramIterator(s::T, n::Int=3, b::Int=256, m::Int=typemin(Int)) where {T <: Maybe{Union{CodeUnits, Vector{<:Integer}}}}
+        new{T}(s, n, b, m)
     end
 end
+
+NGramIterator(s::AbstractString, args...) = NGramIterator(codeunits(s), args...)
+
+Base.length(it::NGramIterator) = length(it.s) + it.n - 1
+Base.length(it::NGramIterator{Missing}) = 0
+
+# TODO padding
+Base.iterate(it::NGramIterator{Missing}) = nothing
+function Base.iterate(it::NGramIterator, (z, i) = (0, 1))
+    b, n, s, m = it.b, it.n, it.s, it.m
+    if i ≤ length(it.s)
+        z = z * b + s[i]
+        if i > n 
+            z -= s[i - n] * b^n
+        end
+        z%m, (z, i+1)
+    elseif length(it.s) < i ≤ length(it)
+        if i > n
+            z -= s[i - n] * b^(n - (i - length(s)))
+        end
+        z%m, (z, i+1)
+    end
+end
+
+Base.hash(it::NGramIterator{T}, h::UInt) where {T} = hash((T, it.s, it.n, it.b, it.m), h)
+(it1::NGramIterator{T} == it2::NGramIterator{T}) where {T} = it1.s == it2.s &&
+    it1.n === it2.n && it1.b === it2.b && it1.m === it2.m
 
 """
 ngrams!(o,x,n::Int,b::Int)
@@ -77,8 +94,7 @@ ngrams!(o,x,n::Int,b::Int)
 store indexes of `n` grams of `x` with base `b` to `o`
 
 """
-function ngrams!(o, x::T, n::Int, b::Int) where {T<:Union{CodeUnits{UInt8}, Vector{<:Integer}}}
-    @assert length(o) >= length(x) + n - 1
+function ngrams!(o, x::Sequence, n::Int, b::Int)
     for (i, idx) in enumerate(NGramIterator(x, n, b))
         o[i] = idx
     end
@@ -91,8 +107,7 @@ ngrams(x,n::Int,b::Int)
 indexes of `n` grams of `x` with base `b`
 
 """
-ngrams(x::Union{CodeUnits{UInt8}, Vector{<:Integer}}, n::Int, b::Int) = collect(NGramIterator(x, n, b))
-ngrams(x::AbstractString, n::Int, b::Int) = ngrams(codeunits(x),n,b)
+ngrams(x::Sequence, n::Int, b::Int) = collect(NGramIterator(x, n, b))
 
 """
 function countngrams!(o,x,n::Int,b::Int)
@@ -100,14 +115,13 @@ function countngrams!(o,x,n::Int,b::Int)
 counts number of of `n` grams of `x` with base `b` to `o` and store it to o
 
 """
-function countngrams!(o, x::Union{CodeUnits{UInt8},Vector{<:Integer}}, n::Int, b::Int)
-    for idx in NGramIterator(x, n, b)
-        o[mod(idx, length(o)) + 1] += 1
+countngrams!(o, x::Sequence, n::Int, b::Int) = countngrams!(o, x, n, b, length(o))
+function countngrams!(o, x::Sequence, n::Int, b::Int, m::Int)
+    for idx in NGramIterator(x, n, b, m)
+        o[idx + 1] += 1
     end
     o
 end
-
-countngrams!(o, x::AbstractString, n::Int, b::Int) = countngrams!(o, codeunits(x), n, b)
 
 """
 function countngrams(x,n::Int,b::Int)
@@ -124,9 +138,8 @@ function countngrams(x::Vector{<:AbstractString}, n::Int, b::Int, m)
     o
 end
 
-string2ngrams(x::AbstractArray{<:AbstractString}, n, m) = countngrams(Vector(x[:]), n, 256, m)
-string2ngrams(x::AbstractString, n, m) = countngrams(x, n, 256, m)
-string2ngrams(x, n, m) = x
+string2ngrams(x::AbstractArray{<:AbstractString}, n, b, m) = countngrams(Vector(x[:]), n, b, m)
+string2ngrams(x::AbstractString, n, b, m) = countngrams(x, n, b, m)
 
 """
 struct NGramMatrix{T}
@@ -142,27 +155,37 @@ dense matrix is overloaded and `b` is a base for calculation of trigrams. Finall
 The structure essentially represents module one-hot representation of strings, where each columns contains one observation (string).
 Therefore the structure can be viewed as a matrix with `m` rows and `length(s)` columns
 """
-# TODO use better type here
-struct NGramMatrix{T} <: AbstractMatrix{T}
-    s::Vector{T}
+struct NGramMatrix{T, U <: AbstractVector{T}, V} <: AbstractMatrix{V}
+    s::U
     n::Int
     b::Int
     m::Int
+
+    function NGramMatrix(s::U, n::Int=3, b::Int=256, m::Int=2053) where {T <: Sequence, U <: AbstractVector{T}}
+        new{T, U, Int}(s, n, b, m)
+    end
+
+    NGramMatrix(s::U, n::Int=3, b::Int=256, m::Int=2053) where U <: AbstractVector{Missing} =
+        new{Missing, U, Missing}(s, n, b, m)
+
+    function NGramMatrix(s::U, n::Int=3, b::Int=256, m::Int=2053) where {T <: Maybe{Sequence}, U <: AbstractVector{T}}
+        new{T, U, Union{Missing, Int}}(s, n, b, m)
+    end
 end
 
-NGramMatrix(s::Vector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: AbstractString = NGramMatrix{T}(s, n, b, m)
-NGramMatrix(s::AbstractString, args...) = NGramMatrix([s], args...)
+NGramMatrix(s::Maybe{Sequence}, args...) = NGramMatrix([s], args...)
 
-NGramIterator(a::NGramMatrix{<:AbstractString}, i::Integer) = NGramIterator(codeunits(a.s[i]), a.n, a.b)
-NGramIterator(a::NGramMatrix{<:Vector{<:Integer}}, i::Integer) = NGramIterator(a.s[i], a.n, a.b)
+NGramIterator(A::NGramMatrix, i::Integer) = NGramIterator(A.s[i], A.n, A.b, A.m)
 
-Base.length(a::NGramMatrix) = a.m * length(a.s)
-Base.size(a::NGramMatrix) = (a.m, length(a.s))
-Base.size(a::NGramMatrix, d) = (d == 1) ? a.m : length(a.s)
-Base.getindex(a::NGramMatrix{<:AbstractString}, ::Colon, i::Integer) = NGramMatrix([a.s[i]], a.n, a.b, a.m)
-Base.getindex(a::NGramMatrix{<:AbstractString}, ::Colon, i::AbstractArray) = NGramMatrix(a.s[i], a.n, a.b, a.m)
+Base.length(A::NGramMatrix) = A.m * length(A.s)
+Base.size(A::NGramMatrix) = (A.m, length(A.s))
+Base.size(A::NGramMatrix, d) = (d == 1) ? A.m : length(A.s)
 
-subset(a::NGramMatrix{<:AbstractString}, i) = NGramMatrix(a.s[i], a.n, a.b, a.m)
+Base.getindex(X::NGramMatrix, idcs...) = (@boundscheck checkbounds(X, idcs...); _getindex(X, idcs...))
+_getindex(X::NGramMatrix{<:AbstractString}, ::Colon, i::Integer) = NGramMatrix([X.s[i]], X.n, X.b, X.m)
+_getindex(X::NGramMatrix{<:AbstractString}, ::Colon, i::AbstractArray) = NGramMatrix(X.s[i], X.n, X.b, X.m)
+
+subset(a::NGramMatrix, i) = NGramMatrix(a.s[i], a.n, a.b, a.m)
 
 Base.reduce(::typeof(catobs), As::Vector{<:NGramMatrix}) = reduce(hcat, As)
 Base.hcat(As::NGramMatrix...) = reduce(hcat, collect(As))
@@ -178,10 +201,7 @@ function Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix})
     NGramMatrix(reduce(vcat, [i.s for i in As]), only(ns), only(bs), only(ms))
 end
 
-Base.Matrix(x::NGramMatrix) = Matrix(SparseMatrixCSC(x))
-
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Float32, UInt}(x)
-
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}
     size(x, 2) == 0 && return sparse(Ti[],Ti[],Tv[], size(x,1), size(x,2))
     l = sum(map(i -> length(NGramIterator(x, i)), 1:size(x, 2)))
@@ -191,7 +211,7 @@ function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: I
     vid = 1
     for j in 1:size(x, 2)
         for i in NGramIterator(x, j)
-            I[vid] = mod(i, x.m) + 1
+            I[vid] = i + 1
             J[vid] = j
             vid += 1
         end
@@ -199,115 +219,79 @@ function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: I
     sparse(I, J, V, size(x,1), size(x,2))
 end
 
-function nextgram(s, idx, i, N, B)
-    if i <= length(s)
-        idx = idx * B + s[i]
-        idx = (i>N) ? idx - s[i - N]*B^N : idx
-        return(idx)
-       end
-    idx = (i>N) ? idx - s[i - N]*B^(N - (i - length(s))) : idx
-    idx
-end
+A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))
+Zygote.@adjoint A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
-function mulkernel!(C, A, jB, mA, nA, idxs)
-    for iB in idxs
-        miB = mod(iB, nA) + 1
-        @inbounds for iA in 1:mA
-            C[iA, jB] += A[iA, miB]
+_mul(A::AbstractMatrix, B::NGramMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
+
+# TODO rewrite this to less parameters once Zygote allows for composite grads
+_mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul(A, B.s, B.n, B.b, B.m)
+
+function _mul(A::AbstractMatrix, S::AbstractVector{T}, n, b, m) where T <: Maybe{Sequence}
+    T_res = Missing <: T ? Union{eltype(A), T} : eltype(A)
+    C = zeros(T_res, size(A, 1), length(S))
+    for (k, s) in enumerate(S)
+        _mul_vec!(view(C, :, k), A, NGramIterator(s, n, b, k))
+    end
+    C
+end
+Zygote.@adjoint function _mul(A::AbstractMatrix, S::AbstractVector{<:Sequence}, n, b, m)
+    function dA_thunk(Δ)
+        dA = zero(A)
+        for (k, s) in enumerate(S)
+            _dA_mul_vec!(view(Δ, :, k), dA, NGramIterator(s, n, b, m))
         end
+        dA
     end
+    return _mul(A, S, n, b, m), Δ -> (dA_thunk(Δ), nothing, nothing, nothing, nothing)
 end
-
-function mulkernel!(C, A, jB, mA, nA, s, N, B)
-    l = length(s) + N - 1
-    iB = 0
-    for j in 1:l
-        iB = nextgram(s, iB, j, N, B)
-        miB = mod(iB, nA) + 1
-        @inbounds for iA in 1:mA
-            C[iA, jB] += A[iA, miB]
-        end
-    end
-end
-
-*(A::Matrix, B::NGramMatrix) = mul(A, B)
-function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T<:AbstractString}
-    mA, nA = size(A)
-    @assert nA == size(B,1)
-    C = zeros(eltype(A), mA, size(B, 2))
-    for jB in 1:size(B, 2)
-        # mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
-        mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
-    end
-    return C
-end
-
-function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T}
-    mA, nA = size(A)
-    @assert nA == size(B,1)
-    C = zeros(eltype(A), mA, size(B, 2))
-    for jB in 1:size(B, 2)
-        # mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
-        mulkernel!(C, A, jB, mA, nA, B.s[jB], B.n, B.b)
-    end
-    return C
-end
-
-function multkernel!(C, A, jB, mA, bm, idxs)
-    for iB in idxs
-        miB = mod(iB, bm) + 1
-        @inbounds for iA in 1:mA
-            C[iA, miB] += A[iA, jB]
-        end
-    end
-end
-
-function multkernel!(C, A, jB, mA, bm, s, N, B)
-    l = length(s) + N - 1
-    iB = 0
-    for j in 1:l
-        iB = nextgram(s, iB, j, N, B)
-        miB = mod(iB, bm) + 1
-        @inbounds for iA in 1:mA
-            C[iA, miB] += A[iA, jB]
-        end
-    end
-end
-
-function multrans(A::AbstractMatrix, B::NGramMatrix{T}) where {T<:AbstractString}
-    mA, nA = size(A)
-    C = zeros(eltype(A), mA, B.m)
-    for jB in 1:size(B, 2)
-        # multkernel!(C, A, jB, mA, B.m, NGramIterator(B, jB))
-        multkernel!(C, A, jB, mA, B.m, codeunits(B.s[jB]), B.n, B.b)
-    end
-    return C
-end
-
-function multrans(A::AbstractMatrix, B::NGramMatrix{T}) where {T}
-    mA, nA = size(A)
-    C = zeros(eltype(A), mA, B.m)
-    for jB in 1:size(B, 2)
-        # multkernel!(C, A, jB, mA, B.m, NGramIterator(B, jB))
-        multkernel!(C, A, jB, mA, B.m, B.s[jB], B.n, B.b)
-    end
-    return C
-end
-
-# TODO change to rrule once this gets resolved
-# https://github.com/FluxML/Zygote.jl/issues/811
-# function rrule(::typeof(mul), a::AbstractMatrix, b::NGramMatrix)
-#     return mul(a, b), Δ -> (NO_FIELDS, multrans(Δ, b), DoesNotExist())
+# function rrule(::typeof(_mul), A::AbstractMatrix, S::AbstractVector{<:Sequence}, n, b, m)
+#     function dA_thunk(Δ)
+#         dA = zero(A)
+#         for (k, s) in enumerate(S)
+#             _dA_mul_vec!(view(Δ, :, k), dA, NGramIterator(s, n, b, m))
+#         end
+#         dA
+#     end
+#     return _mul(A, S, n, b, m), Δ -> (NO_FIELDS, @thunk(dA_thunk(Δ)), fill(DoesNotExist(), 4)...)
 # end
-Zygote.@adjoint function mul(a::AbstractMatrix, b::NGramMatrix)
-    return mul(a,b) , Δ -> (multrans(Δ, b), nothing)
-end
-# function rrule(::typeof(*), a::AbstractMatrix, b::NGramMatrix)
-#     return mul(a, b), Δ -> (NO_FIELDS, multrans(Δ, b), DoesNotExist())
+# function _mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence}
+#     T_res = T === Missing ? Union{eltype(A), T} : eltype(A)
+#     C = zeros(T_res, size(A, 1), size(B, 2))
+#     for k in 1:size(B, 2)
+#         _mul_vec!(view(C, :, k), A, NGramIterator(B, k))
+#     end
+#     C
 # end
-Zygote.@adjoint function *(a::AbstractMatrix, b::NGramMatrix)
-    return mul(a,b) , Δ -> (multrans(Δ, b), nothing)
+# Zygote.@adjoint function _mul(A::AbstractMatrix, B::NGramMatrix{<:Sequence})
+#     function dA_thunk(Δ)
+#         dA = zero(A)
+#         for k in 1:size(B, 2)
+#             _dA_mul_vec!(view(Δ, :, k), dA, NGramIterator(B, k))
+#         end
+#         dA
+#     end
+#     return _mul(A, B), Δ -> (dA_thunk(Δ), nothing)
+# end
+# function rrule(::typeof(_mul), A::AbstractMatrix, B::NGramMatrix{<:Sequence})
+#     function dA_thunk(Δ)
+#         dA = zero(A)
+#         for k in 1:size(B, 2)
+#             _dA_mul_vec!(view(Δ, :, k), dA, NGramIterator(B, k))
+#         end
+#         dA
+#     end
+#     return _mul(A, B), Δ -> (NO_FIELDS, @thunk(dA_thunk(Δ)), DoesNotExist())
+# end
+
+_mul_vec!(c, A, it::NGramIterator, ψ=missing) = for j in it
+    @views c .+= A[:, j + 1]
 end
+_mul_vec!(c, A, it::NGramIterator{Missing}, ψ=missing) = c .= ψ 
+_dA_mul_vec!(δ, dA, it::NGramIterator) = for j in it
+    @views dA[:, j + 1] .+= δ
+end
+_dA_mul_vec!(δ, dA, it::NGramIterator{Missing}) = return
 
 Base.hash(e::NGramMatrix{T}, h::UInt) where {T} = hash((T, e.s, e.n, e.b, e.m), h)
 (e1::NGramMatrix{T} == e2::NGramMatrix{T}) where {T} = e1.s == e2.s && e1.n === e2.n && e1.b === e2.b && e1.m === e2.m
