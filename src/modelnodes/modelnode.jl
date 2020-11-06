@@ -84,7 +84,7 @@ _make_imputing(x::MaybeHotVector{Missing}, t::Dense) = ColImputingDense(t)
 _make_imputing(x::MaybeHotMatrix{Maybe{T}}, t::Dense) where T <: Integer = ColImputingDense(t)
 _make_imputing(x::NGramMatrix{Maybe{T}}, t::Dense) where T <: Sequence = ColImputingDense(t)
 
-_make_imputing(x, ::typeof(identity)) = t
+_make_imputing(x, t::typeof(identity)) = t
 function _make_imputing(x::AbstractArray{Maybe{T}}, ::typeof(identity)) where T <: Number
     RowImputingDense(IdentityDense(x))
 end
