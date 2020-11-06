@@ -155,7 +155,7 @@ end
           │     ├─── b: BagNode with 2 obs ["I"]
           │     │         └── ArrayNode(3×4 Array{Float32,2}) with 4 obs ["K"]
           │     └── wb: WeightedBagNode with 2 obs ["M"]
-          │               └── ArrayNode(17×4 NGramMatrix{String}) with 4 obs ["O"]
+          │               └── ArrayNode(17×4 NGramMatrix{String,Array{String,1},Int64}) with 4 obs ["O"]
           └── ArrayNode(10×2 SparseMatrixCSC{Float32,Int64}) with 2 obs ["U"]"""
 
     @test buf_printtree(n2m, trav=true) ==
