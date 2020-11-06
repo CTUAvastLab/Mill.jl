@@ -16,9 +16,9 @@
 
     x = reduce(catobs, [a, e])
     @test  isnothing(x[2].metadata)
-    Mill.emptyismissing(true)
+    Mill.emptyismissing!(true)
     @test  ismissing(x[2].data)
-    Mill.emptyismissing(false)
+    Mill.emptyismissing!(false)
     @test  nobs(x[2].data) == 0
     @test  x[2].bags.bags == [0:-1]
 
@@ -61,9 +61,9 @@ end
 
     x = reduce(catobs, [a, e])
     @test  isnothing(x[2].metadata)
-    Mill.emptyismissing(true)
+    Mill.emptyismissing!(true)
     @test  ismissing(x[2].data)
-    Mill.emptyismissing(false)
+    Mill.emptyismissing!(false)
     @test  nobs(x[2].data) == 0
     @test  x[2].bags.bags == [0:-1]
     @test x[1].weights == [1.0, 0.0, 1.0, 0.5]
