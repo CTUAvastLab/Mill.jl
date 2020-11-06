@@ -17,7 +17,7 @@ import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, getindex, setindex!
 import Base: reduce, eltype, print_array
 
-import Flux: Params, params!, IdSet, onehot, onehotbatch
+import Flux: Dense, Chain, Params, params!, IdSet, onehot, onehotbatch
 
 import ChainRulesCore: rrule
 

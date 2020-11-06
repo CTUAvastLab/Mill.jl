@@ -91,6 +91,9 @@ function Base.show(io::IO, @nospecialize n::T) where T <: AbstractNode
     end
 end
 
-_show_data(io, n::ArrayNode) = print(io, "(", summary(n.data), ")")
+function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
+    print(io, "(", join(size(n.data), "x"), " ", nameof(T), ", ", eltype(n.data), ")")
+end
+
 _show_data(io, n::LazyNode{Name}) where {Name} = print(io, "{", Name, "}")
 _show_data(io, _) = print(io)

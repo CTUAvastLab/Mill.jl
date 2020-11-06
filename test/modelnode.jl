@@ -119,6 +119,8 @@ end
     @test m3_ski.m isa ArrayModel{<:Dense}
 end
 
+# TODO test reflect in model for imputing types
+
 # array model for matrices with one row should implement identity
 @testset "single scalar as identity" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)

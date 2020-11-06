@@ -2,7 +2,7 @@ using HierarchicalUtils: encode, stringify
 
 abstract type AbstractMillModel end
 
-const MillFunction = Union{Flux.Dense, Flux.Chain, Function}
+const MillFunction = Union{Dense, Chain, Function}
 
 include("arraymodel.jl")
 include("bagmodel.jl")
@@ -72,8 +72,19 @@ function _reflectinmodel(x::ArrayNode, db, da, b, a, s, ski, sci)
     else
         t = db(r)
     end
-    m = ArrayModel(t)
+    m = ArrayModel(_make_imputing(x, t))
     m, size(m(x).data, 1)
+end
+
+_make_imputing(x::Chain, t) = Chain(x[1:end-1], _make_imputing(x[end], t))
+_make_imputing(x, t) = t
+function _make_imputing(x::ArrayNode{T}, t::Dense) where T <: Union{MaybeHotMatrix{Maybe{<:Integer}},
+                                                                    MaybeHotVector{Missing},
+                                                                    NGramMatrix{Maybe{<:Sequence}}}
+    ColImputingDense(x)
+end
+function _make_imputing(x::ArrayNode{T}, t::Dense) where T <: AbstractArray{Maybe{<:Number}}
+    RowImputingDense(x)
 end
 
 function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s, ski, sci) where Name
