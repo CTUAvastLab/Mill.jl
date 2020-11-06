@@ -70,7 +70,8 @@ include("aggregations/aggregation.jl")
 export Aggregation
 
 include("modelnodes/modelnode.jl")
-export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel, IdentityModel, identity_model
+export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel
+export IdentityModel, IdentityDense, identity_model
 export HiddenLayerModel
 export mapactivations, reflectinmodel
 

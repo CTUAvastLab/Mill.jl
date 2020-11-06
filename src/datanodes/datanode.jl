@@ -83,6 +83,7 @@ include("weighted_bagnode.jl")
 include("productnode.jl")
 include("lazynode.jl")
 
+Base.show(io::IO, ::MIME"text/plain", @nospecialize n::ArrayNode) = (print(io, summary(n), ":\n"); print_array(io, n.data))
 function Base.show(io::IO, @nospecialize n::T) where T <: AbstractNode
     print(io, nameof(T))
     if !get(io, :compact, false)

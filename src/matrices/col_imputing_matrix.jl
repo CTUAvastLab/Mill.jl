@@ -38,7 +38,7 @@ _mul(A::ColImputingMatrix, B::NGramMatrix{Maybe{T}}) where {T <: Sequence} =
     _mul_ngram(A.W, A.ψ, B.s, B.n, B.b, B.m)
 
 _mul_maybe_hot(W, ψ, I) = _impute_maybe_hot(W, ψ, I)[1]
-function rrule(::typeof(_mul_maybe_hot), W, ψ, its)
+function rrule(::typeof(_mul_maybe_hot), W, ψ, I)
     C, m = _impute_maybe_hot(W, ψ, I)
     function dW_thunk(Δ)
         dW = zero(W)

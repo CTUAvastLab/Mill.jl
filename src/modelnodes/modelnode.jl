@@ -27,67 +27,80 @@ function reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = 
     _reflectinmodel(x, db, da, b, a, "", single_key_identity, single_scalar_identity)[1]
 end
 
-function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s, ski, sci)
-    im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1), ski, sci)
+function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s, ski, ssi)
+    im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1), ski, ssi)
     c = stringify(s)
     agg = c in keys(a) ? a[c](d) : da(d)
-    bm, d = _reflectinmodel(BagModel(im, agg)(x), db, da, b, a, s, ski, sci)
+    bm, d = _reflectinmodel(BagModel(im, agg)(x), db, da, b, a, s, ski, ssi)
     BagModel(im, agg, bm), d
 end
 
-function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s, ski, sci)
+function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s, ski, ssi)
     n = length(x.data)
-    ms = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n), ski, sci) for (i, xx) in enumerate(x.data)]
+    ms = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n), ski, ssi) for (i, xx) in enumerate(x.data)]
     if ski && n == 1
         im, d = only(ms)
         ProductModel(im), d
     else
         im = tuple([i[1] for i in ms]...)
-        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski, sci)
+        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski, ssi)
         ProductModel(im, tm), d
     end
 end
 
-function _reflectinmodel(x::ProductNode{T}, db, da, b, a, s, ski, sci) where T <: NamedTuple
+function _reflectinmodel(x::ProductNode{T}, db, da, b, a, s, ski, ssi) where T <: NamedTuple
     n = length(x.data)
     ks = keys(x.data)
-    ms = [_reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n), ski, sci) for (i, k) in enumerate(ks)]
+    ms = [_reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n), ski, ssi) for (i, k) in enumerate(ks)]
     if ski && n == 1
         im, d = only(ms)
         ProductModel((; only(ks)=>im)), d
     else
         im = (; (k=>v[1] for (k,v) in zip(ks, ms))...)
-        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski, sci)
+        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski, ssi)
         ProductModel(im, tm), d
     end
 end
 
-function _reflectinmodel(x::ArrayNode, db, da, b, a, s, ski, sci)
+function _reflectinmodel(x::ArrayNode, db, da, b, a, s, ski, ssi)
     c = stringify(s)
     r = size(x.data, 1)
     if c in keys(b)
-        t = b[c](r)
-    elseif sci && r == 1
-        t = identity
+        t = b[c](r) |> ArrayModel
+    elseif ssi && r == 1
+        t = identity_model()
     else
-        t = db(r)
+        t = db(r) |> ArrayModel
     end
-    m = ArrayModel(_make_imputing(x, t))
+    m = _make_imputing(x.data, t)
     m, size(m(x).data, 1)
 end
 
-_make_imputing(x::Chain, t) = Chain(x[1:end-1], _make_imputing(x[end], t))
 _make_imputing(x, t) = t
-function _make_imputing(x::ArrayNode{T}, t::Dense) where T <: Union{MaybeHotMatrix{Maybe{<:Integer}},
-                                                                    MaybeHotVector{Missing},
-                                                                    NGramMatrix{Maybe{<:Sequence}}}
-    ColImputingDense(x)
+_make_imputing(x, t::ArrayModel) = _make_imputing(x, t.m) |> ArrayModel
+_make_imputing(x, t::Chain) = Chain(t[1:end-1], _make_imputing(x, t[end]))
+_make_imputing(x::AbstractArray{Maybe{T}}, t::Dense) where T <: Number = RowImputingDense(t)
+_make_imputing(x::MaybeHotVector{Missing}, t::Dense) = ColImputingDense(t)
+_make_imputing(x::MaybeHotMatrix{Maybe{T}}, t::Dense) where T <: Integer = ColImputingDense(t)
+_make_imputing(x::NGramMatrix{Maybe{T}}, t::Dense) where T <: Sequence = ColImputingDense(t)
+
+_make_imputing(x, ::typeof(identity)) = t
+function _make_imputing(x::AbstractArray{Maybe{T}}, ::typeof(identity)) where T <: Number
+    RowImputingDense(IdentityDense(x))
 end
-function _make_imputing(x::ArrayNode{T}, t::Dense) where T <: AbstractArray{Maybe{<:Number}}
-    RowImputingDense(x)
+function _make_imputing(x::MaybeHotVector{Missing}, ::typeof(identity))
+    ColImputingDense(IdentityDense(x))
+end
+function _make_imputing(x::MaybeHotMatrix{Maybe{T}}, ::typeof(identity)) where T <: Integer
+    ColImputingDense(IdentityDense(x))
+end
+function _make_imputing(x::NGramMatrix{Maybe{T}}, ::typeof(identity)) where T <: Sequence
+    ColImputingDense(IdentityDense(x))
 end
 
-function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s, ski, sci) where Name
-    pm, d = Mill._reflectinmodel(unpack2mill(ds), db, da, b, a, s * Mill.encode(1, 1), ski, sci)
+IdentityDense(x) = Dense(Matrix{Float32}(I, size(x, 1), size(x, 1)), zeros(Float32, size(x, 1)))
+
+function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s, ski, ssi) where Name
+    pm, d = Mill._reflectinmodel(unpack2mill(ds), db, da, b, a, s * Mill.encode(1, 1), ski, ssi)
     LazyModel{Name}(pm), d
 end
