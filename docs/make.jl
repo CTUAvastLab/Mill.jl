@@ -9,7 +9,8 @@ makedocs(
     "Examples" => [
     	"Simple" => "examples/simple.md",
     	"Advanced" => "examples/advanced.md",
-		# Suggested by Jan Francu, ?extensions to Graph NN? / Dags?
+    	"GNN in 16 lines" => "examples/graphs.md",
+    	# "DAG" => "examples/graphs.md",
     ],
     "Architecture of Mill" => [
     	"Overview" => "architecture/overview.md",
