@@ -7,7 +7,7 @@ struct ArrayNode{A<:AbstractArray,C} <: AbstractNode
     metadata::C
 end
 
-ArrayNode(data::AbstractMatrix) = ArrayNode(data, nothing)
+ArrayNode(data::AbstractArray) = ArrayNode(data, nothing)
 # ArrayNode(data::AbstractNode, a...) = data
 
 Flux.@functor ArrayNode
