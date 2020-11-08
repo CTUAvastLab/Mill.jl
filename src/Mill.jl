@@ -55,8 +55,8 @@ include("threadfuns.jl")
 include("matrices/matrix.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
 export NGramMatrix, NGramIterator
-export ImputingMatrix, RowImputingMatrix, ColImputingMatrix
-export ImputingDense, RowImputingDense, ColImputingDense
+export ImputingMatrix, PreImputingMatrix, PostImputingMatrix
+export ImputingDense, PreImputingDense, PostImputingDense
 
 (::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
 

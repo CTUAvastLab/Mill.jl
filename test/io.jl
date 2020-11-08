@@ -161,13 +161,13 @@ end
          missing  missing  missing"""
 end
 
-@testset "row imputing matrix io" begin
-    X = RowImputingMatrix(reshape(1:8, 4, 2) |> Matrix)
-    @test repr(X) == "RowImputingMatrix(W = [1 5; 2 6; 3 7; 4 8], ψ = [0, 0])"
-    @test repr(X; context=:compact => true) == "4x2 RowImputingMatrix"
+@testset "pre imputing matrix io" begin
+    X = PreImputingMatrix(reshape(1:8, 4, 2) |> Matrix)
+    @test repr(X) == "PreImputingMatrix(W = [1 5; 2 6; 3 7; 4 8], ψ = [0, 0])"
+    @test repr(X; context=:compact => true) == "4x2 PreImputingMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
-        4×2 RowImputingMatrix{Int64,Array{Int64,1},Array{Int64,2}}:
+        4×2 PreImputingMatrix{Int64,Array{Int64,1},Array{Int64,2}}:
         W:
          1  5
          2  6
@@ -178,13 +178,13 @@ end
          0  0"""
 end
 
-@testset "col imputing matrix io" begin
-    X = ColImputingMatrix(reshape(1:6, 2, 3) |> Matrix)
-    @test repr(X) == "ColImputingMatrix(W = [1 3 5; 2 4 6], ψ = [0, 0])"
-    @test repr(X; context=:compact => true) == "2x3 ColImputingMatrix"
+@testset "post imputing matrix io" begin
+    X = PostImputingMatrix(reshape(1:6, 2, 3) |> Matrix)
+    @test repr(X) == "PostImputingMatrix(W = [1 3 5; 2 4 6], ψ = [0, 0])"
+    @test repr(X; context=:compact => true) == "2x3 PostImputingMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
-        2×3 ColImputingMatrix{Int64,Array{Int64,1},Array{Int64,2}}:
+        2×3 PostImputingMatrix{Int64,Array{Int64,1},Array{Int64,2}}:
         W:
          1  3  5
          2  4  6
@@ -195,15 +195,15 @@ end
 end
 
 @testset "imputing dense io" begin
-    X = ColImputingMatrix(reshape(1:6, 2, 3) |> Matrix)
-    Y = RowImputingMatrix(reshape(1:8, 4, 2) |> Matrix)
+    X = PostImputingMatrix(reshape(1:6, 2, 3) |> Matrix)
+    Y = PreImputingMatrix(reshape(1:8, 4, 2) |> Matrix)
 
-    m = RowImputingDense(1, 1)
-    @test repr(m) == "RowImputingDense(1, 1)"
+    m = PreImputingDense(1, 1)
+    @test repr(m) == "PreImputingDense(1, 1)"
     @test repr(m) == repr(m; context=:compact => true) == repr(MIME("text/plain"), m)
 
-    m = ColImputingDense(1, 1)
-    @test repr(m) == "ColImputingDense(1, 1)"
+    m = PostImputingDense(1, 1)
+    @test repr(m) == "PostImputingDense(1, 1)"
     @test repr(m) == repr(m; context=:compact => true) == repr(MIME("text/plain"), m)
 end
 

@@ -20,12 +20,12 @@ end
 include("maybe_hot_vector.jl")
 include("maybe_hot_matrix.jl")
 include("ngram_matrix.jl")
-include("row_imputing_matrix.jl")
-include("col_imputing_matrix.jl")
+include("pre_imputing_matrix.jl")
+include("post_imputing_matrix.jl")
 
-const ImputingMatrix{T, C, U} = Union{RowImputingMatrix{T, C, U}, ColImputingMatrix{T, C, U}}
-_print_params(io::IO, A::RowImputingMatrix) = print_array(io, A.ψ |> permutedims)
-_print_params(io::IO, A::ColImputingMatrix) = print_array(io, A.ψ)
+const ImputingMatrix{T, C, U} = Union{PreImputingMatrix{T, C, U}, PostImputingMatrix{T, C, U}}
+_print_params(io::IO, A::PreImputingMatrix) = print_array(io, A.ψ |> permutedims)
+_print_params(io::IO, A::PostImputingMatrix) = print_array(io, A.ψ)
 
 function print_array(io::IO, A::ImputingMatrix)
     println(io, "W:")
@@ -51,13 +51,13 @@ function Flux.params!(p::Params, A::ImputingMatrix, seen=IdSet())
     push!(p, A.W, A.ψ)
 end
 
-RowImputingDense(d::Dense) = Dense(RowImputingMatrix(d.W), d.b, d.σ)
-RowImputingDense(args...) = RowImputingDense(Dense(args...))
-ColImputingDense(d::Dense) = Dense(ColImputingMatrix(d.W), d.b, d.σ)
-ColImputingDense(args...) = ColImputingDense(Dense(args...))
+PreImputingDense(d::Dense) = Dense(PreImputingMatrix(d.W), d.b, d.σ)
+PreImputingDense(args...) = PreImputingDense(Dense(args...))
+PostImputingDense(d::Dense) = Dense(PostImputingMatrix(d.W), d.b, d.σ)
+PostImputingDense(args...) = PostImputingDense(Dense(args...))
 
-_name(::RowImputingMatrix) = "RowImputing"
-_name(::ColImputingMatrix) = "ColImputing"
+_name(::PreImputingMatrix) = "PreImputing"
+_name(::PostImputingMatrix) = "PostImputing"
 function Base.show(io::IO, @nospecialize l::Dense{F, <:ImputingMatrix}) where F
   print(io, "$(_name(l.W))Dense(", size(l.W, 2), ", ", size(l.W, 1))
   l.σ == identity || print(io, ", ", l.σ)
