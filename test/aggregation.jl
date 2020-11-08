@@ -245,7 +245,7 @@ end
 
 # we use Float64 to compute precise gradients
 
-@testset "grad check w.r.t. input" begin
+@testset "aggregation grad check w.r.t. input" begin
     for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
@@ -272,7 +272,7 @@ end
     end
 end
 
-@testset "grad check w.r.t. agg params" begin
+@testset "aggregation grad check w.r.t. params" begin
     # r_map and p_map are stable
     @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
     @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
@@ -339,7 +339,7 @@ end
     end
 end
 
-@testset "derivative w.r.t weights" begin
+@testset "aggregation gradcheck w.r.t weights" begin
     for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)

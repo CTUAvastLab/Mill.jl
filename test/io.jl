@@ -1,8 +1,12 @@
 @testset "data and model node io" begin
     an = ArrayNode(ones(2,5))
-    @test repr(an) == "ArrayNode(2×5 Array{Float64,2}) with 5 obs"
+    @test repr(an) == "ArrayNode(2×5 Array, Float64) with 5 obs"
     @test repr(an; context=:compact => true) == "ArrayNode"
-    @test repr(MIME("text/plain"), an) == repr(an)
+    @test repr(MIME("text/plain"), an) == 
+        """
+        ArrayNode{Array{Float64,2},Nothing}:
+         1.0  1.0  1.0  1.0  1.0
+         1.0  1.0  1.0  1.0  1.0"""
 
     anm = reflectinmodel(an)
     @test repr(anm) == "ArrayModel(Dense(2, 10))"
@@ -15,7 +19,7 @@
     @test repr(MIME("text/plain"), bn) == 
         """
         BagNode with 2 obs
-          └── ArrayNode(2×5 Array{Float64,2}) with 5 obs"""
+          └── ArrayNode(2×5 Array, Float64) with 5 obs"""
 
     bnm = reflectinmodel(bn)
     @test repr(bnm) == "BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))"
@@ -31,7 +35,7 @@
     @test repr(MIME("text/plain"), wbn) == 
         """
         WeightedBagNode with 2 obs
-          └── ArrayNode(2×5 Array{Float64,2}) with 5 obs"""
+          └── ArrayNode(2×5 Array, Float64) with 5 obs"""
 
     wbnm = reflectinmodel(wbn)
     @test repr(wbnm) == "BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))"
@@ -48,9 +52,9 @@
         """
         ProductNode with 2 obs
           ├─── bn: BagNode with 2 obs
-          │          └── ArrayNode(2×5 Array{Float64,2}) with 5 obs
+          │          └── ArrayNode(2×5 Array, Float64) with 5 obs
           └── wbn: WeightedBagNode with 2 obs
-                     └── ArrayNode(2×5 Array{Float64,2}) with 5 obs"""
+                     └── ArrayNode(2×5 Array, Float64) with 5 obs"""
 
     pnm = reflectinmodel(pn)
     @test repr(pnm) == "ProductModel ↦ ArrayModel(Dense(20, 10))"
@@ -109,7 +113,7 @@ end
 @testset "maybe hot vector io" begin
     x = MaybeHotVector(1, 3)
     @test repr(x) == "MaybeHotVector(i = 1, l = 3)"
-    @test repr(x; context=:compact => true) == "3x1 MaybeHotVector"
+    @test repr(x; context=:compact => true) == "MaybeHotVector of length 3"
     @test repr(MIME("text/plain"), x) ==
         """
         3-element MaybeHotVector{Int64,Int64,Bool}:
@@ -119,7 +123,7 @@ end
 
     x = MaybeHotVector(missing, 4)
     @test repr(x) == "MaybeHotVector(i = missing, l = 4)"
-    @test repr(x; context=:compact => true) == "4x1 MaybeHotVector"
+    @test repr(x; context=:compact => true) == "MaybeHotVector of length 4"
     @test repr(MIME("text/plain"), x) ==
         """
         4-element MaybeHotVector{Missing,Int64,Missing}:
@@ -132,7 +136,7 @@ end
 @testset "maybe hot matrix io" begin
     X = MaybeHotMatrix([1, 3], 3)
     @test repr(X) == "MaybeHotMatrix(I = [1, 3], l = 3)"
-    @test repr(X; context=:compact => true) == "3x2 MaybeHotMatrix"
+    @test repr(X; context=:compact => true) == "3×2 MaybeHotMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
         3×2 MaybeHotMatrix{Int64,Array{Int64,1},Int64,Bool}:
@@ -142,7 +146,7 @@ end
 
     X = MaybeHotMatrix([missing, 2], 2)
     @test repr(X) == "MaybeHotMatrix(I = Union{Missing, Int64}[missing, 2], l = 2)"
-    @test repr(X; context=:compact => true) == "2x2 MaybeHotMatrix"
+    @test repr(X; context=:compact => true) == "2×2 MaybeHotMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
         2×2 MaybeHotMatrix{Union{Missing, Int64},Array{Union{Missing, Int64},1},Int64,Union{Missing, Bool}}:
@@ -151,7 +155,7 @@ end
 
     X = MaybeHotMatrix([missing, missing, missing], 4)
     @test repr(X) == "MaybeHotMatrix(I = [missing, missing, missing], l = 4)"
-    @test repr(X; context=:compact => true) == "4x3 MaybeHotMatrix"
+    @test repr(X; context=:compact => true) == "4×3 MaybeHotMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
         4×3 MaybeHotMatrix{Missing,Array{Missing,1},Int64,Missing}:
@@ -164,7 +168,7 @@ end
 @testset "pre imputing matrix io" begin
     X = PreImputingMatrix(reshape(1:8, 4, 2) |> Matrix)
     @test repr(X) == "PreImputingMatrix(W = [1 5; 2 6; 3 7; 4 8], ψ = [0, 0])"
-    @test repr(X; context=:compact => true) == "4x2 PreImputingMatrix"
+    @test repr(X; context=:compact => true) == "4×2 PreImputingMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
         4×2 PreImputingMatrix{Int64,Array{Int64,1},Array{Int64,2}}:
@@ -181,7 +185,7 @@ end
 @testset "post imputing matrix io" begin
     X = PostImputingMatrix(reshape(1:6, 2, 3) |> Matrix)
     @test repr(X) == "PostImputingMatrix(W = [1 3 5; 2 4 6], ψ = [0, 0])"
-    @test repr(X; context=:compact => true) == "2x3 PostImputingMatrix"
+    @test repr(X; context=:compact => true) == "2×3 PostImputingMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
         2×3 PostImputingMatrix{Int64,Array{Int64,1},Array{Int64,2}}:
@@ -210,7 +214,7 @@ end
 @testset "ngram matrix io" begin
     X = NGramMatrix(["a", "b", "c"])
     @test repr(X) == "NGramMatrix(s = [\"a\", \"b\", \"c\"], n = 3, b = 256, m = 2053)"
-    @test repr(X; context=:compact => true) == "2053x3 NGramMatrix"
+    @test repr(X; context=:compact => true) == "2053×3 NGramMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
         2053×3 NGramMatrix{String,Array{String,1},Int64}:
@@ -220,7 +224,7 @@ end
 
     X = NGramMatrix([missing, "b", missing])
     @test repr(X) == "NGramMatrix(s = Union{Missing, String}[missing, \"b\", missing], n = 3, b = 256, m = 2053)"
-    @test repr(X; context=:compact => true) == "2053x3 NGramMatrix"
+    @test repr(X; context=:compact => true) == "2053×3 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
         2053×3 NGramMatrix{Union{Missing, String},Array{Union{Missing, String},1},Union{Missing, Int64}}:
@@ -231,7 +235,7 @@ end
     X = NGramMatrix([codeunits("hello"), codeunits("world")])
     @test repr(X) == "NGramMatrix(s = Base.CodeUnits{UInt8,String}" *
         "[[0x68, 0x65, 0x6c, 0x6c, 0x6f], [0x77, 0x6f, 0x72, 0x6c, 0x64]], n = 3, b = 256, m = 2053)"
-    @test repr(X; context=:compact => true) == "2053x2 NGramMatrix"
+    @test repr(X; context=:compact => true) == "2053×2 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
         2053×2 NGramMatrix{Base.CodeUnits{UInt8,String},Array{Base.CodeUnits{UInt8,String},1},Int64}:
@@ -240,7 +244,7 @@ end
 
     X = NGramMatrix([[1,2,3], missing, missing])
     @test repr(X) == "NGramMatrix(s = Union{Missing, Array{Int64,1}}[[1, 2, 3], missing, missing], n = 3, b = 256, m = 2053)"
-    @test repr(X; context=:compact => true) == "2053x3 NGramMatrix"
+    @test repr(X; context=:compact => true) == "2053×3 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
         2053×3 NGramMatrix{Union{Missing, Array{Int64,1}},Array{Union{Missing, Array{Int64,1}},1},Union{Missing, Int64}}:

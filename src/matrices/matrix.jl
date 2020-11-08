@@ -39,7 +39,11 @@ print_array(io::IO, A::NGramMatrix) = print_array(io, A.s)
 function Base.show(io::IO, @nospecialize X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix,
                                              MaybeHotVector, NGramMatrix}
     if get(io, :compact, false)
-        print(io, join(size(X), "x"), " ", nameof(T))
+        if ndims(X) == 1
+            print(io, nameof(T), " of length ", length(X))
+        else
+            print(io, join(size(X), "×"), " ", nameof(T))
+        end
     else
         _show(io, X)
     end

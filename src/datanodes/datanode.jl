@@ -93,7 +93,13 @@ function Base.show(io::IO, @nospecialize n::T) where T <: AbstractNode
 end
 
 function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
-    print(io, "(", join(size(n.data), "x"), " ", nameof(T), ", ", eltype(n.data), ")")
+    print(io, "(")
+    if ndims(n.data) == 1
+        print(io, nameof(T), " of length ", length(n.data))
+    else
+        print(io, join(size(n.data), "×"), " ", nameof(T))
+    end
+    print(io, ", ", eltype(n.data), ")")
 end
 
 _show_data(io, n::LazyNode{Name}) where {Name} = print(io, "{", Name, "}")

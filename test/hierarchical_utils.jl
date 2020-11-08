@@ -47,8 +47,8 @@ end
 
 function buf_printtree(data; kwargs...)
     buf = IOBuffer()
-	printtree(buf, data; kwargs...)
-	String(take!(buf))
+    printtree(buf, data; kwargs...)
+    String(take!(buf))
 end
 
 @testset "list traversal" begin
@@ -153,10 +153,10 @@ end
         ProductNode with 2 obs [""]
           ├── ProductNode with 2 obs ["E"]
           │     ├─── b: BagNode with 2 obs ["I"]
-          │     │         └── ArrayNode(3×4 Array{Float32,2}) with 4 obs ["K"]
+          │     │         └── ArrayNode(3×4 Array, Float32) with 4 obs ["K"]
           │     └── wb: WeightedBagNode with 2 obs ["M"]
-          │               └── ArrayNode(17×4 NGramMatrix{String,Array{String,1},Int64}) with 4 obs ["O"]
-          └── ArrayNode(10×2 SparseMatrixCSC{Float32,Int64}) with 2 obs ["U"]"""
+          │               └── ArrayNode(17×4 NGramMatrix, Int64) with 4 obs ["O"]
+          └── ArrayNode(10×2 SparseMatrixCSC, Float32) with 2 obs ["U"]"""
 
     @test buf_printtree(n2m, trav=true) ==
         """
