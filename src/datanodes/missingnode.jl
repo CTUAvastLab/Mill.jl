@@ -17,8 +17,8 @@ end
 MissingNode(d) = MissingNode(d, fill(true, nobs(d)))
 
 Base.ndims(x::MissingNode) = Colon()
-LearnBase.nobs(a::MissingNode) = length(a.present)
-LearnBase.nobs(a::MissingNode, ::Type{ObsDim.Last}) = nobs(a.present)
+StatsBase.nobs(a::MissingNode) = length(a.present)
+StatsBase.nobs(a::MissingNode, ::Type{ObsDim.Last}) = nobs(a.present)
 
 function Base.reduce(::typeof(Mill.catobs), as::Vector{T}) where {T<:MissingNode}
     data = reduce(Mill.catobs, [x.data for x in as])

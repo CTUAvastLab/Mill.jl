@@ -22,8 +22,8 @@ Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
 Base.keys(x::ProductNode) = keys(x.data)
 
 Base.ndims(x::AbstractProductNode) = Colon()
-LearnBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
-LearnBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
+StatsBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
+StatsBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
 
 function reduce(::typeof(catobs), as::Vector{T}) where {T <: ProductNode}
     data = _cattrees([x.data for x in as])

@@ -138,10 +138,10 @@ uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 version = "0.21.8"
 
 [[DataStructures]]
-deps = ["InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "88d48e133e6d3dd68183309877eac74393daa7eb"
+deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
+git-tree-sha1 = "db07bb22795762895b60e44d62b34b16c982a687"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.17.20"
+version = "0.18.7"
 
 [[DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
@@ -298,10 +298,9 @@ uuid = "929cbde3-209d-540e-8aea-75f648917ca0"
 version = "2.0.0"
 
 [[LearnBase]]
-deps = ["LinearAlgebra", "StatsBase"]
-git-tree-sha1 = "47e6f4623c1db88570c7a7fa66c6528b92ba4725"
+git-tree-sha1 = "a0d90569edd490b82fdc4dc078ea54a5a800d30a"
 uuid = "7f8f8fb0-2700-5f03-b4bd-41f8cfc144b6"
-version = "0.3.0"
+version = "0.4.1"
 
 [[LibGit2]]
 deps = ["Printf"]
@@ -325,9 +324,9 @@ version = "0.8.26"
 
 [[MLDataPattern]]
 deps = ["LearnBase", "MLLabelUtils", "Random", "SparseArrays", "StatsBase"]
-git-tree-sha1 = "b6c21ad63e622a56c9ad9ce3a14f91b2e2af5f5e"
+git-tree-sha1 = "e99514e96e8b8129bb333c69e063a56ab6402b5b"
 uuid = "9920b226-0b2a-5f5f-9153-9aa70a013f8b"
-version = "0.5.3"
+version = "0.5.4"
 
 [[MLLabelUtils]]
 deps = ["LearnBase", "MappedArrays", "StatsBase"]
@@ -358,10 +357,10 @@ uuid = "e89f7d12-3494-54d1-8411-f7d8b9ae1f27"
 version = "0.5.0"
 
 [[Mill]]
-deps = ["Combinatorics", "DataFrames", "DataStructures", "Flux", "HierarchicalUtils", "LearnBase", "LinearAlgebra", "MLDataPattern", "Setfield", "SparseArrays", "Statistics", "Zygote"]
+deps = ["Combinatorics", "DataFrames", "DataStructures", "Flux", "HierarchicalUtils", "LearnBase", "LinearAlgebra", "MLDataPattern", "Setfield", "SparseArrays", "Statistics", "StatsBase", "Zygote"]
 path = ".."
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
-version = "1.5.1"
+version = "1.5.2"
 
 [[Missings]]
 deps = ["DataAPI"]

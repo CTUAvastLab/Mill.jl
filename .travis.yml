@@ -3,17 +3,12 @@ language: julia
 
 os:
   - linux
-  - osx
-  - windows
 
 arch:
   - amd64
-  - arm64
 
 julia:
-  - 1.4
   - 1.5
-  - nightly
 
 notifications:
   email: false
@@ -23,6 +18,16 @@ git:
   depth: false
 
 jobs:
+  include:
+    - stage: "Documentation"
+      julia: 1
+      os: linux
+      script:
+        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
+                                               Pkg.instantiate()'
+        - julia --project=docs/ docs/make.jl
+      after_success: skip
+
   allow_failures:
     - julia: nightly
     - arch: arm64

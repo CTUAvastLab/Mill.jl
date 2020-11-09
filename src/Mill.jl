@@ -10,8 +10,9 @@ using HierarchicalUtils
 using Zygote: @adjoint
 using LinearAlgebra
 import Base.reduce
+import StatsBase
 
-MLDataPattern.nobs(::Missing) = nothing
+StatsBase.nobs(::Missing) = nothing
 
 const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 

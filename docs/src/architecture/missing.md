@@ -43,3 +43,24 @@ ProductNode{2}
   │     └── ArrayNode(3, 4)
   └── BagNode with 1 empty bag(s)
 ```
+
+## Representing missing values
+The library currently support two ways to represent bags with missing values. First one represent missing data using `missing` as `a = BagNode(missing, [0:-1])` while the second as an empty vector as `a = BagNode(zero(4,0), [0:-1])`.  While off the shelf the library supports both approaches transparently, the difference is mainly when one uses getindex, and therefore there is a switch
+`Mill.emptyismissing(false)`, which is by default false. Let me demonstrate the difference.
+```julia 
+julia> a = BagNode(ArrayNode(rand(3,2)), [1:2, 0:-1])
+BagNode with 2 bag(s)
+  └── ArrayNode(3, 2)
+
+julia> Mill.emptyismissing(false);
+
+julia> a[2].data
+ArrayNode(3, 0)
+
+julia> Mill.emptyismissing(true)
+true
+
+julia> a[2].data
+missing
+```
+The advantage of the first approach, default, is that types are always the same, which is nice to the compiler (and Zygote). The advantage of the latter is that it is more compact and nicer.
