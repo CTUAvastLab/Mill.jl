@@ -1,39 +1,66 @@
-import Base: show, getindex
+abstract type AggregationOperator{T <: Number} end
 
-abstract type AggregationFunction end
-
-struct Aggregation{N} <: AggregationFunction
-    fs::NTuple{N, AggregationFunction}
-    Aggregation(fs::Vararg{AggregationFunction, N}) where N = new{N}(fs)
-    Aggregation(fs::NTuple{N, AggregationFunction}) where N = new{N}(fs)
+struct Aggregation{T, N}
+    fs::NTuple{N, AggregationOperator{T}}
+    Aggregation(fs::Union{Aggregation, AggregationOperator}...) = Aggregation(fs)
+    function Aggregation(fs::Tuple{Vararg{Union{Aggregation{T}, AggregationOperator{T}}}}) where {T}
+        ffs = _flatten_agg(fs)
+        new{T, length(ffs)}(ffs)
+    end
 end
+
+_flatten_agg(t) = tuple(vcat(map(_flatten_agg, t)...)...)
+_flatten_agg(a::Aggregation) = vcat(map(_flatten_agg, a.fs)...)
+_flatten_agg(a::AggregationOperator) = [a]
 
 Flux.@functor Aggregation
 
-(a::Aggregation)(x::Union{AbstractArray, Missing}, args...) = vcat([f(x, args...) for f in a.fs]...)
-(a::AggregationFunction)(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
+function (a::Aggregation{T})(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...) where T
+    o = vcat([f(x, bags, args...) for f in a.fs]...)
+    bagcount() ? vcat(o, Zygote.@ignore permutedims(log.(one(T) .+ length.(bags)))) : o
+end
+(a::Union{AggregationOperator, Aggregation})(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
-Base.getindex(a::Aggregation, i) = a.fs[i]
+Flux.@forward Aggregation.fs Base.getindex, Base.firstindex, Base.lastindex, Base.first, Base.last, Base.iterate, Base.eltype
 
-const AggregationWeights = Union{Nothing,
-                                 AbstractVector{T} where T <: Real,
-                                 AbstractMatrix{T} where T <: Real}
-const MaybeMatrix = Union{Missing,
-                          AbstractMatrix{T} where T <: Real}
+Base.length(a::Aggregation) = sum(length.(a.fs))
+Base.size(a::Aggregation) = tuple(sum(only, size.(a.fs)))
+Base.vcat(as::Aggregation...) = reduce(vcat, as |> collect)
+function Base.reduce(::typeof(vcat), as::Vector{<:Aggregation})
+    Aggregation(tuple(vcat((collect(a.fs) for a in as)...)...))
+end
 
-bagnorm(w::Nothing, b) = length(b)
-bagnorm(w::AbstractVector, b) = @views sum(w[b])
-bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))
+function Base.show(io::IO, a::Aggregation)
+    if get(io, :compact, false)
+        print(io, "Aggregation(", join(length.(a.fs), ", "), ")")
+    else
+        print(io, "⟨" * join(repr(f; context=:compact => true) for f in a.fs ", ") * "⟩")
+    end
+end
 
-weight(w::Nothing, _, _) = 1
-weight(w::AbstractVector, _, j) = w[j]
-weight(w::AbstractMatrix, i, j) = w[i, j]
+Base.show(io::IO, ::MIME"text/plain", a::Aggregation) = (print(io, typeof(a), ":\n"); print_array(io, a.fs |> collect))
 
-weightsum(ws::Real, _) = ws
-weightsum(ws::AbstractVector, i) = ws[i]
+function Base.show(io::IO, a::T) where T <: AggregationOperator
+    if get(io, :compact, false)
+        print(io, nameof(T), "(", length(a), ")")
+    else
+        _show(io, a)
+    end
+end
+
+@inline bagnorm(w::Nothing, b) = length(b)
+@inline bagnorm(w::AbstractVector, b) = @views sum(w[b])
+@inline bagnorm(w::AbstractMatrix, b) = @views vec(sum(w[:, b], dims=2))
+
+@inline weight(w::Nothing, _, _, ::Type{T}) where T = one(T)
+@inline weight(w::AbstractVector, _, j, _) = w[j]
+@inline weight(w::AbstractMatrix, i, j, _) = w[i, j]
+
+@inline weightsum(ws::Real, _) = ws
+@inline weightsum(ws::AbstractVector, i) = ws[i]
 
 # more stable definitions for r_map and p_map
-Zygote.@adjoint softplus(x) = softplus.(x), Δ -> (Δ .* σ.(x),)
+rrule(::typeof(softplus), x) = softplus.(x), Δ -> (NO_FIELDS, Δ .* σ.(x))
 
 include("segmented_sum.jl")
 include("segmented_mean.jl")
@@ -42,24 +69,18 @@ include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 # include("transformer.jl")
 
-Base.show(io::IO, ::MIME"text/plain", a::T) where T <: AggregationFunction = print(io, "$(T.name)($(length(a.C)))")
-Base.show(io::IO, m::MIME"text/plain", a::Aggregation{N}) where N = print(io, "⟨" * join(repr(m, f) for f in a.fs ", ") * "⟩")
-
-export SegmentedSum, SegmentedMean, SegmentedMax, SegmentedPNorm, SegmentedLSE
-
 const names = ["Sum", "Mean", "Max", "PNorm", "LSE"]
-for idxs in powerset(collect(1:length(names)))
-    length(idxs) > 1 || continue
-    for p in permutations(idxs)
-        s = Symbol("Segmented", names[p]...)
-        @eval function $s(d::Int)
-            Aggregation($((Expr(:call, Symbol("Segmented" * n), :d)
-                           for n in names[p])...))
-        end
+for p in powerset(collect(1:length(names)))
+    s = Symbol("Segmented", names[p]...)
+    @eval function $s(d::Int)
+        Aggregation($((Expr(:call, Symbol("_Segmented", n), :d)
+                       for n in names[p])...))
+    end
+    if length(p) > 1
         @eval function $s(D::Vararg{Int, $(length(p))})
-            Aggregation($((Expr(:call, Symbol("Segmented" * n), :(D[$i]))
+            Aggregation($((Expr(:call, Symbol("_Segmented", n), :(D[$i]))
                            for (i,n) in enumerate(names[p]))...))
         end
-        @eval export $s
     end
+    @eval export $s
 end

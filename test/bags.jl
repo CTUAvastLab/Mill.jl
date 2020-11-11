@@ -1,5 +1,3 @@
-using Mill: AlignedBags, ScatteredBags, bags, length2bags, remapbag
-
 @testset "Constructors" begin
     @test AlignedBags().bags == UnitRange{Int}[]
     @test AlignedBags([1]).bags == [1:1]
@@ -141,3 +139,18 @@ end
     @test hash(a) !== hash(b)
     @test hash(b) === hash(c)
 end
+
+@testset "length." begin
+    @test length.(AlignedBags([])) == []
+    @test length.(AlignedBags([1:2, 0:-1, 3:5])) == [2, 0, 3]
+    @test length.(ScatteredBags([])) == []
+    @test length.(ScatteredBags([[1,2], [], [3,4,5]])) == [2, 0, 3]
+end
+
+@testset "length type stability" begin
+    @test length.(AlignedBags([])) isa Vector{Int}
+    @test length.(AlignedBags([1:2, 0:-1, 3:5])) isa Vector{Int}
+    @test length.(ScatteredBags([])) isa Vector{Int}
+    @test length.(ScatteredBags([[1,2], [], [3,4,5]])) isa Vector{Int}
+end
+

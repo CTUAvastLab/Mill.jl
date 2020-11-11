@@ -2,17 +2,14 @@ using DataStructures: SortedDict, OrderedDict
 
 abstract type AbstractBags end
 
-Base.getindex(b::AbstractBags, i) = b.bags[i]
-Base.setindex!(b::AbstractBags, v, i) = setindex!(b.bags, v, i)
-Base.iterate(b::AbstractBags) = iterate(b.bags)
-Base.iterate(b::AbstractBags, s) = iterate(b.bags, s)
-Base.length(b::AbstractBags) = length(b.bags)
-
 # one instance belongs to only one bag
 # sorted from left to right
 struct AlignedBags <: AbstractBags
     bags::Vector{UnitRange{Int}}
 end
+
+Flux.@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
+        Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
 AlignedBags() = AlignedBags(Vector{UnitRange{Int}}())
 AlignedBags(ks::UnitRange{Int}...) = AlignedBags(collect(ks))
@@ -38,6 +35,9 @@ end
 struct ScatteredBags <: AbstractBags
     bags::Vector{Vector{Int}}
 end
+
+Flux.@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
+        Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
 ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
 function ScatteredBags(k::Vector{T}) where {T<:Integer}
@@ -79,7 +79,7 @@ end
 
     bags corresponding to indices with collected indices
 """
-function remapbag(b::AlignedBags, idcs::VecOrRange)
+function remapbag(b::AlignedBags, idcs::VecOrRange{Int})
     rb = AlignedBags(Vector{UnitRange{Int}}(undef, length(idcs)))
     offset = 1
     for (i,j) in enumerate(idcs)
@@ -89,7 +89,7 @@ function remapbag(b::AlignedBags, idcs::VecOrRange)
     rb, Array{Int}(vcat([collect(b[i]) for i in idcs]...))
 end
 
-function remapbag(b::ScatteredBags, idcs::VecOrRange)
+function remapbag(b::ScatteredBags, idcs::VecOrRange{<:Int})
     rb = ScatteredBags(Vector{Vector{Int}}(undef, length(idcs)))
     m = OrderedDict{Int, Int}((v => i for (i, v) in enumerate(unique(vcat(b.bags[idcs]...)))))
     for (i,j) in enumerate(idcs)
@@ -130,6 +130,6 @@ function _catbags(bs::Vector{ScatteredBags})
 end
 
 Base.hash(e::AlignedBags, h::UInt) where {A,C} = hash(e.bags, h)
-Base.:(==)(e1::AlignedBags, e2::AlignedBags) = e1.bags == e2.bags
+e1::AlignedBags == e2::AlignedBags = e1.bags == e2.bags
 Base.hash(e::ScatteredBags, h::UInt) where {A,C} = hash(e.bags, h)
-Base.:(==)(e1::ScatteredBags, e2::ScatteredBags) = e1.bags == e2.bags
+e1::ScatteredBags == e2::ScatteredBags = e1.bags == e2.bags

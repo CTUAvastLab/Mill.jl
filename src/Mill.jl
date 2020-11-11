@@ -1,47 +1,85 @@
 module Mill
 
+using ChainRulesCore
+using Combinatorics
 using Flux
+using HierarchicalUtils
+using LearnBase
+using LinearAlgebra
 using MLDataPattern
+using Setfield
 using SparseArrays
 using Statistics
-using Combinatorics
+using StatsBase
 using Zygote
-using HierarchicalUtils
-using Zygote: @adjoint
-using LinearAlgebra
-import Base.reduce
-import StatsBase
+
+using Base: CodeUnits, nameof
+
+import Base: *, ==, hash, show, cat, vcat, hcat, _cat
+import Base: size, length, first, last, firstindex, lastindex, getindex, setindex!
+import Base: reduce, eltype, print_array
+import Base: isascii, codeunits, ncodeunits, codeunit
+
+import Flux: Dense, Chain, Params, params!, IdSet, onehot, onehotbatch
+
+import ChainRulesCore: rrule
+
+# GLOBAL SWITCHES
+const _emptyismissing =     Ref(false)
+const _bagcount =           Ref(true)
+const _wildcard_code =      Ref(UInt8(0)) # NUL in ascii
+const _string_start_code =  Ref(UInt8(2)) # STX in ascii
+const _string_end_code =    Ref(UInt8(3)) # ETX in ascii
+
+for s in Symbol.(["emptyismissing", "bagcount", "wildcard_code", "string_start_code", "string_end_code"])
+    ex = Symbol(s, '!')
+    us = Symbol('_', s)
+    @eval $ex(a) = $us[] = a
+    @eval $s() = $us[]
+end
+
+# COMMON ALIASES
+const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
+using Base: AbstractVecOrMat
+const Maybe{T} = Union{T, Missing}
+const Optional{T} = Union{T, Nothing}
 
 StatsBase.nobs(::Missing) = nothing
-
-const VecOrRange = Union{UnitRange{Int},AbstractVector{Int}}
 
 """
 	catobs(xs...)
 
 	concatenates all observations from all xs together
 """
-function catobs end;
+function catobs end
 
 include("bags.jl")
-export AlignedBags, ScatteredBags, length2bags
+export AlignedBags, ScatteredBags, length2bags, remapbag, bags
 
-include("util.jl")
 include("threadfuns.jl")
+
+include("matrices/matrix.jl")
+export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
+export NGramMatrix, NGramIterator
+export ImputingMatrix, PreImputingMatrix, PostImputingMatrix
+export ImputingDense, PreImputingDense, PostImputingDense
+
+(::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
 
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
-export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode, IdentityModel
-export NGramMatrix, NGramIterator
+export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export catobs, removeinstances
 
 include("aggregations/aggregation.jl")
 # agg. types exported in aggregation.jl
-export AggregationFunction, Aggregation
+export Aggregation
 
 include("modelnodes/modelnode.jl")
-export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel, IdentityModel, identity_model
-export reflectinmodel
+export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel
+export IdentityModel, IdentityDense, identity_model
+export HiddenLayerModel
+export mapactivations, reflectinmodel
 
 include("conv.jl")
 export bagconv, BagConv
@@ -49,101 +87,27 @@ export bagconv, BagConv
 include("bagchain.jl")
 export BagChain
 
-include("replacein.jl")
-export replacein, findin
-
 include("hierarchical_utils.jl")
 export printtree
 
-Base.show(io::IO, @nospecialize ::T) where T <: Union{AbstractNode, AbstractMillModel, AggregationFunction} = show(io, Base.typename(T))
-function Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel}
-    if get(io, :compact, false)
-        show(io, Base.typename(T))
-    else
-        HierarchicalUtils.printtree(io, n; htrunc=3)
-    end
-end
-Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
-
 include("partialeval.jl")
-const _emptyismissing = Ref(false)
+export partialeval
 
-function emptyismissing(a)
-    _emptyismissing[] = a
+include("mill_string.jl")
+export MillString, @mill_str
+
+include("util.jl")
+export sparsify, findnonempty, ModelLens, replacein, findin
+
+Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::Union{AbstractNode, AbstractMillModel})) =
+    HierarchicalUtils.printtree(io, n; htrunc=3)
+
+_show(io, x) = _show_fields(io, x)
+
+function _show_fields(io, x::T;context=:compact=>true) where T
+    print(io, nameof(T), "(", join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)],", "), ")")
 end
 
-const _terseprint = Ref(true)
-
-function terseprint(a)
-    _terseprint[] = a
-end
-
-function base_show_terse(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
-    while hasproperty(x, :body) && !hasproperty(x, :name)
-        x = x.body
-    end
-    print(io, "$(x.name){…}")
-    return
-end
-
-function base_show_full(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
-    # basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
-    # specifically function show(io::IO, @nospecialize(x::Type))
-    if x isa DataType
-        Base.show_datatype(io, x)
-        return
-    elseif x isa Union
-        if x.a isa DataType && Core.Compiler.typename(x.a) === Core.Compiler.typename(DenseArray)
-            T2, N = x.a.parameters
-            if x == StridedArray{T2,N}
-                print(io, "StridedArray")
-                Base.show_delim_array(io, (T2,N), '{', ',', '}', false)
-                return
-            elseif x == StridedVecOrMat{T2}
-                print(io, "StridedVecOrMat")
-                Base.show_delim_array(io, (T2,), '{', ',', '}', false)
-                return
-            elseif StridedArray{T2,N} <: x
-                print(io, "Union")
-                Base.show_delim_array(io, vcat(StridedArray{T2,N}, Base.uniontypes(Core.Compiler.typesubtract(x, StridedArray{T2,N}))), '{', ',', '}', false)
-                return
-            end
-        end
-        print(io, "Union")
-        Base.show_delim_array(io, Base.uniontypes(x), '{', ',', '}', false)
-        return
-    end
-
-    # this type assert is behaving obscurely. When in Mill, it does not assert that LazyNode{T<:Symbol,D} where D is UnionAll, but in debugging using Debugger, it does
-    # x::UnionAll
-    if Base.print_without_params(x)
-        return show(io, Base.unwrap_unionall(x).name)
-    end
-
-    if x.var.name === :_ || Base.io_has_tvar_name(io, x.var.name, x)
-        counter = 1
-        while true
-            newname = Symbol(x.var.name, counter)
-            if !Base.io_has_tvar_name(io, newname, x)
-                newtv = TypeVar(newname, x.var.lb, x.var.ub)
-                x = UnionAll(newtv, x{newtv})
-                break
-            end
-            counter += 1
-        end
-    end
-
-    show(IOContext(io, :unionall_env => x.var), x.body)
-    print(io, " where ")
-    show(io, x.var)
-end
-
-function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
-    if _terseprint[]
-        return base_show_terse(io, x)
-    else
-        return base_show_full(io, x)
-    end
-end
+Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 end

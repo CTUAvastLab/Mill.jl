@@ -1,6 +1,18 @@
-println("<HEARTBEAT>")
-using Test, Mill, Flux
+using Test
+using Mill
+using Mill: nobs, reflectinmodel, sparsify, mapdata
+using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, ∇xbagconv, ∇convsum
+using Mill: ngrams, string2ngrams, countngrams, catobs
+using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
+using Base.Iterators: partition, product
+using Flux
+using Flux: onehot, onehotbatch
 using Random
+using Combinatorics
+using SparseArrays
+using DataFrames
+using HierarchicalUtils
+using BenchmarkTools: @btime
 
 function ngradient(f, xs::AbstractArray...)
   grads = zero.(xs)
@@ -17,48 +29,13 @@ function ngradient(f, xs::AbstractArray...)
   return grads
 end
 
-gradcheck(f, xs...) =
-  all(isapprox.(ngradient(f, xs...),
-                gradient(f, xs...), rtol = 1e-5, atol = 1e-5))
+# TODO rewrite this check once all ChainRule types are available
+# https://github.com/FluxML/Zygote.jl/issues/603
+gradcheck((ag, ng)) = isnothing(ag) ? all(ng .== 0) : isapprox(ng, ag, rtol = 1e-5, atol = 1e-5)
+gradcheck(f::Function, xs...) = all(gradcheck, zip(gradient(f, xs...), ngradient(f, xs...)))
 
 gradtest(f, xs::AbstractArray...) = gradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
 gradtest(f, dims...) = gradtest(f, rand.(Float64, dims)...)
-
-function mngradient(f, xs::AbstractArray...)
-    grads = zero.(xs)
-    for (x, Δ) in zip(xs, grads), i in eachindex(x)
-        δ = sqrt(eps())
-        tmp = x[i]
-        x[i] = tmp - δ/2
-        y1 = f(xs...)
-        x[i] = tmp + δ/2
-        y2 = f(xs...)
-        x[i] = tmp
-        Δ[i] = (y2-y1)/δ
-    end
-    return grads
-end
-
-function mgradcheck(f, xs...)
-    correct = true
-    for (ng, ag) in zip(mngradient(f, xs...), gradient(f, xs...))
-        if isnothing(ag)
-            if any(ng .!= 0)
-                correct = false
-                @show ng
-            end
-        elseif !all(isapprox.(ng, ag, rtol = 1e-5, atol = 1e-5))
-            correct = false
-            grad_dif = [abs.(x) for x in (ng .- ag)]
-            @show ng
-            @show ag
-            @show grad_dif
-        end
-    end
-    correct
-end
-
-mgradtest(f, xs::AbstractArray...) = mgradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
 
 Random.seed!(24)
 
@@ -88,47 +65,14 @@ const BAGS3 = [
          (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1,3], [2,4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
-println("<HEARTBEAT>")
+function Mill.unpack2mill(ds::LazyNode{:Sentence})
+    s = ds.data 
+    ss = map(x -> split(x, " "),s)
+    x = NGramMatrix(reduce(vcat, ss), 3, 256, 2053)
+    BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
+end
 
-@testset "Data nodes" begin
-    include("datanode.jl")
-end
-@testset "Model nodes" begin
-    include("modelnode.jl")
-end
-@testset "Missing" begin
-    include("missing.jl")
-end
-println("<HEARTBEAT>")
-@testset "Aggregation" begin
-    include("aggregation.jl")
-end
-println("<HEARTBEAT>")
-@testset "Gradtests" begin
-    include("gradtests.jl")
-end
-println("<HEARTBEAT>")
-@testset "Conv" begin
-    include("conv.jl")
-end
-@testset "Bags" begin
-    include("bags.jl")
-end
-@testset "NGrams" begin
-    include("ngrams.jl")
-end
-@testset "Activations" begin
-    include("activations.jl")
-end
-@testset "Hierarchical Utils" begin
-    include("hierarchical_utils.jl")
-end
-@testset "Replace in" begin
-    include("replacein.jl")
-end
-@testset "Partial Eval" begin
-    include("partialeval.jl")
-end
-@testset "Lazy Node" begin
-    include("lazynode.jl")
+for test_f in readdir(".")
+    (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
+    @eval include($test_f)
 end

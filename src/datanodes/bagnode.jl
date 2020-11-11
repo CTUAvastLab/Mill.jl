@@ -3,8 +3,8 @@ struct BagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, C} <: Abstr
     bags::B
     metadata::C
 
-    function BagNode(d::T, b::B, m::C=nothing) where {T <: Union{Missing, AbstractNode}, B <: AbstractBags, C}
-        ismissing(d) && any(_len.(b.bags) .!= 0) && error("BagNode with nothing in data cannot have a non-empty bag")
+    function BagNode(d::T, b::B, m::C=nothing) where {T <: Maybe{AbstractNode}, B <: AbstractBags, C}
+        ismissing(d) && any(length.(b.bags) .> 0) && error("BagNode with nothing in data cannot have a non-empty bag")
         new{T, B, C}(d, b, m)
     end
 end
@@ -15,9 +15,9 @@ Flux.@functor BagNode
 
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 
-function Base.getindex(x::BagNode, i::VecOrRange)
+function Base.getindex(x::BagNode, i::VecOrRange{<:Int})
     nb, ii = remapbag(x.bags, i)
-    _emptyismissing[] && isempty(ii) && return(BagNode(missing, nb, nothing))
+    emptyismissing() && isempty(ii) && return(BagNode(missing, nb, nothing))
     BagNode(subset(x.data,ii), nb, subset(x.metadata, i))
 end
 
@@ -33,4 +33,5 @@ end
 removeinstances(a::BagNode, mask) = BagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), a.metadata)
 
 Base.hash(e::BagNode{T,B,C}, h::UInt) where {T,B,C} = hash((T, B, C, e.data, e.bags, e.metadata), h)
-Base.:(==)(e1::BagNode{T,B,C}, e2::BagNode{T,B,C}) where {T,B,C} = e1.data == e2.data && e1.bags == e2.bags && e1.metadata == e2.metadata
+(e1::BagNode{T,B,C} == e2::BagNode{T,B,C}) where {T,B,C} =
+    e1.data == e2.data && e1.bags == e2.bags && e1.metadata == e2.metadata

@@ -1,11 +1,15 @@
-using Test, Mill, HierarchicalUtils
+@testset "findnonempty" begin
+end
+
+@testset "ModelLens" begin
+end
 
 @testset "replacein" begin
     metadata = fill("metadata", 4)
     an1 = ArrayNode(rand(3,4))
     b = BagNode(an1, [1:4, 0:-1], metadata)
     an2 = ArrayNode(randn(5, 4))
-    wb = WeightedBagNode(an2, [1:2,3:4], rand(1:4, 4), metadata)
+    wb = WeightedBagNode(an2, [1:2,3:4], Vector{Float32}(rand(1:4, 4)), metadata)
     pn = ProductNode((b=b,wb=wb))
     an3 = ArrayNode(rand(10, 2))
     x1 = ProductNode((pn, an3))
@@ -31,7 +35,7 @@ end
     an1 = ArrayNode(rand(3,4))
     b = BagNode(an1, [1:4, 0:-1], metadata)
     an2 = ArrayNode(randn(5, 4))
-    wb = WeightedBagNode(an2, [1:2,3:4], rand(1:4, 4), metadata)
+    wb = WeightedBagNode(an2, [1:2,3:4], Vector{Float32}(rand(1:4, 4)), metadata)
     pn = ProductNode((b=b,wb=wb))
     an3 = ArrayNode(rand(10, 2))
     x1 = ProductNode((a = pn, b = an3))
@@ -47,5 +51,4 @@ end
         l = findin(m1,  m1[t])
         @test get(m1, l) === m1[t]
     end
-
 end

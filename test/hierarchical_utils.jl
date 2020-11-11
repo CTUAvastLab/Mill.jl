@@ -1,14 +1,10 @@
-using SparseArrays, HierarchicalUtils
-import Base.Iterators: partition, accumulate, product, flatten
-using Mill: nobs
-
 metadata = fill("metadata", 4)
-an1 = ArrayNode(rand(3,4))
+an1 = ArrayNode(rand(Float32, 3,4))
 b = BagNode(an1, [1:4, 0:-1], metadata)
 an2 = ArrayNode(NGramMatrix(["test", "skunk", "mill", "julia"], 3, 10, 17))
-wb = WeightedBagNode(an2, [1:2,3:4], rand(1:4, 4), metadata)
+wb = WeightedBagNode(an2, [1:2,3:4], Vector{Float32}([1,2,3,4]), metadata)
 n1 = ProductNode((b=b,wb=wb))
-an3 = ArrayNode(SparseMatrixCSC(rand(10, 2)))
+an3 = ArrayNode(SparseMatrixCSC(rand(Float32, 10, 2)))
 n2 = ProductNode((n1, an3))
 
 n2m = reflectinmodel(n2)
@@ -31,10 +27,10 @@ noderepr(n::NumberNode) = string(n.n)
 children(n::NumberNode) = n.chs
 
 function Mill.unpack2mill(ds::LazyNode{:Codons})
-	s = ds.data
-	ss = map(x -> reduce.(*, partition(x, 3)),s)
-	x = reduce(hcat, map(x->Flux.onehotbatch(x, possibilities), ss))
-	BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
+    s = ds.data
+    ss = map(x -> reduce.(*, partition(x, 3)),s)
+    x = reduce(hcat, map(x->Flux.onehotbatch(x, possibilities), ss))
+    BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
 end
 
 # specification of printing
@@ -51,8 +47,8 @@ end
 
 function buf_printtree(data; kwargs...)
     buf = IOBuffer()
-	printtree(buf, data; kwargs...)
-	String(take!(buf))
+    printtree(buf, data; kwargs...)
+    String(take!(buf))
 end
 
 @testset "list traversal" begin
@@ -153,24 +149,24 @@ end
 
 @testset "printtree" begin
     @test buf_printtree(n2, trav=true) ==
-"""
-ProductNode [""]
-  ├── ProductNode ["E"]
-  │     ├─── b: BagNode with 2 bag(s) ["I"]
-  │     │         └── ArrayNode(3, 4) ["K"]
-  │     └── wb: WeightedNode with 2 bag(s) and weights Σw = 11 ["M"]
-  │               └── ArrayNode(17, 4) ["O"]
-  └── ArrayNode(10, 2) ["U"]"""
+        """
+        ProductNode with 2 obs [""]
+          ├── ProductNode with 2 obs ["E"]
+          │     ├─── b: BagNode with 2 obs ["I"]
+          │     │         └── ArrayNode(3×4 Array, Float32) with 4 obs ["K"]
+          │     └── wb: WeightedBagNode with 2 obs ["M"]
+          │               └── ArrayNode(17×4 NGramMatrix, Int64) with 4 obs ["O"]
+          └── ArrayNode(10×2 SparseMatrixCSC, Float32) with 2 obs ["U"]"""
 
     @test buf_printtree(n2m, trav=true) ==
-"""
-ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
-  ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"]
-  │     ├─── b: BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10)) ["I"]
-  │     │         └── ArrayModel(Dense(3, 10)) ["K"]
-  │     └── wb: BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10)) ["M"]
-  │               └── ArrayModel(Dense(17, 10)) ["O"]
-  └── ArrayModel(Dense(10, 10)) ["U"]"""
+        """
+        ProductModel ↦ ArrayModel(Dense(20, 10)) [""]
+          ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"]
+          │     ├─── b: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)) ["I"]
+          │     │         └── ArrayModel(Dense(3, 10)) ["K"]
+          │     └── wb: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)) ["M"]
+          │               └── ArrayModel(Dense(17, 10)) ["O"]
+          └── ArrayModel(Dense(10, 10)) ["U"]"""
 end
 
 @testset "LazyNode" begin
@@ -180,33 +176,17 @@ end
 	@test nleafs(ds) == 4
 
     @test buf_printtree(ds, trav=true) ==
-"""
-Codons 4 items [""]
-  └── Array 4 items ["U"]
-        ├── "GGGCGGCGA" ["Y"]
-        ├── "CCTCGCGGG" ["c"]
-        ├── "TTTTCGCTATTTATGAAAATT" ["g"]
-        └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]"""
+        """
+        LazyNode{Codons} with 4 obs [""]
+          └── Array 4 items ["U"]
+                ├── "GGGCGGCGA" ["Y"]
+                ├── "CCTCGCGGG" ["c"]
+                ├── "TTTTCGCTATTTATGAAAATT" ["g"]
+                └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]"""
 
     @test buf_printtree(m, trav=true) ==
-"""
-LazyCodonsModel [""]
-  └── BagModel ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(4, 2)) ["U"]
-        └── ArrayModel(Dense(64, 2)) ["k"]"""
-
-	orig_terse = Mill._terseprint[]
-
-	Mill.terseprint(true)
-    buf = IOBuffer()
-	Base.show(buf, typeof(ds))
-    str_repr = String(take!(buf))
-	@test str_repr == "LazyNode{…}"
-
-	Mill.terseprint(false)
-	buf = IOBuffer()
-	Base.show(buf, typeof(ds))
-    str_repr = String(take!(buf))
-	@test str_repr == "LazyNode{:Codons,Array{String,1}}"
-
-	Mill.terseprint(orig_terse)
+        """
+        LazyModel{Codons} [""]
+          └── BagModel ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5, 2)) ["U"]
+                └── ArrayModel(Dense(64, 2)) ["k"]"""
 end

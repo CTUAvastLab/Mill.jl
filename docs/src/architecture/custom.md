@@ -38,7 +38,7 @@ function Base.reduce(::typeof(Mill.catobs), as::Vector{T}) where {T<:PathNode}
     PathNode(data, metadata)
 end
 
-Base.getindex(x::PathNode, i::VecOrRange) = PathNode(subset(x.data, i), subset(x.metadata, i))
+Base.getindex(x::PathNode, i::VecOrRange{<:Int}) = PathNode(subset(x.data, i), subset(x.metadata, i))
 ```
 
 Similarly, we define a `ModelNode` which will be a counterpart processing the data. Note that the part of the `ModelNode` is a function which converts the pathanme string to `Matrix` (or other Mill structures). Again, we add a support for pretty printing.

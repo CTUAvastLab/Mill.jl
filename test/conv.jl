@@ -1,5 +1,3 @@
-using Test, Flux, SparseArrays, Mill
-using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇convsum, ArrayNode, BagNode, ∇wbagconv, ∇xbagconv
 
 @testset "testing convolution shift" begin
     @test _convshift(2) == 0:1

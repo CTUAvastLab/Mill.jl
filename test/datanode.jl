@@ -1,9 +1,3 @@
-using Mill
-using SparseArrays, DataFrames
-
-import Mill: sparsify, mapdata
-import StatsBase: nobs
-
 @testset "creating bags" begin
     k = [2, 2, 2, 1, 1, 3]
     @test Mill.bags(k).bags == [1:3,4:5,6:6]
@@ -256,22 +250,6 @@ end
     @test xs.data[2].data isa SparseMatrixCSC
     @test xs.data[1].data[2].data isa SparseMatrixCSC
     @test all(xs.data[1].data[1].data .== x.data[1].data[1].data)
-end
-
-@testset "testing terseprint on" begin
-    Mill.terseprint(true)
-    buf = IOBuffer()
-    show(buf, typeof([h,i]))
-    str_repr = String(take!(buf))
-    @test str_repr == "Array{ProductNode{…},1}"
-end
-
-@testset "testing terseprint off" begin
-    Mill.terseprint(false)
-    buf = IOBuffer()
-    show(buf, typeof([h,i]))
-    str_repr = String(take!(buf))
-    @test str_repr == "Array{ProductNode{T,Nothing} where T,1}"
 end
 
 @testset "testing equals and hash" begin

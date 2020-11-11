@@ -1,16 +1,9 @@
 using LearnBase
 using DataFrames
-import Base: cat, vcat, hcat, _cat, lastindex, getindex
 
 abstract type AbstractNode end
 abstract type AbstractProductNode <: AbstractNode end
 abstract type AbstractBagNode <: AbstractNode end
-
-# FIXME: this alias would better be Union{AbstractVector{T}, Tuple{Vararg{T}}}
-# and method signatures should do AbstractVecOrTuple{<:T} when they want covariance,
-# but that solution currently fails (see #27188 and #27224)
-AbstractVecOrTuple{T} = Union{AbstractVector{<:T}, Tuple{Vararg{T}}}
-
 
 """
     data(x::AbstractNode)
@@ -28,24 +21,24 @@ data(x) = x
 catobs(as...) = reduce(catobs, collect(as))
 
 # reduction of common datatypes the way we like it
-reduce(::typeof(catobs), as::Vector{<: AbstractMatrix}) = reduce(hcat, as)
-@adjoint function reduce(::typeof(catobs), as::Vector{<: AbstractMatrix})
+reduce(::typeof(catobs), as::Vector{<:AbstractMatrix}) = reduce(hcat, as)
+
+reduce(::typeof(catobs), as::Vector{<:AbstractVector}) = reduce(vcat, as)
+Zygote.@adjoint function reduce(::typeof(catobs), as::Vector{<:AbstractMatrix})
   sz = cumsum(size.(as, 2))
   return reduce(hcat, as), Δ -> (nothing, map(n -> Zygote.pull_block_horz(sz[n], Δ, as[n]), eachindex(as)))
 end
-reduce(::typeof(catobs), as::Vector{<: AbstractVector}) = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{<: DataFrame}) = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{<: Missing}) = missing
-reduce(::typeof(catobs), as::Vector{<: Nothing}) = nothing
-reduce(::typeof(catobs), as::Vector{<: Union{Missing, Nothing}}) = nothing
-function reduce(::typeof(catobs), as::Vector{T}) where {T <: Union{Missing, AbstractNode}}
-    reduce(catobs, [a for a in as if !ismissing(a)])
-end
 
-function reduce(::typeof(catobs), as::Vector{<: Any})
+reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
+reduce(::typeof(catobs), as::Vector{Missing}) = missing
+reduce(::typeof(catobs), as::Vector{Nothing}) = nothing
+reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
+reduce(::typeof(catobs), as::Vector{<:Maybe{AbstractNode}}) = reduce(catobs, [a for a in as if !ismissing(a)])
+
+function reduce(::typeof(catobs), as::Vector{<:Any})
     isempty(as) && return(as)
     T = mapreduce(typeof, typejoin, as)
-    T == Any && @error "cannot reduce Any"
+    T === Any && @error "cannot reduce Any"
     reduce(catobs, Vector{T}(as))
 end
 
@@ -55,7 +48,7 @@ _cattrees(as::Vector{T}) where T <: Union{Tuple, Vector}  = tuple([reduce(catobs
 function _cattrees(as::Vector{T}) where T <: NamedTuple
     ks = keys(as[1])
     vs = [k => reduce(catobs, [a[k] for a in as]) for k in ks]
-    (;vs...)
+    (; vs...)
 end
 
 mapdata(f, x) = f(x)
@@ -69,7 +62,7 @@ MLDataPattern.getobs(x::AbstractNode, i) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Undefined) = x[i]
 MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Last) = x[i]
 
-#subset of common datatypes the way we like them
+# subset of common datatypes the way we like them
 subset(x::AbstractMatrix, i) = x[:, i]
 subset(x::AbstractVector, i) = x[i]
 subset(x::AbstractNode, i) = x[i]
@@ -81,16 +74,33 @@ subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
 
 include("arraynode.jl")
 
-# definitions needed for all types of bag nodes
-_len(a::UnitRange) = max(a.stop - a.start + 1, 0)
-_len(a::Vector) = length(a)
 StatsBase.nobs(a::AbstractBagNode) = length(a.bags)
 StatsBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 Base.ndims(x::AbstractBagNode) = Colon()
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")
-include("ngrams.jl")
 include("productnode.jl")
-include("missingnode.jl")
 include("lazynode.jl")
+
+Base.show(io::IO, ::MIME"text/plain", @nospecialize n::ArrayNode) = (print(io, summary(n), ":\n"); print_array(io, n.data))
+function Base.show(io::IO, @nospecialize(n::AbstractNode))
+    print(io, nameof(typeof(n)))
+    if !get(io, :compact, false)
+        _show_data(io, n)
+        print(io, " with ", nobs(n), " obs")
+    end
+end
+
+function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
+    print(io, "(")
+    if ndims(n.data) == 1
+        print(io, nameof(T), " of length ", length(n.data))
+    else
+        print(io, join(size(n.data), "×"), " ", nameof(T))
+    end
+    print(io, ", ", eltype(n.data), ")")
+end
+
+_show_data(io, n::LazyNode{Name}) where {Name} = print(io, "{", Name, "}")
+_show_data(io, _) = print(io)

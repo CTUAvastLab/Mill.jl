@@ -1,6 +1,3 @@
-using Mill, Flux, Test
-using Mill: ArrayNode, BagNode, ProductNode, catobs
-
 @testset "testing catobs & getindex operations missing values" begin
     a = BagNode(ArrayNode(rand(3,4)), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
@@ -19,9 +16,9 @@ using Mill: ArrayNode, BagNode, ProductNode, catobs
 
     x = reduce(catobs, [a, e])
     @test  isnothing(x[2].metadata)
-    Mill.emptyismissing(true)
+    Mill.emptyismissing!(true)
     @test  ismissing(x[2].data)
-    Mill.emptyismissing(false)
+    Mill.emptyismissing!(false)
     @test  nobs(x[2].data) == 0
     @test  x[2].bags.bags == [0:-1]
 
@@ -64,9 +61,9 @@ end
 
     x = reduce(catobs, [a, e])
     @test  isnothing(x[2].metadata)
-    Mill.emptyismissing(true)
+    Mill.emptyismissing!(true)
     @test  ismissing(x[2].data)
-    Mill.emptyismissing(false)
+    Mill.emptyismissing!(false)
     @test  nobs(x[2].data) == 0
     @test  x[2].bags.bags == [0:-1]
     @test x[1].weights == [1.0, 0.0, 1.0, 0.5]
@@ -78,7 +75,7 @@ end
 @testset "testing model operations missing values" begin
     a = BagNode(ArrayNode(rand(3,4)), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
-    m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMean(2), ArrayModel(Dense(2, 2)))
+    m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMean(2), ArrayModel(Dense(3, 2)))
 
     @testset "BagNode" begin
         x = reduce(catobs, [a, e])

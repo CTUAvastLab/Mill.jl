@@ -4,3 +4,4 @@
 .DS_store
 docs/build
 Manifest.toml
+tutorials/.ipynb_checkpoints/

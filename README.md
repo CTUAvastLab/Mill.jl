@@ -1,12 +1,17 @@
+<a href="https://github.com/pevnak/Mill.jl#references">
+<img align="left" width="105" height="180" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/logo.svg" alt="Mill icon">
+</a>
+
+# Mill – Multiple Instance Learning Library
+
+Mill is a library build on top of Flux.jl aimed to prototype flexible multi-instance learning models as described in  [[1](#cit1)] and  [[2](#cit2)]
+
 [![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://pevnak.github.io/Mill.jl/dev)
 [![Build Status](https://travis-ci.com/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.com/pevnak/Mill.jl)
 [![Coverage Status](https://coveralls.io/repos/github/pevnak/Mill.jl/badge.svg?branch=master)](https://coveralls.io/github/pevnak/Mill.jl?branch=master)
 [![codecov.io](http://codecov.io/github/Pevnak/Mill.jl/coverage.svg?branch=master)](http://codecov.io/github/Pevnak/Mill.jl?branch=master)
 
-# Mill – Multiple Instance Learning Library
- Mill is a library build on top of Flux.jl aimed to prototype flexible multi-instance learning models as described in  [[1](#cit1)] and  [[2](#cit2)]
-
- ## What is Multiple instance learning (MIL) problem?
+## What is Multiple instance learning (MIL) problem?
  In the prototypical machine learning problem the input sample ![equation](https://latex.codecogs.com/gif.latex?x) is a vector or matrix of a fixed dimension, or a sequence. In MIL problems the sample ![equation](https://latex.codecogs.com/gif.latex?x) is a set of vectors (or matrices) ![equation](https://latex.codecogs.com/gif.latex?%28x_1%2C%20x_2%2C%20...%2C%20x_n%29), which means that order does not matter, and which is also the feature making MIL problems different from sequences.
  Pevny and Somol has proposed simple way to solve MIL problems with neural networks. The network consists from two non-linear layers, with mean (or maximum) operation sandwiched between nonlinearities. Denoting ![equation](https://latex.codecogs.com/gif.latex?f_1), ![equation](https://latex.codecogs.com/gif.latex?f_2) layers of neural network, the output is calculated as ![equation](https://latex.codecogs.com/gif.latex?f%28x%29%20%3D%20f_2%20%5Cleft%28%5Cfrac%7B1%7D%7Bn%7D%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%20f_1%28x_i%29%5Cright%29). In [[3](#cit3)], authors have further extended the universal approximation theorem to MIL problems.
  ### Multiple instance learning on Musk 1
@@ -295,3 +300,6 @@ The advantage of the first approach, default, is that types are always the same,
  <a name="cit3"><b>3</b></a> *Approximation capability of neural networks on sets of probability measures and tree-structured data, Tomáš Pevný, Vojtěch Kovařík, 2019*, https://openreview.net/forum?id=HklJV3A9Ym
  
  <a name="cit4"><b>4</b></a> *Solving the multiple instance problem with axis-parallel rectangles, Dietterich, Thomas G., Richard H. Lathrop, and Tomás Lozano-Pérez, 1997*
+ 
+<a href="https://flyclipart.com/wind-turbine-png-clipart-windmill-pictures-windmill-png-471749">Icon source</a>
+

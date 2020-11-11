@@ -34,3 +34,6 @@ function fold(f, m::ArrayModel, x)
 end
 
 Flux.activations(::typeof(identity), x::Array{Float32,2}) = (x,)
+
+# Base.hash(m::ArrayModel{T}, h::UInt) where {T} = hash((T, m.m), h)
+# (m1::ArrayModel{T} == m2::ArrayModel{T}) where {T} = m1.m == m2.m

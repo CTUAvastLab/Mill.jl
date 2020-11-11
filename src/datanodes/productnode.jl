@@ -11,9 +11,6 @@ end
 ProductNode(data::T) where {T} = ProductNode{T, Nothing}(data, nothing)
 ProductNode(data::T, metadata::C) where {T, C} = ProductNode{T, C}(data, metadata)
 
-@deprecate TreeNode(data) ProductNode(data)
-@deprecate TreeNode(data, metadata) ProductNode(data, metadata)
-
 Flux.@functor ProductNode
 
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)
@@ -31,7 +28,8 @@ function reduce(::typeof(catobs), as::Vector{T}) where {T <: ProductNode}
     ProductNode(data, metadata)
 end
 
-Base.getindex(x::ProductNode, i::VecOrRange) = ProductNode(subset(x.data, i), subset(x.metadata, i))
+Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(x.data, i), subset(x.metadata, i))
 
 Base.hash(e::ProductNode{T,C}, h::UInt) where {T,C} = hash((T, C, e.data, e.metadata), h)
-Base.:(==)(e1::ProductNode{T,C}, e2::ProductNode{T,C}) where {T,C} = e1.data == e2.data && e1.metadata == e2.metadata
+(e1::ProductNode{T,C} == e2::ProductNode{T,C}) where {T,C} =
+    e1.data == e2.data && e1.metadata == e2.metadata
