@@ -84,8 +84,8 @@ include("productnode.jl")
 include("lazynode.jl")
 
 Base.show(io::IO, ::MIME"text/plain", @nospecialize n::ArrayNode) = (print(io, summary(n), ":\n"); print_array(io, n.data))
-function Base.show(io::IO, @nospecialize n::T) where T <: AbstractNode
-    print(io, nameof(T))
+function Base.show(io::IO, @nospecialize(n::AbstractNode))
+    print(io, nameof(typeof(n)))
     if !get(io, :compact, false)
         _show_data(io, n)
         print(io, " with ", nobs(n), " obs")

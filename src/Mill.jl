@@ -17,20 +17,25 @@ using Base: CodeUnits, nameof
 import Base: *, ==, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, getindex, setindex!
 import Base: reduce, eltype, print_array
+import Base: isascii, codeunits, ncodeunits, codeunit
 
 import Flux: Dense, Chain, Params, params!, IdSet, onehot, onehotbatch
 
 import ChainRulesCore: rrule
 
 # GLOBAL SWITCHES
-const _emptyismissing = Ref(false)
-const _bagcount = Ref(true)
+const _emptyismissing =     Ref(false)
+const _bagcount =           Ref(true)
+const _wildcard_code =      Ref(UInt8(0)) # NUL in ascii
+const _string_start_code =  Ref(UInt8(2)) # STX in ascii
+const _string_end_code =    Ref(UInt8(3)) # ETX in ascii
 
-emptyismissing!(a) = _emptyismissing[] = a
-bagcount!(a) = _bagcount[] = a
-
-emptyismissing() = _emptyismissing[]
-bagcount() = _bagcount[]
+for s in Symbol.(["emptyismissing", "bagcount", "wildcard_code", "string_start_code", "string_end_code"])
+    ex = Symbol(s, '!')
+    us = Symbol('_', s)
+    @eval $ex(a) = $us[] = a
+    @eval $s() = $us[]
+end
 
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
@@ -87,10 +92,13 @@ export printtree
 include("partialeval.jl")
 export partialeval
 
+include("mill_string.jl")
+export MillString, @mill_str
+
 include("util.jl")
 export sparsify, findnonempty, ModelLens, replacein, findin
 
-Base.show(io::IO, ::MIME"text/plain", @nospecialize n::T) where T <: Union{AbstractNode, AbstractMillModel} = 
+Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::Union{AbstractNode, AbstractMillModel})) =
     HierarchicalUtils.printtree(io, n; htrunc=3)
 
 _show(io, x) = _show_fields(io, x)

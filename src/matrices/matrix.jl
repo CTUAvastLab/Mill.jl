@@ -36,8 +36,7 @@ end
 
 print_array(io::IO, A::NGramMatrix) = print_array(io, A.s)
 
-function Base.show(io::IO, @nospecialize X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix,
-                                             MaybeHotVector, NGramMatrix}
+function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix, MaybeHotVector, NGramMatrix}
     if get(io, :compact, false)
         if ndims(X) == 1
             print(io, nameof(T), " of length ", length(X))
@@ -62,7 +61,7 @@ PostImputingDense(args...) = PostImputingDense(Dense(args...))
 
 _name(::PreImputingMatrix) = "PreImputing"
 _name(::PostImputingMatrix) = "PostImputing"
-function Base.show(io::IO, @nospecialize l::Dense{F, <:ImputingMatrix}) where F
+function Base.show(io::IO, l::Dense{F, <:ImputingMatrix}) where F
   print(io, "$(_name(l.W))Dense(", size(l.W, 2), ", ", size(l.W, 1))
   l.σ == identity || print(io, ", ", l.σ)
   print(io, ")")

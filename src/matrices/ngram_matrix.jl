@@ -1,6 +1,6 @@
-const Sequence = Union{AbstractString, AbstractVector{<:Integer}, CodeUnits}
+const Code = Union{AbstractVector{<:Integer}, CodeUnits}
+const Sequence = Union{AbstractString, Code}
 
-# TODO use better alphabet
 """
 struct NGramIterator{T}
 s::T
@@ -49,40 +49,34 @@ julia> collect(sit)
 102
 ```
 """
-# TODO make this NGrams{N}
-struct NGramIterator{T <: Maybe{Union{CodeUnits, Vector{<:Integer}}}}
+struct NGramIterator{T}
     s::T
     n::Int
     b::Int
     m::Int
 
-    function NGramIterator(s::T, n::Int=3, b::Int=256, m::Int=typemin(Int)) where {T <: Maybe{Union{CodeUnits, Vector{<:Integer}}}}
-        new{T}(s, n, b, m)
-    end
+    NGramIterator(s::T, n::Int=3, b::Int=256, m::Int=typemax(Int)) where T <: Maybe{Code} = new{T}(s, n, b, m)
 end
 
 NGramIterator(s::AbstractString, args...) = NGramIterator(codeunits(s), args...)
 
+Base.eltype(::NGramIterator) = Int
+
 Base.length(it::NGramIterator) = length(it.s) + it.n - 1
 Base.length(it::NGramIterator{Missing}) = 0
 
-# TODO padding
 Base.iterate(it::NGramIterator{Missing}) = nothing
-function Base.iterate(it::NGramIterator, (z, i) = (0, 1))
+function Base.iterate(it::NGramIterator, (z, i) = (_init_z(it), 1))
     b, n, s, m = it.b, it.n, it.s, it.m
-    if i ≤ length(it.s)
-        z = z * b + s[i]
-        if i > n 
-            z -= s[i - n] * b^n
-        end
-        z%m, (z, i+1)
-    elseif length(it.s) < i ≤ length(it)
-        if i > n
-            z -= s[i - n] * b^(n - (i - length(s)))
-        end
+    if i ≤ length(it)
+        z *= b
+        z += i ≤ length(s) ? s[i] : string_end_code()
+        z -= b^n * (i > n ? s[i - n] : string_start_code())
         z%m, (z, i+1)
     end
 end
+
+_init_z(it) = string_start_code() * foldl((s, c) -> it.b * s + c, fill(1, it.n))
 
 Base.hash(it::NGramIterator{T}, h::UInt) where {T} = hash((T, it.s, it.n, it.b, it.m), h)
 (it1::NGramIterator{T} == it2::NGramIterator{T}) where {T} = it1.s == it2.s &&
@@ -245,44 +239,6 @@ Zygote.@adjoint function _mul(A::AbstractMatrix, S::AbstractVector{<:Sequence}, 
     end
     return _mul(A, S, n, b, m), Δ -> (dA_thunk(Δ), nothing, nothing, nothing, nothing)
 end
-# function rrule(::typeof(_mul), A::AbstractMatrix, S::AbstractVector{<:Sequence}, n, b, m)
-#     function dA_thunk(Δ)
-#         dA = zero(A)
-#         for (k, s) in enumerate(S)
-#             _dA_mul_vec!(view(Δ, :, k), dA, NGramIterator(s, n, b, m))
-#         end
-#         dA
-#     end
-#     return _mul(A, S, n, b, m), Δ -> (NO_FIELDS, @thunk(dA_thunk(Δ)), fill(DoesNotExist(), 4)...)
-# end
-# function _mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence}
-#     T_res = T === Missing ? Union{eltype(A), T} : eltype(A)
-#     C = zeros(T_res, size(A, 1), size(B, 2))
-#     for k in 1:size(B, 2)
-#         _mul_vec!(view(C, :, k), A, NGramIterator(B, k))
-#     end
-#     C
-# end
-# Zygote.@adjoint function _mul(A::AbstractMatrix, B::NGramMatrix{<:Sequence})
-#     function dA_thunk(Δ)
-#         dA = zero(A)
-#         for k in 1:size(B, 2)
-#             _dA_mul_vec!(view(Δ, :, k), dA, NGramIterator(B, k))
-#         end
-#         dA
-#     end
-#     return _mul(A, B), Δ -> (dA_thunk(Δ), nothing)
-# end
-# function rrule(::typeof(_mul), A::AbstractMatrix, B::NGramMatrix{<:Sequence})
-#     function dA_thunk(Δ)
-#         dA = zero(A)
-#         for k in 1:size(B, 2)
-#             _dA_mul_vec!(view(Δ, :, k), dA, NGramIterator(B, k))
-#         end
-#         dA
-#     end
-#     return _mul(A, B), Δ -> (NO_FIELDS, @thunk(dA_thunk(Δ)), DoesNotExist())
-# end
 
 _mul_vec!(c, A, it::NGramIterator, ψ=missing) = for j in it
     @views c .+= A[:, j + 1]

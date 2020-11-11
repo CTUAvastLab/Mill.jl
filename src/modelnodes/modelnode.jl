@@ -9,8 +9,8 @@ include("bagmodel.jl")
 include("productmodel.jl")
 include("lazymodel.jl")
 
-function Base.show(io::IO, @nospecialize m::T) where T <: AbstractMillModel
-    print(io, nameof(T))
+function Base.show(io::IO, @nospecialize(m::AbstractMillModel))
+    print(io, nameof(typeof(m)))
     if !get(io, :compact, false)
         _show_submodels(io, m)
     end

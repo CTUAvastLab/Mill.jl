@@ -17,7 +17,7 @@ Flux.@functor Aggregation
 
 function (a::Aggregation{T})(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...) where T
     o = vcat([f(x, bags, args...) for f in a.fs]...)
-    _bagcount[] ? vcat(o, Zygote.@ignore permutedims(log.(one(T) .+ length.(bags)))) : o
+    bagcount() ? vcat(o, Zygote.@ignore permutedims(log.(one(T) .+ length.(bags)))) : o
 end
 (a::Union{AggregationOperator, Aggregation})(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
 
@@ -30,7 +30,7 @@ function Base.reduce(::typeof(vcat), as::Vector{<:Aggregation})
     Aggregation(tuple(vcat((collect(a.fs) for a in as)...)...))
 end
 
-function Base.show(io::IO, @nospecialize a::Aggregation)
+function Base.show(io::IO, a::Aggregation)
     if get(io, :compact, false)
         print(io, "Aggregation(", join(length.(a.fs), ", "), ")")
     else
@@ -38,12 +38,9 @@ function Base.show(io::IO, @nospecialize a::Aggregation)
     end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", @nospecialize a::T) where T <: Aggregation
-    print(io, T, ":\n")
-    print_array(io, a.fs |> collect)
-end
+Base.show(io::IO, ::MIME"text/plain", a::Aggregation) = (print(io, typeof(a), ":\n"); print_array(io, a.fs |> collect))
 
-function Base.show(io::IO, @nospecialize a::T) where T <: AggregationOperator
+function Base.show(io::IO, a::T) where T <: AggregationOperator
     if get(io, :compact, false)
         print(io, nameof(T), "(", length(a), ")")
     else
@@ -76,12 +73,12 @@ const names = ["Sum", "Mean", "Max", "PNorm", "LSE"]
 for p in powerset(collect(1:length(names)))
     s = Symbol("Segmented", names[p]...)
     @eval function $s(d::Int)
-        Aggregation($((Expr(:call, Symbol("_Segmented" * n), :d)
+        Aggregation($((Expr(:call, Symbol("_Segmented", n), :d)
                        for n in names[p])...))
     end
     if length(p) > 1
         @eval function $s(D::Vararg{Int, $(length(p))})
-            Aggregation($((Expr(:call, Symbol("_Segmented" * n), :(D[$i]))
+            Aggregation($((Expr(:call, Symbol("_Segmented", n), :(D[$i]))
                            for (i,n) in enumerate(names[p]))...))
         end
     end
