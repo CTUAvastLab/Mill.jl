@@ -33,6 +33,6 @@ function _impute_row(ψ, B)
     m = .!ismissing.(B)
     X = similar(ψ, size(B))
     X .= ψ
-    X[m] = B[m]
+    X[m] = @view B[m]
     X, m
 end
