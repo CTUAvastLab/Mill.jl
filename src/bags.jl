@@ -86,7 +86,7 @@ function remapbag(b::AlignedBags, idcs::VecOrRange{Int})
         rb[i] = (b[j] == 0:-1) ? b[j] : b[j] .- b[j].start .+ offset
         offset += length(b[j])
     end
-    rb, Array{Int}(vcat([collect(b[i]) for i in idcs]...))
+    rb, Array{Int}(reduce(vcat, [collect(b[i]) for i in idcs]; init=AlignedBags[]))
 end
 
 function remapbag(b::ScatteredBags, idcs::VecOrRange{<:Int})

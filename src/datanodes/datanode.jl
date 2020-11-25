@@ -22,7 +22,6 @@ catobs(as...) = reduce(catobs, collect(as))
 
 # reduction of common datatypes the way we like it
 reduce(::typeof(catobs), as::Vector{<:AbstractMatrix}) = reduce(hcat, as)
-
 reduce(::typeof(catobs), as::Vector{<:AbstractVector}) = reduce(vcat, as)
 Zygote.@adjoint function reduce(::typeof(catobs), as::Vector{<:AbstractMatrix})
   sz = cumsum(size.(as, 2))
