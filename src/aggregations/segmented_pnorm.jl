@@ -62,7 +62,7 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
                 end
             end
             for i in 1:size(a, 1)
-                y[i, bi] = M[i, bi] * (y[i, bi] / weightsum(ws, i))^(one(eltype(a))/p[i])
+                y[i, bi] = M[i, bi] * (y[i, bi] / weightsum(ws, i)) ^ (one(eltype(a))/p[i])
             end
         end
     end
@@ -97,8 +97,8 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
                     da[i, j] = Δ[i, bi] * weight(w, i, j, eltype(p)) * sign(a[i, j]) / weightsum(ws, i) 
                     da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
                     ww = weight(w, i, j, eltype(p)) * (ab / M[i, bi]) ^ p[i]
-                    dps1[i] +=  ww * log(ab)
-                    dps2[i] +=  ww
+                    dps1[i] += ww * log(ab)
+                    dps2[i] += ww
                 end
             end
             for i in 1:size(a, 1)
