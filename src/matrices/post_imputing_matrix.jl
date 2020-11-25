@@ -42,20 +42,25 @@ function rrule(::typeof(_mul_maybe_hot), W, ψ, I)
     C, m = _impute_maybe_hot(W, ψ, I)
     function dW_thunk(Δ)
         dW = zero(W)
-        for (k, i) in enumerate(I)
+        @inbounds for (k, i) in enumerate(I)
             if !ismissing(i)
                 @views dW[:, i] .+= Δ[:, k]
             end
         end
         dW
     end
-    C, Δ -> (NO_FIELDS, @thunk(dW_thunk(Δ)), @thunk(sum(view(Δ, :, .!m), dims=2)), DoesNotExist())
+    C, Δ -> (NO_FIELDS, @thunk(dW_thunk(Δ)), @thunk(sum(view(Δ, :, m), dims=2)), DoesNotExist())
 end
 function _impute_maybe_hot(W, ψ, I)
-    m = .!ismissing.(I)
+    m = trues(length(I))
     C = similar(ψ, size(W, 1), length(I))
     C .= ψ
-    @views C[:, m] .= W[:, I[m]]
+    @inbounds for (k, i) in enumerate(I)
+        if !ismissing(I[k])
+            m[k] = false
+            C[:, k] .= @view W[:, i]
+        end
+    end
     C, m
 end
 
@@ -64,8 +69,9 @@ _mul_ngram(W, ψ, S, n, b, m) = _impute_ngram(W, ψ, S, n, b, m)
 function rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
     function dW_thunk(Δ)
         dW = zero(W)
+        z = _init_z(n, b)
         for (k, s) in enumerate(S)
-            _dA_mul_vec!(view(Δ, :, k), dW, NGramIterator(s, n, b, m))
+            _dA_mul_vec!(Δ, k, dW, z, s, n, b, m)
         end
         dW
     end
@@ -75,9 +81,10 @@ function rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
 end
 
 function _impute_ngram(W, ψ, S, n, b, m)
-    C = similar(ψ, size(W, 1), length(S))
+    C = zeros(eltype(ψ), size(W, 1), length(S))
+    z = _init_z(n, b)
     for (k, s) in enumerate(S)
-        _mul_vec!(view(C, :, k), W, NGramIterator(s, n, b, m), ψ)
+        _mul_vec!(C, k, W, z, s, n, b, m, ψ)
     end
     C
 end
