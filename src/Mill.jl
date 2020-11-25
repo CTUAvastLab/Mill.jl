@@ -34,8 +34,8 @@ const _string_end_code =    Ref(UInt8(3)) # ETX in ascii
 for s in Symbol.(["emptyismissing", "bagcount", "wildcard_code", "string_start_code", "string_end_code"])
     ex = Symbol(s, '!')
     us = Symbol('_', s)
-    @eval $ex(a) = $us[] = a
-    @eval $s() = $us[]
+    @eval @inline $ex(a) = $us[] = a
+    @eval @inline $s() = $us[]
 end
 
 # COMMON ALIASES
