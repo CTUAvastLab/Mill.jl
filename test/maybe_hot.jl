@@ -1,5 +1,3 @@
-# TODO inferred tests
-
 @testset "attributes" begin
     l = 10
     I = [1, missing, 3, missing, 5]
@@ -27,9 +25,9 @@ end
     l = 10
     I = [1, missing, 3, missing, 5]
     mhm = MaybeHotMatrix(I, l)
+    mhm2 = MaybeHotMatrix([1,5,3], l)
     mhvs = MaybeHotVector.(I, l)
 
-    @test all(mhv -> isequal(hcat(mhv), mhv), mhvs)
     @test all(mhv -> isequal(reduce(hcat, [mhv]), MaybeHotMatrix(mhv)), mhvs)
     @test all(mhv -> isequal(reduce(catobs, [mhv]), MaybeHotMatrix(mhv)), mhvs)
 
@@ -40,6 +38,17 @@ end
     @test isequal(hcat(mhvs...), mhm)
     @test isequal(reduce(hcat, mhvs), mhm)
     @test isequal(reduce(catobs, mhvs), mhm)
+
+    @test isequal(hcat(mhm, mhm), hcat(mhvs..., mhvs...))
+    @test isequal(hcat(mhm, mhm), hcat(mhm, mhvs...))
+    @test isequal(hcat(mhm, mhm), hcat(mhvs..., mhm))
+
+    @test isequal(hcat(mhm, mhm2), hcat(mhvs..., mhm2))
+
+    @inferred hcat(mhm)
+    @inferred catobs(mhm)
+    @inferred hcat(mhm, mhm)
+    @inferred catobs(mhm, mhm)
 
     @test_throws DimensionMismatch hcat(MaybeHotVector.([1, 2], [l, l+1])...)
     @test_throws DimensionMismatch hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
@@ -108,6 +117,17 @@ end
     @test isequal(W * X1, W * Matrix(X1))
     @test isequal(W * X2, W * Matrix(X2))
     @test isequal(W * X3, W * Matrix(X3))
+
+    @test eltype(W * x1) === eltype(W * x2) === eltype(W * X1) === eltype(W)
+    @test eltype(W * x3) === eltype(W * X2) === Missing
+    @test eltype(W * X3) === Union{Missing, eltype(W)}
+
+    @inferred W * x1
+    @inferred W * x2
+    @inferred W * x3
+    @inferred W * X1
+    @inferred W * X2
+    @inferred W * X3
 
     @test_throws DimensionMismatch W * MaybeHotVector(1, 5)
     @test_throws DimensionMismatch W * MaybeHotVector(missing, 3)
