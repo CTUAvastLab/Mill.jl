@@ -33,13 +33,18 @@ function Base.reduce(::typeof(hcat), Xs::Vector{<:MaybeHotMatrix})
     MaybeHotMatrix(reduce(vcat, [X.I for X in Xs]), only(ls))
 end
 
-Base.reduce(::typeof(catobs), Xs::Vector{<:MaybeHotMatrix}) = reduce(hcat, Xs)
-
 A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))
 Zygote.@adjoint A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
-_mul(A::AbstractMatrix, B::MaybeHotMatrix) = hcat((A * MaybeHotVector(i, B.l) for i in B.I)...)
+_mul(A::AbstractMatrix, B::MaybeHotMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{<:Integer}) = A[:, B.I]
+function _mul(A::AbstractMatrix, B::MaybeHotMatrix)
+    C = zeros(Union{eltype(A), Missing}, size(A, 1), size(B, 2))
+    @inbounds for (k,i) in enumerate(B.I)
+        C[:, k] = A * MaybeHotVector(i, B.l)
+    end
+    C
+end
 
 Base.hash(X::MaybeHotMatrix{T, U, V, W}, h::UInt) where {T, U, V, W} = hash((T, U, V, W, X.I, X.l), h)
 (X1::MaybeHotMatrix == X2::MaybeHotMatrix) = isequal(X1.I, X2.I) && X1.l == X2.l
