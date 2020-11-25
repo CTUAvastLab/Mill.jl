@@ -11,11 +11,9 @@ Base.length(x::MaybeHotVector) = x.l
 Base.getindex(x::MaybeHotVector, i::Integer) = (@boundscheck checkbounds(x, i); x.i == i)
 Base.getindex(x::MaybeHotVector, ::Colon) = MaybeHotVector(x.i, x.l)
 
-# we leave the vector type
-Base.hcat(x::MaybeHotVector) = x
 Base.hcat(xs::MaybeHotVector...) = reduce(hcat, collect(xs))
 function Base.reduce(::typeof(hcat), xs::Vector{<:MaybeHotVector})
-    reduce(hcat,  MaybeHotMatrix.(xs))
+    reduce(hcat, MaybeHotMatrix.(xs))
 end
 
 Base.reduce(::typeof(catobs), xs::Vector{<:MaybeHotVector}) = reduce(hcat, xs)
