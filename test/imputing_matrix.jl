@@ -24,6 +24,7 @@ end
     function _test_imput(W, ob::Vector, b::Vector)
         A = PreImputingMatrix(W, ob)
         @test A * b == W * ob
+        @test eltype(A * b) === promote_type(eltype(W), eltype(ob))
         @inferred A * b
     end
 
@@ -76,6 +77,8 @@ end
     @inferred A * B2
     @inferred A * B3
     @inferred A * B4
+
+    @test eltype(A * B1) === eltype(A * B2) === eltype(A * B3) === eltype(A * B4) === Int64
 end
 
 @testset "correct post imputing behavior for full standard arrays" begin
@@ -88,13 +91,17 @@ end
     @test A * b == W * b
     @inferred A * B
     @inferred A * b
+    @test eltype(A * B) === Int64
+    @test eltype(A * b) === Int64
 
     B = [missing 3; missing 1]
-    b = [3, 1]
+    b = [3, missing]
     @test isequal(A * B, W * B)
     @test isequal(A * b, W * b)
     @inferred A * B
     @inferred A * b
+    @test eltype(A * B) === Union{Int64, Missing}
+    @test eltype(A * b) === Union{Int64, Missing}
 
     W = randn(2,3)
     ψ = randn(2)
@@ -106,6 +113,17 @@ end
     @test A * b ≈ W * b
     @inferred A * B
     @inferred A * b
+    @test eltype(A * B) === Float64
+    @test eltype(A * b) === Float64
+
+    B = [missing 3.0; missing 1.0; 2.0 5.0]
+    b = [3.0, missing, 1.0]
+    @test isequal(A * B, W * B)
+    @test isequal(A * b, W * b)
+    @inferred A * B
+    @inferred A * b
+    @test eltype(A * B) === Union{Float64, Missing}
+    @test eltype(A * b) === Union{Float64, Missing}
 
     B = fill(missing, 3, 5)
     b = fill(missing, 3)
@@ -113,6 +131,8 @@ end
     @test isequal(A * b, W * b)
     @inferred A * B
     @inferred A * b
+    @test eltype(A * B) === Missing
+    @test eltype(A * b) === Missing
 end
 
 @testset "correct post imputing behavior for maybe hot vector" begin
@@ -124,9 +144,11 @@ end
         b = MaybeHotVector(i, n)
         @test A * b == W * onehot(b)
         @inferred A * b
+        @test eltype(A * b) === eltype(W)
         b = MaybeHotVector(missing, n)
         @test A * b == ψ
         @inferred A * b
+        @test eltype(A * b) === eltype(ψ)
     end
 end
 
@@ -143,10 +165,13 @@ end
         B3 = MaybeHotMatrix(i3, n)
         @test A * B1 == W * onehotbatch(B1)
         @inferred A * B1
+        @test eltype(A * B1) === eltype(W)
         @test all(isequal(ψ), eachcol(A * B2))
         @inferred A * B2
+        @test eltype(A * B2) === eltype(ψ)
         C = A * B3
         @inferred A * B3
+        @test eltype(A * B3) === promote_type(eltype(W), eltype(ψ))
         @test all(isequal(ψ), eachcol(C[:, ismissing.(i3)]))
         @test C[:, .!ismissing.(i3)] == W * onehotbatch(skipmissing(i3), 1:n)
     end
@@ -162,19 +187,22 @@ end
         B = NGramMatrix(S, 3, 256, n)
         @test A * B ≈ W * Matrix(SparseMatrixCSC(B))
         @inferred A * B
+        @test eltype(A * B) === eltype(W)
 
         S = fill(missing, k)
         B = NGramMatrix(S, 3, 256, n)
         @test all(isequal(ψ), eachcol(A * B))
         @inferred A * B
+        @test eltype(A * B) === eltype(ψ)
 
         if k > 1
             S = [isodd(i) ? missing : randstring(rand(1:10)) for i in 1:k]
             B = NGramMatrix(S, 3, 256, n)
             C = A * B
-            @inferred A * B
             @test all(isequal(ψ), eachcol(C[:, ismissing.(S)]))
             @test C[:, .!ismissing.(S)] ≈ W * NGramMatrix(skipmissing(S) |> collect, 3, 256, n)
+            @inferred A * B
+            @test eltype(A * B) === promote_type(eltype(W), eltype(ψ))
         end
     end
 end
