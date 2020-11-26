@@ -157,7 +157,7 @@ end
     mhv5 = MaybeHotVector(2, 10)
     @test mhv1 == mhv2
     @test mhv1 != mhv3
-    @test mhv1 != mhv4
+    @test !isequal(mhv1, mhv4)
     @test mhv1 != mhv5
 
     mhm1 = MaybeHotMatrix([1,2], 10)
@@ -167,7 +167,7 @@ end
     mhm5 = MaybeHotMatrix([1,2], 11)
     @test mhm1 == mhm2
     @test mhm1 != mhm3
-    @test mhm1 != mhm4
+    @test !isequal(mhv1, mhv4)
     @test mhm1 != mhm5
 end
 
