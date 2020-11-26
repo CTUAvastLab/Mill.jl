@@ -233,12 +233,12 @@ end
          missing"""
 
     X = NGramMatrix([codeunits("hello"), codeunits("world")])
-    @test repr(X) == "NGramMatrix(s = Base.CodeUnits{UInt8,String}" *
+    @test repr(X) == "NGramMatrix(s = CodeUnits{UInt8,String}" *
         "[[0x68, 0x65, 0x6c, 0x6c, 0x6f], [0x77, 0x6f, 0x72, 0x6c, 0x64]], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053×2 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
-        2053×2 NGramMatrix{Base.CodeUnits{UInt8,String},Array{Base.CodeUnits{UInt8,String},1},Int64}:
+        2053×2 NGramMatrix{CodeUnits{UInt8,String},Array{CodeUnits{UInt8,String},1},Int64}:
          UInt8[0x68, 0x65, 0x6c, 0x6c, 0x6f]
          UInt8[0x77, 0x6f, 0x72, 0x6c, 0x64]"""
 
