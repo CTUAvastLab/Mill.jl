@@ -72,7 +72,7 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
     BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
 end
 
-for test_f in readdir(".")
-    (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
-    @eval include($test_f)
-end
+# for test_f in readdir(".")
+#     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
+#     @eval include($test_f)
+# end
