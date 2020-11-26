@@ -15,7 +15,7 @@ using Zygote
 
 using Base: CodeUnits, nameof
 
-import Base: *, ==, hash, show, cat, vcat, hcat, _cat
+import Base: *, ==, isequal, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, getindex, setindex!
 import Base: reduce, eltype, print_array
 import Base: isascii, codeunits, ncodeunits, codeunit
