@@ -5,6 +5,7 @@ using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, 
 using Mill: ngrams, string2ngrams, countngrams, catobs
 using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
 using Base.Iterators: partition, product
+using Base: CodeUnits
 using Flux
 using Flux: onehot, onehotbatch
 using Random
@@ -72,7 +73,7 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
     BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
 end
 
-# for test_f in readdir(".")
-#     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
-#     @eval include($test_f)
-# end
+for test_f in readdir(".")
+    (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
+    @eval include($test_f)
+end
