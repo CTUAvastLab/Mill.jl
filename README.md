@@ -7,7 +7,7 @@
 Mill is a library build on top of Flux.jl aimed to prototype flexible multi-instance learning models as described in  [[1](#cit1)] and  [[2](#cit2)]
 
 [![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://pevnak.github.io/Mill.jl/dev)
-[![Build Status](https://travis-ci.com/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.com/pevnak/Mill.jl)
+[![Build Status](https://github.com/pevnak/Mill.jl/workflows/CI/badge.svg)](https://github.com/pevnak/Mill.jl/actions?query=workflow%3ACI)
 [![Coverage Status](https://coveralls.io/repos/github/pevnak/Mill.jl/badge.svg?branch=master)](https://coveralls.io/github/pevnak/Mill.jl?branch=master)
 [![codecov.io](http://codecov.io/github/Pevnak/Mill.jl/coverage.svg?branch=master)](http://codecov.io/github/Pevnak/Mill.jl?branch=master)
 
