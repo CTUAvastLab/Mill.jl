@@ -274,10 +274,6 @@ function _dA_mul_vec!(Δ, k, dA, z, s, n, b, m)
 end
 _dA_mul_vec!(Δ, k, dA, z, s::Missing, n, b, m) = return
 
-Base.hash(e::NGramMatrix{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, e.s, e.n, e.b, e.m), h)
-function ==(e1::NGramMatrix{T, U, V}, e2::NGramMatrix{T, U, V}) where {T, U, V}
-    e1.s == e2.s && e1.n == e2.n && e1.b == e2.b && e1.m == e2.m
-end
-function isequal(e1::NGramMatrix{T, U, V}, e2::NGramMatrix{T, U, V}) where {T, U, V}
-    isequal(e1.s, e2.s) && e1.n == e2.n && e1.b == e2.b && e1.m == e2.m
-end
+Base.hash(M::NGramMatrix{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, M.s, M.n, M.b, M.m), h)
+(M1::NGramMatrix == M2::NGramMatrix) = M1.s == M2.s && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
+isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
