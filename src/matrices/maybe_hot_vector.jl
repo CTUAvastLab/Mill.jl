@@ -24,9 +24,6 @@ Zygote.@adjoint A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygot
 _mul(A::AbstractMatrix, b::MaybeHotVector{Missing}) = fill(missing, size(A, 1))
 _mul(A::AbstractMatrix, b::MaybeHotVector{<:Integer}) = A[:, b.i]
 
-Base.hash(x::MaybeHotVector{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, x.i, x.l), h)
-(x1::MaybeHotVector == x2::MaybeHotVector) = isequal(x1.i, x2.i) && x1.l == x2.l
-
 Flux.onehot(x::MaybeHotVector{<:Integer}) = onehot(x.i, 1:x.l)
 
 maybehot(::Missing, labels) = MaybeHotVector(missing, length(labels))
@@ -35,3 +32,7 @@ function maybehot(l, labels)
     isnothing(i) && ArgumentError("Value $l not in labels $labels") |> throw
     MaybeHotVector(i, length(labels))
 end
+
+Base.hash(x::MaybeHotVector{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, x.i, x.l), h)
+(x1::MaybeHotVector == x2::MaybeHotVector) = x1.i == x2.i && x1.l == x2.l
+isequal(x1::MaybeHotVector, x2::MaybeHotVector) = isequal(x1.i, x2.i) && x1.l == x2.l
