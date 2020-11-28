@@ -243,6 +243,18 @@ end
     test_count(SegmentedMeanMaxPNormLSE(2))
 end
 
+@testset "type inferrence" begin
+    for b in BAGS2
+        o = SegmentedMeanMaxPNormLSE(10)
+        X = rand(Float32, 10, 100)
+        w = abs.(randn(Float32, size(X, 2))) .+ 0.1
+        w_mat = abs.(randn(Float32, size(X))) .+ 0.1
+        @inferred o(X, b)
+        @inferred o(X, b, w |> f32)
+        @inferred o(X, b, w_mat |> f32)
+     end
+end
+
 # we use Float64 to compute precise gradients
 
 @testset "aggregation grad check w.r.t. input" begin

@@ -1,11 +1,11 @@
 abstract type AggregationOperator{T <: Number} end
 
-struct Aggregation{T, N}
-    fs::NTuple{N, AggregationOperator{T}}
+struct Aggregation{T, U <: Tuple{Vararg{AggregationOperator{T}}}}
+    fs::U
     Aggregation(fs::Union{Aggregation, AggregationOperator}...) = Aggregation(fs)
     function Aggregation(fs::Tuple{Vararg{Union{Aggregation{T}, AggregationOperator{T}}}}) where {T}
         ffs = _flatten_agg(fs)
-        new{T, length(ffs)}(ffs)
+        new{T, typeof(ffs)}(ffs)
     end
 end
 
@@ -16,11 +16,10 @@ _flatten_agg(a::AggregationOperator) = [a]
 Flux.@functor Aggregation
 
 function (a::Aggregation{T})(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...) where T
-    o = reduce(vcat, [f(x, bags, args...) for f in a.fs])
+    o = reduce(vcat, (f(x, bags, args...) for f in a.fs))
     bagcount() ? vcat(o, Zygote.@ignore permutedims(log.(one(T) .+ length.(bags)))) : o
 end
 (a::Union{AggregationOperator, Aggregation})(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
-
 Flux.@forward Aggregation.fs Base.getindex, Base.firstindex, Base.lastindex, Base.first, Base.last, Base.iterate, Base.eltype
 
 Base.length(a::Aggregation) = sum(length.(a.fs))

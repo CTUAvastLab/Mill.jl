@@ -122,12 +122,8 @@ function segmented_pnorm_back(Δ, y, ψ, bags)
 end
 
 ∇dw_segmented_pnorm!(dw::Zero, Δ, a, y, w::Nothing, ws, i, j, bi) = error("Not implemented yet!")
-function ∇dw_segmented_pnorm!(dw::AbstractVector, Δ, a, y, w::AbstractVector, ws, i, j, bi) 
-    error("Not implemented yet!")
-end
-function ∇dw_segmented_pnorm!(dw::AbstractMatrix, Δ, a, y, w::AbstractMatrix, ws, i, j, bi)
-    error("Not implemented yet!")
-end
+∇dw_segmented_pnorm!(dw::AbstractVector, Δ, a, y, w::AbstractVector, ws, i, j, bi) = error("Not implemented yet!")
+∇dw_segmented_pnorm!(dw::AbstractMatrix, Δ, a, y, w::AbstractMatrix, ws, i, j, bi) = error("Not implemented yet!")
 
 function rrule(::typeof(segmented_pnorm_forw), a::AbstractMatrix, ψ, p, bags, w)
     M = _pnorm_precomp(a, bags)
