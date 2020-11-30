@@ -24,9 +24,8 @@ BagModel(im::AbstractMillModel, a) = BagModel(im, a, ArrayModel(identity))
 
 (m::BagModel)(x::WeightedBagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
 
-function (m::BagModel)(x::BagNode)
-    ismissing(x.data) ? m.bm(ArrayNode(m.a(x.data, x.bags))) : m.bm(m.a(m.im(x.data), x.bags))
-end
+(m::BagModel)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
+(m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags)))
 
 function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
     im, o = HiddenLayerModel(m.im, x.data, k)
