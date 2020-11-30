@@ -88,7 +88,7 @@ end
     @test repr(a; context=:compact => true) == "Aggregation(3)"
     @test repr(MIME("text/plain"), a) ==
         """
-        Aggregation{Float32,Tuple{SegmentedMax{Float32,Array{Float32,1}}}}:
+        Aggregation{Float32}:
          SegmentedMax(ψ = Float32[0.0, 0.0, 0.0])"""
 
     a = Aggregation(
@@ -100,10 +100,8 @@ end
     @test repr(a) == "⟨SegmentedMean(2), SegmentedMax(2), SegmentedPNorm(2), SegmentedLSE(2)⟩"
     @test repr(a; context=:compact => true) == "Aggregation(2, 2, 2, 2)"
     @test repr(MIME("text/plain"), a) == 
-        "Aggregation{Float32,Tuple{SegmentedMean{Float32,Array{Float32,1}}," *
-        "SegmentedMax{Float32,Array{Float32,1}},SegmentedPNorm{Float32,Array{Float32,1}}," *
         """
-        SegmentedLSE{Float32,Array{Float32,1}}}}:
+        Aggregation{Float32}:
          SegmentedMean(ψ = Float32[0.0, 0.0])
          SegmentedMax(ψ = Float32[0.0, 0.0])
          SegmentedPNorm(ψ = Float32[0.0, 0.0], ρ = Float32[1.0, 1.0], c = Float32[-1.0, -1.0])

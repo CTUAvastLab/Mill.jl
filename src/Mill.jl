@@ -104,7 +104,7 @@ Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::Union{AbstractNode, Abstr
 
 _show(io, x) = _show_fields(io, x)
 
-function _show_fields(io, x::T;context=:compact=>true) where T
+function _show_fields(io, x::T; context=:compact=>true) where T
     print(io, nameof(T), "(", join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)],", "), ")")
 end
 

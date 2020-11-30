@@ -37,7 +37,10 @@ function Base.show(io::IO, a::Aggregation)
     end
 end
 
-Base.show(io::IO, ::MIME"text/plain", a::Aggregation) = (print(io, typeof(a), ":\n"); print_array(io, a.fs |> collect))
+function Base.show(io::IO, ::MIME"text/plain", a::T) where {U, T <: Aggregation{U}}
+    print(io, nameof(T), "{$U}:\n")
+    print_array(io, a.fs |> collect)
+end
 
 function Base.show(io::IO, a::T) where T <: AggregationOperator
     if get(io, :compact, false)
