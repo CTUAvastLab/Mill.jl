@@ -17,7 +17,7 @@ env:
 
 jobs:
   docs:
-    name: Documentation
+    name: Documentation build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
