@@ -31,8 +31,8 @@ jobs:
             Pkg.instantiate()'
       - run: |
           julia --project=docs/ -e '
-            using Documenter: doctest
-            using Mill
+            using Documenter: doctest, DocMeta
+            DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill); recursive=true)
             doctest(Mill)'
       - run: julia --project=docs docs/make.jl
         env:

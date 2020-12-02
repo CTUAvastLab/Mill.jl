@@ -30,7 +30,9 @@ julia> Mill.string_start_code!(0); Mill.string_end_code!(0); collect(it)
  789
  890
  900
+```
 
+```jldoctest
 julia> sit = Mill.NGramIterator(codeunits("deadbeef"), 3, 256)    # creates collisions as codeunits returns tokens from 0x00:0xff
 NGramIterator{Base.CodeUnits{UInt8,String}}(UInt8[0x64, 0x65, 0x61, 0x64, 0x62, 0x65, 0x65, 0x66], 3, 256, 9223372036854775807)
 
