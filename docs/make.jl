@@ -1,6 +1,8 @@
 using Documenter
 using Mill
 
+DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill); recursive=true)
+
 makedocs(
     sitename = "Mill",
     format = Documenter.HTML(),
