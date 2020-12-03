@@ -8,13 +8,14 @@ on:
       - 'src/**'
       - 'test/**'
       - 'example/**'
+      - 'Project.toml'
       - '.github/workflows/ci_nightly.yml'
   pull_request:
     paths:
       - 'src/**'
       - 'test/**'
       - 'example/**'
-      - '.github/workflows/ci_nightly.yml'
+      - 'Project.toml'
 
 env:
   JULIA_NUM_THREADS: 1
