@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Advanced · Mill</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Mill</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../simple/">Simple</a></li><li class="is-active"><a class="tocitem" href>Advanced</a><ul class="internal"><li><a class="tocitem" href="#More-complicated-models"><span>More complicated models</span></a></li></ul></li><li><a class="tocitem" href="../graphs/">GNN in 16 lines</a></li><li><a class="tocitem" href="../dag/">DAGs</a></li></ul></li><li><span class="tocitem">Architecture of Mill</span><ul><li><a class="tocitem" href="../../architecture/overview/">Overview</a></li><li><a class="tocitem" href="../../architecture/reflectin/">ReflectInModel</a></li><li><a class="tocitem" href="../../architecture/strings/">Handling strings</a></li><li><a class="tocitem" href="../../architecture/aggregation/">Aggregations</a></li><li><a class="tocitem" href="../../architecture/missing/">Missing values</a></li><li><a class="tocitem" href="../../architecture/custom/">Custom Nodes</a></li></ul></li><li><span class="tocitem">Helper tools</span><ul><li><a class="tocitem" href="../../tools/hierarchical/">HierarichalUtils.jl</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Advanced</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Advanced</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/pevnak/Mill.jl/blob/master/docs/src/examples/advanced.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h2 id="More-complicated-models"><a class="docs-heading-anchor" href="#More-complicated-models">More complicated models</a><a id="More-complicated-models-1"></a><a class="docs-heading-anchor-permalink" href="#More-complicated-models" title="Permalink"></a></h2><p>The main advantage of the Mill library is that it allows to arbitrarily nest and cross-product <code>BagModels</code>, as is described in Theorem 5 of [<a href="#cit3">3</a>].  Let&#39;s start the demonstration by nesting two MIL problems. The outer MIL model contains three samples. The first sample contains another bag (inner MIL) problem with two instances, the second sample contains two inner bags with total of three instances, and finally the third sample contains two inner bags with four instances.</p><pre><code class="language-julia">julia&gt; ds = BagNode(BagNode(ArrayNode(randn(4,10)),[1:2,3:4,5:5,6:7,8:10]),[1:1,2:3,4:5])
+BagNode with 3 bag(s)
+  └── BagNode with 5 bag(s)
+        └── ArrayNode(4, 10)</code></pre><p>We can create the model manually as in the case of Musk as</p><pre><code class="language-julia">julia&gt; m = BagModel(
+    BagModel(
+        ArrayModel(Dense(4, 3, Flux.relu)),   
+        SegmentedMeanMax(3),
+        ArrayModel(Dense(6, 3, Flux.relu))),
+    SegmentedMeanMax(3),
+    ArrayModel(Chain(Dense(6, 3, Flux.relu), Dense(3,2))))
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Chain(Dense(6, 3, relu), Dense(3, 2)))
+  └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        └── ArrayModel(Dense(4, 3, relu))</code></pre><p>and we can apply the model as</p><pre><code class="language-julia">julia&gt; m(ds)
+
+ArrayNode(2, 3)</code></pre><p>Since constructions of large models can be a process prone to errors, there is a function <code>reflectinmodel</code> which tries to automatize it keeping track of dimensions. It accepts as a first parameter a sample <code>ds</code>. Using the function on the above example creates a model:</p><pre><code class="language-julia">julia&gt; m = reflectinmodel(ds)
+
+BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
+  └── BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
+        └── ArrayModel(Dense(4, 10))</code></pre><p>To have better control over the topology, <code>reflectinmodel</code> accepts up to four additional parameters. The second parameter is a function returning layer (or set of layers) with input dimension <code>d</code>, and the third function is a function returning aggregation functions for <code>BagModel</code>:</p><pre><code class="language-julia">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; SegmentedMeanMax(d))
+
+BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
+  └── BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
+        └── ArrayModel(Dense(4, 5, relu))</code></pre><p>Let&#39;s test the model</p><pre><code class="language-julia">julia&gt; m(ds).data
+
+5×3 Array{Float32,2}:
+ 0.0542484   0.733629  0.553823
+ 0.062246    0.866254  1.03062 
+ 0.027454    1.04703   1.63135 
+ 0.00796955  0.36415   1.18108 
+ 0.034735    0.17383   0.0</code></pre><h3 id="Even-more-complicated-models"><a class="docs-heading-anchor" href="#Even-more-complicated-models">Even more complicated models</a><a id="Even-more-complicated-models-1"></a><a class="docs-heading-anchor-permalink" href="#Even-more-complicated-models" title="Permalink"></a></h3><p>As already mentioned above, the datasets can contain Cartesian products of MIL and normal (non-MIL) problems. Let&#39;s do a quick demo.</p><pre><code class="language-julia">julia&gt; ds = BagNode(
+    ProductNode(
+        (BagNode(ArrayNode(randn(4,10)),[1:2,3:4,5:5,6:7,8:10]),
+        ArrayNode(randn(3,5)),
+        BagNode(
+            BagNode(ArrayNode(randn(2,30)),[i:i+1 for i in 1:2:30]),
+            [1:3,4:6,7:9,10:12,13:15]),
+        ArrayNode(randn(2,5)))),
+    [1:1,2:3,4:5])
+
+BagNode with 3 bag(s)
+  └── ProductNode
+        ├── BagNode with 5 bag(s)
+        │     ⋮
+        ├── ArrayNode(3, 5)
+        ├── BagNode with 5 bag(s)
+        │     ⋮
+        └── ArrayNode(2, 5)</code></pre><p>For this, we really want to create model automatically despite it being sub-optimal.</p><pre><code class="language-julia">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 3, relu), d -&gt; SegmentedMeanMax(d))
+
+BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     ⋮
+        ├── ArrayModel(Dense(3, 3, relu))
+        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
+        │     ⋮
+        └── ArrayModel(Dense(2, 3, relu))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../simple/">« Simple</a><a class="docs-footer-nextpage" href="../graphs/">GNN in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 3 December 2020 23:10">Thursday 3 December 2020</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
