@@ -1,9 +1,10 @@
-name: Docs
+name: Documentation
 
 on:
   push:
     branches:
       - master
+    tags: '*'
     paths:
       - 'docs/**'
       - '.github/workflows/docs.yml'
@@ -17,25 +18,19 @@ env:
 
 jobs:
   docs:
-    name: Documentation build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1'
-      - run: |
-          julia --project=docs/ -e '
+      - name: Install dependencies
+        run: julia --project=docs/ -e '
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
-      - run: |
-          julia --project=docs/ -e '
-            using Documenter: doctest, DocMeta
-            using Mill
-            DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill); recursive=true)
-            doctest(Mill)'
-      - run: julia --project=docs/ docs/make.jl
+      - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+        run: julia --project=docs/ docs/make.jl
