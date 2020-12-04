@@ -37,8 +37,8 @@ function Base.show(io::IO, a::Aggregation)
     end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", a::T) where {U, T <: Aggregation{U}}
-    print(io, nameof(T), "{$U}:\n")
+function Base.show(io::IO, ::MIME"text/plain", a::Aggregation{T}) where T
+    print(io, "Aggregation{$T}:\n")
     print_array(io, a.fs |> collect)
 end
 

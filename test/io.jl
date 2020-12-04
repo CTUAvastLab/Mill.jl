@@ -116,7 +116,7 @@ end
 @testset "maybe hot vector io" begin
     x = MaybeHotVector(1, 3)
     @test repr(x) == "MaybeHotVector(i = 1, l = 3)"
-    @test repr(x; context=:compact => true) == "MaybeHotVector of length 3"
+    @test repr(x; context=:compact => true) == "3-element MaybeHotVector"
     @test repr(MIME("text/plain"), x) ==
         """
         3-element MaybeHotVector{Int64,Int64,Bool}:
@@ -126,7 +126,7 @@ end
 
     x = MaybeHotVector(missing, 4)
     @test repr(x) == "MaybeHotVector(i = missing, l = 4)"
-    @test repr(x; context=:compact => true) == "MaybeHotVector of length 4"
+    @test repr(x; context=:compact => true) == "4-element MaybeHotVector"
     @test repr(MIME("text/plain"), x) ==
         """
         4-element MaybeHotVector{Missing,Int64,Missing}:
