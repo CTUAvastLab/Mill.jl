@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>DAGs · Mill</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Mill</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../simple/">Simple</a></li><li><a class="tocitem" href="../advanced/">Advanced</a></li><li><a class="tocitem" href="../graphs/">GNN in 16 lines</a></li><li class="is-active"><a class="tocitem" href>DAGs</a><ul class="internal"><li><a class="tocitem" href="#Directed-Acyclic-Graphs-in-Mill.jl"><span>Directed Acyclic Graphs in Mill.jl</span></a></li></ul></li></ul></li><li><span class="tocitem">Architecture of Mill</span><ul><li><a class="tocitem" href="../../architecture/overview/">Overview</a></li><li><a class="tocitem" href="../../architecture/reflectin/">ReflectInModel</a></li><li><a class="tocitem" href="../../architecture/strings/">Handling strings</a></li><li><a class="tocitem" href="../../architecture/aggregation/">Aggregations</a></li><li><a class="tocitem" href="../../architecture/missing/">Missing values</a></li><li><a class="tocitem" href="../../architecture/custom/">Custom Nodes</a></li></ul></li><li><span class="tocitem">Helper tools</span><ul><li><a class="tocitem" href="../../tools/hierarchical/">HierarichalUtils.jl</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>DAGs</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>DAGs</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/pevnak/Mill.jl/blob/master/docs/src/examples/dag.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h2 id="Directed-Acyclic-Graphs-in-Mill.jl"><a class="docs-heading-anchor" href="#Directed-Acyclic-Graphs-in-Mill.jl">Directed Acyclic Graphs in Mill.jl</a><a id="Directed-Acyclic-Graphs-in-Mill.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Directed-Acyclic-Graphs-in-Mill.jl" title="Permalink"></a></h2><p>In this exercice, I was interesting in a following problem. Imagine a data / knowlege base represented in a form of a directed acyclic graph (DAG), where the vertex would be modelled on basis of its parents (and their parents), but not on its descendants. I was further interested in a case, where the descendants of some vertex <code>i</code> would represent only subset of all nodes in the graph. How to do this with a least pain and efficiently?</p><p>In the course of calculating the value of a vertex <code>i</code>, there can be vertices which can be used more that one time. This means that we would like to have a cache of already calculated values, which is difficult since <code>Zygote</code> does not like <code>setindex</code> operation. But, the cache is assigned only once, which means that it can be realized through <code>Zygote.buffer</code>. So, here we go.</p><p>At first, we initiate the cache as</p><pre><code class="language-julia">initcache(g, k) = [Zygote.Buffer(zeros(Float32, k, 1)) for _ in 1:nv(g)]</code></pre><p>To get the value of a vertex, we just delegate the question to <code>cache</code> as </p><pre><code class="language-julia">function (model::DagModel)(g::DagGraph, i)
+  cache = initcache(g.g, model.odim)
+  ArrayNode(getfromcache!(cache, g, model, i))
+end</code></pre><p>which means that the <code>getfromcache!</code> will do all the heavy lifting. But that function will just check, if the value in <code>cache</code> has been already calculated, or it calculates the value (applying <code>model</code> on <code>millvertex!</code>) and freezes the calculated item in cache.</p><pre><code class="language-julia">function getfromcache!(cache, g::DagGraph, model::DagModel, i::Int)
+  cache[i].freeze &amp;&amp; return(copy(cache[i]))
+  ds = millvertex!(cache, g, model, i)
+  cache[i][:] = model.m(ds).data
+  return(copy(cache[i]))
+end</code></pre><p>and what <code>millvertex!</code> function does? It just takes the representation of ancestors (from <code>cache</code>) and put them together</p><pre><code class="language-julia">function millvertex!(cache, g::DagGraph, model::DagModel, i)
+  ProductNode((neighbours = millneighbors!(cache, g, model, i), 
+    vertex = vertex_features[i])
+  )
+end</code></pre><p>Wait a sec, am I running in circles? Yes, and that is the art of recursion. Below is the complete example I have once written. Note that it is not the most efficient approach to implement this. It would be better to spent a little time with graphs to identify sets of vertices that can be processed in parallel and for which all ancestors are know. But this was a fun little exercise.</p><pre><code class="language-julia">using Flux, Zygote
+using LightGraphs, MetaGraphs, Mill, Setfield
+
+
+struct DagGraph{G&lt;:SimpleDiGraph,T}
+  g::G
+  vertex_features::T
+end
+
+Zygote.@nograd LightGraphs.inneighbors
+
+struct DagModel{M}
+  m::M
+  odim::Int
+end
+
+Flux.@functor DagModel
+
+
+function (model::DagModel)(g::DagGraph, i)
+  cache = initcache(g.g, model.odim)
+  ArrayNode(getfromcache!(cache, g, model, i))
+end
+
+(model::DagModel)(g::SimpleDiGraph, vertex_features, i) = model(DagGraph(g, vertex_features), i)
+
+
+initcache(g, k) = [Zygote.Buffer(zeros(Float32, k, 1)) for _ in 1:nv(g)]
+Zygote.@nograd initcache
+
+function millvertex!(cache, g::DagGraph, model::DagModel, i)
+  ProductNode((neighbours = millneighbors!(cache, g, model, i), 
+    vertex = vertex_features[i])
+  )
+end
+
+function getfromcache!(cache, g::DagGraph, model::DagModel, ii::Vector{Int}) 
+  reduce(catobs, [getfromcache!(cache, g, model, i) for i in ii])
+end
+
+function getfromcache!(cache, g::DagGraph, model::DagModel, i::Int)
+  cache[i].freeze &amp;&amp; return(copy(cache[i]))
+  ds = millvertex!(cache, g, model, i)
+  cache[i][:] = model.m(ds).data
+  return(copy(cache[i]))
+end
+
+function millneighbors!(cache, g::DagGraph, model::DagModel, ii::Vector{Int})
+  isempty(ii) &amp;&amp; return(BagNode(missing, [0:-1]))
+  xs = [getfromcache!(cache, g, model, i) for i in  ii]
+  BagNode(ArrayNode(reduce(catobs, xs)), [1:length(xs)])
+end
+
+millneighbors!(cache, g::DagGraph, model::DagModel, i::Int) = millneighbors!(cache, g, model, inneighbors(g.g, i))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../graphs/">« GNN in 16 lines</a><a class="docs-footer-nextpage" href="../../architecture/overview/">Overview »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 9 December 2020 19:10">Wednesday 9 December 2020</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
