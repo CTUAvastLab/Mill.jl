@@ -264,7 +264,7 @@ function _mul_vec!(C, k, A, z, s, n, b, m, ψ=nothing)
         @views C[:, k] .+= A[:, z % m + 1]
     end
 end
-_mul_vec!(C, k, A, z, s::Missing, n, b, m, ψ=missing) = @inbounds C[:, k] .= ψ 
+_mul_vec!(C, k, A, z, s::Missing, n, b, m, ψ=missing) = @inbounds C[:, k] .= ψ
 
 _dA_mul_vec!(Δ, k, dA, z, s::AbstractString, args...) = _dA_mul_vec!(Δ, k, dA, z, codeunits(s), args...)
 function _dA_mul_vec!(Δ, k, dA, z, s, n, b, m)
@@ -276,5 +276,5 @@ end
 _dA_mul_vec!(Δ, k, dA, z, s::Missing, n, b, m) = return
 
 Base.hash(M::NGramMatrix{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, M.s, M.n, M.b, M.m), h)
-(M1::NGramMatrix == M2::NGramMatrix) = M1.s == M2.s && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
+(M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
 isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
