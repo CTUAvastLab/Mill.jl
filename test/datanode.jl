@@ -280,3 +280,15 @@ end
     @test hash(x1) === hash(x2)
     @test hash(x1) !== hash(x3)
 end
+
+@testset "testing equals with missings" begin
+    a = ArrayNode([0.0 missing 0.0 0.0 1.0])
+    b = ArrayNode([0.0 missing 0.0 0.0 2.0])
+    c = ArrayNode([0.0 missing 0.0 missing 2.0])
+    @test a == a
+    @test a != b
+    @test b == b
+    @test a != c
+    @test b != c
+    @test c == c
+end
