@@ -93,7 +93,7 @@ function _init_z(n, b)
     string_start_code() * z
 end
 
-Base.hash(it::NGramIterator{T}, h::UInt) where {T} = hash((T, it.s, it.n, it.b, it.m), h)
+Base.hash(it::NGramIterator{T}, h::UInt) where {T} = hash((string(T), it.s, it.n, it.b, it.m), h)
 (it1::NGramIterator{T} == it2::NGramIterator{T}) where {T} = it1.s == it2.s &&
     it1.n === it2.n && it1.b === it2.b && it1.m === it2.m
 
@@ -275,6 +275,6 @@ function _dA_mul_vec!(Δ, k, dA, z, s, n, b, m)
 end
 _dA_mul_vec!(Δ, k, dA, z, s::Missing, n, b, m) = return
 
-Base.hash(M::NGramMatrix{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, M.s, M.n, M.b, M.m), h)
+Base.hash(M::NGramMatrix{T, U, V}, h::UInt) where {T, U, V} = hash((string(T), string(U), string(V), M.s, M.n, M.b, M.m), h)
 (M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
 isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m

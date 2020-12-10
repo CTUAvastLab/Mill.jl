@@ -33,6 +33,6 @@ function maybehot(l, labels)
     MaybeHotVector(i, length(labels))
 end
 
-Base.hash(x::MaybeHotVector{T, U, V}, h::UInt) where {T, U, V} = hash((T, U, V, x.i, x.l), h)
+Base.hash(x::MaybeHotVector{T, U, V}, h::UInt) where {T, U, V} = hash((string(T), string(U), string(V), x.i, x.l), h)
 (x1::MaybeHotVector == x2::MaybeHotVector) = x1.i == x2.i && x1.l == x2.l
 isequal(x1::MaybeHotVector, x2::MaybeHotVector) = isequal(x1.i, x2.i) && x1.l == x2.l
