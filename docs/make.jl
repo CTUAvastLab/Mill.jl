@@ -5,8 +5,9 @@ DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill); recursive=true)
 
 makedocs(
          CitationBibliography(joinpath(@__DIR__, "references.bib")),
-         sitename = "Mill",
-         format = Documenter.HTML(),
+         sitename = "Mill.jl",
+         format = Documenter.HTML(sidebar_sitename=false,
+                                  assets = ["assets/favicon.ico"]),
          modules = [Mill],
          pages = ["Home" => "index.md",
                   "Examples" => [
