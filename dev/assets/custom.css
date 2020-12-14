@@ -1,0 +1,11 @@
+article#documenter-page pre {
+    line-height: 120%;
+}
+
+article#documenter-page img {
+    display: block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: white;
+}
