@@ -32,8 +32,8 @@ end
 
 removeinstances(a::WeightedBagNode, mask) = WeightedBagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), subset(a.weights, findall(mask)), a.metadata)
 
-Base.hash(e::WeightedBagNode{T,B,W,C}, h::UInt) where {T,B,W,C} = hash((string(T),string(B),string(W),string(C), e.data, e.bags, e.weights, e.metadata), h)
-(e1::WeightedBagNode{T,B,W,C} == e2::WeightedBagNode{T,B,W,C}) where {T,B,W,C} =
+Base.hash(e::WeightedBagNode, h::UInt) = hash((e.data, e.bags, e.weights, e.metadata), h)
+(e1::WeightedBagNode == e2::WeightedBagNode) =
     e1.data == e2.data && e1.bags == e2.bags && e1.weights == e2.weights && e1.metadata == e2.metadata
-Base.isequal(e1::WeightedBagNode{T,B,W,C}, e2::WeightedBagNode{T,B,W,C}) where {T,B,W,C} =
+Base.isequal(e1::WeightedBagNode, e2::WeightedBagNode) =
     isequal(e1.data, e2.data) && isequal(e1.bags, e2.bags) && isequal(e1.weights, e2.weights) && isequal(e1.metadata, e2.metadata)

@@ -275,6 +275,6 @@ function _dA_mul_vec!(Δ, k, dA, z, s, n, b, m)
 end
 _dA_mul_vec!(Δ, k, dA, z, s::Missing, n, b, m) = return
 
-Base.hash(M::NGramMatrix{T, U, V}, h::UInt) where {T, U, V} = hash((string(T), string(U), string(V), M.s, M.n, M.b, M.m), h)
+Base.hash(M::NGramMatrix, h::UInt) = hash((M.s, M.n, M.b, M.m), h)
 (M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.s == M2.s, true) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
 isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m

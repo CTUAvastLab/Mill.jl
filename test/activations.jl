@@ -43,7 +43,7 @@ end
     @test size(hx.data) == (3,2)
     @test mx.data ≈ m(x).data
 
-    @test hx.data ≈ mapactivations(hm.ms.a, x.data.a, m.ms.a)[1].data + 
-    mapactivations(hm.ms.b, x.data.b, m.ms.b)[1].data + 
+    @test hx.data ≈ mapactivations(hm.ms.a, x.data.a, m.ms.a)[1].data +
+    mapactivations(hm.ms.b, x.data.b, m.ms.b)[1].data +
     mapactivations(hm.m, vcat(m.ms.a(x.data.a), m.ms.b(x.data.b)), m.m)[1].data
 end
