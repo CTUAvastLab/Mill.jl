@@ -266,11 +266,17 @@ end
     M2 = NGramMatrix(["a part", "is", missing])
     M3 = NGramMatrix([missing, missing])
     @test M1 == M1
-    @test M2 == M2
-    @test M3 == M3
+    @test isequal(M1, M1)
+    @test M2 != M2
+    @test isequal(M2, M2)
+    @test M3 != M3
+    @test isequal(M3, M3)
     @test M1 != M2
+    @test !isequal(M1, M2)
     @test M1 != M3
+    @test !isequal(M1, M3)
     @test M2 != M3
+    @test !isequal(M2, M3)
 end
 
 begin

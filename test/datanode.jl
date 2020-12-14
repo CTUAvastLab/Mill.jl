@@ -285,10 +285,16 @@ end
     a = ArrayNode([0.0 missing 0.0 0.0 1.0])
     b = ArrayNode([0.0 missing 0.0 0.0 2.0])
     c = ArrayNode([0.0 missing 0.0 missing 2.0])
-    @test a == a
+    @test a != a
+    @test isequal(a, a)
     @test a != b
-    @test b == b
+    @test !isequal(a, b)
+    @test b != b
+    @test isequal(b, b)
     @test a != c
+    @test !isequal(a, c)
     @test b != c
-    @test c == c
+    @test !isequal(b, c)
+    @test c != c
+    @test isequal(c, c)
 end
