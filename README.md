@@ -1,12 +1,12 @@
-<a href="https://github.com/pevnak/Mill.jl#references">
-<img align="center" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/docs/src/assets/logo.svg" alt="Mill icon">
-</a>
+<p align="center">
+ <a href="https://github.com/pevnak/Mill.jl#references">
+  <img src="https://github.com/pevnak/Mill.jl/raw/master/docs/src/assets/logo.svg" alt="Mill icon"/>
+ </a>
+</p>
 
 ---
 
-# Mill – Multiple Instance Learning Library
-
-Mill is a library build on top of Flux.jl aimed to prototype flexible multi-instance learning models as described in  [[1](#cit1)] and  [[2](#cit2)]
+**Mill.jl** (Multiple Instante Learning Library) is a library build on top of Flux.jl aimed to prototype flexible multi-instance learning models as described in  [[1](#cit1)] and  [[2](#cit2)]
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/pevnak/Mill.jl/blob/master/LICENSE)
 [![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://pevnak.github.io/Mill.jl/stable)
