@@ -6,7 +6,9 @@
 Why should I care about MIL problems?
 Since the seminal paper of Ronald Fisher, the majority of machine learning problems deals with a problem shown below, 
 
-![](assets/iris.svg)
+```@raw html
+<img src="assets/iris.svg" alt="Iris" class="center"/>
+```
 
 where the input sample ``x`` is a vector (or more generally a tensor) of a fixed dimension, alterantivelly a sequence. 
 
@@ -17,7 +19,9 @@ In Multiple instance learning the sample ``x`` is a set of vectors (or matrices)
 
 The **Hierarchical Multiple instance learning** would approach the problem of iris classification as outlined below.
 
-![](assets/iris2.svg)
+```@raw html
+<img src="assets/iris2.svg" alt="Iris (MIL)" class="center"/>
+```
 
 It will describe each leafs by a vector implying that all leaves are described bu a set of vectors. The same will be done for blossoms. Note that such description allows each flower to have a different numbers of each entity. Finally, there will be a single vector describing a stem, since there is only one.
 
