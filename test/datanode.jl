@@ -45,18 +45,6 @@ l = ProductNode((a = wc, b = c))
     @test nobs(i) == nobs(b)
 end
 
-@testset "testing nobs" begin
-    @test nobs(a) == nobs(wa) == 1
-    @test nobs(b) == nobs(wb) == 2
-    @test nobs(c) == nobs(wc) == 3
-    @test nobs(d) == nobs(wd) == 2
-    @test nobs(e) == 2
-    @test nobs(f) == nobs(wb) == nobs(b) == nobs(k)
-    @test nobs(g) == nobs(c) == nobs(wc) == nobs(l)
-    @test nobs(h) == nobs(wc) == nobs(c)
-    @test nobs(i) == nobs(b)
-end
-
 @testset "testing ArrayNode hcat and vcat" begin
     @test all(catobs(e, e).data .== hcat(e.data, e.data) .== reduce(catobs, [e,e]).data)
     @test all(hcat(e, e).data .== hcat(e.data, e.data))
@@ -297,4 +285,32 @@ end
     @test !isequal(b, c)
     @test c != c
     @test isequal(c, c)
+
+    d = ProductNode((; a=a, b=b))
+    e = ProductNode((; a=a, b=b), [])
+    @test isequal(d, d)
+    @test !isequal(d, e)
+    @test d != d
+    @test d != e
+
+    f = BagNode(a,[1:4])
+    g = BagNode(b,[1:4])
+    @test f != f
+    @test f != g
+    @test isequal(f, f)
+    @test !isequal(f, g)
+
+    wf = WeightedBagNode(a, [1:4], rand(1:4, 4))
+    wg = WeightedBagNode(b, [1:4], rand(1:4, 4))
+    @test wf != wf
+    @test wf != wg
+    @test isequal(wf, wf)
+    @test !isequal(wf, wg)
+
+    h = LazyNode(:Test, a.data)
+    i = LazyNode(:Test, b.data)
+    @test isequal(h == h, missing)
+    @test h != i
+    @test isequal(h, h)
+    @test !isequal(h, i)
 end

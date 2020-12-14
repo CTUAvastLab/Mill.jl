@@ -35,3 +35,5 @@ Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(x.data,
 Base.hash(e::ProductNode{T,C}, h::UInt) where {T,C} = hash((string(T), string(C), e.data, e.metadata), h)
 (e1::ProductNode{T,C} == e2::ProductNode{T,C}) where {T,C} =
     e1.data == e2.data && e1.metadata == e2.metadata
+Base.isequal(e1::ProductNode{T,C}, e2::ProductNode{T,C}) where {T,C} =
+    isequal(e1.data, e2.data) && isequal(e1.metadata, e2.metadata)
