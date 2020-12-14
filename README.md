@@ -1,5 +1,5 @@
 <a href="https://github.com/pevnak/Mill.jl#references">
-<img align="left" width="105" height="180" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/logo.svg" alt="Mill icon">
+<img align="left" width="105" height="180" src="https://raw.githubusercontent.com/pevnak/Mill.jl/813bb1efc662bd03eb6cebbbada62d4db49407a3/docs/src/assets/logo.svg" alt="Mill icon">
 </a>
 
 # Mill – Multiple Instance Learning Library
