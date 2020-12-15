@@ -30,8 +30,6 @@ end
 
 Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(x.data, i), subset(x.metadata, i))
 
-# data type has different hashes for each patch version of julia
-# see https://discourse.julialang.org/t/datatype-hash-differs-per-patch-version/48827
-Base.hash(e::ProductNode{T,C}, h::UInt) where {T,C} = hash((string(T), string(C), e.data, e.metadata), h)
-(e1::ProductNode{T,C} == e2::ProductNode{T,C}) where {T,C} =
-    e1.data == e2.data && e1.metadata == e2.metadata
+Base.hash(e::ProductNode, h::UInt) = hash((e.data, e.metadata), h)
+(e1::ProductNode == e2::ProductNode) = e1.data == e2.data && e1.metadata == e2.metadata
+Base.isequal(e1::ProductNode, e2::ProductNode) = isequal(e1.data, e2.data) && isequal(e1.metadata, e2.metadata)

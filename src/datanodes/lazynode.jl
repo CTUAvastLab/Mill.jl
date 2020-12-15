@@ -14,7 +14,8 @@ function Base.reduce(::typeof(Mill.catobs), as::Vector{LazyNode{N,M}}) where {N,
     LazyNode{N}(data)
 end
 
-Base.getindex(x::LazyNode{N,T}, i::VecOrRange{<:Int}) where {N,T}= LazyNode{N}(subset(x.data, i))
+Base.getindex(x::LazyNode{N,T}, i::VecOrRange{<:Int}) where {N,T} = LazyNode{N}(subset(x.data, i))
 
-Base.hash(e::LazyNode{N,D}, h::UInt) where {N,D} = hash((string(N), string(D), e.data), h)
-(e1::LazyNode{N,D} == e2::LazyNode{N,D}) where {N,D} = e1.data == e2.data
+Base.hash(e::LazyNode, h::UInt) = hash((e.data), h)
+(e1::LazyNode == e2::LazyNode) = e1.data == e2.data
+Base.isequal(e1::LazyNode, e2::LazyNode) = isequal(e1.data, e2.data)
