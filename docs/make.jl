@@ -9,7 +9,7 @@ makedocs(
          format = Documenter.HTML(sidebar_sitename=false,
                                   assets = ["assets/favicon.ico", "assets/custom.css"]),
          modules = [Mill],
-         pages = ["Home" => "index.md",
+         pages = ["Home" => ["index.md"],
                   "Examples" => [
                                  "Simple" => "examples/simple.md",
                                  "Advanced" => "examples/advanced.md",

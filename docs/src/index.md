@@ -1,44 +1,54 @@
-# Mill.jl
- Mill.jl is a library build on top of `Flux.jl` aimed to flexibly prototype *hierarchical multi-instance learning* models as described in [Pevny2018a](@cite) and  [Pevny2018b](@cite)
+`Mill.jl` is a library built on top of [`Flux.jl`](https://fluxml.ai) aimed to flexibly prototype *hierarchical multi-instance learning* models as described in [Pevny2018a](@cite) and  [Pevny2018b](@cite).
 
-## What is Multiple instance learning (MIL) problem?
+TODO table of contents
 
-Why should I care about MIL problems?
-Since the seminal paper of Ronald Fisher, the majority of machine learning problems deals with a problem shown below, 
+# Motivation 
+
+In this section, we provide a short introduction into (Hierarchical) Multi instance learning.
+A much more detailed overview of this subject can be found in [Mandlik2020](@cite).
+
+## What is a Multiple instance learning problem?
+
+In *Multiple Instance Learning* (MIL), also *Multi-Instance Learning*, the sample ``\bm{x}`` is a *set of vectors* (or matrices) ``\{x_1,\ldots,x_l\}``, where ``x_i \in \mathbb{R}^d``. As a result, order does not matter, which makes MIL problems different from sequences. In MIL parlance, sample ``\bm{x}`` is also called *a bag* and its elements ``x_1, \ldots, x_2`` *instances*. MIL problems have been introduced in [Dietterich1997](@cite), and extended and generalized in a series of works [Pevny2018a](@cite), [Pevny2018b](@cite), [Pevny2019](@cite). The most comprehensive introduction known to authors is [Mandlik2020](@cite).
+
+Why are MIL problems relevant? Since the seminal paper from [Fisher1936](@cite), the majority of machine learning problems deals with problems like the one shown below:[^1]
+
+[^1]: [*Iris* flower data set](https://en.wikipedia.org/wiki/Iris_flower_data_set)
 
 ![](assets/iris.svg)
 
-where the input sample ``x`` is a vector (or more generally a tensor) of a fixed dimension, alteranativelly a sequence. 
+where the input sample ``\bm{x}`` is a *vector* (or generally speaking any *tensor*) of a fixed dimension containing various measurements of the specimen.
 
-The consequence is that if we want to use a more elaborate description of iris above, for example we wish to describe each of its leaf, blossoms, and stem, we will have a hard time, because every flower has different number of them. This means that to use the usual "fix dimension" paradigm, we have to either use features from a single blossom and single leaf, or aggregate descriptions of their sets, such that the output has a fixed dimension. This is clearly undesirable. We wish a framework that can flexibly and automatically and seamlessly deals with these sets, sets of sets, and cartesian product. 
+Most of the time, a skilled botanist is able to identify a specimen not by making use of any measuring device, but by visual or tactile inspection of its stem, leaves and blooms. For different species, different parts of the flower may need to be examined for indicators. At the same time, many species may have nearly identical-looking leaves or blooms, therefore, one needs to step back, consider the whole picture, and appropriately combine lower-level observations into high-level conclusions about the given specimen.
 
+If we want to use such more elaborate description of the Iris flower using fixed size structures, we will have a hard time, because every specimen can have a different amounts of leaves or blooms (or they may be completely missing). This means that to use the usual *fixed dimension* paradigm, we have to either somehow select a single leaf (blossom) and extract features from them, or design procedures for aggregating such features over whole sets, so that the output has fixed dimension. This is clearly undesirable. `Mill.jl` a framework that seamlessly deals with these challenges in data representation.
 
-In **Multiple instance learning** the sample ``x`` is a set of vectors (or matrices) ``\{x_1,\ldots,x_l\}`` with ``x_i \in R^d``, which means that order does not matter, and which is also the feature making MIL problems different from sequences. The multi-instance problems have been introduced in by Tom Diettrich in [Dietterich1997](@cite) in 1997, and extended and generalized in a series of works [Pevny2018a](@cite), [Pevny2018b](@cite), [Pevny2019](@cite). The most comprehensive introduction known to authors is [Mandlik2020](@cite)
+## Hierarchical Multiple Instance Learning
 
-The **Hierarchical Multiple instance learning** would approach the problem of iris classification as outlined below.
+In *Hierarchical Multiple Instance Learning* (HMIL) the input may consists of not only sets, but also *sets of sets* and [*Cartesian Products*](https://en.wikipedia.org/wiki/Cartesian_product) of these structures. Returning to the previous Iris flower example, a specimen can be represented like this for HMIL:
 
 ![](assets/iris2.svg)
 
-It will describe each leaf by a vector implying that all leaves are described by a set of vectors. The same will be done for blossoms (the set will be different of course). Note that such description allows each flower to have a different numbers of each entity. Finally, there will be a single vector describing a stem, since there is only one.
+The only stem is represented by vector ``\bm{x}_s`` encoding its distinctive properties such as shape, color, structure or texture. Next, we inspect all blooms. Each of the blooms may have distinctive discriminative signs, therefore, we describe all three in vectors ``\bm{x}_{b_1}, \bm{x}_{b_2}, \bm{x}_{b_3}``, one vector for each bloom, and group them to a set. Finally, ``\bm{x}_u`` represents the only flower which has not blossomed. Likewise, we could describe all leaves of the specimen if any were present. Here we assume that each specimen of the considered species has only one stem, but may have multiple flowers or leaves. Hence, all blooms and buds are represented as unordered sets of vectors as opposed to stem representation, which consists of only one vector.
 
-How does the MIL copes with variability in number of flowers and leafs (in MIL parlance they are called instances and their set is called a bag)? For each MIL problem, there are two feed-forward neural networks with element-wise aggregation operator like `mean` (or `maximum`) sandwiched between them. Denoting those feed-forward networks (FFN) by  ``f_1``  and ``f_2``, the output of a bag calculated is calculated as ``f_2 \left\(\frac{1}{l}\sum_{i=1}^l f_1(x_i) \right\)``, where we have used `mean` as an aggregation function. In [Pevny2019](@cite), authors have further extended the universal approximation theorem to MIL problems, their Cartesian products, and nested  MIL problems, i.e. a case where instances of one bag are in fact bags. 
+How does MIL models cope with variability in numbers of flowers and leaves? Each MIL model consists of two feed-forward neural networks with an element-wise aggregation operator like `mean` (or `maximum`) sandwiched between them. Denoting those feed-forward networks (FFNs) as ``f_1`` and ``f_2``, the output of the model applied to a bag is calculated for example as ``f_2 \left\(\frac{1}{l}\sum_{i=1}^l f_1(x_i) \right\)`` if we use `mean` as an aggregation function.
 
-This means that the flower in the above Iris example would be described by one bag describing leafs, another bag describing blossoms, and a vector describing stem. The HMIL model would have two FFNs to convert set of leafs to a single vector, another set of two FFNs to convert set of blossoms to a single vector. These two outputs would be concatenated with a description of a stem, which would be fed to yet another FFN providing the final classifications. And since whole scheme is differentiable, we can use standard SGD to optimize all FFNs together using only labels on the level of output.
+The HMIL model corresponding to the Iris example above would comprise two FFNs and an aggregation to convert set of leafs to a single vector, and another two FFNs and an aggregation to convert set of blossoms to a single vector. These two outputs would be concatenated with a description of a stem, which would be fed to yet another FFN providing the final output. Since the whole scheme is differentiable, we can compute gradients and use any available gradient-based method to optimize the whole model at once using only labels on the level of output[^2].
 
-The Mill library simplifies implementation of machine learning problems with (H)MIL representation. In theory, it can represent any problem that can be written represented in JSONs. That is why we have created a separate tool, JsonGrinder, which helps to Mill your JSONs.
+[^2]: Some methods for MIL problems require instance-level labels as well, which are not always available.
 
+The `Mill.jl` library simplifies implementation of machine learning problems using (H)MIL representation. In theory, it can represent any problem that can be represented in JSONs. That is why we have created a separate tool, [`JsonGrinder.jl`](https://github.com/pevnak/JsonGrinder.jl), which helps with processing JSON documents for learning.
+
+In [Pevny2019](@cite), authors have further extended the [Universal approximation theorem](https://en.wikipedia.org/wiki/Universal_approximation_theorem) to MIL problems, their Cartesian products, and nested MIL problems, i.e. a case where instances of one bag are in fact bags again.
 
 ## Relation to Graph Neural Networks
-HMIL problems can be seen as a special subset of general graphs. They differ in two important ways
+HMIL problems can be seen as a special subset of general graphs. They differ in two important ways:
 * In general graphs, vertices are of a small number of semantic type, whereas in HMIL problems, the number of semantic types of vertices is much higher (it is helpful to think about HMIL problems as about those for which JSON is a natural representation).
-* The computational graph of HMIL is a **tree**, which implies that there exist an efficient inference. Contrary, in general graphs (with loops) there is no efficient inference and one has to resort to message passing (Loopy belief propagation).
+* The computational graph of HMIL is a **tree**, which introduces assumption that there exist an efficient inference. Contrary, in general graphs (with loops) there is no efficient inference and one has to resort to message passing (Loopy belief propagation).
 * One update message in **loopy belief propagation** can be viewed as a MIL problem, as it has to produce a vector based on infomation inthe neighborhood, which can contain arbitrary number of vertices.
 
 ## Difference to sequences
-The major difference is that sequence does not matter. This means that if a sequence $$(a,b,c)$$ should be treated as a set, then the output of a function `f` should be the same for any permutation, i.e. $$f(abc) = f(cba) = f(bac) =\ldots$$. This property has a dramatic consequence of the computational complexity. Sequences are typically modeled using Recurrent Neural Networks (RNN), where the output is calculated as $$f(abc) = g(a, g(b, g(c)))$$ (with a slight abuse of a notation). During optimization, a gradient of $$g$$ needs to be calculated recursively, giving raise to infamous vanishing / expanding gradient. In constrast, in MIL calculates the output as $$ f(\frac{1}{3}(g(a) + g(b) + g(c)))$$ (slightly abusing notation again), which means that the gradient of $$g$$ is calculated in parallel and not recurrently. 
-
-A more detailed overview of this subject can be found in [Mandlik2020](@cite).
-
+The major difference is that instances in bag are not ordered in any way. This means that if a sequence ``(a,b,c)`` should be treated as a set, then the output of a function `f` should be the same for any permutation, i.e. ``f(abc) = f(cba) = f(bac) = \ldots``. This property has a dramatic implication on the computational complexity. Sequences are typically modeled using Recurrent Neural Networks (RNNs), where the output is calculated as ``f(abc) = g(a, g(b, g(c)))`` (slightly abusing the notation). During optimization, a gradient of ``g`` needs to be calculated recursively, giving raise to infamous vanishing / exploding gradient problems. In constrast, (H)MIL models calculate the output as `` f(\frac{1}{3}(g(a) + g(b) + g(c)))`` (slightly abusing notation again), which means that the gradient of ``g`` can be calculated in parallel and not recurrently. 
 
 ## References
 
