@@ -1,5 +1,5 @@
 ## Multiple instance learning
-Musk dataset is a classic MIL problem of the field, introduced in the problem defining publication [[1](#cit1)]. Below we use to demonstrate, how to solve the problem using Mill.jl. The full example is shown in [example/musk.jl](example/musk.jl), which also contains Julia environment to run it
+Musk dataset is a classic MIL problem of the field, introduced in the problem defining publication [[1](#cit1)]. Below we use it to demonstrate, how to solve the problem using Mill.jl. The full example is shown in [example/musk.jl](example/musk.jl), which also contains Julia environment to run it
  
 
 For the demo, we need following libraries and functions.
