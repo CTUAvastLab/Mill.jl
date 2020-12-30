@@ -22,7 +22,7 @@ makedocs(
                                              "Custom Nodes" => "manual/custom.md"
                                             ],
                   "Examples" => [
-                                 "Musk" => "examples/musk.md",
+                                 "Musk" => "examples/musk/musk.md",
                                  "Advanced" => "examples/advanced.md",
                                  "GNN in 16 lines" => "examples/graphs.md",
                                  "DAGs" => "examples/dag.md"
