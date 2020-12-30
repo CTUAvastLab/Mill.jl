@@ -3,7 +3,8 @@ struct ProductNode{T,C} <: AbstractProductNode
     metadata::C
 
     function ProductNode{T,C}(data::T, metadata::C) where {T, C}
-        @assert length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data)
+        @assert(length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data),
+                "All subtrees must have an equal amount of instances!")
         new(data, metadata)
     end
 end
