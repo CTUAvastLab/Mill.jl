@@ -11,18 +11,18 @@ makedocs(
                                   assets = ["assets/favicon.ico", "assets/custom.css"]),
          modules = [Mill],
          pages = [
-                  "index.md",
+                  "Home" => "home.md",
                   "Motivation" => "motivation.md",
-                  "Architecture of Mill" => [
-                                             "Overview" => "architecture/overview.md",
-                                             "ReflectInModel" => "architecture/reflectin.md",
-                                             "Handling strings" => "architecture/strings.md",
-                                             "Aggregations" => "architecture/aggregation.md",
-                                             "Missing values" => "architecture/missing.md",
-                                             "Custom Nodes" => "architecture/custom.md"
+                  "Manual" => [
+                                             "Nodes" => "manual/nodes.md",
+                                             "Aggregations" => "manual/aggregation.md",
+                                             "ReflectInModel" => "manual/reflectin.md",
+                                             "Handling strings" => "manual/strings.md",
+                                             "Missing values" => "manual/missing.md",
+                                             "Custom Nodes" => "manual/custom.md"
                                             ],
                   "Examples" => [
-                                 "Simple" => "examples/simple.md",
+                                 "Musk" => "examples/musk.md",
                                  "Advanced" => "examples/advanced.md",
                                  "GNN in 16 lines" => "examples/graphs.md",
                                  "DAGs" => "examples/dag.md"

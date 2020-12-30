@@ -1,10 +1,6 @@
-`Mill.jl` is a library built on top of [`Flux.jl`](https://fluxml.ai) aimed to flexibly prototype *hierarchical multi-instance learning* models as described in [Pevny2018a](@cite) and  [Pevny2018b](@cite).
-
-TODO table of contents
-
 # Motivation 
 
-In this section, we provide a short introduction into (Hierarchical) Multi instance learning.
+In this section, we provide a short introduction into (hierarchical) multi instance learning.
 A much more detailed overview of this subject can be found in [Mandlik2020](@cite).
 
 ## What is a Multiple instance learning problem?
