@@ -90,3 +90,8 @@ BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Chain(Dense(
         │           └── ArrayModel(Dense(2, 5, relu))
         └── ArrayModel(Dense(2, 5, relu))
 ```
+```
+function reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict(),
+               single_key_identity=true, single_scalar_identity=true)
+
+```

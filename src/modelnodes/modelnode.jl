@@ -81,7 +81,7 @@ _make_imputing(x, t::ArrayModel) = _make_imputing(x, t.m) |> ArrayModel
 _make_imputing(x, t::Chain) = Chain(t[1:end-1], _make_imputing(x, t[end]))
 _make_imputing(x::AbstractArray{Maybe{T}}, t::Dense) where T <: Number = PreImputingDense(t)
 _make_imputing(x::MaybeHotVector{Missing}, t::Dense) = PostImputingDense(t)
-_make_imputing(x::MaybeHotMatrix{Maybe{T}}, t::Dense) where T <: Integer = PostImputingDense(t)
+_make_imputing(x::MaybeHotMatrix{T}, t::Dense) where T <: Integer = PostImputingDense(t)
 _make_imputing(x::NGramMatrix{Maybe{T}}, t::Dense) where T <: Sequence = PostImputingDense(t)
 
 _make_imputing(x, t::typeof(identity)) = t

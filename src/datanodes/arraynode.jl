@@ -41,6 +41,6 @@ Base.hcat(as::ArrayNode...) = reduce(catobs, collect(as))
 
 Base.getindex(x::ArrayNode, i::VecOrRange{<:Int}) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
 
-Base.hash(e::ArrayNode, h::UInt) = hash((string(A), string(C), e.data, e.metadata), h)
+Base.hash(e::ArrayNode, h::UInt) = hash((e.data, e.metadata), h)
 (e1::ArrayNode == e2::ArrayNode) = isequal(e1.data == e2.data, true) && e1.metadata == e2.metadata
 isequal(e1::ArrayNode, e2::ArrayNode) = isequal(e1.data, e2.data) && isequal(e1.metadata, e2.metadata)

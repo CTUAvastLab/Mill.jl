@@ -1,12 +1,15 @@
 ```@setup musk
+cd("../../example")
+using Pkg
+Pkg.activate(pwd())
 ```
 
 ```@repl musk
 println(pwd())
+Pkg.status()
 ```
 
 # Musk dataset
-
 [`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in the problem defining publication [[1](#cit1)]. Below we use to demonstrate, how to solve the problem using Mill.jl. The full example is shown in [example/musk.jl](example/musk.jl), which also contains Julia environment to run it
  
 For the demo, we need following libraries and functions.
