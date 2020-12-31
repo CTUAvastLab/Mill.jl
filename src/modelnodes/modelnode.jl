@@ -17,8 +17,8 @@ function Base.show(io::IO, @nospecialize(m::AbstractMillModel))
 end
 
 _show_submodels(io, m::ArrayModel) = print(io, "(", m.m, ")")
-_show_submodels(io, m::BagModel) = print(io, " ↦ ", m.a, " ↦ ", m.bm)
-_show_submodels(io, m::ProductModel) = print(io, " ↦ ", m.m)
+_show_submodels(io, m::BagModel) = print(io, " … ↦ ", m.a, " ↦ ", m.bm)
+_show_submodels(io, m::ProductModel) = print(io, " … ↦ ", m.m)
 _show_submodels(io, m::LazyModel{Name}) where {Name} = print(io, "{", Name, "}")
 _show_submodels(io, _) = print(io)
 

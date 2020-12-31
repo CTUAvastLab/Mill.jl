@@ -22,11 +22,11 @@
           └── ArrayNode(2×5 Array, Float64) with 5 obs"""
 
     bnm = reflectinmodel(bn)
-    @test repr(bnm) == "BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))"
+    @test repr(bnm) == "BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))"
     @test repr(bnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), bnm) == 
         """
-        BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+        BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
           └── ArrayModel(Dense(2, 10))"""
 
     wbn = WeightedBagNode(an, bags([1:2, 3:5]), rand(5) |> f32)
@@ -38,11 +38,11 @@
           └── ArrayNode(2×5 Array, Float64) with 5 obs"""
 
     wbnm = reflectinmodel(wbn)
-    @test repr(wbnm) == "BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))"
+    @test repr(wbnm) == "BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))"
     @test repr(wbnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), wbnm) == 
         """
-        BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+        BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
           └── ArrayModel(Dense(2, 10))"""
 
     pn = ProductNode((;bn, wbn))
@@ -57,14 +57,14 @@
                      └── ArrayNode(2×5 Array, Float64) with 5 obs"""
 
     pnm = reflectinmodel(pn)
-    @test repr(pnm) == "ProductModel ↦ ArrayModel(Dense(20, 10))"
+    @test repr(pnm) == "ProductModel … ↦ ArrayModel(Dense(20, 10))"
     @test repr(pnm; context=:compact => true) == "ProductModel"
     @test repr(MIME("text/plain"), pnm) ==
         """
-        ProductModel ↦ ArrayModel(Dense(20, 10))
-          ├─── bn: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+        ProductModel … ↦ ArrayModel(Dense(20, 10))
+          ├─── bn: BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
           │          └── ArrayModel(Dense(2, 10))
-          └── wbn: BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+          └── wbn: BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
                      └── ArrayModel(Dense(2, 10))"""
 
     ln = LazyNode{:Sentence}(["a", "b", "c", "d"])
@@ -78,7 +78,7 @@
     @test repr(MIME("text/plain"), lnm) == 
         """
         LazyModel{Sentence}
-          └── BagModel ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+          └── BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
                 └── ArrayModel(Dense(2053, 10))"""
 end
 
