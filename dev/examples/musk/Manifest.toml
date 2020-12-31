@@ -386,7 +386,7 @@ version = "0.5.0"
 
 [[Mill]]
 deps = ["ChainRulesCore", "Combinatorics", "DataFrames", "DataStructures", "Flux", "HierarchicalUtils", "LearnBase", "LinearAlgebra", "MLDataPattern", "Setfield", "SparseArrays", "Statistics", "StatsBase", "Zygote"]
-path = ".."
+path = "../../../.."
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
 version = "2.1.2"
 
