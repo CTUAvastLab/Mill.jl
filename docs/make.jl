@@ -15,6 +15,7 @@ makedocs(
                   "Motivation" => "motivation.md",
                   "Manual" => [
                                              "Nodes" => "manual/nodes.md",
+                                             "More on nodes" => "manual/more_on_nodes.md",
                                              "Aggregations" => "manual/aggregation.md",
                                              "ReflectInModel" => "manual/reflectin.md",
                                              "Handling strings" => "manual/strings.md",
@@ -22,15 +23,15 @@ makedocs(
                                              "Custom Nodes" => "manual/custom.md"
                                             ],
                   "Examples" => [
-                                 "Musk" => "examples/musk/musk.md",
-                                 "Advanced" => "examples/advanced.md",
+                                 # "Musk" => "examples/musk/musk.md",
                                  "GNN in 16 lines" => "examples/graphs.md",
+                                 # TODO JsonGrinder?
                                  "DAGs" => "examples/dag.md"
                                 ],
-                  "Helper tools" => [
+                  "External tools" => [
                                      "HierarichalUtils.jl" => "tools/hierarchical.md",
-                                     # Conveniences (Lenses)
-                                     # External Tools (JsonGrinder, HierarchicalUtils)
+                                     # TODO Conveniences (Lenses)
+                                     # TODO Json Grinder
                                     ],
                   "References" => "references.md"
                  ],

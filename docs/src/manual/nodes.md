@@ -1,6 +1,6 @@
 ```@setup mill 
 using Mill
-using Mill: Dense, relu, nobs
+using Mill: Dense, nobs
 ```
 
 !!! ukw "Tip"
@@ -27,7 +27,7 @@ AN = ArrayNode(X)
 Similarly, `ArrayModel` wraps any function performing operation over this array. In example below, we wrap a feature matrix `X` and a `Dense` model from [`Flux.jl`](https://fluxml.ai):
 
 ```@repl mill
-f = Dense(2,3,relu)
+f = Dense(2, 3)
 AM = ArrayModel(f)
 ```
 
@@ -89,14 +89,14 @@ The first network submodel (called instance model `im`) is responsible for conve
 y = im(AN)
 ```
 
-Note that because of the property mentioned above, the output of instance model `im` will always be a matrix. This result is then used in aggregation (`a`) which takes vector representation of all instances and produces a **single** vector per bag:
+Note that because of the property mentioned above, the output of instance model `im` will always be a matrix. We get four columns, one for each instance. This result is then used in [`Aggregation`](@ref) (`a`) which takes vector representation of all instances and produces a **single** vector per bag:
 
 ```@repl mill
 y = a(y, BN.bags)
 ```
 
-!!! unk "TODO"
-link to aggregation page, a take proc je tam o jeden radek vice
+!!! unk "More about aggregation"
+    To read more about aggregation operators and find out why there are four rows instead of three after applying the operator, see [Aggregation](@ref) section.
 
 Finally, `y` is then passed to a feed forward model (called bag model `bm`) producing the final output per bag. In our example we therefore get a matrix with three columns:
 
@@ -113,24 +113,21 @@ BM(BN) == y
 !!! ukn "Aligned and Scattered bags"
     TODO describe Aligned vs Scattered bags
 
-TODO weighted nodes - asi az v aggregation
-TODO bags
-
 !!! ukn "Musk example"
-    Another perk of `Mill.jl` models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
+    Another handy feature of `Mill.jl` models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
 
 ## `ProductNodes` and `ProductModels`
 
 `ProductNode` can be thought of as a [*Cartesian Product*](https://en.wikipedia.org/wiki/Cartesian_product) or a `Dictionary`. It holds a `Tuple` or `NamedTuple` of nodes (not necessarily of the same type). For example, a `ProductNode` with a `BagNode` and `ArrayNode` as children would look like this:
 
 ```@repl mill
-PN = ProductNode((a = ArrayNode(Float32.([1 2 3; 4 5 6])), b = BN))
+PN = ProductNode((a=ArrayNode(Float32.([1 2 3; 4 5 6])), b=BN))
 ```
 
 Analogically, the `ProductModel` contains a (`Named`)`Tuple` of (sub)models processing each of its children (stored in `ms` field standing for models), as well as one more (sub)model `m`:
 
 ```@repl mill
-ms = (a = AM, b = BM)
+ms = (a=AM, b=BM)
 m = ArrayModel(Dense(7, 2))
 PM = ProductModel(ms, m)
 ```
@@ -149,74 +146,3 @@ PM(PN) == y
 
 !!! unk "Indexing in product nodes"
     In general, we recommend to use `NamedTuple`s, because the key can be used for indexing both `ProductNode`s and `ProductModel`s.
-
-## Node nesting 
-In the example below, we nest two `BagNode`s and create the appropriate model:
-
-```julia
-julia> ds = BagNode(BagNode(ArrayNode(randn(4,10)),[1:2,3:4,5:5,6:7,8:10]),[1:1,2:3,4:5])
-BagNode with 3 bag(s)
-  └── BagNode with 5 bag(s)
-        └── ArrayNode(4, 10)
-
-julia> m = BagModel(
-    BagModel(
-        ArrayModel(Dense(4, 3, Flux.relu)),   
-        SegmentedMeanMax(3),
-        ArrayModel(Dense(6, 3, Flux.relu))),
-    SegmentedMeanMax(3),
-    ArrayModel(Chain(Dense(6, 3, Flux.relu), Dense(3,2))))
-
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Chain(Dense(6, 3, relu), Dense(3, 2)))
-  └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        └── ArrayModel(Dense(4, 3, relu))
-
-julia> m(ds)
-
-ArrayNode(2, 3)
-```
-
- Here we make use of the property described above even if each instance is represented with an arbitrarily complex (nested) structures, we always obtain a vector representation after applying `im`:
-
-!!! ukn "Tip"
-    Another perk of `Mill.jl` models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
-
-TODO odkaz na more custom models
-
-toto dat uz do dalsiho?
-
-`nobs`
-As mentioned, the ArrayNode supports "slicing" and concatenation as follows
-```julia
-julia> ds[1].data
-2×1 Array{Float32,2}:
- 1.0
- 4.0
-
-julia> ds[[1,3]].data
-2×2 Array{Float32,2}:
- 1.0  3.0
- 4.0  6.0
-
-julia> catobs(ds[1], ds[3]).data
-2×2 Array{Float32,2}:
- 1.0  3.0
- 4.0  6.0
-```
-which is useful for creating minibatches and their permutations.
- Again, the `BagNode` supports indexing and concatenation
-
-```julia
-julia> ds[1]
-BagNode with 1 bag(s)
-  └── ArrayNode(2, 2)
-
-julia> ds[[1,3]]
-BagNode with 2 bag(s)
-  └── ArrayNode(2, 3)
-
-julia> catobs(ds[1], ds[3])
-BagNode with 2 bag(s)
-  └── ArrayNode(2, 3)
-```
-

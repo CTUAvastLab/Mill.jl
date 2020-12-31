@@ -1,4 +1,35 @@
 ## ReflectInModel
+
+ Since constructions of large models can be a process prone to errors, there is a function `reflectinmodel` which tries to automatize it keeping track of dimensions. It accepts as a first parameter a sample `ds`. Using the function on the above example creates a model:
+```julia
+julia> m = reflectinmodel(ds)
+
+BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
+  └── BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
+        └── ArrayModel(Dense(4, 10))
+```
+
+To have better control over the topology, `reflectinmodel` accepts up to four additional parameters. The second parameter is a function returning layer (or set of layers) with input dimension `d`, and the third function is a function returning aggregation functions for `BagModel`:
+```julia
+julia> m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d))
+
+BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
+  └── BagModel ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(10, 5, relu))
+        └── ArrayModel(Dense(4, 5, relu))
+```
+
+Let's test the model
+```julia
+julia> m(ds).data
+
+5×3 Array{Float32,2}:
+ 0.0542484   0.733629  0.553823
+ 0.062246    0.866254  1.03062 
+ 0.027454    1.04703   1.63135 
+ 0.00796955  0.36415   1.18108 
+ 0.034735    0.17383   0.0
+```
+
 Constructions of large models can be boring and a process prone to errors. Therefore `Mill.jl` comes with a convenient function `reflectinmodel` which does this for you. The result is certainly suboptimal, which can be said about almost any Neural Network. The reflect in model accepts three important parameters.
 1. The data sample serving as a specimen, which is needed to calculate dimensions and know the structure;
 2. a function returning a feed-forward model (or a function) accepting data in form of a Matrix with dimension `d`;
