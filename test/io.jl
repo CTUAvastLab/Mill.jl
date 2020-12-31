@@ -4,7 +4,7 @@
     @test repr(an; context=:compact => true) == "ArrayNode"
     @test repr(MIME("text/plain"), an) == 
         """
-        ArrayNode{Array{Float64,2},Nothing}:
+        2×5 ArrayNode{Array{Float64,2},Nothing}:
          1.0  1.0  1.0  1.0  1.0
          1.0  1.0  1.0  1.0  1.0"""
 
