@@ -1,6 +1,5 @@
 ```@setup mill 
 using Mill
-using Mill: Dense, nobs
 ```
 
 !!! ukw "Tip"
@@ -27,6 +26,7 @@ AN = ArrayNode(X)
 Similarly, `ArrayModel` wraps any function performing operation over this array. In example below, we wrap a feature matrix `X` and a `Dense` model from [`Flux.jl`](https://fluxml.ai):
 
 ```@repl mill
+using Flux: Dense
 f = Dense(2, 3)
 AM = ArrayModel(f)
 ```
@@ -44,6 +44,7 @@ f(X) == AM(AN).data
 The most common interpretation of the data inside `ArrayNode`s is that each column contains features of one sample and therefore the node `AN` carries `size(AN.data, 2)` samples. In this sense, `ArrayNode`s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any `AbstractNode` with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
 
 ```@repl mill
+using StatsBase: nobs
 nobs(AN)
 ```
 

@@ -2,3 +2,7 @@
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 DocumenterTools = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+HierarchicalUtils = "f9ccea15-0695-44b9-8113-df7c26ae4fa9"
+Mill = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"

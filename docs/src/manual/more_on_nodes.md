@@ -1,6 +1,5 @@
 ```@setup mill 
 using Mill
-using Mill: Dense, relu, Chain, nobs
 ```
 
 # More on nodes
@@ -19,6 +18,7 @@ ds = BagNode(BagNode(ArrayNode(randn(4, 10)),
 Here is one example of a model, which is appropriate for this hierarchy:
 
 ```@repl mill
+using Flux: Dense, Chain, relu
 m = BagModel(
         BagModel(
             ArrayModel(Dense(4, 3, relu)),   
@@ -78,6 +78,7 @@ PM = reflectinmodel(PN)
 `nobs` method from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) returns a number of samples from the current level point of view. This number usually increases as we go down the tree when `BagNode`s are involved, as each bag may contain more than one instance.
 
 ```@repl mill
+using StatsBase: nobs
 nobs(AN)
 nobs(BN)
 nobs(PN)

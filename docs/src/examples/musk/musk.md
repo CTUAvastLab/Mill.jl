@@ -2,6 +2,7 @@
 using Random; Random.seed!(42)
 
 using Pkg
+old_path = Pkg.project().path
 Pkg.activate(pwd())
 Pkg.instantiate()
 ```
@@ -81,4 +82,8 @@ We can also calculate training error, which should be not so surprisingly low:
 
 ```@repl musk
 mean(mapslices(argmax, model(ds).data, dims=1)' .!= y)
+```
+
+```@repl musk
+Pkg.activate(old_path) # hide
 ```

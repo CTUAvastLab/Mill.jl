@@ -1,89 +1,70 @@
-## Hierarchical utils
-Mill.jl uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features. For instance, if you want to print a non-truncated version of a model, call:
-
-```julia
-julia> printtree(m; trunc=Inf)
-
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu))
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        │     └── ArrayModel(Dense(4, 3, relu))
-        ├── ArrayModel(Dense(3, 3, relu))
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        │     └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-        │           └── ArrayModel(Dense(2, 3, relu))
-        └── ArrayModel(Dense(2, 3, relu))
+```@setup mill 
+using Mill
+using StatsBase: nobs
 ```
 
-Callling with `trav=true` enables convenient traversal functionality with string indexing:
-```julia
-julia>  printtree(m; trunc=Inf, trav=true)
+# Hierarchical utils
+Mill.jl uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features.
 
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) [""]
-  └── ProductModel ↦ ArrayModel(Dense(12, 3, relu)) ["U"]
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["Y"]
-        │     └── ArrayModel(Dense(4, 3, relu)) ["a"]
-        ├── ArrayModel(Dense(3, 3, relu)) ["c"]
-        ├── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["g"]
-        │     └── BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu)) ["i"]
-        │           └── ArrayModel(Dense(2, 3, relu)) ["j"]
-        └── ArrayModel(Dense(2, 3, relu)) ["k"]
+```@example mill 
+using HierarchicalUtils
+```
+
+## Printing 
+
+For instance, `Base.show` with `text/plain` MIME calls `HierarchicalUtils.printtree`:
+
+```@repl mill
+ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
+                                  [1:2, 3:4, 5:5, 6:7, 8:10]),
+                          ArrayNode(randn(3, 5)),
+                          BagNode(BagNode(ArrayNode(randn(2, 30)),
+                                          [i:i+1 for i in 1:2:30]),
+                                  [1:3, 4:6, 7:9, 10:12, 13:15]),
+                          ArrayNode(randn(2, 5)))),
+             [1:1, 2:3, 4:5])
+printtree(ds; htrunc=3)
+```
+
+This can be used to print a non-truncated version of a model:
+
+```@repl mill
+printtree(ds)
+```
+
+## Traversal encoding
+
+Callling with `trav=true` enables convenient traversal functionality with string indexing:
+
+```@repl mill
+m = reflectinmodel(ds)
+printtree(m; trav=true)
 ```
 
 This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree (for instance when constructing adversarial samples). All tree nodes are accessible by indexing with the traversal code:.
 
-```julia
-julia> m["Y"]
-
-BagModel ↦ ⟨SegmentedMean(3), SegmentedMax(3)⟩ ↦ ArrayModel(Dense(6, 3, relu))
-  └── ArrayModel(Dense(4, 3, relu))
+```@repl mill
+m["Y"]
 ```
 
 The following two approaches give the same result:
-```julia
-julia> m["Y"] === m.im.ms[1]
 
-true
+```@repl mill
+m["Y"] === m.im.ms[1]
 ```
+
+## Counting functions
 
 Other functions provided by `HierarchicalUtils.jl`:
-```
-julia> nnodes(m)
 
-9
-
-julia> nleafs(m)
-
-4
-
-julia> NodeIterator(m) |> collect
-
-9-element Array{AbstractMillModel,1}:
- BagModel
- ProductModel
- BagModel
- ArrayModel
- ArrayModel
- BagModel
- BagModel
- ArrayModel
- ArrayModel
-
-julia> LeafIterator(m) |> collect
-
-4-element Array{ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}},1}:
- ArrayModel
- ArrayModel
- ArrayModel
- ArrayModel
-
-julia> TypeIterator(m, BagModel) |> collect
-
-4-element Array{BagModel{T,Aggregation{2},ArrayModel{Dense{typeof(relu),Array{Float32,2},Array{Float32,1}}}} where T<:AbstractMillModel,1}:
- BagModel
- BagModel
- BagModel
- BagModel
+```@repl mill
+nnodes(ds)
+nleafs(ds)
+NodeIterator(ds) |> collect
+NodeIterator(ds, m) |> collect
+LeafIterator(ds) |> collect
+TypeIterator(BagModel, m) |> collect
+PredicateIterator(x -> nobs(x) ≥ 10, ds) |> collect
 ```
 
-... and many others, see [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl).
+For the complete showcase of possibilites, refer to [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) and [this notebook](https://github.com/Sheemon7/HierarchicalUtils.jl/blob/master/examples/mill_integration.ipynb)
