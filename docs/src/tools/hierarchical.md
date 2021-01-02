@@ -3,7 +3,7 @@ using Mill
 using StatsBase: nobs
 ```
 
-# Hierarchical utils
+# HierarchicalUtils.jl
 Mill.jl uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features.
 
 ```@example mill 

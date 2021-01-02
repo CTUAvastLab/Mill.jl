@@ -25,8 +25,11 @@ AN = ArrayNode(X)
 
 Similarly, `ArrayModel` wraps any function performing operation over this array. In example below, we wrap a feature matrix `X` and a `Dense` model from [`Flux.jl`](https://fluxml.ai):
 
-```@repl mill
+```@example mill
 using Flux: Dense
+```
+
+```@repl mill
 f = Dense(2, 3)
 AM = ArrayModel(f)
 ```

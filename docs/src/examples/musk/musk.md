@@ -84,6 +84,6 @@ We can also calculate training error, which should be not so surprisingly low:
 mean(mapslices(argmax, model(ds).data, dims=1)' .!= y)
 ```
 
-```@repl musk
-Pkg.activate(old_path) # hide
+```@setup musk
+Pkg.activate(old_path)
 ```

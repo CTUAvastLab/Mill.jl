@@ -31,7 +31,7 @@ m = BagModel(
 and can be directly applied to obtain a result:
 
 ```@repl mill
-m(ds).data
+m(ds)
 ```
 
 Here we again make use of the property that even if each instance is represented with an arbitrarily complex structure, we always obtain a vector representation after applying image model `im`, regardless of the complexity of `im` and `ds.data`:
