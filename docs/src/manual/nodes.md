@@ -82,7 +82,7 @@ Each `BagNode` is processed by a `BagModel`, which contains two (sub)models and 
 
 ```@repl mill
 im = ArrayModel(Dense(2, 3))
-a = SegmentedMean(3)
+a = SegmentedMax(3)
 bm = ArrayModel(Dense(4, 4))
 BM = BagModel(im, a, bm)
 ```
@@ -100,7 +100,7 @@ y = a(y, BN.bags)
 ```
 
 !!! unk "More about aggregation"
-    To read more about aggregation operators and find out why there are four rows instead of three after applying the operator, see [Aggregation](@ref) section.
+    To read more about aggregation operators and find out why there are four rows instead of three after applying the operator, see [Bag aggregation](@ref) section.
 
 Finally, `y` is then passed to a feed forward model (called bag model `bm`) producing the final output per bag. In our example we therefore get a matrix with three columns:
 
@@ -114,8 +114,11 @@ However, the best way to use a bag model node is to simply apply it, which resul
 BM(BN) == y
 ```
 
-!!! ukn "Aligned and Scattered bags"
-    TODO describe Aligned vs Scattered bags
+The whole procedure is depicted in the following picture:
+
+![](../assets/bagmodel.svg)
+
+Three instances of the `BagNode` are represented by red subtrees are first mapped with instance model `im`, aggregated (aggregation operator here is a concatenation of two different operators ``a_1`` and ``a_2``), and the results of aggregation are transformed with bag model `bm`.
 
 !!! ukn "Musk example"
     Another handy feature of `Mill.jl` models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
@@ -147,6 +150,10 @@ which is equivalent to:
 ```@repl mill
 PM(PN) == y
 ```
+
+Application of a product model (this time with four subtrees (keys)) can be visualized as follows:
+
+![](../assets/productmodel.svg)
 
 !!! unk "Indexing in product nodes"
     In general, we recommend to use `NamedTuple`s, because the key can be used for indexing both `ProductNode`s and `ProductModel`s.

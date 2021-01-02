@@ -1,4 +1,4 @@
-# TEST
+# Bag aggregation
 
 TODO weighted nodes - asi az v aggregation
 ## Default aggregation values

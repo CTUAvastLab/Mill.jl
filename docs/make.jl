@@ -16,7 +16,7 @@ makedocs(
                   "Manual" => [
                                              "Nodes" => "manual/nodes.md",
                                              "More on nodes" => "manual/more_on_nodes.md",
-                                             "Aggregations" => "manual/aggregation.md",
+                                             "Bag aggregation" => "manual/aggregation.md",
                                              "Model reflection" => "manual/reflectin.md",
                                              "Handling strings" => "manual/strings.md",
                                              "Missing values" => "manual/missing.md",
