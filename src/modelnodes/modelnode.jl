@@ -22,55 +22,55 @@ _show_submodels(io, m::ProductModel) = print(io, " … ↦ ", m.m)
 _show_submodels(io, m::LazyModel{Name}) where {Name} = print(io, "{", Name, "}")
 _show_submodels(io, _) = print(io)
 
-function reflectinmodel(x, db=d->Flux.Dense(d, 10), da=d->SegmentedMean(d); b = Dict(), a = Dict(),
+function reflectinmodel(x, fm=d->Flux.Dense(d, 10), fa=d->SegmentedMean(d); fsm=Dict(), fsa=Dict(),
                single_key_identity=true, single_scalar_identity=true)
-    _reflectinmodel(x, db, da, b, a, "", single_key_identity, single_scalar_identity)[1]
+    _reflectinmodel(x, fm, fa, fsm, fsa, "", single_key_identity, single_scalar_identity)[1]
 end
 
-function _reflectinmodel(x::AbstractBagNode, db, da, b, a, s, ski, ssi)
-    im, d = _reflectinmodel(x.data, db, da, b, a, s * encode(1, 1), ski, ssi)
+function _reflectinmodel(x::AbstractBagNode, fm, fa, fsm, fsa, s, ski, ssi)
+    im, d = _reflectinmodel(x.data, fm, fa, fsm, fsa, s * encode(1, 1), ski, ssi)
     c = stringify(s)
-    agg = c in keys(a) ? a[c](d) : da(d)
-    bm, d = _reflectinmodel(BagModel(im, agg)(x), db, da, b, a, s, ski, ssi)
+    agg = c in keys(fsa) ? fsa[c](d) : fa(d)
+    bm, d = _reflectinmodel(BagModel(im, agg)(x), fm, fa, fsm, fsa, s, ski, ssi)
     BagModel(im, agg, bm), d
 end
 
-function _reflectinmodel(x::AbstractProductNode, db, da, b, a, s, ski, ssi)
+function _reflectinmodel(x::AbstractProductNode, fm, fa, fsm, fsa, s, ski, ssi)
     n = length(x.data)
-    ms = [_reflectinmodel(xx, db, da, b, a, s * encode(i, n), ski, ssi) for (i, xx) in enumerate(x.data)]
+    ms = [_reflectinmodel(xx, fm, fa, fsm, fsa, s * encode(i, n), ski, ssi) for (i, xx) in enumerate(x.data)]
     if ski && n == 1
         im, d = only(ms)
         ProductModel(im), d
     else
         im = tuple([i[1] for i in ms]...)
-        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski, ssi)
+        tm, d = _reflectinmodel(ProductModel(im)(x), fm, fa, fsm, fsa, s, ski, ssi)
         ProductModel(im, tm), d
     end
 end
 
-function _reflectinmodel(x::ProductNode{T}, db, da, b, a, s, ski, ssi) where T <: NamedTuple
+function _reflectinmodel(x::ProductNode{T}, fm, fa, fsm, fsa, s, ski, ssi) where T <: NamedTuple
     n = length(x.data)
     ks = keys(x.data)
-    ms = [_reflectinmodel(x.data[k], db, da, b, a, s * encode(i, n), ski, ssi) for (i, k) in enumerate(ks)]
+    ms = [_reflectinmodel(x.data[k], fm, fa, fsm, fsa, s * encode(i, n), ski, ssi) for (i, k) in enumerate(ks)]
     if ski && n == 1
         im, d = only(ms)
         ProductModel((; only(ks)=>im)), d
     else
         im = (; (k=>v[1] for (k,v) in zip(ks, ms))...)
-        tm, d = _reflectinmodel(ProductModel(im)(x), db, da, b, a, s, ski, ssi)
+        tm, d = _reflectinmodel(ProductModel(im)(x), fm, fa, fsm, fsa, s, ski, ssi)
         ProductModel(im, tm), d
     end
 end
 
-function _reflectinmodel(x::ArrayNode, db, da, b, a, s, ski, ssi)
+function _reflectinmodel(x::ArrayNode, fm, fa, fsm, fsa, s, ski, ssi)
     c = stringify(s)
     r = size(x.data, 1)
-    if c in keys(b)
-        t = b[c](r) |> ArrayModel
+    if c in keys(fsm)
+        t = fsm[c](r) |> ArrayModel
     elseif ssi && r == 1
         t = identity_model()
     else
-        t = db(r) |> ArrayModel
+        t = fm(r) |> ArrayModel
     end
     m = _make_imputing(x.data, t)
     m, size(m(x).data, 1)
@@ -100,7 +100,7 @@ end
 
 IdentityDense(x) = Dense(Matrix{Float32}(I, size(x, 1), size(x, 1)), zeros(Float32, size(x, 1)))
 
-function _reflectinmodel(ds::LazyNode{Name}, db, da, b, a, s, ski, ssi) where Name
-    pm, d = Mill._reflectinmodel(unpack2mill(ds), db, da, b, a, s * Mill.encode(1, 1), ski, ssi)
+function _reflectinmodel(ds::LazyNode{Name}, fm, fa, fsm, fsa, s, ski, ssi) where Name
+    pm, d = Mill._reflectinmodel(unpack2mill(ds), fm, fa, fsm, fsa, s * Mill.encode(1, 1), ski, ssi)
     LazyModel{Name}(pm), d
 end
