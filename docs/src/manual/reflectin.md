@@ -47,7 +47,7 @@ m(ds)
 
 ## Keyword arguments
 
-The `reflectinmodel` allows even further customization. To index into the sample (or model), we can use `printtree(ds; trav=true)` from [`HierarchicalUtils.jl`](@ref) that prints the sample together with identifiers of individual nodes:
+The `reflectinmodel` allows even further customization. To index into the sample (or model), we can use `printtree(ds; trav=true)` from [HierarchicalUtils.jl](@ref) that prints the sample together with identifiers of individual nodes:
 
 ```@example mill
 using HierarchicalUtils

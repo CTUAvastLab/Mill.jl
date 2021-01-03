@@ -16,14 +16,14 @@ makedocs(
                   "Manual" => [
                                              "Nodes" => "manual/nodes.md",
                                              "More on nodes" => "manual/more_on_nodes.md",
-                                             "Bag aggregation" => "manual/aggregation.md",
                                              "Model reflection" => "manual/reflectin.md",
+                                             "Bag aggregation" => "manual/aggregation.md",
                                              "Handling strings" => "manual/strings.md",
-                                             "Missing values" => "manual/missing.md",
+                                             "Missing data" => "manual/missing.md",
                                              "Custom nodes" => "manual/custom.md"
                                             ],
                   "Examples" => [
-                                 # "Musk" => "examples/musk/musk.md",
+                                 "Musk" => "examples/musk/musk.md",
                                  "GNN in 16 lines" => "examples/graphs.md",
                                  # TODO JsonGrinder?
                                  "DAGs" => "examples/dag.md"
