@@ -84,7 +84,7 @@ include("lazynode.jl")
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize n::ArrayNode)
     print(io, join(size(n.data), "×"), " ", summary(n), ":\n")
-    print_array(io, n.data)
+    print_array(IOContext(io, :typeinfo => eltype(n.data)), n.data)
 end
 
 function Base.show(io::IO, @nospecialize(n::AbstractNode))
