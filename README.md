@@ -19,5 +19,26 @@
 * **fast** 
 * and dependent on only handful of other packages
 
+## Installation
+
+Run the following in REPL:
+
+```julia
+] add Mill
+```
+
+## Citation
+
+For citing, please use the following entry:
+
+```
+@misc{Mill2018,
+    author = {Tomáš Pevný and Šimon Mandlík},
+    title = {{Mill.jl framework: a flexible library for (hierarchical) multi-instance learning}},
+    year = 2018,
+    howpublished = "\url{https://github.com/pevnak/Mill.jl}"
+}
+```
+
 <a href="https://flyclipart.com/wind-turbine-png-clipart-windmill-pictures-windmill-png-471749">Icon source</a>
 
