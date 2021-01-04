@@ -47,7 +47,7 @@ y = map(i -> maximum(y[i]) + 1, ds.bags)  # create labels on bags
 y_oh = Flux.onehotbatch(y, 1:2)           # one-hot encoding
 ```
 
-Once the data are in Mill internal format, we will manually create a model. `BagModel` is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
+Once the data are in `Mill.jl` internal format, we will manually create a model. `BagModel` is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
 
 ```@repl musk
 model = BagModel(
@@ -64,7 +64,7 @@ Let's check that forward pass works:
 model(ds)
 ```
 
-Since Mill is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
+Since `Mill.jl` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
 
 ```@repl musk
 loss(ds, y_oh) = Flux.logitcrossentropy(model(ds).data, y_oh)
@@ -75,7 +75,7 @@ and run simple training procedure using its tooling:
 ```@repl musk
 evalcb = () -> @show(loss(ds, y_oh))
 opt = Flux.ADAM()
-@epochs 10 Flux.train!(loss, params(model), repeated((ds, y_oh), 100), opt, cb=throttle(evalcb, 1))
+@epochs 10 Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt, cb=throttle(evalcb, 1))
 ```
  
 We can also calculate training error, which should be not so surprisingly low:

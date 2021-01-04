@@ -51,7 +51,7 @@ using StatsBase: nobs
 nobs(AN)
 ```
 
-## `BagNode` and `BagModel`
+## `BagNode`
 
 `BagNode` is represents the standard *multiple instance learning* problem, that is, each sample is a *bag* containing an arbitrary number of *instances*. In the simplest case, each instance is a vector:
 
@@ -93,6 +93,8 @@ ScatteredBags([[3, 2, 1], [4], [6, 5]])
 ```
 
 The two examples above are semantically equivalent, as bags are unordered collections of instances. An **empty** bag with no instances is in `AlignedBags` specified as an empty range `[0:-1]` and in `ScatteredBags` as an empty vector `[]`. The constructor of `BagNode` accepts directly one of these two structures and tries to automagically decide the better type in other cases.
+
+## `BagModel`
 
 Each `BagNode` is processed by a `BagModel`, which contains two (sub)models and an aggregation operator:
 

@@ -17,35 +17,23 @@ using Flux
 
 Let's define one custom node type for representing pathnames in Unix and one custom model type for processing it. We'll start by defining the structure holding pathnames:
 
-```julia
+```@example mill
 struct PathNode{S <: AbstractString, C} <: AbstractNode
     data::Vector{S}
     metadata::C
 end
 
 PathNode(data::Vector{S}) where {S <: AbstractString} = PathNode(data, nothing)
-```
-
-```@setup mill
-struct PathNode{S <: AbstractString, C} <: AbstractNode
-    data::Vector{S}
-    metadata::C
-end
-
-PathNode(data::Vector{S}) where {S <: AbstractString} = PathNode(data, nothing)
+nothing # hide
 ```
 
 We will support `nobs`:
 
-```julia
+```@example mill
 import StatsBase: nobs
 Base.ndims(x::PathNode) = Colon()
 nobs(a::PathNode) = length(a.data)
-```
-```@setup mill
-import StatsBase: nobs
-Base.ndims(x::PathNode) = Colon()
-nobs(a::PathNode) = length(a.data)
+nothing # hide
 ```
 
 concatenation:
@@ -66,15 +54,11 @@ Base.getindex(x::PathNode, i::Mill.VecOrRange{<:Int}) = PathNode(subset(x.data, 
 
 The last touch is to add the definition needed by `HierarchicalUtils.jl`:
 
-```julia
+```@example mill
 import HierarchicalUtils
 HierarchicalUtils.NodeType(::Type{<:PathNode}) = HierarchicalUtils.LeafNode()
 HierarchicalUtils.noderepr(n::PathNode) = "PathNode ($(nobs(n)) obs)"
-```
-```@setup mill
-import HierarchicalUtils
-HierarchicalUtils.NodeType(::Type{<:PathNode}) = HierarchicalUtils.LeafNode()
-HierarchicalUtils.noderepr(n::PathNode) = "PathNode ($(nobs(n)) obs)"
+nothing # hide
 ```
 
 Now, we are ready to create the first `PathNode`:
@@ -96,7 +80,7 @@ Flux.@functor PathModel
 
 Note that the part of the `ModelNode` is a function which converts the pathname string to a `Mill.jl` structure. For simplicity, we use a trivial `NGramMatrix` representation in this example and define `path2mill` as follows:
 
-```julia
+```@example mill
 function path2mill(s::String)
     ss = String.(split(s, "/"))
     BagNode(ArrayNode(Mill.NGramMatrix(ss, 3)), AlignedBags([1:length(ss)]))
@@ -104,21 +88,13 @@ end
 
 path2mill(ss::Vector{S}) where {S <: AbstractString} = reduce(catobs, map(path2mill, ss))
 path2mill(ds::PathNode) = path2mill(ds.data)
-```
-```@setup mill
-function path2mill(s::String)
-    ss = String.(split(s, "/"))
-    BagNode(ArrayNode(Mill.NGramMatrix(ss, 3)), AlignedBags([1:length(ss)]))
-end
-
-path2mill(ss::Vector{S}) where {S <: AbstractString} = reduce(catobs, map(path2mill, ss))
-path2mill(ds::PathNode) = path2mill(ds.data)
+nothing # hide
 ```
 
 Now we define how the model node is applied:
 
 ```@example mill
-(m::PathModel)(x::PathNode)  = m.m(m.path2mill(x))
+(m::PathModel)(x::PathNode) = m.m(m.path2mill(x))
 ```
 
 And again, define everything needed in `HierarchicalUtils.jl`:

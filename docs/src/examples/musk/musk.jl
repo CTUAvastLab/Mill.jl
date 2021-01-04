@@ -27,7 +27,7 @@ loss(ds, y_oh) = Flux.logitcrossentropy(model(ds).data, y_oh)
 # the usual way of training
 evalcb = () -> @show(loss(ds, y_oh))
 opt = Flux.ADAM()
-@epochs 10 Flux.train!(loss, params(model), repeated((ds, y_oh), 100), opt, cb=evalcb)
+@epochs 10 Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt, cb=evalcb)
 
 # calculate the error on the training set (no testing set right now)
 mean(mapslices(argmax, model(ds).data, dims=1)' .!= y)

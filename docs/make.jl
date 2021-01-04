@@ -23,7 +23,7 @@ makedocs(
                                              "Custom nodes" => "manual/custom.md"
                                             ],
                   "Examples" => [
-                                 "Musk" => "examples/musk/musk.md",
+                                 # "Musk" => "examples/musk/musk.md",
                                  "GNN in 16 lines" => "examples/graphs.md",
                                  # TODO JsonGrinder?
                                  "DAGs" => "examples/dag.md"

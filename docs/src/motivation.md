@@ -13,7 +13,7 @@ Why are MIL problems relevant? Since the seminal paper from [Fisher1936](@cite),
 
 ![](assets/iris.svg)
 
-where the input sample ``\bm{x}`` is a *vector* (or generally speaking any *tensor*) of a fixed dimension containing various measurements of the specimen.
+where the input sample ``\bm{x}`` is a vector (or generally speaking any tensor) of a fixed dimension containing various measurements of the specimen.
 
 Most of the time, a skilled botanist is able to identify a specimen not by making use of any measuring device, but by visual or tactile inspection of its stem, leaves and blooms. For different species, different parts of the flower may need to be examined for indicators. At the same time, many species may have nearly identical-looking leaves or blooms, therefore, one needs to step back, consider the whole picture, and appropriately combine lower-level observations into high-level conclusions about the given specimen.
 
@@ -27,7 +27,7 @@ In *Hierarchical Multiple Instance Learning* (HMIL) the input may consists of no
 
 The only stem is represented by vector ``\bm{x}_s`` encoding its distinctive properties such as shape, color, structure or texture. Next, we inspect all blooms. Each of the blooms may have distinctive discriminative signs, therefore, we describe all three in vectors ``\bm{x}_{b_1}, \bm{x}_{b_2}, \bm{x}_{b_3}``, one vector for each bloom, and group them to a set. Finally, ``\bm{x}_u`` represents the only flower which has not blossomed. Likewise, we could describe all leaves of the specimen if any were present. Here we assume that each specimen of the considered species has only one stem, but may have multiple flowers or leaves. Hence, all blooms and buds are represented as unordered sets of vectors as opposed to stem representation, which consists of only one vector.
 
-How does MIL models cope with variability in numbers of flowers and leaves? Each MIL model consists of two feed-forward neural networks with an element-wise aggregation operator like `mean` (or `maximum`) sandwiched between them. Denoting those feed-forward networks (FFNs) as ``f_1`` and ``f_2``, the output of the model applied to a bag is calculated for example as ``f_2 \left\(\frac{1}{l}\sum_{i=1}^l f_1(x_i) \right\)`` if we use `mean` as an aggregation function.
+How does MIL models cope with variability in numbers of flowers and leaves? Each MIL model consists of two feed-forward neural networks with an element-wise aggregation operator like `mean` (or `maximum`) sandwiched between them. Denoting those feed-forward networks (FFNs) as ``f_1`` and ``f_2``, the output of the model applied to a bag is calculated for example as ``f_2 \left(\frac{1}{l}\sum_{i=1}^l f_1(x_i) \right)`` if we use `mean` as an aggregation function.
 
 The HMIL model corresponding to the Iris example above would comprise two FFNs and an aggregation to convert set of leafs to a single vector, and another two FFNs and an aggregation to convert set of blossoms to a single vector. These two outputs would be concatenated with a description of a stem, which would be fed to yet another FFN providing the final output. Since the whole scheme is differentiable, we can compute gradients and use any available gradient-based method to optimize the whole model at once using only labels on the level of output[^2].
 
