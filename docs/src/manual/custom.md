@@ -1,98 +1,152 @@
-## How to add the Custom Node and Custom Model
-
-DataNodes are lightweight wrappers around data, such as Array, DataFrames, etc. Their primary purpose is to allow nesting (if needed), to create subsets using `getindex` (by implementing `subset`) and concatenate them using `cat` (implementing by `catobs`). Note that internally, nodes are concatenated using `reduce(catobs, ...)`, since `catobs(x...)` compiles a new function for each observed length of the argument, which can quicly lead to momery exhaustion. The new Node should be also registered with `HierarchicalUtils` to support pretty `print`.
-
-Let's walk through an implementation of `ArrayNode` holding a matrix or a vectors.
-
-`ArrayNode` has a simple structure holding only Array, which is considered the data and optionally some metadata, which can be literally anything.
-```julia
-struct ArrayNode{A,C} <: AbstractNode
-    data::A
-    metadata::C
-end
+```@setup mill
+using Mill
+using Flux
 ```
 
-`ArrayNode` had overloaded a `getindex` to support indexing. But the `getindex` just calls `subset(x::ArrayNode, idxs)`, which is used to correctly slice arrays according to the last dimension.
+## Adding custom nodes
 
-**This mean that if you want to define your own DataNode, in order to be compatible with the rest of the library it has to implement `subset` and `reduce(::typeof{catobs}, Vector{T}) where {T<:YourType}`**
+`Mill.jl` data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into `Mill.jl` environment:
 
-## A simple container for unix pathnames
-We give it a twist, such that the extractor will be part of the model definition, which is going to be cute.
+* allow nesting (if needed)
+* implement `getindex` to obtain subsets of observations. For this purpose, `Mill.jl` defines a `subset` function for common datatypes, which can be used.
+* allow concatenation of nodes with `catobs`. Optionally, implement `reduce(catobs, ...)` as well to avoid excessive compilations if a number of arguments will vary a lot
+* define a specialized method for `nobs`
+* register the custom node with [`HierarchicalUtils.jl`](@ref) to obtain pretty printing, iterators and other functionality
 
-Let's start by defining the structure holding pathnames, supporting `nobs` joining of two structures and indexing into the structure. A last touch is to extend the pretty printing.
+## Unix path example
+
+Let's define one custom node type for representing pathnames in Unix and one custom model type for processing it. We'll start by defining the structure holding pathnames:
+
 ```julia
-struct PathNode{S<:AbstractString,C} <: AbstractNode
+struct PathNode{S <: AbstractString, C} <: AbstractNode
     data::Vector{S}
     metadata::C
 end
 
-PathNode(data::Vector{S}) where {S<:AbstractString} = PathNode(data, nothing)
+PathNode(data::Vector{S}) where {S <: AbstractString} = PathNode(data, nothing)
+```
 
+```@setup mill
+struct PathNode{S <: AbstractString, C} <: AbstractNode
+    data::Vector{S}
+    metadata::C
+end
+
+PathNode(data::Vector{S}) where {S <: AbstractString} = PathNode(data, nothing)
+```
+
+We will support `nobs`:
+
+```julia
+import StatsBase: nobs
 Base.ndims(x::PathNode) = Colon()
-StatsBase.nobs(a::PathNode) = length(a.data)
-StatsBase.nobs(a::PathNode, ::Type{ObsDim.Last}) = nobs(a)
+nobs(a::PathNode) = length(a.data)
+```
+```@setup mill
+import StatsBase: nobs
+Base.ndims(x::PathNode) = Colon()
+nobs(a::PathNode) = length(a.data)
+```
 
-function Base.reduce(::typeof(Mill.catobs), as::Vector{T}) where {T<:PathNode}
+concatenation:
+
+```@example mill
+function Base.reduce(::typeof(catobs), as::Vector{T}) where {T <: PathNode}
     data = reduce(vcat, [x.data for x in as])
     metadata = reduce(catobs, [a.metadata for a in as])
     PathNode(data, metadata)
 end
-
-Base.getindex(x::PathNode, i::VecOrRange{<:Int}) = PathNode(subset(x.data, i), subset(x.metadata, i))
 ```
 
-Similarly, we define a `ModelNode` which will be a counterpart processing the data. Note that the part of the `ModelNode` is a function which converts the pathanme string to `Matrix` (or other Mill structures). Again, we add a support for pretty printing.
+and indexing:
+
+```@example mill
+Base.getindex(x::PathNode, i::Mill.VecOrRange{<:Int}) = PathNode(subset(x.data, i), subset(x.metadata, i))
+```
+
+The last touch is to add the definition needed by `HierarchicalUtils.jl`:
 
 ```julia
-struct PathModel{T,F} <: AbstractMillModel
+import HierarchicalUtils
+HierarchicalUtils.NodeType(::Type{<:PathNode}) = HierarchicalUtils.LeafNode()
+HierarchicalUtils.noderepr(n::PathNode) = "PathNode ($(nobs(n)) obs)"
+```
+```@setup mill
+import HierarchicalUtils
+HierarchicalUtils.NodeType(::Type{<:PathNode}) = HierarchicalUtils.LeafNode()
+HierarchicalUtils.noderepr(n::PathNode) = "PathNode ($(nobs(n)) obs)"
+```
+
+Now, we are ready to create the first `PathNode`:
+
+```@repl mill
+ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
+```
+
+Similarly, we define a `ModelNode` type which will be a counterpart processing the data:
+
+```@example mill
+struct PathModel{T, F} <: AbstractMillModel
     m::T
     path2mill::F
 end
 
 Flux.@functor PathModel
-
-(m::PathModel)(x::PathNode)  = m.m(m.path2mill(x))
-
-function Mill.modelprint(io::IO, m::PathModel; pad=[], s="", tr=false)
-    c = COLORS[(length(pad)%length(COLORS))+1]
-    paddedprint(io, "PathModel$(tr_repr(s, tr))\n", color=c)
-    paddedprint(io, "  └── ", color=c, pad=pad)
-    modelprint(io, m.m, pad=[pad; (c, "      ")])
-end
 ```
 
-Finally, let's define function path2mill, which converts
-a list of strings to Mill internal structure.
+Note that the part of the `ModelNode` is a function which converts the pathname string to a `Mill.jl` structure. For simplicity, we use a trivial `NGramMatrix` representation in this example and define `path2mill` as follows:
+
 ```julia
 function path2mill(s::String)
-	ss = String.(split(s, "/"))
-	BagNode(ArrayNode(Mill.NGramMatrix(ss, 3, 256, 2053)), AlignedBags([1:length(ss)]))
+    ss = String.(split(s, "/"))
+    BagNode(ArrayNode(Mill.NGramMatrix(ss, 3)), AlignedBags([1:length(ss)]))
 end
 
-path2mill(ss::Vector{S}) where {S<:AbstractString} = reduce(catobs, map(path2mill, ss))
+path2mill(ss::Vector{S}) where {S <: AbstractString} = reduce(catobs, map(path2mill, ss))
 path2mill(ds::PathNode) = path2mill(ds.data)
+```
+```@setup mill
+function path2mill(s::String)
+    ss = String.(split(s, "/"))
+    BagNode(ArrayNode(Mill.NGramMatrix(ss, 3)), AlignedBags([1:length(ss)]))
+end
 
+path2mill(ss::Vector{S}) where {S <: AbstractString} = reduce(catobs, map(path2mill, ss))
+path2mill(ds::PathNode) = path2mill(ds.data)
 ```
 
-And then, let's test the solution
+Now we define how the model node is applied:
 
-```julia
-ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
-pm = PathModel(reflectinmodel(path2mill(ds), d -> Dense(d, 10, relu)), path2mill)
+```@example mill
+(m::PathModel)(x::PathNode)  = m.m(m.path2mill(x))
+```
+
+And again, define everything needed in `HierarchicalUtils.jl`:
+
+```@example mill
+HierarchicalUtils.NodeType(::Type{<:PathModel}) = HierarchicalUtils.LeafNode()
+HierarchicalUtils.noderepr(n::PathModel) = "PathModel"
+```
+
+Let's test that everything works:
+
+```@repl mill
+pm = PathModel(reflectinmodel(path2mill(ds)), path2mill)
 pm(ds).data
 ```
 
-A final touch would be to overload the `reflectinmodel` as
-```julia
-function Mill.reflectinmodel(ds::PathNode, args...)
-	pm = reflectinmodel(path2mill(ds), args...)
-	PathModel(pm, path2mill)
-end
+The final touch would be to overload the `reflectinmodel` as
 
+```@example mill
+function Mill.reflectinmodel(ds::PathNode, args...)
+    pm = reflectinmodel(path2mill(ds), args...)
+    PathModel(pm, path2mill)
+end
 ```
-which can make it seamless
-```julia
-ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
-pm = reflectinmodel(ds, d -> Dense(d, 10, relu))
+
+which makes things even easier
+
+```@repl mill
+pm = reflectinmodel(ds)
 pm(ds).data
 ```

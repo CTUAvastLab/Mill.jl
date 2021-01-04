@@ -11,7 +11,7 @@ makedocs(
                                   assets = ["assets/favicon.ico", "assets/custom.css"]),
          modules = [Mill],
          pages = [
-                  "Home" => "home.md",
+                  "Home" => "index.md",
                   "Motivation" => "motivation.md",
                   "Manual" => [
                                              "Nodes" => "manual/nodes.md",
