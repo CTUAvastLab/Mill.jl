@@ -1,4 +1,4 @@
-```@setup mill 
+```@setup nodes 
 using Mill
 ```
 
@@ -18,25 +18,25 @@ Below we will go through implementation of `ArrayNode`, `BagNode` and `ProductNo
 
 `ArrayNode` thinly wraps an array of features (specifically any subtype of `AbstractArray`):
 
-```@repl mill
+```@repl nodes
 X = Float32.([1 2 3 4; 5 6 7 8])
 AN = ArrayNode(X)
 ```
 
 Similarly, `ArrayModel` wraps any function performing operation over this array. In example below, we wrap a feature matrix `X` and a `Dense` model from [`Flux.jl`](https://fluxml.ai):
 
-```@example mill
+```@example nodes
 using Flux: Dense
 ```
 
-```@repl mill
+```@repl nodes
 f = Dense(2, 3)
 AM = ArrayModel(f)
 ```
 
 We can apply the model now with `AM(AN)` to get another `ArrayNode` and verify that the feedforward layer `f` is really applied:
 
-```@repl mill
+```@repl nodes
 AM(AN)
 f(X) == AM(AN).data
 ```
@@ -46,7 +46,7 @@ f(X) == AM(AN).data
 
 The most common interpretation of the data inside `ArrayNode`s is that each column contains features of one sample and therefore the node `AN` carries `size(AN.data, 2)` samples. In this sense, `ArrayNode`s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any `AbstractNode` with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
 
-```@repl mill
+```@repl nodes
 using StatsBase: nobs
 nobs(AN)
 ```
@@ -55,26 +55,26 @@ nobs(AN)
 
 `BagNode` is represents the standard *multiple instance learning* problem, that is, each sample is a *bag* containing an arbitrary number of *instances*. In the simplest case, each instance is a vector:
 
-```@repl mill
+```@repl nodes
 BN = BagNode(AN, [1:1, 2:3, 4:4])
 ```
 
 where for simplicity we used `AN` from the previous example. Each `BagNode` carries `data` and `bags` fields:
 
-```@repl mill
+```@repl nodes
 BN.data
 BN.bags
 ```
 
 Here, `data` can be an arbitrary `AbstractNode` storing representation of instances (`ArrayNode` in this case) and `bags` field contains information, which instances belong to which bag. In this specific case `bn` stores three bags (samples). The first one consists of a single instance `{[1.0, 5.0]}` (first column of `AN`), the second one of two instances `{[2.0, 6.0], [3.0, 7.0]}`, and the last one of a single instance `{[4.0, 8.0]}`. We can see that we deal with three top-level samples (bags):
 
-```@repl mill
+```@repl nodes
 nobs(BN)
 ```
 
 whereas they are formed using four instances:
 
-```@repl mill
+```@repl nodes
 nobs(AN)
 ```
 
@@ -82,13 +82,13 @@ In `Mill.jl`, there two ways to store indices of the bag's instances:
 
     * in `AlignedBags` structure, which accepts a `Vector` of `UnitRange`s and requires all bag's instances stored continuously:
 
-```@repl mill
+```@repl nodes
 AlignedBags([1:3, 4:4, 5:6])
 ```
 
     * and in `ScatteredBags` structure, which accepts a `Vector` of `Vectors`s storing not necessarily contiguous indices:
 
-```@repl mill
+```@repl nodes
 ScatteredBags([[3, 2, 1], [4], [6, 5]])
 ```
 
@@ -98,7 +98,7 @@ The two examples above are semantically equivalent, as bags are unordered collec
 
 Each `BagNode` is processed by a `BagModel`, which contains two (sub)models and an aggregation operator:
 
-```@repl mill
+```@repl nodes
 im = ArrayModel(Dense(2, 3))
 a = SegmentedMax(3)
 bm = ArrayModel(Dense(4, 4))
@@ -107,13 +107,13 @@ BM = BagModel(im, a, bm)
 
 The first network submodel (called instance model `im`) is responsible for converting the instance representation to a vector form:
 
-```@repl mill
+```@repl nodes
 y = im(AN)
 ```
 
 Note that because of the property mentioned above, the output of instance model `im` will always be a matrix. We get four columns, one for each instance. This result is then used in `Aggregation` (`a`) which takes vector representation of all instances and produces a **single** vector per bag:
 
-```@repl mill
+```@repl nodes
 y = a(y, BN.bags)
 ```
 
@@ -122,13 +122,13 @@ y = a(y, BN.bags)
 
 Finally, `y` is then passed to a feed forward model (called bag model `bm`) producing the final output per bag. In our example we therefore get a matrix with three columns:
 
-```@repl mill
+```@repl nodes
 y = bm(y)
 ```
 
 However, the best way to use a bag model node is to simply apply it, which results into the same output:
 
-```@repl mill
+```@repl nodes
 BM(BN) == y
 ```
 
@@ -145,13 +145,13 @@ Three instances of the `BagNode` are represented by red subtrees are first mappe
 
 `ProductNode` can be thought of as a [*Cartesian Product*](https://en.wikipedia.org/wiki/Cartesian_product) or a `Dictionary`. It holds a `Tuple` or `NamedTuple` of nodes (not necessarily of the same type). For example, a `ProductNode` with a `BagNode` and `ArrayNode` as children would look like this:
 
-```@repl mill
+```@repl nodes
 PN = ProductNode((a=ArrayNode(Float32.([1 2 3; 4 5 6])), b=BN))
 ```
 
 Analogically, the `ProductModel` contains a (`Named`)`Tuple` of (sub)models processing each of its children (stored in `ms` field standing for models), as well as one more (sub)model `m`:
 
-```@repl mill
+```@repl nodes
 ms = (a=AM, b=BM)
 m = ArrayModel(Dense(7, 2))
 PM = ProductModel(ms, m)
@@ -159,13 +159,13 @@ PM = ProductModel(ms, m)
 
 Again, since the library is based on the property that the output of each model is an `ArrayNode`, the product model applies models from `ms` to appropriate children and vertically concatenates the output, which is then processed by model `m`. An example of model processing the above sample would be:
 
-```@repl mill
+```@repl nodes
 y = PM.m(vcat(PM[:a](PN[:a]), PM[:b](PN[:b])))
 ```
 
 which is equivalent to:
 
-```@repl mill
+```@repl nodes
 PM(PN) == y
 ```
 

@@ -1,4 +1,4 @@
-```@setup mill 
+```@setup aggregation 
 using Mill
 ```
 
@@ -8,7 +8,7 @@ A wrapper type `Aggregation` and all subtypes of `AggregationOperator` it wraps 
 
 Some setup:
 
-```@repl mill
+```@repl aggregation
 d = 2
 X = Float32.([1 2 3 4; 8 7 6 5])
 n = ArrayNode(X)
@@ -29,7 +29,7 @@ a_{\max}(\{x_1, \ldots, x_k\}) = \max_{i = 1, \ldots, k} x_i
 
 where ``\{x_1, \ldots, x_k\}`` are all instances of the given bag. In `Mill.jl`, the operator is constructed this way:
 
-```@repl mill
+```@repl aggregation
 a_max = SegmentedMax(d)
 ```
 
@@ -38,7 +38,7 @@ a_max = SegmentedMax(d)
 
 The application is straightforward and can be performed on both raw `AbstractArray`s or `ArrayNode`s:
 
-```@repl mill
+```@repl aggregation
 a_max(X, bags)
 a_max(n, bags)
 ```
@@ -55,7 +55,7 @@ a_{\operatorname{mean}}(\{x_1, \ldots, x_k\}) = \frac{1}{k} \sum_{i = 1}^{k} x_i
 
 and used the same way:
 
-```@repl mill
+```@repl aggregation
 a_mean = SegmentedMean(d)
 a_mean(X, bags)
 a_mean(n, bags)
@@ -80,7 +80,7 @@ a_{\operatorname{lse}}(\{x_1, \ldots, x_k\}; r) = \frac{1}{r}\log \left(\frac{1}
 
 With different values of ``r``, LSE behaves differently and in fact both max and mean operators are limiting cases of LSE. If ``r`` is very small, the output approaches simple mean, and on the other hand, if ``r`` is a large number, LSE becomes a smooth approximation of the max function. Naively implementing the definition above may lead to numerical instabilities, however, the `Mill.jl` implementation is numerically stable.
 
-```@repl mill
+```@repl aggregation
 a_lse = SegmentedLSE(d)
 a_lse(X, bags)
 ```
@@ -95,7 +95,7 @@ a_{\operatorname{pnorm}}(\{x_1, \ldots, x_k\}; p, c) = \left(\frac{1}{k} \sum_{i
 
 Again, the `Mill.jl` implementation is stable.
 
-```@repl mill
+```@repl aggregation
 a_pnorm = SegmentedPNorm(d)
 a_pnorm(X, bags)
 ```
@@ -106,14 +106,14 @@ Because all parameter constraints are included implicitly (field `\rho` in both 
 
 To use a concatenation of two or more operators, one can use an `Aggregation` constructor:
 
-```@repl mill
+```@repl aggregation
 a = Aggregation(a_mean, a_max)
 a(X, bags)
 ```
 
 For the most common combinations, `Mill.jl` provides some convenience definitions:
 
-```@repl mill
+```@repl aggregation
 SegmentedMeanMax(d)
 ```
 
@@ -131,7 +131,7 @@ a_{\operatorname{pnorm}}(\{x_i, w_i\}_{i=1}^k; p, c) = \left(\frac{1}{\sum_{i=1}
 
 This is done in `Mill.jl` by passing an additional parameter:
 
-```@repl mill
+```@repl aggregation
 w = Float32.([1.0, 0.2, 0.8, 0.5])
 a_mean(X, bags, w)
 a_pnorm(X, bags, w)
@@ -139,7 +139,7 @@ a_pnorm(X, bags, w)
 
 For `SegmentedMax` (and `SegmentedLSE`) it is possible to pass in weights, but they are ignored during computation:
 
-```@repl mill
+```@repl aggregation
 a_max(X, bags, w) == a_max(X, bags)
 ```
 
@@ -147,13 +147,13 @@ a_max(X, bags, w) == a_max(X, bags)
 
 `WeightedBagNode` is used to store instance weights into a dataset. It accepts weights in the constructor:
 
-```@repl mill
+```@repl aggregation
 wbn = WeightedBagNode(n, bags, w)
 ```
 
 and passes them to aggregation operators:
 
-```@repl mill
+```@repl aggregation
 m = reflectinmodel(wbn)
 m(wbn)
 ```
@@ -164,13 +164,13 @@ Otherwise, `WeightedBagNode` behaves exactly like the standard `BagNode`.
 
 For some problems, it may be beneficial to use the size of the bag directly and feed it to subsequent layers. Whether this is the case is controlled by `Mill.bagcount!(::Bool)` function. It is on by default, however, it was disabled at the beginning of this section for demonstration purposes. Let's turn it back on:
 
-```@repl mill
+```@repl aggregation
 Mill.bagcount!(true)
 ```
 
 In the aggregation phase, bag count appends one more element which stores the bag size to the output after all operators are applied. Furthermore, in `Mill.jl`, we opted to perform a mapping ``x \mapsto \log(x) + 1`` on top of that:
 
-```@repl mill
+```@repl aggregation
 a_mean(X, bags)
 ```
 
@@ -178,20 +178,20 @@ The matrix now has three rows, the last one storing the size of the bag.
 
 When the bag count is on, one needs to have a model accepting corresponding sizes:
 
-```@repl mill
+```@repl aggregation
 bn = BagNode(n, bags)
 bm = reflectinmodel(bn)
 ```
 
 Note that the `bm` (sub)model field of the `BagNode` has size of `(11, 10)`, `10` for aggregation output and `1` for sizes of bags.
 
-```@repl mill
+```@repl aggregation
 bm(bn)
 ```
 
 Model reflection takes bag count toggle into account. If we disable it again, `bm` (sub)model has size `(10, 10)`:
 
-```@repl mill
+```@repl aggregation
 Mill.bagcount!(false)
 bm = reflectinmodel(bn)
 ```
@@ -200,7 +200,7 @@ bm = reflectinmodel(bn)
 
 When all aggregation operators are printed, one may notice that all of them store one additional vector `ψ`. This is a vector of default parameters, initialized to all zeros, that are used for empty bags:
 
-```@repl mill
+```@repl aggregation
 bags = AlignedBags([1:1, 0:-1, 2:3, 0:-1, 4:4])
 a_mean(X, bags)
 ```

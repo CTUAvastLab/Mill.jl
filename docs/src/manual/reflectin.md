@@ -1,4 +1,4 @@
-```@setup mill 
+```@setup reflection 
 using Mill
 ```
 
@@ -6,7 +6,7 @@ using Mill
 
 Since constructions of large models can be a tedious and error-prone process, `Mill.jl` provides `reflectinmodel` function that helps to automate it. The simplest definition accepts only one argument, a sample `ds`, and returns a compatible model:
 
-```@repl mill
+```@repl reflection
 ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
                                   [1:2, 3:4, 5:5, 6:7, 8:10]),
                           ArrayNode(randn(3, 5)),
@@ -34,11 +34,11 @@ To have better control over the topology, `reflectinmodel` accepts up to two mor
 
 Compare the following example to the previous one:
 
-```@example mill
+```@example reflection
 using Flux
 ```
 
-```@repl mill
+```@repl reflection
 m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMax(d));
 printtree(m)
 
@@ -49,11 +49,11 @@ m(ds)
 
 The `reflectinmodel` allows even further customization. To index into the sample (or model), we can use `printtree(ds; trav=true)` from [HierarchicalUtils.jl](@ref) that prints the sample together with identifiers of individual nodes:
 
-```@example mill
+```@example reflection
 using HierarchicalUtils
 ```
 
-```@repl mill
+```@repl reflection
 printtree(ds; trav=true)
 ```
 
@@ -64,14 +64,14 @@ These identifiers can be used to override the default construction functions. No
 
 For example to specify just the last feed forward neural network:
 
-```@repl mill
+```@repl reflection
 reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d);
     fsm = Dict("" => d -> Chain(Dense(d, 20, relu), Dense(20, 12)))) |> printtree
 ```
 
 Both keyword arguments in action:
 
-```@repl mill
+```@repl reflection
 reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d);
     fsm = Dict("" => d -> Chain(Dense(d, 20, relu), Dense(20, 12))),
     fsa = Dict("Y" => d -> SegmentedMean(d), "g" => d -> SegmentedPNorm(d))) |> printtree

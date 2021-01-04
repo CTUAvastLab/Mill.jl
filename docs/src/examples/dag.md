@@ -13,11 +13,10 @@ gp = gplot(g; nodelabel=range('a'; length=nv(g)))
 draw(SVG("dag.svg"), gp)
 ```
 
-## Processing DAGs with `Mill.jl`
+# DAGs
 
 ```@example dag
-using Flux, Zygote
-using LightGraphs, GraphPlot
+using Flux, Zygote, LightGraphs
 ```
 Imagine a data/knowledge base represented in a form of a directed acyclic graph (DAG), where a vertex would be modelled based on its parents (and their parents), but not on its descendants. We will make one assumption (common in graphical models) that two children are independent given their parent or, in other words, once we have access to the data or inferred values of the parent, we do not have to inspect its other children.
 

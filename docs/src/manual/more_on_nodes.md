@@ -1,4 +1,4 @@
-```@setup mill 
+```@setup more_on_nodes 
 using Mill
 ```
 
@@ -9,7 +9,7 @@ The main advantage of the Mill library is that it allows to arbitrarily nest and
 
 Let's start the demonstration by nesting two MIL problems. The outer MIL model contains three samples (outer-level bags), whose instances are (inner-level) bags themselves. The first outer-level bag contains one inner-level bag problem with two inner-level instances, the second outer-level bag contains two inner-level bags with total of three inner-level instances, and finally the third outer-level bag contains two inner bags with four instances:
 
-```@repl mill
+```@repl more_on_nodes
 ds = BagNode(BagNode(ArrayNode(randn(4, 10)),
                      [1:2, 3:4, 5:5, 6:7, 8:10]),
              [1:1, 2:3, 4:5])
@@ -17,7 +17,7 @@ ds = BagNode(BagNode(ArrayNode(randn(4, 10)),
 
 Here is one example of a model, which is appropriate for this hierarchy:
 
-```@repl mill
+```@repl more_on_nodes
 using Flux: Dense, Chain, relu
 m = BagModel(
         BagModel(
@@ -30,19 +30,19 @@ m = BagModel(
 
 and can be directly applied to obtain a result:
 
-```@repl mill
+```@repl more_on_nodes
 m(ds)
 ```
 
 Here we again make use of the property that even if each instance is represented with an arbitrarily complex structure, we always obtain a vector representation after applying instance model `im`, regardless of the complexity of `im` and `ds.data`:
 
-```@repl mill
+```@repl more_on_nodes
 m.im(ds.data)
 ```
 
 In one final example we demonstrate a complex model consisting of all types of nodes introduced so far:
 
-```@repl mill
+```@repl more_on_nodes
 ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
                                   [1:2, 3:4, 5:5, 6:7, 8:10]),
                           ArrayNode(randn(3, 5)),
@@ -55,7 +55,7 @@ ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
 
 Instead of defining a model manually, we make use of [Model Reflection](@ref), another `Mill.jl` functionality, which simplifies model creation:
 
-```@repl mill
+```@repl more_on_nodes
 m = reflectinmodel(ds)
 m(ds)
 ```
@@ -64,7 +64,7 @@ m(ds)
 
 To make the handling of data and model hierarchies easier, `Mill.jl` provides several tools. Let's setup some data:
 
-```@repl mill
+```@repl more_on_nodes
 AN = ArrayNode(Float32.([1 2 3 4; 5 6 7 8]))
 AM = reflectinmodel(AN)
 BN = BagNode(AN, [1:1, 2:3, 4:4])
@@ -77,7 +77,7 @@ PM = reflectinmodel(PN)
 
 `nobs` method from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) returns a number of samples from the current level point of view. This number usually increases as we go down the tree when `BagNode`s are involved, as each bag may contain more than one instance.
 
-```@repl mill
+```@repl more_on_nodes
 using StatsBase: nobs
 nobs(AN)
 nobs(BN)
@@ -88,7 +88,7 @@ nobs(PN)
 
 Indexing in `Mill.jl` operates **on the level of observations**:
 
-```@repl mill
+```@repl more_on_nodes
 AN[1]
 nobs(ans)
 BN[2]
@@ -109,7 +109,7 @@ This may be useful for creating minibatches and their permutations.
 
 Note that apart from the perhaps apparent recurrent effect, this operation requires other implicit actions, such as properly recomputing bag indices:
 
-```@repl mill
+```@repl more_on_nodes
 BN.bags
 BN[[1, 3]].bags
 ```
@@ -118,7 +118,7 @@ BN[[1, 3]].bags
 
 `catobs` concatenates several datasets (trees) together:
 
-```@repl mill
+```@repl more_on_nodes
 catobs(AN[1], AN[4])
 catobs(BN[3], BN[[2, 1]])
 catobs(PN[[1, 2]], PN[3:4]) == PN
@@ -126,7 +126,7 @@ catobs(PN[[1, 2]], PN[3:4]) == PN
 
 Again, the effect is recurrent and everything is appropriately recomputed:
 
-```@repl mill
+```@repl more_on_nodes
 BN.bags
 catobs(BN[3], BN[[1]]).bags
 ```

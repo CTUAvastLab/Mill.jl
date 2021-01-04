@@ -1,4 +1,4 @@
-```@setup mill 
+```@setup hierarchical 
 using Mill
 using StatsBase: nobs
 ```
@@ -6,7 +6,7 @@ using StatsBase: nobs
 # HierarchicalUtils.jl
 Mill.jl uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features.
 
-```@example mill 
+```@example hierarchical 
 using HierarchicalUtils
 ```
 
@@ -14,7 +14,7 @@ using HierarchicalUtils
 
 For instance, `Base.show` with `text/plain` MIME calls `HierarchicalUtils.printtree`:
 
-```@repl mill
+```@repl hierarchical
 ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
                                   [1:2, 3:4, 5:5, 6:7, 8:10]),
                           ArrayNode(randn(3, 5)),
@@ -28,7 +28,7 @@ printtree(ds; htrunc=3)
 
 This can be used to print a non-truncated version of a model:
 
-```@repl mill
+```@repl hierarchical
 printtree(ds)
 ```
 
@@ -36,20 +36,20 @@ printtree(ds)
 
 Callling with `trav=true` enables convenient traversal functionality with string indexing:
 
-```@repl mill
+```@repl hierarchical
 m = reflectinmodel(ds)
 printtree(m; trav=true)
 ```
 
 This way any node in the model tree is swiftly accessible, which may come in handy when inspecting model parameters or simply deleting/replacing/inserting nodes to tree (for instance when constructing adversarial samples). All tree nodes are accessible by indexing with the traversal code:.
 
-```@repl mill
+```@repl hierarchical
 m["Y"]
 ```
 
 The following two approaches give the same result:
 
-```@repl mill
+```@repl hierarchical
 m["Y"] === m.im.ms[1]
 ```
 
@@ -57,7 +57,7 @@ m["Y"] === m.im.ms[1]
 
 Other functions provided by `HierarchicalUtils.jl`:
 
-```@repl mill
+```@repl hierarchical
 nnodes(ds)
 nleafs(ds)
 NodeIterator(ds) |> collect

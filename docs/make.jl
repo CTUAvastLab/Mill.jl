@@ -24,7 +24,7 @@ makedocs(
                                             ],
                   "Examples" => [
                                  # "Musk" => "examples/musk/musk.md",
-                                 "GNN in 16 lines" => "examples/graphs.md",
+                                 "GNNs in 16 lines" => "examples/graphs.md",
                                  # TODO JsonGrinder?
                                  "DAGs" => "examples/dag.md"
                                 ],
@@ -33,7 +33,8 @@ makedocs(
                                      # TODO Conveniences (Lenses)
                                      # TODO Json Grinder
                                     ],
-                  "References" => "references.md"
+                  "References" => "references.md",
+                  "Citation" => "references.md"
                  ],
 
         )
