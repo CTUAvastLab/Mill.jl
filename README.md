@@ -1,6 +1,6 @@
 <p align="center">
  <a href="https://github.com/pevnak/Mill.jl#references">
-  <img src="https://github.com/pevnak/Mill.jl/raw/master/docs/src/assets/logo.svg" alt="Mill icon"/>
+  <img src="https://github.com/pevnak/Mill.jl/raw/master/docs/src/assets/logo.svg" alt="Mill.jl logo"/>
  </a>
 </p>
 
