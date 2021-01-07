@@ -58,7 +58,7 @@ Y = mp(BagNode(U, b))
 and it is differentiable, which can be verified by executing:
 
 ```@repl gnn
-gradient(() -> sum(sin.(mp(BagNode(U, b)).data)), Flux.params(mp))`. 
+gradient(() -> sum(sin.(mp(BagNode(U, b)).data)), Flux.params(mp))
 ```
 
 If we put everything together, the GNN implementation is implemented in the following block of code (16 lines of mostly sugar).
