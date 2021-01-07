@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Data in leaves · Mill.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="Mill.jl logo"/></a><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../motivation/">Motivation</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../nodes/">Nodes</a></li><li><a class="tocitem" href="../more_on_nodes/">More on nodes</a></li><li><a class="tocitem" href="../reflectin/">Model reflection</a></li><li><a class="tocitem" href="../aggregation/">Bag aggregation</a></li><li class="is-active"><a class="tocitem" href>Data in leaves</a><ul class="internal"><li><a class="tocitem" href="#Numerical-features"><span>Numerical features</span></a></li><li><a class="tocitem" href="#Categorical-features"><span>Categorical features</span></a></li><li><a class="tocitem" href="#Strings"><span>Strings</span></a></li><li><a class="tocitem" href="#Putting-it-all-together"><span>Putting it all together</span></a></li></ul></li><li><a class="tocitem" href="../missing/">Missing data</a></li><li><a class="tocitem" href="../custom/">Custom nodes</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples/musk/musk/">Musk</a></li><li><a class="tocitem" href="../../examples/graphs/">GNNs in 16 lines</a></li><li><a class="tocitem" href="../../examples/dag/">DAGs</a></li><li><a class="tocitem" href="../../examples/jsons/">Processing JSONs</a></li></ul></li><li><span class="tocitem">External tools</span><ul><li><a class="tocitem" href="../../tools/hierarchical/">HierarchicalUtils.jl</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../references/">Citation</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>Data in leaves</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Data in leaves</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/pevnak/Mill.jl/blob/master/docs/src/manual/leaf_data.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Data-in-leaves"><a class="docs-heading-anchor" href="#Data-in-leaves">Data in leaves</a><a id="Data-in-leaves-1"></a><a class="docs-heading-anchor-permalink" href="#Data-in-leaves" title="Permalink"></a></h1><p>In <code>Mill.jl</code> tree-like data representations, there are always some raw data on the leaf level, whereas on higher levels instances are grouped into bags (<code>BagNode</code>s), and different sets are joined together with Cartesion products (<code>ProductNode</code>s) and thus more abstract concepts are created. In this section we look into several examples how the lowest-level data can be represented.</p><p>For this purpose, let&#39;s assume that we would like to identify infected computers in a network from their HTTP traffic. Since one computer can make an arbitrary number of connections during the observation period, modelling the computer as a <em>bag</em> of connections seems like the most natural approach:</p><pre><code class="language-julia-repl">julia&gt; connections = bags([1:2, 3:3, 4:7, 8:8, 9:10])
+AlignedBags(UnitRange{Int64}[1:2, 3:3, 4:7, 8:8, 9:10])</code></pre><p>Thus, each of the ten connections becomes an <em>instance</em> in one of the bags. How to represent this instance? Each HTTP flow has properties that can be expressed as standard numerical features, categorical features or strings of characters.</p><h2 id="Numerical-features"><a class="docs-heading-anchor" href="#Numerical-features">Numerical features</a><a id="Numerical-features-1"></a><a class="docs-heading-anchor-permalink" href="#Numerical-features" title="Permalink"></a></h2><p>We have already shown how to represent standard numerical features in previous parts of this manual. It is as simple as wrapping a type that behaves like a matrix into an <code>ArrayNode</code>:</p><pre><code class="language-julia-repl">julia&gt; content_lengths = [4446, 1957, 4310, 11604, 17019, 13947, 13784, 15495, 3888, 11853]
+10-element Array{Int64,1}:
+  4446
+  1957
+  4310
+ 11604
+ 17019
+ 13947
+ 13784
+ 15495
+  3888
+ 11853
+
+julia&gt; dates = [1435420950, 1376190532, 1316869962, 1302775198, 1555598383,
+                1562237892, 1473173059, 1325242539, 1508048391, 1532722821]
+10-element Array{Int64,1}:
+ 1435420950
+ 1376190532
+ 1316869962
+ 1302775198
+ 1555598383
+ 1562237892
+ 1473173059
+ 1325242539
+ 1508048391
+ 1532722821
+
+julia&gt; numerical_node = ArrayNode([content_lengths&#39;; dates&#39;])
+2×10 ArrayNode{Array{Int64,2},Nothing}:
+       4446        1957        4310  …       15495        3888       11853
+ 1435420950  1376190532  1316869962     1325242539  1508048391  1532722821</code></pre><p>We use <code>Content-Length</code>  and <code>Date</code> request headers, the latter converted to Unix timestamp.</p><h2 id="Categorical-features"><a class="docs-heading-anchor" href="#Categorical-features">Categorical features</a><a id="Categorical-features-1"></a><a class="docs-heading-anchor-permalink" href="#Categorical-features" title="Permalink"></a></h2><p>For categorical variables, we proceed in the same way, but we use one-hot encoding implemented in <a href="https://fluxml.ai"><code>Flux.jl</code></a>. This way, we can encode for example a verb of the request:</p><pre><code class="language-julia-repl">julia&gt; using Flux
+
+julia&gt; ALL_VERBS = [&quot;GET&quot;, &quot;HEAD&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;] # etc...
+5-element Array{String,1}:
+ &quot;GET&quot;
+ &quot;HEAD&quot;
+ &quot;POST&quot;
+ &quot;PUT&quot;
+ &quot;DELETE&quot;
+
+julia&gt; verbs = [&quot;GET&quot;, &quot;GET&quot;, &quot;POST&quot;, &quot;HEAD&quot;, &quot;HEAD&quot;, &quot;HEAD&quot;, &quot;HEAD&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;PUT&quot;]
+10-element Array{String,1}:
+ &quot;GET&quot;
+ &quot;GET&quot;
+ &quot;POST&quot;
+ &quot;HEAD&quot;
+ &quot;HEAD&quot;
+ &quot;HEAD&quot;
+ &quot;HEAD&quot;
+ &quot;PUT&quot;
+ &quot;DELETE&quot;
+ &quot;PUT&quot;
+
+julia&gt; verb_node = ArrayNode(Flux.onehotbatch(verbs, ALL_VERBS))
+5×10 ArrayNode{Flux.OneHotMatrix{Array{Flux.OneHotVector,1}},Nothing}:
+ 1  1  0  0  0  0  0  0  0  0
+ 0  0  0  1  1  1  1  0  0  0
+ 0  0  1  0  0  0  0  0  0  0
+ 0  0  0  0  0  0  0  1  0  1
+ 0  0  0  0  0  0  0  0  1  0</code></pre><p>or <code>Content-Encoding</code> header:</p><pre><code class="language-julia-repl">julia&gt; ALL_ENCODINGS = [&quot;bzip2&quot;, &quot;gzip&quot;, &quot;xz&quot;, &quot;identity&quot;] # etc...
+4-element Array{String,1}:
+ &quot;bzip2&quot;
+ &quot;gzip&quot;
+ &quot;xz&quot;
+ &quot;identity&quot;
+
+julia&gt; encodings = [&quot;xz&quot;, &quot;gzip&quot;, &quot;bzip2&quot;, &quot;xz&quot;, &quot;identity&quot;, &quot;bzip2&quot;, &quot;identity&quot;, &quot;identity&quot;, &quot;xz&quot;, &quot;xz&quot;]
+10-element Array{String,1}:
+ &quot;xz&quot;
+ &quot;gzip&quot;
+ &quot;bzip2&quot;
+ &quot;xz&quot;
+ &quot;identity&quot;
+ &quot;bzip2&quot;
+ &quot;identity&quot;
+ &quot;identity&quot;
+ &quot;xz&quot;
+ &quot;xz&quot;
+
+julia&gt; encoding_node = ArrayNode(Flux.onehotbatch(encodings, ALL_ENCODINGS))
+4×10 ArrayNode{Flux.OneHotMatrix{Array{Flux.OneHotVector,1}},Nothing}:
+ 0  0  1  0  0  1  0  0  0  0
+ 0  1  0  0  0  0  0  0  0  0
+ 1  0  0  1  0  0  0  0  1  1
+ 0  0  0  0  1  0  1  1  0  0</code></pre><p>Because <code>Flux.OneHotMatrix</code> supports multiplication it is possible to wrap it into an <code>ArrayNode</code>.</p><h2 id="Strings"><a class="docs-heading-anchor" href="#Strings">Strings</a><a id="Strings-1"></a><a class="docs-heading-anchor-permalink" href="#Strings" title="Permalink"></a></h2><p>The last example we will consider are string features. This could for example be the <code>Host</code> header:</p><pre><code class="language-julia-repl">julia&gt; hosts = [
+           &quot;www.foo.com&quot;,
+           &quot;www.foo.com&quot;,
+           &quot;www.baz.com&quot;,
+           &quot;www.foo.com&quot;,
+           &quot;www.baz.com&quot;,
+           &quot;www.foo.com&quot;,
+           &quot;www.baz.com&quot;,
+           &quot;www.baz.com&quot;,
+           &quot;www.bar.com&quot;,
+           &quot;www.baz.com&quot;,
+       ]
+10-element Array{String,1}:
+ &quot;www.foo.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.bar.com&quot;
+ &quot;www.baz.com&quot;</code></pre><p><code>Mill.jl</code> offers <code>n</code>gram histogram-based representation for strings. To get started, we pass the vector of strings into the constructor of <code>NGramMatrix</code>:</p><pre><code class="language-julia-repl">julia&gt; hosts_ngrams = NGramMatrix(hosts, 3, 256, 7)
+7×10 NGramMatrix{String,Array{String,1},Int64}:
+ &quot;www.foo.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.bar.com&quot;
+ &quot;www.baz.com&quot;</code></pre><p>Each string gets processed into <code>n</code>grams (trigram in this case as specified in the first parameter). Then, each character is transformed into an integer via the <code>codeunits</code> function and the whole trigram is interpreted as a three digit number using a base <code>b</code> specified in the second parameter. Here, we use a base of <code>256</code>, which is the most reasonable choice for ascii URLs. For example, for <code>foo</code> trigram, we obtain:</p><pre><code class="language-julia-repl">julia&gt; c = codeunits(&quot;foo&quot;)
+3-element Base.CodeUnits{UInt8,String}:
+ 0x66
+ 0x6f
+ 0x6f
+
+julia&gt; c[1] * 256^2 + c[2] * 256 + c[3]
+6713199</code></pre><p>The last step is taking the modulo of this result with respect to some prime modulo <code>m</code>, in this case <code>7</code> (last parameter in the constructor), leaving us with <code>3</code> as a result. Therefore, for this trigram <code>foo</code>, we would add <code>1</code> to the third row. We can convert this <code>NGramMatrix</code> into a sparse array and then to the standard array:</p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; hosts_dense = hosts_ngrams |&gt; SparseMatrixCSC |&gt; Matrix
+7×10 Array{Int64,2}:
+ 4  4  6  4  6  4  6  6  6  6
+ 2  2  1  2  1  2  1  1  1  1
+ 2  2  3  2  3  2  3  3  2  3
+ 1  1  0  1  0  1  0  0  1  0
+ 2  2  2  2  2  2  2  2  2  2
+ 1  1  0  1  0  1  0  0  1  0
+ 1  1  1  1  1  1  1  1  0  1</code></pre><p>Again, we get one column for each string, and the matrix has the same number of rows as modulo <code>m</code>. For each string <code>s</code>, we get <code>length(s) + n - 1</code> <code>n</code>grams:</p><pre><code class="language-julia-repl">julia&gt; sum(hosts_dense; dims=1)
+1×10 Array{Int64,2}:
+ 13  13  13  13  13  13  13  13  13  13</code></pre><p>This is because we use special abstract characters for the start and the end of the string. If we denote these <code>^</code> and <code>$</code>, respectively, from string <code>&quot;foo&quot;</code>, we get trigrams <code>^^f</code>, <code>^fo</code>, <code>foo</code>, <code>oo$</code>, <code>o$$</code>. Both string start and string end special characters have a unique mapping to integers, which can be obtained as well as set:</p><pre><code class="language-julia-repl">julia&gt; Mill.string_start_code()
+0x00
+
+julia&gt; Mill.string_end_code()
+0x00
+
+julia&gt; Mill.string_start_code!(42)
+42
+
+julia&gt; Mill.string_start_code()
+0x2a</code></pre><p><code>NGramMatrix</code> implements an efficient left-multiplication and thus can be used in <code>ArrayNode</code>:</p><pre><code class="language-julia-repl">julia&gt; host_node = ArrayNode(hosts_ngrams)
+7×10 ArrayNode{NGramMatrix{String,Array{String,1},Int64},Nothing}:
+ &quot;www.foo.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.foo.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.baz.com&quot;
+ &quot;www.bar.com&quot;
+ &quot;www.baz.com&quot;</code></pre><p><a href="manual/@ref"><code>Adding custom nodes</code></a> section shows one more slightly more complex way of processing strings, specifically Unix paths.</p><h2 id="Putting-it-all-together"><a class="docs-heading-anchor" href="#Putting-it-all-together">Putting it all together</a><a id="Putting-it-all-together-1"></a><a class="docs-heading-anchor-permalink" href="#Putting-it-all-together" title="Permalink"></a></h2><p>Now, we can finally put wrap everything into one <code>ProductNode</code>:</p><pre><code class="language-julia-repl">julia&gt; ds = ProductNode((
+           numerical=numerical_node,
+           verb=verb_node,
+           encoding=encoding_node,
+           hosts=host_node
+       ))
+ProductNode with 10 obs
+  ├─── encoding: ArrayNode(4×10 OneHotMatrix, Bool) with 10 obs
+  ├────── hosts: ArrayNode(7×10 NGramMatrix, Int64) with 10 obs
+  ├── numerical: ArrayNode(2×10 Array, Int64) with 10 obs
+  └─────── verb: ArrayNode(5×10 OneHotMatrix, Bool) with 10 obs</code></pre><p>create a model for training and compute some gradients:</p><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds)
+ProductModel … ↦ ArrayModel(Dense(40, 10))
+  ├─── encoding: ArrayModel(Dense(4, 10))
+  ├────── hosts: ArrayModel(Dense(7, 10))
+  ├── numerical: ArrayModel(Dense(2, 10))
+  └─────── verb: ArrayModel(Dense(5, 10))
+
+julia&gt; gradient(() -&gt; sum(m(ds).data), Flux.params(m))
+Grads(...)</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">Numerical features</header><div class="admonition-body"><p>To put all numerical features into one <code>ArrayNode</code> is a design choice. We could as well introduce more keys in the final <code>ProductNode</code>. The model treats these two cases differently (see <a href="manual/@ref"><code>Nodes</code></a> section).</p></div></div><p>This dummy example illustrates the versatility of <code>Mill.jl</code>. With little to no preprocessing we are able to process complex hierarchical structures and avoid manually designing feature extraction procedures. For a more involved study on processing Internet traffic with <code>Mill.jl</code>, see for example <a href="../../references/#Pevny2020">Tomáš Pevný , Marek Dědič  (2020)</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../aggregation/">« Bag aggregation</a><a class="docs-footer-nextpage" href="../missing/">Missing data »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 7 January 2021 16:07">Thursday 7 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
