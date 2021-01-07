@@ -206,3 +206,7 @@ a_mean(X, bags)
 ```
 
 See [Missing data](@ref) page for more information.
+
+```@setup aggregation
+Mill.bagcount!(true)
+```
