@@ -92,7 +92,7 @@ AlignedBags([1:3, 4:4, 5:6])
 ScatteredBags([[3, 2, 1], [4], [6, 5]])
 ```
 
-The two examples above are semantically equivalent, as bags are unordered collections of instances. An **empty** bag with no instances is in `AlignedBags` specified as an empty range `[0:-1]` and in `ScatteredBags` as an empty vector `[]`. The constructor of `BagNode` accepts directly one of these two structures and tries to automagically decide the better type in other cases.
+The two examples above are semantically equivalent, as bags are unordered collections of instances. An **empty** bag with no instances is in `AlignedBags` specified as empty range `0:-1` and in `ScatteredBags` as an empty vector `[]`. The constructor of `BagNode` accepts directly one of these two structures and tries to automagically decide the better type in other cases.
 
 ## `BagModel`
 
@@ -111,7 +111,7 @@ The first network submodel (called instance model `im`) is responsible for conve
 y = im(AN)
 ```
 
-Note that because of the property mentioned above, the output of instance model `im` will always be a matrix. We get four columns, one for each instance. This result is then used in `Aggregation` (`a`) which takes vector representation of all instances and produces a **single** vector per bag:
+Note that because of the property mentioned above, the output of instance model `im` will always be an `ArrayNode` wrapping a matrix. We get four columns, one for each instance. This result is then used in `Aggregation` (`a`) which takes vector representation of all instances and produces a **single** vector per bag:
 
 ```@repl nodes
 y = a(y, BN.bags)

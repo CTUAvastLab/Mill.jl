@@ -196,6 +196,10 @@ Mill.bagcount!(false)
 bm = reflectinmodel(bn)
 ```
 
+```@setup aggregation
+Mill.bagcount!(true)
+```
+
 ## Default aggregation values
 
 When all aggregation operators are printed, one may notice that all of them store one additional vector `ψ`. This is a vector of default parameters, initialized to all zeros, that are used for empty bags:
@@ -206,7 +210,3 @@ a_mean(X, bags)
 ```
 
 See [Missing data](@ref) page for more information.
-
-```@setup aggregation
-Mill.bagcount!(true)
-```

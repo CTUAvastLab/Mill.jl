@@ -9,7 +9,7 @@ In `Mill.jl` tree-like data representations, there are always some raw data on t
 For this purpose, let's assume that we would like to identify infected computers in a network from their HTTP traffic. Since one computer can make an arbitrary number of connections during the observation period, modelling the computer as a *bag* of connections seems like the most natural approach:
 
 ```@repl leafs
-connections = bags([1:2, 3:3, 4:7, 8:8, 9:10])
+connections = AlignedBags([1:2, 3:3, 4:7, 8:8, 9:10])
 ```
 
 Thus, each of the ten connections becomes an *instance* in one of the bags. How to represent this instance? Each HTTP flow has properties that can be expressed as standard numerical features, categorical features or strings of characters.
@@ -80,7 +80,9 @@ c = codeunits("foo")
 c[1] * 256^2 + c[2] * 256 + c[3]
 ```
 
-The last step is taking the modulo of this result with respect to some prime modulo `m`, in this case `7` (last parameter in the constructor), leaving us with `3` as a result. Therefore, for this trigram `foo`, we would add `1` to the third row. We can convert this `NGramMatrix` into a sparse array and then to the standard array:
+The last step is taking the modulo of this result with respect to some prime modulo `m`, in this case `7` (last parameter in the constructor), leaving us with `3` as a result. Therefore, for this trigram `foo`, we would add `1` to the third row[^1]. We can convert this `NGramMatrix` into a sparse array and then to the standard array:
+
+[^1]: One appropriate value for modulo `m` for real problems is `2053`
 
 ```@repl leafs
 using SparseArrays
@@ -102,9 +104,10 @@ Mill.string_start_code!(42)
 Mill.string_start_code()
 ```
 
-`NGramMatrix` implements an efficient left-multiplication and thus can be used in `ArrayNode`:
+`NGramMatrix` behaves like a matrix, implements an efficient left-multiplication and thus can be used in `ArrayNode`:
 
 ```@repl leafs
+hosts_ngrams::AbstractMatrix{Int64}
 host_node = ArrayNode(hosts_ngrams)
 ```
 

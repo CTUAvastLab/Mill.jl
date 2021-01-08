@@ -1,68 +1,181 @@
+```@setup missing
+using Mill
+```
+
 # Missing data
 
-With the latest version of Mill, it is also possible to work with missing data, replacing a missing bag with a default constant value, and even to learn this value as well. Everything is done automatically.
+One detail that was left out so far is how `Mill.jl` handles incomplete or missing data. This phenomenon is nowadays ubiquitous in many data sources and occurs due to:
 
-At the moment, Mill.jl features an initial and naive approach to missing values. We assume that `ArrayNode` have missing values replaced by zeros, which is not optimal but in many situations it works reasonably well.
+* a high price of obtaining a (part of) observation
+* information being unreachable due to privacy reasons
+* a gradual change in the definition of data being gathered
+* a faulty collection process
 
-BagNodes with missing features are indicated by Bags being set to `[0:-1]` with `missing` as a data and metadata. This can be seamlessly concatenated or sub-set, if the operation makes sense.
+and many other possible reasons. At the same time, it is wasteful to throw away the incomplete observations altogether. Thanks to the hierarchical structure of both samples and models, we can still process samples with missing information fragments at various levels of abstraction. Problems of this type can be categorized into 3 not necessarily separate types:
 
-Couple examples from unit tests. Let's define full and empty BagNode
-```
-julia> a = BagNode(ArrayNode(rand(3,4)),[1:4], nothing)
-BagNode with 1 bag(s)
-  └── ArrayNode(3, 4)
+1. Missing parts of raw-data in a leaf `ArrayNode`
+2. Empty bags with no instances in a `BagNode`
+3. And entire key missing in a `ProductNode`
 
-julia> e = BagNode(missing, AlignedBags([0:-1]), nothing)
-BagNode with 1 empty bag(s)
-```
+At the moment, `Mill.jl` is capable of handling the first two cases. The solution always involves an additional vector of parameters (denoted always by `ψ`) that are used during the model evaluation to substitue the missing values. Parameters `ψ` can be either fixed or learned during training. Everything is done automatically.
 
-We can concatenate them as follows.
-```
-julia> x = reduce(catobs,[a, e])
-BagNode with 2 bag(s)
-  └── ArrayNode(3, 4)
-```
-Notice, that the ArrayNode has still the same dimension as ArrayNode of just `a`. The missing second element, corresponding to `e` is indicated by the second bags being `0:-1` as follows:
-```
-julia> x.bags
-AlignedBags(UnitRange{Int64}[1:4, 0:-1])
+## Empty bags
+
+It may happen that some bags in the datasets are empty by definition or no associated instances were obtained during data collection. Recall, that an empty bag is specified as empty range `0:-1` in case of `AlignedBags` and as an empty vector `[]` when `ScatteredBags` are used:
+
+```@repl missing
+empty_bags_1 = AlignedBags([1:2, 0:-1, 3:5, 0:-1])
+empty_bags_2 = ScatteredBags([[1, 2], [], [3, 4, 5], []])
 ```
 
-We can get back the missing second element as
-```
-julia> x[2]
-BagNode with 1 empty bag(s)
-```
+To obtain the vector representation for a bag, be it for dircetly predicting some value or using it to represent some higher-level structures, we need to deal with these empty bags. This is done in [`Bag aggregation`](@ref). Each `AggregationOperator` carries a vector of parameters `ψ`, initialized to zeros upon creation:
 
-During forward (and backward) pass, the missing values in BagNodes are filled in aggregation by zeros. ** In order this feature to work, the `Aggregation` needs to know dimension, therefore use MissingAggregation, which can handle this.** In the future, MissingAggregation will be made default.
-
-Last but not least,
-`ProductNode`s cannot handle missing values, as the missingness is propagated to its leaves, i.e.
-```
-julia> ProductNode((a,e))
-ProductNode{2}
-  ├── BagNode with 1 bag(s)
-  │     └── ArrayNode(3, 4)
-  └── BagNode with 1 empty bag(s)
+```@repl missing
+a = SegmentedSumMax(2)
 ```
 
-## Representing missing values
-The library currently support two ways to represent bags with missing values. First one represent missing data using `missing` as `a = BagNode(missing, [0:-1])` while the second as an empty vector as `a = BagNode(zero(4,0), [0:-1])`.  While off the shelf the library supports both approaches transparently, the difference is mainly when one uses getindex, and therefore there is a switch
-`Mill.emptyismissing(false)`, which is by default false. Let me demonstrate the difference.
-```julia 
-julia> a = BagNode(ArrayNode(rand(3,2)), [1:2, 0:-1])
-BagNode with 2 bag(s)
-  └── ArrayNode(3, 2)
+When we evaluate any `BagModel`, these values are used to compute output for empty bags instead of the aggregation itself. See the demo below:
 
-julia> Mill.emptyismissing(false);
+```@repl missing
+an = ArrayNode(randn(Float32, 2, 5))
+ds = BagNode(an, empty_bags_2)
+m = BagModel(identity, a, identity)
+m(ds)
+```
 
-julia> a[2].data
-ArrayNode(3, 0)
+Vector `ψ` is learnable and therefore after training will contain a suitable representation of an empty bag for the given problem.
 
-julia> Mill.emptyismissing(true)
-true
+When a `BagNode` is entirely empty, it can be constructed with `missing` instead of a matrix wrapped in an `ArrayNode`:
 
-julia> a[2].data
+```@repl missing
+bn1 = BagNode(ArrayNode(rand(3, 4)), [1:4])
+bn2 = BagNode(missing, [0:-1])
+```
+
+and everything will work as expected. For example, we can concatenate these two:
+
+```@repl missing
+x = catobs(bn1, bn2)
+```
+
+Notice, that the resulting `ArrayNode` has still the same dimension as `ArrayNode` inside `bn1`. The emptiness of `bn2` is stored in `bags`:
+
+```@repl missing
+x.bags
+```
+
+The second element `BagNode` can be obtained again by indexing:
+
+```@repl missing
+bn1 == x[2]
+```
+
+Even though this approach of using `missing` for `data` field in `BagNodes` is the most accurate from the semantic point of view, it may cause excessive compilation, as the types will be different. Therefore, if this happens in multiple places in the sample tree, it may be better to instead use an empty matrix for type consistency:
+
+```@repl missing
+BagNode(ArrayNode(zeros(3, 0)), [0:-1])
+```
+
+Indexing behavior with respect to this can be modified with `Mill.emptyismissing!(::Bool)`, which is off by default:
+
+```@repl missing
+a = BagNode(ArrayNode(rand(3, 2)), [1:2, 0:-1, 0:-1])
+a[2:3].data
+Mill.emptyismissing!(true)
+a[2:3].data
 missing
 ```
-The advantage of the first approach, default, is that types are always the same, which is nice to the compiler (and Zygote). The advantage of the latter is that it is more compact and nicer.
+
+```@setup missing
+Mill.emptyismissing!(false)
+```
+
+## `PostImputingMatrix`
+
+Storing missing strings in `NGramMatrix` is straightforward:
+
+```@repl missing
+missing_ngrams = NGramMatrix(["foo", missing, "bar"], 3, 256, 5)
+```
+
+When some values of categorical variables are missing, `Mill.jl` defines a new type for representation:
+
+```@repl missing
+missing_categorical = maybehotbatch([missing, 2, missing], 1:5)
+```
+
+`MaybeHotMatrix` behaves similarly as `OneHotMatrix` from [`Flux.jl`](https://fluxml.ai), but it supports possibly `missing` values. In case when no values are `missing` it behaves exactly like `OneHotMatrix`:
+
+```@repl missing
+maybehotbatch([5, 2, 1], 1:5)
+```
+
+`MaybeHotMatrix` behaves like `AbstractMatrix` and supports left multiplication again:
+
+```@repl missing
+missing_categorical::AbstractMatrix{Union{Bool, Missing}}
+```
+
+Howevere, multiplying these matrices with `missing` data leads into `missing` data in the output.
+
+```@repl missing
+W = rand(2, 5)
+W * missing_ngrams
+W * missing_categorical
+```
+
+Consequently, gradient can't be computed and any model can't be trained.
+
+!!! ukn "Model debugging"
+    Flux `gradient` call returns an error like `Output should be scalar; gradients are not defined for output missing` when attempted on `missing` result. In a similar fashion as having `NaN`s in a model, this signifies that some `missing` input is not treated anywhere in the model and it propagates up.
+
+`PostImputingMatrix` is a solution for this. It can be constructed as follows:
+
+```@repl missing
+A = PostImputingMatrix(W)
+```
+
+Matrix `W` is stored inside and `A` creates one vector of parameters `ψ` of length `size(W, 1)` on top of that. Suddenly, multiplication automagically works:
+
+```@repl missing
+A * missing_ngrams
+A * missing_categorical
+```
+
+What happens under the hood is that whenever `A` encounters a `missing` column in the matrix, it fills in values from `ψ` **after** the multiplication is performed (effectively replacing all `missing` values in the result of multiplying with `W`, but implemented more efficiently). Vector `ψ` can be learned during training as well and everything works out of the box.
+
+## `PreImputingMatrix`
+
+If we have to deal with inputs where some elements of input matrix are `missing`:
+
+```@repl missing
+X = [missing 1 2; 3 missing missing]
+```
+
+we can make use of `PreImputingMatrix`:
+
+```@repl missing
+W = rand(1:2, 3, 2)
+A = PreImputingMatrix(W)
+```
+
+As opposed to `PostImputingMatrix`, `A` now stores a vector of values `ψ` with length `size(W, 2)`. When we use it for multiplication:
+
+```@repl missing
+A * X
+```
+
+what happens is that when we perform a dot product of a row of `A` and a column of `X`, we first fill in values from `ψ` into the column **before** the multiplication is performed. Again, it is possible to compute gradients with respect to all three of `W`, `ψ` and `X` and therefore learn the appropriate default values in `ψ` from the data:
+
+```@repl missing
+using Flux
+
+gradient((A, X) -> sum(A * X), A, X)
+```
+
+Model reflection takes `missing` values and types into account and creates appropriate (sub)models to handle them:
+
+```@repl missing
+ds = ProductNode(ArrayNode.((missing_ngrams, missing_categorical, X)))
+reflectinmodel(ds)
+```
