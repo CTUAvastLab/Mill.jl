@@ -32,16 +32,16 @@ BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
         └── ArrayModel(Dense(2, 10))
 julia&gt; m(ds)
 10×3 ArrayNode{Array{Float32,2},Nothing}:
-  1.3989295    0.12581187   0.36846966
-  0.37527594  -0.5885197   -0.33575663
-  0.44941336   1.7809693    1.5931605
-  1.5700852   -0.4064374    0.7481308
-  0.33273053   1.1661628    0.6247265
-  1.6981854   -1.2985631    0.43797526
-  0.18913923  -0.31964222   0.54309446
- -0.13848522   0.3613737   -0.018804397
-  0.47775722  -0.7874079    0.39971784
- -0.525369     1.5336798    0.5538756</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h2 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h2><p>To have better control over the topology, <code>reflectinmodel</code> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <code>BagModel</code> nodes (defaults to <code>d -&gt; SegmentedMean(d)</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia">using Flux</code></pre><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; SegmentedMax(d));
+  0.9814944    0.1576156     -0.6843085
+ -0.16877049  -0.16669497    -0.77342707
+ -1.2728804    0.54797894    -0.030986058
+  0.98166764   0.43635637     0.39179903
+ -0.7312504   -0.09282725    -0.4154136
+  1.7683682    0.59872466     0.52510434
+  1.1966866    0.0025861734  -0.06335324
+ -1.3821399   -0.38796687    -0.83218575
+  0.5012417    1.0457953      0.93741995
+  0.2704711   -0.047953617    0.5584939</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h2 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h2><p>To have better control over the topology, <code>reflectinmodel</code> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <code>BagModel</code> nodes (defaults to <code>d -&gt; SegmentedMean(d)</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia">using Flux</code></pre><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; SegmentedMax(d));
 
 julia&gt; printtree(m)
 BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
@@ -55,11 +55,11 @@ BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
         └── ArrayModel(Dense(2, 5, relu))
 julia&gt; m(ds)
 5×3 ArrayNode{Array{Float32,2},Nothing}:
- 0.18018368  0.0          0.15120073
- 0.3500877   0.6961727    0.71349984
- 0.0         0.34291616   0.5318639
- 0.1035245   0.038138382  0.0
- 0.86210847  0.60368323   0.83944935</code></pre><h2 id="Keyword-arguments"><a class="docs-heading-anchor" href="#Keyword-arguments">Keyword arguments</a><a id="Keyword-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Keyword-arguments" title="Permalink"></a></h2><p>The <code>reflectinmodel</code> allows even further customization. To index into the sample (or model), we can use <code>printtree(ds; trav=true)</code> from <a href="../../tools/hierarchical/#HierarchicalUtils.jl">HierarchicalUtils.jl</a> that prints the sample together with identifiers of individual nodes:</p><pre><code class="language-julia">using HierarchicalUtils</code></pre><pre><code class="language-julia-repl">julia&gt; printtree(ds; trav=true)
+ 0.7784534   0.36068535  0.83966476
+ 0.0         0.0         0.0
+ 1.0460685   0.43015486  1.1282238
+ 0.0         0.0         0.0
+ 0.28306788  0.0         0.0</code></pre><h2 id="Keyword-arguments"><a class="docs-heading-anchor" href="#Keyword-arguments">Keyword arguments</a><a id="Keyword-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Keyword-arguments" title="Permalink"></a></h2><p>The <code>reflectinmodel</code> allows even further customization. To index into the sample (or model), we can use <code>printtree(ds; trav=true)</code> from <a href="../../tools/hierarchical/#HierarchicalUtils.jl">HierarchicalUtils.jl</a> that prints the sample together with identifiers of individual nodes:</p><pre><code class="language-julia">using HierarchicalUtils</code></pre><pre><code class="language-julia-repl">julia&gt; printtree(ds; trav=true)
 BagNode with 3 obs [&quot;&quot;]
   └── ProductNode with 5 obs [&quot;U&quot;]
         ├── BagNode with 5 obs [&quot;Y&quot;]
@@ -89,4 +89,4 @@ BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Chain(Ch
         ├── BagModel … ↦ ⟨SegmentedPNorm(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
         │     └── BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(11, 5, relu))
         │           └── ArrayModel(Dense(2, 5, relu))
-        └── ArrayModel(Dense(2, 5, relu))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 7 January 2021 16:07">Thursday 7 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+        └── ArrayModel(Dense(2, 5, relu))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 8 January 2021 17:14">Friday 8 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
