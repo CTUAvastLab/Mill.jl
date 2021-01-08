@@ -63,6 +63,7 @@ export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
 export NGramMatrix, NGramIterator
 export ImputingMatrix, PreImputingMatrix, PostImputingMatrix
 export ImputingDense, PreImputingDense, PostImputingDense
+export preimputing_dense, postimputing_dense, identity_dense
 
 (::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
 
@@ -77,7 +78,7 @@ export Aggregation
 
 include("modelnodes/modelnode.jl")
 export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel
-export IdentityModel, IdentityDense, identity_model
+export IdentityModel, identity_model
 export HiddenLayerModel
 export mapactivations, reflectinmodel
 

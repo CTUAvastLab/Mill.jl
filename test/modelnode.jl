@@ -75,6 +75,40 @@ end
     @test mbca[:,3] ≈ ma
 end
 
+@testset "reflectinmodel for missing" begin
+    f = x -> reflectinmodel(ArrayNode(x)).m
+
+    x1 = maybehot(2, 1:3)
+    x2 = maybehot(missing, 1:3)
+
+    @test f(x1) isa Flux.Dense
+    @test f(x2) isa PostImputingDense
+
+    x1 = maybehotbatch([1, 2, 3], 1:3)
+    x2 = maybehotbatch([1, 2, missing], 1:3)
+    x3 = maybehotbatch(fill(missing, 3), 1:3)
+
+    @test f(x1) isa Flux.Dense
+    @test f(x2) isa PostImputingDense
+    @test f(x3) isa PostImputingDense
+
+    x1 = NGramMatrix(["a", "b", "c"])
+    x2 = NGramMatrix(["a", missing, "c"])
+    x3 = NGramMatrix(fill(missing, 3))
+
+    @test f(x1) isa Flux.Dense
+    @test f(x2) isa PostImputingDense
+    @test f(x3) isa PostImputingDense
+
+    x1 = rand([1, 2], 3, 3)
+    x2 = rand([1, 2, missing], 3, 3)
+    x3 = fill(missing, 3, 3)
+
+    @test f(x1) isa Flux.Dense
+    @test f(x2) isa PreImputingDense
+    @test f(x3) isa PreImputingDense
+end
+
 # pn.m should be identity for any product node pn with a single key
 @testset "single key dictionary reflect in model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
@@ -119,8 +153,6 @@ end
     @test m3_ski.m isa ArrayModel{<:Dense}
 end
 
-# TODO test reflect in model for imputing types
-
 # array model for matrices with one row should implement identity
 @testset "single scalar as identity" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
@@ -162,6 +194,8 @@ end
     @test m3_sci.ms[1] isa IdentityModel
     @test m3_sci.ms[2] isa ArrayModel{<:Dense}
 end
+
+
 
 # Defining this is a bad idea - in Flux all models do not implement hash
 # and == requires hash

@@ -24,6 +24,9 @@ include("pre_imputing_matrix.jl")
 include("post_imputing_matrix.jl")
 
 const ImputingMatrix{T, C, U} = Union{PreImputingMatrix{T, C, U}, PostImputingMatrix{T, C, U}}
+const PreImputingDense = Dense{T, <: PreImputingMatrix} where T
+const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
+
 _print_params(io::IO, A::PreImputingMatrix) = print_array(io, A.ψ |> permutedims)
 _print_params(io::IO, A::PostImputingMatrix) = print_array(io, A.ψ)
 
@@ -54,10 +57,10 @@ function Flux.params!(p::Params, A::ImputingMatrix, seen=IdSet())
     push!(p, A.W, A.ψ)
 end
 
-PreImputingDense(d::Dense) = Dense(PreImputingMatrix(d.W), d.b, d.σ)
-PreImputingDense(args...) = PreImputingDense(Dense(args...))
-PostImputingDense(d::Dense) = Dense(PostImputingMatrix(d.W), d.b, d.σ)
-PostImputingDense(args...) = PostImputingDense(Dense(args...))
+preimputing_dense(d::Dense) = Dense(PreImputingMatrix(d.W), d.b, d.σ)
+preimputing_dense(args...) = preimputing_dense(Dense(args...))
+postimputing_dense(d::Dense) = Dense(PostImputingMatrix(d.W), d.b, d.σ)
+postimputing_dense(args...) = postimputing_dense(Dense(args...))
 
 _name(::PreImputingMatrix) = "PreImputing"
 _name(::PostImputingMatrix) = "PostImputing"

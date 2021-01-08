@@ -566,15 +566,15 @@ end
 end
 
 @testset "Imputing Dense construction" begin
-    A = PreImputingDense(2, 3)
+    A = preimputing_dense(2, 3)
     @test size(A.W) == (3, 2)
     @test A.W isa PreImputingMatrix
 
-    A = PostImputingDense(2, 3)
+    A = postimputing_dense(2, 3)
     @test size(A.W) == (3, 2)
     @test A.W isa PostImputingMatrix
 
     d = Dense(4, 5)
-    @test PreImputingDense(d).W |> size == d.W |> size
-    @test PostImputingDense(d).W |> size == d.W |> size
+    @test preimputing_dense(d).W |> size == d.W |> size
+    @test postimputing_dense(d).W |> size == d.W |> size
 end

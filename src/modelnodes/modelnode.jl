@@ -79,26 +79,26 @@ end
 _make_imputing(x, t) = t
 _make_imputing(x, t::ArrayModel) = _make_imputing(x, t.m) |> ArrayModel
 _make_imputing(x, t::Chain) = Chain(t[1:end-1], _make_imputing(x, t[end]))
-_make_imputing(x::AbstractArray{Maybe{T}}, t::Dense) where T <: Number = PreImputingDense(t)
-_make_imputing(x::MaybeHotVector{Missing}, t::Dense) = PostImputingDense(t)
-_make_imputing(x::MaybeHotMatrix{T}, t::Dense) where T <: Integer = PostImputingDense(t)
-_make_imputing(x::NGramMatrix{Maybe{T}}, t::Dense) where T <: Sequence = PostImputingDense(t)
+_make_imputing(x::AbstractArray{Maybe{T}}, t::Dense) where T <: Number = preimputing_dense(t)
+_make_imputing(x::MaybeHotVector{Missing}, t::Dense) = postimputing_dense(t)
+_make_imputing(x::MaybeHotMatrix{Maybe{T}}, t::Dense) where T <: Integer = postimputing_dense(t)
+_make_imputing(x::NGramMatrix{Maybe{T}}, t::Dense) where T <: Sequence = postimputing_dense(t)
+
+identity_dense(x) = Dense(Matrix{Float32}(I, size(x, 1), size(x, 1)), zeros(Float32, size(x, 1)))
 
 _make_imputing(x, t::typeof(identity)) = t
 function _make_imputing(x::AbstractArray{Maybe{T}}, ::typeof(identity)) where T <: Number
-    PreImputingDense(IdentityDense(x))
+    preimputing_dense(identity_dense(x))
 end
 function _make_imputing(x::MaybeHotVector{Missing}, ::typeof(identity))
-    PostImputingDense(IdentityDense(x))
+    postimputing_dense(identity_dense(x))
 end
 function _make_imputing(x::MaybeHotMatrix{Maybe{T}}, ::typeof(identity)) where T <: Integer
-    PostImputingDense(IdentityDense(x))
+    postimputing_dense(identity_dense(x))
 end
 function _make_imputing(x::NGramMatrix{Maybe{T}}, ::typeof(identity)) where T <: Sequence
-    PostImputingDense(IdentityDense(x))
+    postimputing_dense(identity_dense(x))
 end
-
-IdentityDense(x) = Dense(Matrix{Float32}(I, size(x, 1), size(x, 1)), zeros(Float32, size(x, 1)))
 
 function _reflectinmodel(ds::LazyNode{Name}, fm, fa, fsm, fsa, s, ski, ssi) where Name
     pm, d = Mill._reflectinmodel(unpack2mill(ds), fm, fa, fsm, fsa, s * Mill.encode(1, 1), ski, ssi)
