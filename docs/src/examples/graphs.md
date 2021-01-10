@@ -94,7 +94,7 @@ zd = 10
 f(d) = Chain(Dense(d, zd, relu), Dense(zd, zd))
 agg(d) = SegmentedMeanMax(d)
 gnn = GNN(reflectinmodel(X, f, agg),
-          BagModel(f(zd), agg(zd), f(2zd)),
+          BagModel(f(zd), agg(zd), f(2zd + 1)),
           f(2zd)) 
 nothing # hide
 ```
