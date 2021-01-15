@@ -206,11 +206,11 @@ end
     Y = PreImputingMatrix(reshape(1:8, 4, 2) |> Matrix)
 
     m = preimputing_dense(1, 1)
-    @test repr(m) == "PreImputingDense(1, 1)"
+    @test repr(m) == "[pre_imputing]Dense(1, 1)"
     @test repr(m) == repr(m; context=:compact => true) == repr(MIME("text/plain"), m)
 
     m = postimputing_dense(1, 1)
-    @test repr(m) == "PostImputingDense(1, 1)"
+    @test repr(m) == "[post_imputing]Dense(1, 1)"
     @test repr(m) == repr(m; context=:compact => true) == repr(MIME("text/plain"), m)
 end
 

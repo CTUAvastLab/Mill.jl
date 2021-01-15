@@ -62,8 +62,8 @@ preimputing_dense(args...) = preimputing_dense(Dense(args...))
 postimputing_dense(d::Dense) = Dense(PostImputingMatrix(d.W), d.b, d.σ)
 postimputing_dense(args...) = postimputing_dense(Dense(args...))
 
-_name(::PreImputingMatrix) = "PreImputing"
-_name(::PostImputingMatrix) = "PostImputing"
+_name(::PreImputingMatrix) = "[pre_imputing]"
+_name(::PostImputingMatrix) = "[post_imputing]"
 function Base.show(io::IO, l::Dense{F, <:ImputingMatrix}) where F
   print(io, "$(_name(l.W))Dense(", size(l.W, 2), ", ", size(l.W, 1))
   l.σ == identity || print(io, ", ", l.σ)
