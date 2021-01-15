@@ -76,37 +76,50 @@ end
 end
 
 @testset "reflectinmodel for missing" begin
-    f = x -> reflectinmodel(ArrayNode(x)).m
+    f1 = x -> reflectinmodel(ArrayNode(x)).m
+    f2 = x -> reflectinmodel(ArrayNode(x),
+                             d->Flux.Chain(Dense(d, 10), Dense(10, 10))).m
 
     x1 = maybehot(2, 1:3)
     x2 = maybehot(missing, 1:3)
 
-    @test f(x1) isa Flux.Dense
-    @test f(x2) isa PostImputingDense
+    @test f1(x1) isa Flux.Dense
+    @test f1(x2) isa PostImputingDense
+    @test f2(x1) isa Flux.Chain
+    @test f2(x2)[1] isa PostImputingDense
 
     x1 = maybehotbatch([1, 2, 3], 1:3)
     x2 = maybehotbatch([1, 2, missing], 1:3)
     x3 = maybehotbatch(fill(missing, 3), 1:3)
 
-    @test f(x1) isa Flux.Dense
-    @test f(x2) isa PostImputingDense
-    @test f(x3) isa PostImputingDense
+    @test f1(x1) isa Flux.Dense
+    @test f1(x2) isa PostImputingDense
+    @test f1(x3) isa PostImputingDense
+    @test f2(x1) isa Flux.Chain
+    @test f2(x2)[1] isa PostImputingDense
+    @test f2(x3)[1] isa PostImputingDense
 
     x1 = NGramMatrix(["a", "b", "c"])
     x2 = NGramMatrix(["a", missing, "c"])
     x3 = NGramMatrix(fill(missing, 3))
 
-    @test f(x1) isa Flux.Dense
-    @test f(x2) isa PostImputingDense
-    @test f(x3) isa PostImputingDense
+    @test f1(x1) isa Flux.Dense
+    @test f1(x2) isa PostImputingDense
+    @test f1(x3) isa PostImputingDense
+    @test f2(x1) isa Flux.Chain
+    @test f2(x2)[1] isa PostImputingDense
+    @test f2(x3)[1] isa PostImputingDense
 
     x1 = rand([1, 2], 3, 3)
     x2 = rand([1, 2, missing], 3, 3)
     x3 = fill(missing, 3, 3)
 
-    @test f(x1) isa Flux.Dense
-    @test f(x2) isa PreImputingDense
-    @test f(x3) isa PreImputingDense
+    @test f1(x1) isa Flux.Dense
+    @test f1(x2) isa PreImputingDense
+    @test f1(x3) isa PreImputingDense
+    @test f2(x1) isa Flux.Chain
+    @test f2(x2)[1] isa PreImputingDense
+    @test f2(x3)[1] isa PreImputingDense
 end
 
 # pn.m should be identity for any product node pn with a single key
