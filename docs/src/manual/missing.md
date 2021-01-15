@@ -127,7 +127,7 @@ W * missing_categorical
 Consequently, gradient can't be computed and any model can't be trained.
 
 !!! ukn "Model debugging"
-    Flux `gradient` call returns an error like `Output should be scalar; gradients are not defined for output missing` when attempted on `missing` result. In a similar fashion as having `NaN`s in a model, this signifies that some `missing` input is not treated anywhere in the model and it propagates up.
+    Flux `gradient` call returns an error like `Output should be scalar; gradients are not defined for output missing` when attempted on `missing` result. In a similar fashion as having `NaN`s in a model, this signifies that some `missing` input is not treated anywhere in the model and it propagates up. Generally speaking, it is recommended to deal with missing values as soon as possible (on the leaf level) so that they do not propagate and cause type instabilities.
 
 `PostImputingMatrix` is a solution for this. It can be constructed as follows:
 
@@ -173,9 +173,29 @@ using Flux
 gradient((A, X) -> sum(A * X), A, X)
 ```
 
+## Model reflection with missing values
+
 Model reflection takes `missing` values and types into account and creates appropriate (sub)models to handle them:
 
 ```@repl missing
 ds = ProductNode(ArrayNode.((missing_ngrams, missing_categorical, X)))
-reflectinmodel(ds)
+m = reflectinmodel(ds)
 ```
+
+Here, `[pre_imputing]Dense` and `[post_imputing]Dense` are standard dense layers with a special matrix inside:
+
+```@repl missing
+dense = m.ms[1].m; typeof(dense.W)
+```
+
+Inside `Mill.jl` we add a special definition `Base.show` for these types for compact printing.
+
+The `reflectinmodel` method use types to determine whether imputing is needed or not. Compare the following:
+
+```@repl missing
+reflectinmodel(ArrayNode(randn(2, 3)))
+reflectinmodel(ArrayNode([1.0 2.0 missing; 4.0 missing missing]))
+reflectinmodel(ArrayNode(Matrix{Union{Missing, Float64}}(randn(2, 3))))
+```
+
+In the last case, the imputing type is returned even though there is no `missing` element in the matrix. Of course, the same applies to `MaybeHot*` types and `NGramMatrix`. This way, we can signify that even though there are no missing values in the available sample, we expect them to appear in the future and want our model compatible. If it is hard to determine this in advance a safe bet is to make all leaves in the model. The performance will not suffer because imputing types are as fast as their non-imputing counterparts on data not containing `missing` values and the only tradeoff is a slight increase in the number of parameters, some of which may never be used.
