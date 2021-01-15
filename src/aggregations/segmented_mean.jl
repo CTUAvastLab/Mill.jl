@@ -14,12 +14,12 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedMean})
     SegmentedMean(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedMean{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+function (m::SegmentedMean{T})(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
                                w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_mean_forw(x, m.ψ, bags, w)
 end
-function (m::SegmentedMean{T})(x::AbstractMatrix{T}, bags::AbstractBags,
-                               w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
+function (m::SegmentedMean{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                               w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{T}) where T
     segmented_mean_forw(x .* mask', m.ψ, bags, w)
 end
 

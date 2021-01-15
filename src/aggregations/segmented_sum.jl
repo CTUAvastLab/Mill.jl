@@ -14,12 +14,12 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedSum})
     SegmentedSum(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedSum{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+function (m::SegmentedSum{T})(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_sum_forw(x, m.ψ, bags, w)
 end
-function (m::SegmentedSum{T})(x::AbstractMatrix{T}, bags::AbstractBags,
-                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
+function (m::SegmentedSum{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{T}) where T
     segmented_sum_forw(x .* mask', m.ψ, bags, w)
 end
 

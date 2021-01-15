@@ -64,6 +64,10 @@ end
 # more stable definitions for r_map and p_map
 rrule(::typeof(softplus), x) = softplus.(x), Δ -> (NO_FIELDS, Δ .* σ.(x))
 
+# our definition of type min for Maybe{...} types
+_typemin(t) = typemin(t)
+_typemin(::Type{Maybe{T}}) where T = typemin(T)
+
 include("segmented_sum.jl")
 include("segmented_mean.jl")
 include("segmented_max.jl")

@@ -20,13 +20,14 @@ end
 r_map(ρ) = @. softplus(ρ)
 inv_r_map(r) = @. relu(r) + log1p(-exp(-abs(r)))
 
-function (m::SegmentedLSE{T})(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+function (m::SegmentedLSE{T})(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
 end
-function (m::SegmentedLSE{T})(x::AbstractMatrix{T}, bags::AbstractBags,
-                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
-    segmented_lse_forw(x .+ typemin(T) * mask', m.ψ, r_map(m.ρ), bags)
+function (m::SegmentedLSE{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{T}) where T
+    z = _typemin(T) * mask' |> typeof(x)
+    segmented_lse_forw(x .+ z, m.ψ, r_map(m.ρ), bags)
 end
 
 function _lse_precomp(x::AbstractMatrix, r, bags)

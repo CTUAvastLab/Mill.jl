@@ -24,10 +24,21 @@ p_map(ρ::AbstractArray) = p_map.(ρ)
 inv_p_map(p::T) where T = relu(p - one(T)) + log1p(-exp(-abs(p - one(T))))
 inv_p_map(ρ::AbstractArray) = inv_p_map.(ρ)
 
-(m::SegmentedPNorm)(x::Missing, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x, m.ψ, nothing, bags, w)
-(m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w=nothing) = segmented_pnorm_forw(x .- m.c, m.ψ, p_map(m.ρ), bags, w)
-function (m::SegmentedPNorm)(x::AbstractMatrix, bags::AbstractBags, w::Optional{AbstractVecOrMat}, mask::AbstractVector)
-    segmented_pnorm_forw((x.-m.c) .* mask', m.ψ, p_map(m.ρ), bags, w)
+function (m::SegmentedPNorm{T})(x::Missing, bags::AbstractBags,
+                                w::Optional{AbstractVecOrMat{T}}=nothing) where T
+    segmented_pnorm_forw(x, m.ψ, nothing, bags, w)
+end
+function (m::SegmentedPNorm{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                                w::Optional{AbstractVecOrMat{T}}=nothing) where T
+
+    z = x .- m.c |> typeof(x)
+    segmented_pnorm_forw(z, m.ψ, p_map(m.ρ), bags, w)
+end
+
+function (m::SegmentedPNorm{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                                w::Optional{AbstractVecOrMat}, mask::AbstractVector{T}) where T
+    z = (x.-m.c) .* mask' |> typeof(x)
+    segmented_pnorm_forw(z, m.ψ, p_map(m.ρ), bags, w)
 end
 
 function _pnorm_precomp(x::AbstractMatrix, bags)

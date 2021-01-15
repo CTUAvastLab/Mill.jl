@@ -196,6 +196,26 @@ end
     end
 end
 
+@testset "type stability of the output" begin
+    X1 = [1.0 2.0; 3.0 4.0] |> f32
+    X2 = [1.0 missing; 3.0 4.0] |> Matrix{Maybe{Float32}}
+    X3 = [1.0 2.0; 3.0 4.0] |> Matrix{Maybe{Float32}}
+    X4 = missing
+
+    b1 = bags([1:2])
+    b2 = bags([0:-1])
+
+    for a in [SegmentedMax(2), SegmentedSum(2), SegmentedMean(2),
+              SegmentedLSE(2), SegmentedPNorm(2), SegmentedSumMeanMaxPNormLSE(2)]
+        @test eltype(a(X1, b1)) === Float32
+        @test eltype(a(X2, b1)) === Maybe{Float32}
+        @test eltype(a(X3, b1)) === Maybe{Float32}
+        @test eltype(a(X4, b2)) === Float32
+
+        @test_throws MethodError a(randn(2, 2), b1)
+    end
+end
+
 @testset "missing values" begin
     dummy = randn(2)
     ψ = randn(2)
