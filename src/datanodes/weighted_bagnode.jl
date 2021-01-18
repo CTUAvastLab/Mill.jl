@@ -22,12 +22,12 @@ function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Int}) where 
 end
 
 function reduce(::typeof(catobs), as::Vector{T}) where {T <: WeightedBagNode}
-    data = filter(!ismissing, [x.data for x in as])
-    metadata = filter(!isnothing, [x.metadata for x in as])
-    bags = reduce(vcat, [d.bags for d in as])
-    WeightedBagNode(isempty(data) ? missing : reduce(catobs, data),
+    d = filter(!ismissing, data.(as))
+    md = filter(!isnothing, metadata.(as))
+    bags = reduce(vcat, [a.bags for a in as])
+    WeightedBagNode(isempty(d) ? missing : reduce(catobs, d),
                     bags, reduce(vcat, [a.weights for a in as]),
-            isempty(metadata) ? nothing : reduce(catobs, metadata))
+            isempty(md) ? nothing : reduce(catobs, md))
 end
 
 removeinstances(a::WeightedBagNode, mask) = WeightedBagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), subset(a.weights, findall(mask)), a.metadata)

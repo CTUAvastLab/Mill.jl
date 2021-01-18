@@ -27,9 +27,9 @@ _cattrees(as::NamedTuple) = (; [k => reduce(catobs, v) for (k,v) in pairs(as)]..
 _cattrees(as) = reduce.(catobs, as) 
 
 function reduce(::typeof(catobs), as::Vector{T}) where {T <: ProductNode}
-    data = _cattrees(HierarchicalUtils._children_pairs(as, false))
-    metadata = reduce(catobs, [a.metadata for a in as])
-    ProductNode(data, metadata)
+    d = _cattrees(HierarchicalUtils._children_pairs(as, false))
+    md = reduce(catobs, metadata.(as))
+    ProductNode(d, md)
 end
 
 Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(x.data, i), subset(x.metadata, i))

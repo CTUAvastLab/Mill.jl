@@ -22,12 +22,12 @@ function Base.getindex(x::BagNode, i::VecOrRange{<:Int})
 end
 
 function reduce(::typeof(catobs), as::Vector{T}) where {T <: BagNode}
-    data = filter(!ismissing, [x.data for x in as])
-    metadata = filter(!isnothing, [x.metadata for x in as])
-    bags = _catbags([d.bags for d in as])
-    BagNode(isempty(data) ? missing : reduce(catobs, data),
+    d = filter(!ismissing, data.(as))
+    md = filter(!isnothing, metadata.(as))
+    bags = _catbags([n.bags for n in as])
+    BagNode(isempty(d) ? missing : reduce(catobs, d),
             bags,
-            isempty(metadata) ? nothing : reduce(catobs, metadata))
+            isempty(md) ? nothing : reduce(catobs, md))
 end
 
 removeinstances(a::BagNode, mask) = BagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), a.metadata)

@@ -10,8 +10,7 @@ StatsBase.nobs(a::LazyNode) = length(a.data)
 StatsBase.nobs(a::LazyNode, ::Type{ObsDim.Last}) = nobs(a.data)
 
 function Base.reduce(::typeof(Mill.catobs), as::Vector{LazyNode{N,M}}) where {N, M}
-    data = reduce(vcat, [x.data for x in as])
-    LazyNode{N}(data)
+    LazyNode{N}(reduce(vcat, data.(as)))
 end
 
 Base.getindex(x::LazyNode{N,T}, i::VecOrRange{<:Int}) where {N,T} = LazyNode{N}(subset(x.data, i))
