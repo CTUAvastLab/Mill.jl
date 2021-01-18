@@ -59,14 +59,14 @@ end
     @test isequal(hcat(mhm, mhm2), hcat(mhvs..., mhm2))
 
     @inferred hcat(mhm)
-    @inferred catobs(mhm)
+    @inferred reduce(catobs, [mhm])
     @inferred hcat(mhm, mhm)
-    @inferred catobs(mhm, mhm)
+    @inferred reduce(catobs, [mhm, mhm])
 
     @test_throws DimensionMismatch hcat(MaybeHotVector.([1, 2], [l, l+1])...)
     @test_throws DimensionMismatch hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
-    @test_throws DimensionMismatch catobs(MaybeHotVector.([1, 2], [l, l+1])...)
-    @test_throws DimensionMismatch catobs(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
+    @test_throws DimensionMismatch reduce(catobs, MaybeHotVector.([1, 2], [l, l+1]))
+    @test_throws DimensionMismatch reduce(catobs, MaybeHotMatrix.([[1], [2, 3]], [l, l+1]))
 
     @test_throws ArgumentError reduce(hcat, MaybeHotVector[])
     @test_throws ArgumentError reduce(hcat, MaybeHotMatrix[])

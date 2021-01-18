@@ -22,7 +22,6 @@ _getindex(X::MaybeHotMatrix, ::Colon, i::Integer) = MaybeHotVector(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, i::AbstractArray) = MaybeHotMatrix(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, ::Colon) = MaybeHotMatrix(copy(X.I), X.l)
 
-Base.hcat(Xs::MaybeHotMatrix...) = reduce(hcat, collect(Xs))
 function Base.reduce(::typeof(hcat), Xs::Vector{<:MaybeHotMatrix})
     ls = unique([X.l for X in Xs])
     if length(ls) > 1
@@ -32,6 +31,8 @@ function Base.reduce(::typeof(hcat), Xs::Vector{<:MaybeHotMatrix})
     end
     MaybeHotMatrix(reduce(vcat, [X.I for X in Xs]), only(ls))
 end
+
+Base.hcat(Xs::MaybeHotMatrix...) = reduce(hcat, collect(Xs))
 
 A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))
 Zygote.@adjoint A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))

@@ -49,11 +49,11 @@ end
     @test all(catobs(e, e).data .== hcat(e.data, e.data) .== reduce(catobs, [e,e]).data)
     @test all(hcat(e, e).data .== hcat(e.data, e.data))
     @test all(vcat(e, e).data .== vcat(e.data, e.data))
-    x = ArrayNode(randn(2,3),rand(3))
-    @test catobs(x,x[0:-1]) isa ArrayNode{Array{Float64,2},Array{Float64,1}}
-    @inferred catobs(x,x[0:-1]) == [1,2,3]
-    @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Array{Float64,2},Array{Float64,1}}
-    @inferred reduce(catobs, [x, x[0:-1]]) == [1,2,3]
+    x = ArrayNode(randn(2,3), rand(2, 3))
+    @test catobs(x, x[0:-1]) isa ArrayNode{Array{Float64,2},Array{Float64,2}}
+    @inferred catobs(x, x[0:-1])
+    @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Array{Float64,2},Array{Float64,2}}
+    @inferred reduce(catobs, [x, x[0:-1]])
     @test all(cat(e, e, dims = ndims(e)).data .== hcat(e.data, e.data))
 end
 
@@ -133,13 +133,13 @@ end
     @test nobs(catobs(k,l)) == nobs(k) + nobs(l)
 
     # different tuple length
-    @test_skip @test_throws Exception catobs(f, i)
-    @test_skip @test_throws Exception reduce(catobs, [f, i])
-    @test_skip @test_throws Exception catobs(g, i)
-    @test_skip @test_throws Exception reduce(catobs, [g, i])
+    @test_throws MethodError catobs(f, i)
+    @test_throws MethodError reduce(catobs, [f, i])
+    @test_throws MethodError catobs(g, i)
+    @test_throws MethodError reduce(catobs, [g, i])
     # different content
-    @test_skip @test_throws Exception catobs(f, g)
-    @test_skip @test_throws Exception reduce(catobs, [f, g])
+    @test_throws MethodError catobs(f, g)
+    @test_throws MethodError reduce(catobs, [f, g])
 end
 
 @testset "testing BagNode indexing" begin

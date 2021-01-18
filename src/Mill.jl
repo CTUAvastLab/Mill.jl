@@ -46,17 +46,15 @@ const Optional{T} = Union{T, Nothing}
 
 StatsBase.nobs(::Missing) = nothing
 
-"""
-	catobs(xs...)
-
-	concatenates all observations from all xs together
-"""
-function catobs end
-
 include("bags.jl")
 export AlignedBags, ScatteredBags, length2bags, remapbag, bags
 
 include("threadfuns.jl")
+
+include("datanodes/datanode.jl")
+export AbstractNode, AbstractProductNode, AbstractBagNode
+export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
+export catobs, removeinstances
 
 include("matrices/matrix.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
@@ -66,11 +64,6 @@ export ImputingDense, PreImputingDense, PostImputingDense
 export preimputing_dense, postimputing_dense, identity_dense
 
 (::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
-
-include("datanodes/datanode.jl")
-export AbstractNode, AbstractProductNode, AbstractBagNode
-export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
-export catobs, removeinstances
 
 include("aggregations/aggregation.jl")
 # agg. types exported in aggregation.jl

@@ -565,7 +565,7 @@ end
     end
 end
 
-@testset "Imputing Dense construction" begin
+@testset "imputing Dense construction" begin
     A = preimputing_dense(2, 3)
     @test size(A.W) == (3, 2)
     @test A.W isa PreImputingMatrix

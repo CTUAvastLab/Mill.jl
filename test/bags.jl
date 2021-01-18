@@ -27,8 +27,8 @@ end
 end
 
 @testset "length2bags" begin
-    @test length2bags([1,3,2]).bags == [1:1,2:4,5:6]
-    @test length2bags([1,3,0,2]).bags == [1:1,2:4,0:-1,5:6]
+    @test length2bags([1, 3, 2]).bags == [1:1,2:4,5:6]
+    @test length2bags([1, 3, 0, 2]).bags == [1:1,2:4,0:-1,5:6]
     @test length2bags([2]).bags == [1:2]
     @test length2bags([1]).bags == [1:1]
     @test length2bags([0]).bags == [0:-1]
