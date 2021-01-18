@@ -49,8 +49,6 @@ StatsBase.nobs(::Missing) = nothing
 include("bags.jl")
 export AlignedBags, ScatteredBags, length2bags, remapbag, bags
 
-include("threadfuns.jl")
-
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
