@@ -3,7 +3,7 @@
 
 		replace matrices with at most `nnzrate` fraction of non-zeros with SparseMatrixCSC
 
-```juliadoctest
+```jldoctest
 julia> x = ProductNode((
 				ProductNode((
 					MatrixNode(randn(5,5)),
