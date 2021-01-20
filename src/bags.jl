@@ -8,8 +8,8 @@ struct AlignedBags <: AbstractBags
     bags::Vector{UnitRange{Int}}
 end
 
-Flux.@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
-        Base.first, Base.last, Base.iterate, Base.eltype, Base.length
+Flux.@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex,
+    Base.eachindex, Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
 AlignedBags() = AlignedBags(Vector{UnitRange{Int}}())
 AlignedBags(ks::UnitRange{Int}...) = AlignedBags(collect(ks))
@@ -36,8 +36,8 @@ struct ScatteredBags <: AbstractBags
     bags::Vector{Vector{Int}}
 end
 
-Flux.@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex, 
-        Base.first, Base.last, Base.iterate, Base.eltype, Base.length
+Flux.@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex,
+    Base.eachindex, Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
 ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
 function ScatteredBags(k::Vector{T}) where {T<:Integer}
