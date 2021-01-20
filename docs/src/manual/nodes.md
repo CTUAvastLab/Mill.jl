@@ -1,4 +1,4 @@
-```@setup nodes 
+```@setup nodes
 using Mill
 ```
 
@@ -139,7 +139,7 @@ The whole procedure is depicted in the following picture:
 Three instances of the `BagNode` are represented by red subtrees are first mapped with instance model `im`, aggregated (aggregation operator here is a concatenation of two different operators ``a_1`` and ``a_2``), and the results of aggregation are transformed with bag model `bm`.
 
 !!! ukn "Musk example"
-    Another handy feature of `Mill.jl` models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
+    Another handy feature of `Mill.jl` models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk dataset](@ref) problem.
 
 ## `ProductNodes` and `ProductModels`
 

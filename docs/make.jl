@@ -32,7 +32,7 @@ makedocs(
                                        "HierarchicalUtils.jl" => "tools/hierarchical.md",
                                       ],
                   "References" => "references.md",
-                  "Citation" => "references.md"
+                  "Citation" => "citation.md"
                  ],
 
         )

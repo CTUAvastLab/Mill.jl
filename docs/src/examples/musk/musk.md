@@ -9,7 +9,7 @@ Pkg.instantiate()
 
 # Musk dataset
 [`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using `Mill.jl`. The full example is also accessible [here](https://github.com/pevnak/Mill.jl/tree/master/docs/src/examples/musk/), as well as a Julia environment to run it.
- 
+
 For the demo, we load all dependencies:
 
 ```@example musk
@@ -77,7 +77,7 @@ evalcb = () -> @show(loss(ds, y_oh))
 opt = Flux.ADAM()
 @epochs 10 Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt, cb=throttle(evalcb, 1))
 ```
- 
+
 We can also calculate training error, which should be not so surprisingly low:
 
 ```@repl musk
