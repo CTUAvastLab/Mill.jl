@@ -56,5 +56,5 @@ function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
     else
         print(io, join(size(n.data), "×"), " ", nameof(T))
     end
-    print(io, ", ", eltype(n.data), ")")
+    print(io, " with ", eltype(n.data), " elements)")
 end

@@ -1,6 +1,6 @@
 @testset "data and model node io" begin
     an = ArrayNode(ones(2,5))
-    @test repr(an) == "ArrayNode(2×5 Array, Float64) with 5 obs"
+    @test repr(an) == "ArrayNode(2×5 Array with Float64 Elements) with 5 obs"
     @test repr(an; context=:compact => true) == "ArrayNode"
     @test repr(MIME("text/plain"), an) == 
         """
