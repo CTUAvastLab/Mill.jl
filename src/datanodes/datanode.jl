@@ -71,7 +71,9 @@ reduce(::typeof(catobs), as::Vector{<:AbstractVector}) = reduce(vcat, as)
 reduce(::typeof(catobs), as::Vector{Missing}) = missing
 reduce(::typeof(catobs), as::Vector{Nothing}) = nothing
 reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
-reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractNode = reduce(catobs, filter(!ismissing, as))
+function reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractNode
+    reduce(catobs, [a for a in as if !ismissing(a)])
+end
 
 Base.cat(as::AbstractNode...; dims=:) = reduce(catobs, collect(as))
 
