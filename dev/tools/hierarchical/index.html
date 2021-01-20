@@ -11,29 +11,29 @@ BagNode with 3 obs
   └── ProductNode with 5 obs
         ├── BagNode with 5 obs
         │     ⋮
-        ├── ArrayNode(3×5 Array, Float64) with 5 obs
+        ├── ArrayNode(3×5 Array with Float64 elements) with 5 obs
         ├── BagNode with 5 obs
         │     ⋮
-        └── ArrayNode(2×5 Array, Float64) with 5 obs
+        └── ArrayNode(2×5 Array with Float64 elements) with 5 obs
 
 julia&gt; printtree(ds; htrunc=3)
 BagNode with 3 obs
   └── ProductNode with 5 obs
         ├── BagNode with 5 obs
         │     ⋮
-        ├── ArrayNode(3×5 Array, Float64) with 5 obs
+        ├── ArrayNode(3×5 Array with Float64 elements) with 5 obs
         ├── BagNode with 5 obs
         │     ⋮
-        └── ArrayNode(2×5 Array, Float64) with 5 obs</code></pre><p>This can be used to print a non-truncated version of a model:</p><pre><code class="language-julia-repl">julia&gt; printtree(ds)
+        └── ArrayNode(2×5 Array with Float64 elements) with 5 obs</code></pre><p>This can be used to print a non-truncated version of a model:</p><pre><code class="language-julia-repl">julia&gt; printtree(ds)
 BagNode with 3 obs
   └── ProductNode with 5 obs
         ├── BagNode with 5 obs
-        │     └── ArrayNode(4×10 Array, Float64) with 10 obs
-        ├── ArrayNode(3×5 Array, Float64) with 5 obs
+        │     └── ArrayNode(4×10 Array with Float64 elements) with 10 obs
+        ├── ArrayNode(3×5 Array with Float64 elements) with 5 obs
         ├── BagNode with 5 obs
         │     └── BagNode with 15 obs
-        │           └── ArrayNode(2×30 Array, Float64) with 30 obs
-        └── ArrayNode(2×5 Array, Float64) with 5 obs</code></pre><h2 id="Traversal-encoding"><a class="docs-heading-anchor" href="#Traversal-encoding">Traversal encoding</a><a id="Traversal-encoding-1"></a><a class="docs-heading-anchor-permalink" href="#Traversal-encoding" title="Permalink"></a></h2><p>Callling with <code>trav=true</code> enables convenient traversal functionality with string indexing:</p><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds)
+        │           └── ArrayNode(2×30 Array with Float64 elements) with 30 obs
+        └── ArrayNode(2×5 Array with Float64 elements) with 5 obs</code></pre><h2 id="Traversal-encoding"><a class="docs-heading-anchor" href="#Traversal-encoding">Traversal encoding</a><a id="Traversal-encoding-1"></a><a class="docs-heading-anchor-permalink" href="#Traversal-encoding" title="Permalink"></a></h2><p>Callling with <code>trav=true</code> enables convenient traversal functionality with string indexing:</p><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds)
 BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
   └── ProductModel … ↦ ArrayModel(Dense(40, 10))
         ├── BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
@@ -66,31 +66,31 @@ julia&gt; NodeIterator(ds) |&gt; collect
  BagNode with 3 obs
  ProductNode with 5 obs
  BagNode with 5 obs
- ArrayNode(4×10 Array, Float64) with 10 obs
- ArrayNode(3×5 Array, Float64) with 5 obs
+ ArrayNode(4×10 Array with Float64 elements) with 10 obs
+ ArrayNode(3×5 Array with Float64 elements) with 5 obs
  BagNode with 5 obs
  BagNode with 15 obs
- ArrayNode(2×30 Array, Float64) with 30 obs
- ArrayNode(2×5 Array, Float64) with 5 obs
+ ArrayNode(2×30 Array with Float64 elements) with 30 obs
+ ArrayNode(2×5 Array with Float64 elements) with 5 obs
 
 julia&gt; NodeIterator(ds, m) |&gt; collect
 9-element Array{Tuple{AbstractNode,AbstractMillModel},1}:
  (BagNode with 3 obs, BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)))
  (ProductNode with 5 obs, ProductModel … ↦ ArrayModel(Dense(40, 10)))
  (BagNode with 5 obs, BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)))
- (ArrayNode(4×10 Array, Float64) with 10 obs, ArrayModel(Dense(4, 10)))
- (ArrayNode(3×5 Array, Float64) with 5 obs, ArrayModel(Dense(3, 10)))
+ (ArrayNode(4×10 Array with Float64 elements) with 10 obs, ArrayModel(Dense(4, 10)))
+ (ArrayNode(3×5 Array with Float64 elements) with 5 obs, ArrayModel(Dense(3, 10)))
  (BagNode with 5 obs, BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)))
  (BagNode with 15 obs, BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10)))
- (ArrayNode(2×30 Array, Float64) with 30 obs, ArrayModel(Dense(2, 10)))
- (ArrayNode(2×5 Array, Float64) with 5 obs, ArrayModel(Dense(2, 10)))
+ (ArrayNode(2×30 Array with Float64 elements) with 30 obs, ArrayModel(Dense(2, 10)))
+ (ArrayNode(2×5 Array with Float64 elements) with 5 obs, ArrayModel(Dense(2, 10)))
 
 julia&gt; LeafIterator(ds) |&gt; collect
 4-element Array{ArrayNode{Array{Float64,2},Nothing},1}:
- ArrayNode(4×10 Array, Float64) with 10 obs
- ArrayNode(3×5 Array, Float64) with 5 obs
- ArrayNode(2×30 Array, Float64) with 30 obs
- ArrayNode(2×5 Array, Float64) with 5 obs
+ ArrayNode(4×10 Array with Float64 elements) with 10 obs
+ ArrayNode(3×5 Array with Float64 elements) with 5 obs
+ ArrayNode(2×30 Array with Float64 elements) with 30 obs
+ ArrayNode(2×5 Array with Float64 elements) with 5 obs
 
 julia&gt; TypeIterator(BagModel, m) |&gt; collect
 4-element Array{BagModel{T,Aggregation{Float32,Tuple{SegmentedMean{Float32,Array{Float32,1}}}},ArrayModel{Flux.Dense{typeof(identity),Array{Float32,2},Array{Float32,1}}}} where T&lt;:AbstractMillModel,1}:
@@ -101,6 +101,6 @@ julia&gt; TypeIterator(BagModel, m) |&gt; collect
 
 julia&gt; PredicateIterator(x -&gt; nobs(x) ≥ 10, ds) |&gt; collect
 3-element Array{AbstractNode,1}:
- ArrayNode(4×10 Array, Float64) with 10 obs
+ ArrayNode(4×10 Array with Float64 elements) with 10 obs
  BagNode with 15 obs
- ArrayNode(2×30 Array, Float64) with 30 obs</code></pre><p>For the complete showcase of possibilites, refer to <a href="https://github.com/Sheemon7/HierarchicalUtils.jl">HierarchicalUtils.jl</a> and <a href="https://github.com/Sheemon7/HierarchicalUtils.jl/blob/master/examples/mill_integration.ipynb">this notebook</a></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../examples/jsons/">« Processing JSONs</a><a class="docs-footer-nextpage" href="../../references/">References »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 19 January 2021 13:40">Tuesday 19 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ ArrayNode(2×30 Array with Float64 elements) with 30 obs</code></pre><p>For the complete showcase of possibilites, refer to <a href="https://github.com/Sheemon7/HierarchicalUtils.jl">HierarchicalUtils.jl</a> and <a href="https://github.com/Sheemon7/HierarchicalUtils.jl/blob/master/examples/mill_integration.ipynb">this notebook</a></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../examples/jsons/">« Processing JSONs</a><a class="docs-footer-nextpage" href="../../references/">References »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 20 January 2021 18:09">Wednesday 20 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

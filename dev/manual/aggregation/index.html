@@ -83,7 +83,7 @@ julia&gt; a_pnorm(X, bags, w)
  8.0  6.21051  5.0</code></pre><p>For <code>SegmentedMax</code> (and <code>SegmentedLSE</code>) it is possible to pass in weights, but they are ignored during computation:</p><pre><code class="language-julia-repl">julia&gt; a_max(X, bags, w) == a_max(X, bags)
 true</code></pre><h3 id="WeightedBagNode"><a class="docs-heading-anchor" href="#WeightedBagNode"><code>WeightedBagNode</code></a><a id="WeightedBagNode-1"></a><a class="docs-heading-anchor-permalink" href="#WeightedBagNode" title="Permalink"></a></h3><p><code>WeightedBagNode</code> is used to store instance weights into a dataset. It accepts weights in the constructor:</p><pre><code class="language-julia-repl">julia&gt; wbn = WeightedBagNode(n, bags, w)
 WeightedBagNode with 3 obs
-  └── ArrayNode(2×4 Array, Float32) with 4 obs</code></pre><p>and passes them to aggregation operators:</p><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(wbn)
+  └── ArrayNode(2×4 Array with Float32 elements) with 4 obs</code></pre><p>and passes them to aggregation operators:</p><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(wbn)
 BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(10, 10))
   └── ArrayModel(Dense(2, 10))
 
@@ -105,7 +105,7 @@ true</code></pre><p>In the aggregation phase, bag count appends one more element
  8.0       6.5      5.0
  0.693147  1.09861  0.693147</code></pre><p>The matrix now has three rows, the last one storing the size of the bag.</p><p>When the bag count is on, one needs to have a model accepting corresponding sizes:</p><pre><code class="language-julia-repl">julia&gt; bn = BagNode(n, bags)
 BagNode with 3 obs
-  └── ArrayNode(2×4 Array, Float32) with 4 obs
+  └── ArrayNode(2×4 Array with Float32 elements) with 4 obs
 
 julia&gt; bm = reflectinmodel(bn)
 BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
@@ -132,4 +132,4 @@ julia&gt; a_mean(X, bags)
 3×5 Array{Float32,2}:
  1.0       0.0  2.5      0.0  4.0
  8.0       0.0  6.5      0.0  5.0
- 0.693147  0.0  1.09861  0.0  0.693147</code></pre><p>See <a href="../missing/#Missing-data">Missing data</a> page for more information.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reflectin/">« Model reflection</a><a class="docs-footer-nextpage" href="../leaf_data/">Data in leaves »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 19 January 2021 13:40">Tuesday 19 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ 0.693147  0.0  1.09861  0.0  0.693147</code></pre><p>See <a href="../missing/#Missing-data">Missing data</a> page for more information.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reflectin/">« Model reflection</a><a class="docs-footer-nextpage" href="../leaf_data/">Data in leaves »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 20 January 2021 18:09">Wednesday 20 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

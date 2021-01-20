@@ -12,12 +12,12 @@ julia&gt; printtree(ds)
 BagNode with 3 obs
   └── ProductNode with 5 obs
         ├── BagNode with 5 obs
-        │     └── ArrayNode(4×10 Array, Float64) with 10 obs
-        ├── ArrayNode(3×5 Array, Float64) with 5 obs
+        │     └── ArrayNode(4×10 Array with Float64 elements) with 10 obs
+        ├── ArrayNode(3×5 Array with Float64 elements) with 5 obs
         ├── BagNode with 5 obs
         │     └── BagNode with 15 obs
-        │           └── ArrayNode(2×30 Array, Float64) with 30 obs
-        └── ArrayNode(2×5 Array, Float64) with 5 obs
+        │           └── ArrayNode(2×30 Array with Float64 elements) with 30 obs
+        └── ArrayNode(2×5 Array with Float64 elements) with 5 obs
 julia&gt; m = reflectinmodel(ds);
 
 julia&gt; printtree(m)
@@ -32,16 +32,16 @@ BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
         └── ArrayModel(Dense(2, 10))
 julia&gt; m(ds)
 10×3 ArrayNode{Array{Float32,2},Nothing}:
- -1.1624684    0.6300606   -0.6249178
- -1.104118     0.94781697  -0.64960986
- -0.25364935  -0.42013624  -0.3231618
-  0.6532622   -0.34580794   0.29613823
- -2.7029984    0.89088935  -1.2680851
-  0.30804482   0.29524347   1.0148214
- -0.900098     0.86868507   0.10200991
- -0.23248015  -0.5519661   -0.09837819
- -0.09317359   0.78094596   0.35652202
-  1.1295118   -0.0341759    1.1959248</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h2 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h2><p>To have better control over the topology, <code>reflectinmodel</code> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <code>BagModel</code> nodes (defaults to <code>d -&gt; SegmentedMean(d)</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia">using Flux</code></pre><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; SegmentedMax(d));
+ -1.1624684    0.6300606    -0.62491775
+ -1.1041179    0.94781685   -0.6496098
+ -0.25364935  -0.42013618   -0.32316175
+  0.65326214  -0.34580788    0.29613832
+ -2.702998     0.8908892    -1.2680852
+  0.30804485   0.2952434     1.0148215
+ -0.9000983    0.86868495    0.10200997
+ -0.23248027  -0.55196613   -0.09837825
+ -0.09317359   0.7809459     0.356522
+  1.1295117   -0.034176018   1.1959248</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h2 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h2><p>To have better control over the topology, <code>reflectinmodel</code> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <code>BagModel</code> nodes (defaults to <code>d -&gt; SegmentedMean(d)</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia">using Flux</code></pre><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; SegmentedMax(d));
 
 julia&gt; printtree(m)
 BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
@@ -63,12 +63,12 @@ julia&gt; m(ds)
 BagNode with 3 obs [&quot;&quot;]
   └── ProductNode with 5 obs [&quot;U&quot;]
         ├── BagNode with 5 obs [&quot;Y&quot;]
-        │     └── ArrayNode(4×10 Array, Float64) with 10 obs [&quot;a&quot;]
-        ├── ArrayNode(3×5 Array, Float64) with 5 obs [&quot;c&quot;]
+        │     └── ArrayNode(4×10 Array with Float64 elements) with 10 obs [&quot;a&quot;]
+        ├── ArrayNode(3×5 Array with Float64 elements) with 5 obs [&quot;c&quot;]
         ├── BagNode with 5 obs [&quot;g&quot;]
         │     └── BagNode with 15 obs [&quot;i&quot;]
-        │           └── ArrayNode(2×30 Array, Float64) with 30 obs [&quot;j&quot;]
-        └── ArrayNode(2×5 Array, Float64) with 5 obs [&quot;k&quot;]</code></pre><p>These identifiers can be used to override the default construction functions. Note that the output, i.e. the last feed-forward network of the whole model is always tagged with an empty string <code>&quot;&quot;</code>, which simplifies putting linear layer with an appropriate output dimension on the end. Dictionaries with these overrides can be passed in as keyword arguments:</p><ul><li><code>fsm</code> overrides constructions of feed-forward models</li><li><code>fsa</code> overrides construction of aggregation functions.</li></ul><p>For example to specify just the last feed forward neural network:</p><pre><code class="language-julia-repl">julia&gt; reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; SegmentedMeanMax(d);
+        │           └── ArrayNode(2×30 Array with Float64 elements) with 30 obs [&quot;j&quot;]
+        └── ArrayNode(2×5 Array with Float64 elements) with 5 obs [&quot;k&quot;]</code></pre><p>These identifiers can be used to override the default construction functions. Note that the output, i.e. the last feed-forward network of the whole model is always tagged with an empty string <code>&quot;&quot;</code>, which simplifies putting linear layer with an appropriate output dimension on the end. Dictionaries with these overrides can be passed in as keyword arguments:</p><ul><li><code>fsm</code> overrides constructions of feed-forward models</li><li><code>fsa</code> overrides construction of aggregation functions.</li></ul><p>For example to specify just the last feed forward neural network:</p><pre><code class="language-julia-repl">julia&gt; reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; SegmentedMeanMax(d);
            fsm = Dict(&quot;&quot; =&gt; d -&gt; Chain(Dense(d, 20, relu), Dense(20, 12)))) |&gt; printtree
 BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Chain(Dense(11, 20, relu), Dense(20, 12)))
   └── ProductModel … ↦ ArrayModel(Dense(20, 5, relu))
@@ -89,4 +89,4 @@ BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Chain(De
         ├── BagModel … ↦ ⟨SegmentedPNorm(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
         │     └── BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(11, 5, relu))
         │           └── ArrayModel(Dense(2, 5, relu))
-        └── ArrayModel(Dense(2, 5, relu))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 19 January 2021 13:40">Tuesday 19 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+        └── ArrayModel(Dense(2, 5, relu))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 20 January 2021 18:09">Wednesday 20 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

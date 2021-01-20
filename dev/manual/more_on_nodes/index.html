@@ -4,7 +4,7 @@
                     [1:1, 2:3, 4:5])
 BagNode with 3 obs
   └── BagNode with 5 obs
-        └── ArrayNode(4×10 Array, Float64) with 10 obs</code></pre><p>Here is one example of a model, which is appropriate for this hierarchy:</p><pre><code class="language-julia-repl">julia&gt; using Flux: Dense, Chain, relu
+        └── ArrayNode(4×10 Array with Float64 elements) with 10 obs</code></pre><p>Here is one example of a model, which is appropriate for this hierarchy:</p><pre><code class="language-julia-repl">julia&gt; using Flux: Dense, Chain, relu
 
 julia&gt; m = BagModel(
                BagModel(
@@ -34,10 +34,10 @@ BagNode with 3 obs
   └── ProductNode with 5 obs
         ├── BagNode with 5 obs
         │     ⋮
-        ├── ArrayNode(3×5 Array, Float64) with 5 obs
+        ├── ArrayNode(3×5 Array with Float64 elements) with 5 obs
         ├── BagNode with 5 obs
         │     ⋮
-        └── ArrayNode(2×5 Array, Float64) with 5 obs</code></pre><p>Instead of defining a model manually, we make use of <a href="../reflectin/#Model-Reflection">Model Reflection</a>, another <code>Mill.jl</code> functionality, which simplifies model creation:</p><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds)
+        └── ArrayNode(2×5 Array with Float64 elements) with 5 obs</code></pre><p>Instead of defining a model manually, we make use of <a href="../reflectin/#Model-Reflection">Model Reflection</a>, another <code>Mill.jl</code> functionality, which simplifies model creation:</p><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds)
 BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
   └── ProductModel … ↦ ArrayModel(Dense(40, 10))
         ├── BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
@@ -49,16 +49,16 @@ BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
 
 julia&gt; m(ds)
 10×3 ArrayNode{Array{Float32,2},Nothing}:
-  1.3831487   -0.2409555   -0.40149727
-  0.8374549    0.4080901    1.1996047
- -0.43692645  -0.6002705    0.019279217
+  1.3831486   -0.24095549  -0.40149727
+  0.8374548    0.4080902    1.1996046
+ -0.43692654  -0.6002705    0.019279217
   1.8935834    0.32626203   1.4072508
-  3.3818069    1.1654363    1.5356437
-  0.06321351   0.369103     0.2351225
-  1.2313914    0.68867177   1.2076397
- -1.1170274   -0.46266142  -0.40617085
- -0.35389987  -0.455404    -0.46926305
- -0.4495539    0.918085    -1.0534985</code></pre><h2 id="Node-conveniences"><a class="docs-heading-anchor" href="#Node-conveniences">Node conveniences</a><a id="Node-conveniences-1"></a><a class="docs-heading-anchor-permalink" href="#Node-conveniences" title="Permalink"></a></h2><p>To make the handling of data and model hierarchies easier, <code>Mill.jl</code> provides several tools. Let&#39;s setup some data:</p><pre><code class="language-julia-repl">julia&gt; AN = ArrayNode(Float32.([1 2 3 4; 5 6 7 8]))
+  3.381807     1.1654363    1.5356436
+  0.06321342   0.3691029    0.2351225
+  1.2313915    0.68867177   1.2076397
+ -1.1170274   -0.46266136  -0.40617093
+ -0.35389996  -0.4554041   -0.46926305
+ -0.44955373   0.918085    -1.0534984</code></pre><h2 id="Node-conveniences"><a class="docs-heading-anchor" href="#Node-conveniences">Node conveniences</a><a id="Node-conveniences-1"></a><a class="docs-heading-anchor-permalink" href="#Node-conveniences" title="Permalink"></a></h2><p>To make the handling of data and model hierarchies easier, <code>Mill.jl</code> provides several tools. Let&#39;s setup some data:</p><pre><code class="language-julia-repl">julia&gt; AN = ArrayNode(Float32.([1 2 3 4; 5 6 7 8]))
 2×4 ArrayNode{Array{Float32,2},Nothing}:
  1.0  2.0  3.0  4.0
  5.0  6.0  7.0  8.0
@@ -68,7 +68,7 @@ ArrayModel(Dense(2, 10))
 
 julia&gt; BN = BagNode(AN, [1:1, 2:3, 4:4])
 BagNode with 3 obs
-  └── ArrayNode(2×4 Array, Float32) with 4 obs
+  └── ArrayNode(2×4 Array with Float32 elements) with 4 obs
 
 julia&gt; BM = reflectinmodel(BN)
 BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
@@ -76,9 +76,9 @@ BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
 
 julia&gt; PN = ProductNode((a=ArrayNode(Float32.([1 2 3; 4 5 6])), b=BN))
 ProductNode with 3 obs
-  ├── a: ArrayNode(2×3 Array, Float32) with 3 obs
+  ├── a: ArrayNode(2×3 Array with Float32 elements) with 3 obs
   └── b: BagNode with 3 obs
-           └── ArrayNode(2×4 Array, Float32) with 4 obs
+           └── ArrayNode(2×4 Array with Float32 elements) with 4 obs
 
 julia&gt; PM = reflectinmodel(PN)
 ProductModel … ↦ ArrayModel(Dense(20, 10))
@@ -103,16 +103,16 @@ julia&gt; nobs(ans)
 
 julia&gt; BN[2]
 BagNode with 1 obs
-  └── ArrayNode(2×2 Array, Float32) with 2 obs
+  └── ArrayNode(2×2 Array with Float32 elements) with 2 obs
 
 julia&gt; nobs(ans)
 1
 
 julia&gt; PN[3]
 ProductNode with 1 obs
-  ├── a: ArrayNode(2×1 Array, Float32) with 1 obs
+  ├── a: ArrayNode(2×1 Array with Float32 elements) with 1 obs
   └── b: BagNode with 1 obs
-           └── ArrayNode(2×1 Array, Float32) with 1 obs
+           └── ArrayNode(2×1 Array with Float32 elements) with 1 obs
 
 julia&gt; nobs(ans)
 1
@@ -127,25 +127,25 @@ julia&gt; nobs(ans)
 
 julia&gt; BN[1:2]
 BagNode with 2 obs
-  └── ArrayNode(2×3 Array, Float32) with 3 obs
+  └── ArrayNode(2×3 Array with Float32 elements) with 3 obs
 
 julia&gt; nobs(ans)
 2
 
 julia&gt; PN[[2, 3]]
 ProductNode with 2 obs
-  ├── a: ArrayNode(2×2 Array, Float32) with 2 obs
+  ├── a: ArrayNode(2×2 Array with Float32 elements) with 2 obs
   └── b: BagNode with 2 obs
-           └── ArrayNode(2×3 Array, Float32) with 3 obs
+           └── ArrayNode(2×3 Array with Float32 elements) with 3 obs
 
 julia&gt; nobs(ans)
 2
 
 julia&gt; PN[Int[]]
 ProductNode with 0 obs
-  ├── a: ArrayNode(2×0 Array, Float32) with 0 obs
+  ├── a: ArrayNode(2×0 Array with Float32 elements) with 0 obs
   └── b: BagNode with 0 obs
-           └── ArrayNode(2×0 Array, Float32) with 0 obs
+           └── ArrayNode(2×0 Array with Float32 elements) with 0 obs
 
 julia&gt; nobs(ans)
 0</code></pre><p>This may be useful for creating minibatches and their permutations.</p><p>Note that apart from the perhaps apparent recurrent effect, this operation requires other implicit actions, such as properly recomputing bag indices:</p><pre><code class="language-julia-repl">julia&gt; BN.bags
@@ -159,11 +159,11 @@ AlignedBags(UnitRange{Int64}[1:1, 2:2])</code></pre><h3 id="Concatenation"><a cl
 
 julia&gt; catobs(BN[3], BN[[2, 1]])
 BagNode with 3 obs
-  └── ArrayNode(2×4 Array, Float32) with 4 obs
+  └── ArrayNode(2×4 Array with Float32 elements) with 4 obs
 
 julia&gt; catobs(PN[[1, 2]], PN[3:4]) == PN
 ERROR: BoundsError: attempt to access 2×3 Array{Float32,2} at index [1:2, 3:4]</code></pre><p>Again, the effect is recurrent and everything is appropriately recomputed:</p><pre><code class="language-julia-repl">julia&gt; BN.bags
 AlignedBags(UnitRange{Int64}[1:1, 2:3, 4:4])
 
 julia&gt; catobs(BN[3], BN[[1]]).bags
-AlignedBags(UnitRange{Int64}[1:1, 2:2])</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">More tips</header><div class="admonition-body"><p>For more tips for handling datasets and models, see <a href="manual/@ref">External tools</a></p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nodes/">« Nodes</a><a class="docs-footer-nextpage" href="../reflectin/">Model reflection »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 19 January 2021 13:40">Tuesday 19 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+AlignedBags(UnitRange{Int64}[1:1, 2:2])</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">More tips</header><div class="admonition-body"><p>For more tips for handling datasets and models, see <a href="manual/@ref">External tools</a></p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nodes/">« Nodes</a><a class="docs-footer-nextpage" href="../reflectin/">Model reflection »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 20 January 2021 18:09">Wednesday 20 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

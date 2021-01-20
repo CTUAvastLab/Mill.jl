@@ -46,7 +46,7 @@ using Base.Iterators: repeated</code></pre><p>and then load the dataset and tran
  92
  92</code></pre><p>The resulting <code>BagNode</code> is a structure which holds (i) feature matrix and (ii) ranges identifying which columns in the feature matrix each bag spans. This representation ensures that feed-forward networks do not need to deal with bag boundaries and always process full continuous matrices:</p><pre><code class="language-julia-repl">julia&gt; ds = BagNode(ArrayNode(fMat), bagids)     # create a BagNode dataset
 BagNode with 92 obs
-  └── ArrayNode(166×476 Array, Float32) with 476 obs</code></pre><ul><li>the label of each instance in <code>y</code>.  The label of a bag is a maximum of labels of its instances, i.e. one positive instance in a bag makes it positive:</li></ul><pre><code class="language-julia-repl">julia&gt; y = load(&quot;musk.jld2&quot;, &quot;y&quot;)                # load labels
+  └── ArrayNode(166×476 Array with Float32 elements) with 476 obs</code></pre><ul><li>the label of each instance in <code>y</code>.  The label of a bag is a maximum of labels of its instances, i.e. one positive instance in a bag makes it positive:</li></ul><pre><code class="language-julia-repl">julia&gt; y = load(&quot;musk.jld2&quot;, &quot;y&quot;)                # load labels
 476-element Array{Int64,1}:
  1
  1
@@ -113,31 +113,22 @@ Flux.Optimise.ADAM(0.001, (0.9, 0.999), IdDict{Any,Any}())
 julia&gt; @epochs 10 Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt, cb=throttle(evalcb, 1))
 [ Info: Epoch 1
 loss(ds, y_oh) = 88.723656f0
-loss(ds, y_oh) = 0.18873441f0
 [ Info: Epoch 2
-loss(ds, y_oh) = 0.18634564f0
-loss(ds, y_oh) = 0.18278275f0
+loss(ds, y_oh) = 0.18634427f0
 [ Info: Epoch 3
-loss(ds, y_oh) = 0.18276416f0
-loss(ds, y_oh) = 0.18274108f0
+loss(ds, y_oh) = 0.1827641f0
 [ Info: Epoch 4
-loss(ds, y_oh) = 0.18275471f0
-loss(ds, y_oh) = 0.18272875f0
+loss(ds, y_oh) = 0.1827545f0
 [ Info: Epoch 5
-loss(ds, y_oh) = 0.1827279f0
-loss(ds, y_oh) = 0.18272431f0
+loss(ds, y_oh) = 0.18272792f0
 [ Info: Epoch 6
-loss(ds, y_oh) = 0.18272384f0
-loss(ds, y_oh) = 0.102396145f0
+loss(ds, y_oh) = 0.18272388f0
 [ Info: Epoch 7
-loss(ds, y_oh) = 0.1023905f0
-loss(ds, y_oh) = 0.10238242f0
+loss(ds, y_oh) = 0.043205682f0
 [ Info: Epoch 8
-loss(ds, y_oh) = 0.10238332f0
-loss(ds, y_oh) = 0.102380484f0
+loss(ds, y_oh) = 0.04315707f0
 [ Info: Epoch 9
-loss(ds, y_oh) = 0.10237893f0
-loss(ds, y_oh) = 0.04490776f0
+loss(ds, y_oh) = 0.043156262f0
 [ Info: Epoch 10
-loss(ds, y_oh) = 0.04456219f0</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
-0.010869565217391304</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 19 January 2021 13:40">Tuesday 19 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+loss(ds, y_oh) = 0.043155767f0</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
+0.010869565217391304</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 20 January 2021 18:09">Wednesday 20 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

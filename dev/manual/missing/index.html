@@ -13,7 +13,7 @@ Aggregation{Float32}:
 
 julia&gt; ds = BagNode(an, empty_bags_2)
 BagNode with 4 obs
-  └── ArrayNode(2×5 Array, Float32) with 5 obs
+  └── ArrayNode(2×5 Array with Float32 elements) with 5 obs
 
 julia&gt; m = BagModel(identity, a, identity)
 BagModel … ↦ ⟨SegmentedSum(2), SegmentedMax(2)⟩ ↦ ArrayModel(identity)
@@ -27,19 +27,18 @@ julia&gt; m(ds)
  1.0984185   0.0   1.2546335  0.0
  1.0986123   0.0   1.3862944  0.0</code></pre><p>Vector <code>ψ</code> is learnable and therefore after training will contain a suitable representation of an empty bag for the given problem.</p><p>When a <code>BagNode</code> is entirely empty, it can be constructed with <code>missing</code> instead of a matrix wrapped in an <code>ArrayNode</code>:</p><pre><code class="language-julia-repl">julia&gt; bn1 = BagNode(ArrayNode(rand(3, 4)), [1:4])
 BagNode with 1 obs
-  └── ArrayNode(3×4 Array, Float64) with 4 obs
+  └── ArrayNode(3×4 Array with Float64 elements) with 4 obs
 
 julia&gt; bn2 = BagNode(missing, [0:-1])
 BagNode with 1 obs
   └── ∅</code></pre><p>and everything will work as expected. For example, we can concatenate these two:</p><pre><code class="language-julia-repl">julia&gt; x = catobs(bn1, bn2)
-BagNode with 2 obs
-  └── ArrayNode(3×4 Array, Float64) with 4 obs</code></pre><p>Notice, that the resulting <code>ArrayNode</code> has still the same dimension as <code>ArrayNode</code> inside <code>bn1</code>. The emptiness of <code>bn2</code> is stored in <code>bags</code>:</p><pre><code class="language-julia-repl">julia&gt; x.bags
-AlignedBags(UnitRange{Int64}[1:4, 0:-1])</code></pre><p>The second element <code>BagNode</code> can be obtained again by indexing:</p><pre><code class="language-julia-repl">julia&gt; bn1 == x[2]
-false</code></pre><p>Even though this approach of using <code>missing</code> for <code>data</code> field in <code>BagNodes</code> is the most accurate from the semantic point of view, it may cause excessive compilation, as the types will be different. Therefore, if this happens in multiple places in the sample tree, it may be better to instead use an empty matrix for type consistency:</p><pre><code class="language-julia-repl">julia&gt; BagNode(ArrayNode(zeros(3, 0)), [0:-1])
+ERROR: StackOverflowError:</code></pre><p>Notice, that the resulting <code>ArrayNode</code> has still the same dimension as <code>ArrayNode</code> inside <code>bn1</code>. The emptiness of <code>bn2</code> is stored in <code>bags</code>:</p><pre><code class="language-julia-repl">julia&gt; x.bags
+ERROR: UndefVarError: x not defined</code></pre><p>The second element <code>BagNode</code> can be obtained again by indexing:</p><pre><code class="language-julia-repl">julia&gt; bn1 == x[2]
+ERROR: UndefVarError: x not defined</code></pre><p>Even though this approach of using <code>missing</code> for <code>data</code> field in <code>BagNodes</code> is the most accurate from the semantic point of view, it may cause excessive compilation, as the types will be different. Therefore, if this happens in multiple places in the sample tree, it may be better to instead use an empty matrix for type consistency:</p><pre><code class="language-julia-repl">julia&gt; BagNode(ArrayNode(zeros(3, 0)), [0:-1])
 BagNode with 1 obs
-  └── ArrayNode(3×0 Array, Float64) with 0 obs</code></pre><p>Indexing behavior with respect to this can be modified with <code>Mill.emptyismissing!(::Bool)</code>, which is off by default:</p><pre><code class="language-julia-repl">julia&gt; a = BagNode(ArrayNode(rand(3, 2)), [1:2, 0:-1, 0:-1])
+  └── ArrayNode(3×0 Array with Float64 elements) with 0 obs</code></pre><p>How indexing behaves with respect to this issue depends on a global switch (off by default) and  can be changed with the <a href="manual/@ref"><code>Mill.emptyismissing!</code></a> function:</p><pre><code class="language-julia-repl">julia&gt; a = BagNode(ArrayNode(rand(3, 2)), [1:2, 0:-1, 0:-1])
 BagNode with 3 obs
-  └── ArrayNode(3×2 Array, Float64) with 2 obs
+  └── ArrayNode(3×2 Array with Float64 elements) with 2 obs
 
 julia&gt; a[2:3].data
 3×0 ArrayNode{Array{Float64,2},Nothing}
@@ -128,9 +127,9 @@ W:
 julia&gt; gradient((A, X) -&gt; sum(A * X), A, X)
 ((W = [3 3; 3 3; 3 3], ψ = [5; 8]), [0 5 5; 4 0 0])</code></pre><h2 id="Model-reflection-with-missing-values"><a class="docs-heading-anchor" href="#Model-reflection-with-missing-values">Model reflection with missing values</a><a id="Model-reflection-with-missing-values-1"></a><a class="docs-heading-anchor-permalink" href="#Model-reflection-with-missing-values" title="Permalink"></a></h2><p>Model reflection takes <code>missing</code> values and types into account and creates appropriate (sub)models to handle them:</p><pre><code class="language-julia-repl">julia&gt; ds = ProductNode(ArrayNode.((missing_ngrams, missing_categorical, X)))
 ProductNode with 3 obs
-  ├── ArrayNode(5×3 NGramMatrix, Union{Missing, Int64}) with 3 obs
-  ├── ArrayNode(5×3 MaybeHotMatrix, Union{Missing, Bool}) with 3 obs
-  └── ArrayNode(2×3 Array, Union{Missing, Int64}) with 3 obs
+  ├── ArrayNode(5×3 NGramMatrix with Union{Missing, Int64} elements) with 3 obs
+  ├── ArrayNode(5×3 MaybeHotMatrix with Union{Missing, Bool} elements) with 3 obs
+  └── ArrayNode(2×3 Array with Union{Missing, Int64} elements) with 3 obs
 
 julia&gt; m = reflectinmodel(ds)
 ProductModel … ↦ ArrayModel(Dense(30, 10))
@@ -144,4 +143,4 @@ julia&gt; reflectinmodel(ArrayNode([1.0 2.0 missing; 4.0 missing missing]))
 ArrayModel([pre_imputing]Dense(2, 10))
 
 julia&gt; reflectinmodel(ArrayNode(Matrix{Union{Missing, Float64}}(randn(2, 3))))
-ArrayModel([pre_imputing]Dense(2, 10))</code></pre><p>In the last case, the imputing type is returned even though there is no <code>missing</code> element in the matrix. Of course, the same applies to <code>MaybeHot*</code> types and <code>NGramMatrix</code>. This way, we can signify that even though there are no missing values in the available sample, we expect them to appear in the future and want our model compatible. If it is hard to determine this in advance a safe bet is to make all leaves in the model. The performance will not suffer because imputing types are as fast as their non-imputing counterparts on data not containing <code>missing</code> values and the only tradeoff is a slight increase in the number of parameters, some of which may never be used.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../leaf_data/">« Data in leaves</a><a class="docs-footer-nextpage" href="../custom/">Custom nodes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 19 January 2021 13:40">Tuesday 19 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ArrayModel([pre_imputing]Dense(2, 10))</code></pre><p>In the last case, the imputing type is returned even though there is no <code>missing</code> element in the matrix. Of course, the same applies to <code>MaybeHot*</code> types and <code>NGramMatrix</code>. This way, we can signify that even though there are no missing values in the available sample, we expect them to appear in the future and want our model compatible. If it is hard to determine this in advance a safe bet is to make all leaves in the model. The performance will not suffer because imputing types are as fast as their non-imputing counterparts on data not containing <code>missing</code> values and the only tradeoff is a slight increase in the number of parameters, some of which may never be used.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../leaf_data/">« Data in leaves</a><a class="docs-footer-nextpage" href="../custom/">Custom nodes »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 20 January 2021 18:09">Wednesday 20 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
