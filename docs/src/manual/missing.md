@@ -76,7 +76,8 @@ Even though this approach of using `missing` for `data` field in `BagNodes` is t
 BagNode(ArrayNode(zeros(3, 0)), [0:-1])
 ```
 
-Indexing behavior with respect to this can be modified with `Mill.emptyismissing!(::Bool)`, which is off by default:
+How indexing behaves with respect to this issue depends on a global switch (off by default) and 
+can be changed with the [`Mill.emptyismissing!`](@ref) function:
 
 ```@repl missing
 a = BagNode(ArrayNode(rand(3, 2)), [1:2, 0:-1, 0:-1])

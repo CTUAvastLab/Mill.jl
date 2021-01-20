@@ -14,14 +14,14 @@ makedocs(
                   "Home" => "index.md",
                   "Motivation" => "motivation.md",
                   "Manual" => [
-                                             "Nodes" => "manual/nodes.md",
-                                             "More on nodes" => "manual/more_on_nodes.md",
-                                             "Model reflection" => "manual/reflectin.md",
-                                             "Bag aggregation" => "manual/aggregation.md",
-                                             "Data in leaves" => "manual/leaf_data.md",
-                                             "Missing data" => "manual/missing.md",
-                                             "Custom nodes" => "manual/custom.md"
-                                            ],
+                               "Nodes" => "manual/nodes.md",
+                               "More on nodes" => "manual/more_on_nodes.md",
+                               "Model reflection" => "manual/reflectin.md",
+                               "Bag aggregation" => "manual/aggregation.md",
+                               "Data in leaves" => "manual/leaf_data.md",
+                               "Missing data" => "manual/missing.md",
+                               "Custom nodes" => "manual/custom.md"
+                              ],
                   "Examples" => [
                                  "Musk" => "examples/musk/musk.md",
                                  "GNNs in 16 lines" => "examples/graphs.md",
@@ -29,8 +29,8 @@ makedocs(
                                  "Processing JSONs" => "examples/jsons.md"
                                 ],
                   "External tools" => [
-                                     "HierarchicalUtils.jl" => "tools/hierarchical.md",
-                                    ],
+                                       "HierarchicalUtils.jl" => "tools/hierarchical.md",
+                                      ],
                   "References" => "references.md",
                   "Citation" => "references.md"
                  ],

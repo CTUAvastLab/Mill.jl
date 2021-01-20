@@ -40,9 +40,7 @@ concatenation:
 
 ```@example custom
 function Base.reduce(::typeof(catobs), as::Vector{T}) where {T <: PathNode}
-    data = reduce(vcat, [x.data for x in as])
-    metadata = reduce(catobs, [a.metadata for a in as])
-    PathNode(data, metadata)
+    PathNode(data, reduce(vcat, data.(as)), reduce(catobs, metadata.(as)))
 end
 ```
 
