@@ -413,3 +413,9 @@ end
         # end
     end
 end
+
+@testset "_typemin" begin
+    @test Mill._typemin(Int) == typemin(Int)
+    @test Mill._typemin(Missing) |> ismissing
+    @test Mill._typemin(Union{Missing, Int}) == typemin(Int)
+end

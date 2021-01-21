@@ -208,8 +208,6 @@ end
     @test m3_sci.ms[2] isa ArrayModel{<:Dense}
 end
 
-
-
 # Defining this is a bad idea - in Flux all models do not implement hash
 # and == requires hash
 # it may break AD
