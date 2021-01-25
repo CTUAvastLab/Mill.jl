@@ -23,11 +23,16 @@ Base.ndims(x::AbstractProductNode) = Colon()
 StatsBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
 StatsBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
 
-_cattrees(as::NamedTuple) = (; [k => reduce(catobs, v) for (k,v) in pairs(as)]...) 
-_cattrees(as) = reduce.(catobs, as) 
+function _cattrees(as::Vector{<:Tuple})
+    @assert all(length.(as) .== length(as[1]))
+    tuple([reduce(catobs, [a[i] for a in as]) for i in eachindex(as[1])]...)
+end
+function _cattrees(as::Vector{NamedTuple{K, V}}) where {K, V}
+    (; [k => reduce(catobs, getindex.(as, k)) for k in K]...) 
+end
 
 function reduce(::typeof(catobs), as::Vector{T}) where {T <: ProductNode}
-    d = _cattrees(HierarchicalUtils._children_pairs(as, false))
+    d = _cattrees(data.(as))
     md = reduce(catobs, metadata.(as))
     ProductNode(d, md)
 end
