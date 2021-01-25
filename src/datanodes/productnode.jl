@@ -27,7 +27,7 @@ function _cattrees(as::Vector{<:Tuple})
     @assert all(length.(as) .== length(as[1]))
     tuple([reduce(catobs, [a[i] for a in as]) for i in eachindex(as[1])]...)
 end
-function _cattrees(as::Vector{NamedTuple{K, V}}) where {K, V}
+function _cattrees(as::Vector{<:NamedTuple{K}}) where K
     (; [k => reduce(catobs, getindex.(as, k)) for k in K]...) 
 end
 
