@@ -27,7 +27,7 @@ _mul(A::PreImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = 
 _mul_maybe(ψ, B) = _impute_row(ψ, B)[1]
 function rrule(::typeof(_mul_maybe), ψ, B)
     X, m = _impute_row(ψ, B)
-    X, Δ -> (NO_FIELDS, @thunk(sum(.!m .* Δ, dims=2)), @thunk(m .* Δ))
+    X, Δ -> (NO_FIELDS, @thunk(vec(sum(.!m .* Δ, dims=2))), @thunk(m .* Δ))
 end
 function _impute_row(ψ, B)
     m = .!ismissing.(B)

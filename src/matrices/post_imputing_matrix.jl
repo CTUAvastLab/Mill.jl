@@ -49,7 +49,7 @@ function rrule(::typeof(_mul_maybe_hot), W, ψ, I)
         end
         dW
     end
-    C, Δ -> (NO_FIELDS, @thunk(dW_thunk(Δ)), @thunk(sum(view(Δ, :, m), dims=2)), DoesNotExist())
+    C, Δ -> (NO_FIELDS, @thunk(dW_thunk(Δ)), @thunk(vec(sum(view(Δ, :, m), dims=2))), DoesNotExist())
 end
 function _impute_maybe_hot(W, ψ, I)
     m = trues(length(I))
@@ -76,7 +76,7 @@ function rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
         dW
     end
     _impute_ngram(W, ψ, S, n, b, m), Δ -> (NO_FIELDS, @thunk(dW_thunk(Δ)),
-                                  @thunk(sum(view(Δ, :, ismissing.(S)), dims=2)),
+                                           @thunk(vec(sum(view(Δ, :, ismissing.(S)), dims=2))),
                                   fill(DoesNotExist(), 4)...)
 end
 

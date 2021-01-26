@@ -565,6 +565,73 @@ end
     end
 end
 
+@testset "Parameters get indeed updated with Flux/Zygote" begin
+    function check(d, X, pW, pψ)
+        for opt in [Flux.Descent(), Flux.ADAM()]
+            for it in 1:3
+                dc = deepcopy(d)
+                Flux.train!(X -> sum(dc(X)), Flux.params(dc), [(X,)], opt)
+                @test any(dc.W.W .!= d.W.W) == pW
+                @test any(dc.W.ψ .!= d.W.ψ) == pψ
+            end
+        end
+    end
+
+    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
+        # https://github.com/FluxML/Flux.jl/issues/1479
+        if m == 1 || n == 1 || k == 1
+            continue
+        end
+
+        d = preimputing_dense(n, m)
+
+        # https://github.com/FluxML/Flux.jl/issues/1479
+        # check(d, randn(n), true, false)
+        # x = Vector{Union{Float64, Missing}}(randn(n))
+        # x[rand(eachindex(x), rand(1:n))] .= missing
+        # check(d, x, true, true)
+        # check(d, fill(missing, n), false, true)
+
+        check(d, randn(n, k), true, false)
+        X = Matrix{Union{Float64, Missing}}(randn(n, k))
+        X[rand(eachindex(X), rand(1:n*k))] .= missing
+        check(d, X, true, true)
+        check(d, fill(missing, n, k), false, true)
+
+        d = postimputing_dense(n, m)
+
+        S = [randstring(rand(1:1000)) for _ in 1:k]
+        X = NGramMatrix(S, 3, 256, n)
+        check(d, X, true, false)
+        if k > 1
+            S = [isodd(i) ? missing : randstring(rand(1:10)) for i in 1:k]
+            X = NGramMatrix(S, 3, 256, n)
+            check(d, X, true, true)
+        end
+        S = fill(missing, k)
+        X = NGramMatrix(S, 3, 256, n)
+        check(d, X, false, true)
+
+        # https://github.com/FluxML/Flux.jl/issues/1479
+        # x = maybehot(rand(1:n), 1:n)
+        # check(d, x, true, false)
+        # x = maybehot(missing, 1:n)
+        # check(d, x, false, true)
+
+        S = [rand(1:n) for _ in 1:k]
+        X = maybehotbatch(S, 1:n)
+        check(d, X, true, false)
+        if k > 1
+            S = [isodd(i) ? missing : rand(1:n) for i in 1:k]
+            X = maybehotbatch(S, 1:n)
+            check(d, X, true, true)
+        end
+        S = fill(missing, k)
+        X = maybehotbatch(S, 1:n)
+        check(d, X, false, true)
+    end
+end
+
 @testset "imputing Dense construction" begin
     A = preimputing_dense(2, 3)
     @test size(A.W) == (3, 2)

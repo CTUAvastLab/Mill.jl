@@ -20,7 +20,8 @@ import Base: size, length, first, last, firstindex, lastindex, eachindex, getind
 import Base: reduce, eltype, print_array
 import Base: isascii, codeunits, ncodeunits, codeunit
 
-import Flux: Dense, Chain, Params, params!, IdSet, onehot, onehotbatch
+import Flux: Dense, Chain, update!, onehot, onehotbatch
+import Flux.Optimise: apply!
 
 import ChainRulesCore: rrule
 

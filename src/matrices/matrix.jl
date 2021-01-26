@@ -51,10 +51,13 @@ function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix
     end
 end
 
-function Flux.params!(p::Params, A::ImputingMatrix, seen=IdSet())
-    A in seen && return
-    push!(seen, A)
-    push!(p, A.W, A.ψ)
+function update!(opt, x::ImputingMatrix, x̄)
+    if !isnothing(x̄.W)
+        x.W .-= apply!(opt, x.W, x̄.W)
+    end
+    if !isnothing(x̄.ψ)
+        x.ψ .-= apply!(opt, x.ψ, x̄.ψ)
+    end
 end
 
 preimputing_dense(d::Dense) = Dense(PreImputingMatrix(d.W), d.b, d.σ)
