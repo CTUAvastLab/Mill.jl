@@ -22,13 +22,13 @@ end
 
 @testset "testing simple tuple models" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    x = ProductNode((ArrayNode(randn(Float32, 3, 4)), ArrayNode(randn(Float32, 4, 4))))
+    x = ProductNode((a=ArrayNode(randn(Float32, 3, 4)), b=ArrayNode(randn(Float32, 4, 4))))
     m = reflectinmodel(x, layerbuilder)
     @test eltype(m(x).data) == Float32
     @test size(m(x).data) == (2, 4)
     @test m isa ProductModel
-    @test m.ms[1] isa ArrayModel
-    @test m.ms[2] isa ArrayModel
+    @test m.ms[:a] isa ArrayModel
+    @test m.ms[:b] isa ArrayModel
 
     x = ProductNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                   BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
@@ -125,32 +125,37 @@ end
 # pn.m should be identity for any product node pn with a single key
 @testset "single key dictionary reflect in model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    fsm = Dict("" => layerbuilder)
+
     x1 = (ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
     x2 = (a = ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
     x3 = (a = ArrayNode(randn(Float32, 3, 4)), b = ArrayNode(randn(Float32, 3, 4))) |> ProductNode
 
     m1 = reflectinmodel(x1, layerbuilder; single_key_identity=false)
     m1_ski = reflectinmodel(x1, layerbuilder; single_key_identity=true)
+    m1_ski_fsm = reflectinmodel(x1, layerbuilder; fsm=fsm, single_key_identity=true)
     m2 = reflectinmodel(x2, layerbuilder; single_key_identity=false)
     m2_ski = reflectinmodel(x2, layerbuilder; single_key_identity=true)
+    m2_ski_fsm = reflectinmodel(x2, layerbuilder; fsm=fsm, single_key_identity=true)
     m3 = reflectinmodel(x3, layerbuilder; single_key_identity=false)
     m3_ski = reflectinmodel(x3, layerbuilder; single_key_identity=true)
+    m3_ski_fsm = reflectinmodel(x3, layerbuilder; fsm=fsm, single_key_identity=true)
 
-    for m in [m1, m1_ski]
+    for m in [m1, m1_ski, m1_ski_fsm]
         @test eltype(m(x1).data) == Float32
         @test size(m(x1).data) == (2, 4)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
     end
 
-    for m in [m2, m2_ski]
+    for m in [m2, m2_ski, m2_ski_fsm]
         @test eltype(m(x2).data) == Float32
         @test size(m(x2).data) == (2, 4)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
     end
 
-    for m in [m3, m3_ski]
+    for m in [m3, m3_ski, m3_ski_fsm]
         @test eltype(m(x3).data) == Float32
         @test size(m(x3).data) == (2, 4)
         @test m isa ProductModel
@@ -164,6 +169,10 @@ end
     @test m1_ski.m isa IdentityModel
     @test m2_ski.m isa IdentityModel
     @test m3_ski.m isa ArrayModel{<:Dense}
+    # fsm overrides ski
+    @test m1_ski_fsm.m isa ArrayModel{<:Dense}
+    @test m2_ski_fsm.m isa ArrayModel{<:Dense}
+    @test m3_ski_fsm.m isa ArrayModel{<:Dense}
 end
 
 # array model for matrices with one row should implement identity

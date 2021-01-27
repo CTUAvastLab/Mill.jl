@@ -28,50 +28,46 @@ function reflectinmodel(x, fm=d->Flux.Dense(d, 10), fa=d->SegmentedMean(d); fsm=
 end
 
 function _reflectinmodel(x::AbstractBagNode, fm, fa, fsm, fsa, s, ski, ssi)
-    im, d = _reflectinmodel(x.data, fm, fa, fsm, fsa, s * encode(1, 1), ski, ssi)
     c = stringify(s)
-    agg = c in keys(fsa) ? fsa[c](d) : fa(d)
-    bm, d = _reflectinmodel(BagModel(im, agg)(x), fm, fa, fsm, fsa, s, ski, ssi)
-    BagModel(im, agg, bm), d
+    im, d = _reflectinmodel(x.data, fm, fa, fsm, fsa, s * encode(1, 1), ski, ssi)
+    agg = haskey(fsa, c) ? fsa[c](d) : fa(d)
+    d = size(BagModel(im, agg)(x).data, 1)
+    bm = haskey(fsm, c) ? fms[c](d) : fm(d)
+    m = BagModel(im, agg, bm)
+    m, size(m(x).data, 1)
 end
+
+_remap(data::NamedTuple, ms) = (; zip(keys(data), ms)...)
+_remap(::Tuple, ms) = tuple(ms...)
 
 function _reflectinmodel(x::AbstractProductNode, fm, fa, fsm, fsa, s, ski, ssi)
-    n = length(x.data)
-    ms = [_reflectinmodel(xx, fm, fa, fsm, fsa, s * encode(i, n), ski, ssi) for (i, xx) in enumerate(x.data)]
-    if ski && n == 1
-        im, d = only(ms)
-        ProductModel(im), d
-    else
-        im = tuple([i[1] for i in ms]...)
-        tm, d = _reflectinmodel(ProductModel(im)(x), fm, fa, fsm, fsa, s, ski, ssi)
-        ProductModel(im, tm), d
-    end
-end
-
-function _reflectinmodel(x::ProductNode{T}, fm, fa, fsm, fsa, s, ski, ssi) where T <: NamedTuple
+    c = stringify(s)
     n = length(x.data)
     ks = keys(x.data)
-    ms = [_reflectinmodel(x.data[k], fm, fa, fsm, fsa, s * encode(i, n), ski, ssi) for (i, k) in enumerate(ks)]
-    if ski && n == 1
-        im, d = only(ms)
-        ProductModel((; only(ks)=>im)), d
+    ms, ds = zip([_reflectinmodel(x.data[k], fm, fa, fsm, fsa, s * encode(i, n), ski, ssi)
+                  for (i, k) in enumerate(ks)]...) |> collect
+    ms = _remap(x.data, ms)
+    m = if haskey(fsm, c)
+        ArrayModel(fsm[c](sum(ds)))
+    elseif ski && n == 1
+        identity_model()
     else
-        im = (; (k=>v[1] for (k,v) in zip(ks, ms))...)
-        tm, d = _reflectinmodel(ProductModel(im)(x), fm, fa, fsm, fsa, s, ski, ssi)
-        ProductModel(im, tm), d
+        _reflectinmodel(ProductModel(ms)(x), fm, fa, fsm, fsa, s, ski, ssi)[1]
     end
+    m = ProductModel(ms, m)
+    m, size(m(x).data, 1)
 end
 
 function _reflectinmodel(x::ArrayNode, fm, fa, fsm, fsa, s, ski, ssi)
     c = stringify(s)
     r = size(x.data, 1)
-    if c in keys(fsm)
-        t = fsm[c](r) |> ArrayModel
+    t = if haskey(fsm, c)
+        fsm[c](r)
     elseif ssi && r == 1
-        t = identity_model()
+        identity
     else
-        t = fm(r) |> ArrayModel
-    end
+        fm(r)
+    end |> ArrayModel
     m = _make_imputing(x.data, t)
     m, size(m(x).data, 1)
 end
