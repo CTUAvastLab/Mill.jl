@@ -33,42 +33,49 @@ function Base.:*(A::AbstractMatrix, B::Adjoint{Bool,<: Flux.OneHotMatrix})
     Y
 end
 
-findnonempty(ds::Union{ArrayNode, LazyNode}) = nobs(ds) == 0 ? nothing : [@lens _.data]
-function findnonempty(ds::BagNode)
-    childlenses = findnonempty(ds.data)
-    isnothing(childlenses) ? childlenses : map(l -> Setfield.PropertyLens{:data}() ∘ l, childlenses)
+pred_lens(n, p::Function) = _pred_lens(n, p)
+list_lens(n) = pred_lens(n, t -> true)
+findnonempty_lens(n) = pred_lens(n, t -> t isa AbstractNode && nobs(t) > 0)
+find_lens(n, x) = pred_lens(n, t -> t === x)
+
+_pred_lens(n, p::Function) = p(n) ? [IdentityLens()] : Lens[]
+function _pred_lens(n::T, p::Function) where T <: MillStruct
+    res = vcat([map(l -> PropertyLens{k}() ∘ l, _pred_lens(getproperty(n, k), p))
+                for k in fieldnames(T)]...)
+    p(n) ? [IdentityLens(); res] : res
 end
-function findnonempty(ds::ProductNode)
-    lenses = mapreduce(vcat, keys(ds)) do k 
-        childlenses = findnonempty(ds[k])
-        isnothing(childlenses) && return childlenses
-        map(l -> Setfield.PropertyLens{:data}() ∘ (Setfield.PropertyLens{k}() ∘ l), childlenses)
-    end
-    isnothing(lenses) && return nothing
-    lenses = filter(!isnothing, lenses)
-    isempty(lenses) ? nothing : lenses
-end
-function ModelLens(model::ProductModel, lens::Setfield.ComposedLens)
-    if lens.outer == @lens _.data
-        return(Setfield.PropertyLens{:ms}() ∘ ModelLens(model.ms, lens.inner))
-    end
-    return lens
+function _pred_lens(n::Union{Tuple, NamedTuple}, p::Function)
+    vcat([map(l -> IndexLens(tuple(i)) ∘ l, _pred_lens(n[i], p)) for i in eachindex(n)]...)
 end
 
-function ModelLens(model, lens::Setfield.ComposedLens)
-    outerlens = ModelLens(model, lens.outer)
-    outerlens ∘ ModelLens(get(model, outerlens), lens.inner)
+code2lens(n::MillStruct, c::AbstractString) = find_lens(n, n[c])
+lens2code(n::MillStruct, l::Lens) = HierarchicalUtils.find_traversal(n, get(n, l))
+
+function model_lens(model, lens::ComposedLens)
+    outerlens = model_lens(model, lens.outer)
+    outerlens ∘ model_lens(get(model, outerlens), lens.inner)
 end
-ModelLens(::BagModel, lens::Setfield.PropertyLens{:data}) = @lens _.im
-ModelLens(::NamedTuple, lens::Setfield.PropertyLens) = lens
-ModelLens(::ProductModel, lens::Setfield.PropertyLens{:data}) = @lens _.ms
-ModelLens(::ArrayModel, ::Setfield.PropertyLens{:data}) = @lens _.m
+model_lens(::ArrayModel, ::PropertyLens{:data}) = @lens _.m
+model_lens(::BagModel, ::PropertyLens{:data}) = @lens _.im
+model_lens(::ProductModel, ::PropertyLens{:data}) = @lens _.ms
+model_lens(::Union{NamedTuple, Tuple}, lens::IndexLens) = lens
+model_lens(::Union{AbstractMillModel, NamedTuple, Tuple}, lens::IdentityLens) = lens
+
+function data_lens(ds, lens::ComposedLens)
+    outerlens = data_lens(ds, lens.outer)
+    outerlens ∘ data_lens(get(ds, outerlens), lens.inner)
+end
+data_lens(::ArrayNode, ::PropertyLens{:m}) = @lens _.data
+data_lens(::AbstractBagNode, ::PropertyLens{:im}) = @lens _.data
+data_lens(::AbstractProductNode, ::PropertyLens{:ms}) = @lens _.data
+data_lens(::Union{NamedTuple, Tuple}, lens::IndexLens) = lens
+data_lens(::Union{AbstractNode, NamedTuple, Tuple}, lens::IdentityLens) = lens
 
 replacein(x, oldnode, newnode) = x
 replacein(x::Tuple, oldnode, newnode) = tuple([replacein(m, oldnode, newnode) for m in x]...)
 replacein(x::NamedTuple, oldnode, newnode) = (;[k => replacein(x[k], oldnode, newnode) for k in keys(x)]...)
 
-function replacein(x::T, oldnode, newnode) where {T<:Union{AbstractNode, AbstractMillModel}}
+function replacein(x::T, oldnode, newnode) where T <: MillStruct
     x === oldnode && return(newnode)
     fields = map(f -> replacein(getproperty(x, f), oldnode, newnode), fieldnames(T))
     n = nameof(T)
@@ -77,65 +84,11 @@ function replacein(x::T, oldnode, newnode) where {T<:Union{AbstractNode, Abstrac
 end
 
 function replacein(x::LazyNode{N}, oldnode, newnode) where {N}
-    x === oldnode && return(newnode)
+    x === oldnode && return newnode
     LazyNode{N}(replacein(x.data, oldnode, newnode))
 end
 
 function replacein(x::LazyModel{N}, oldnode, newnode) where {N}
-    x === oldnode && return(newnode)
+    x === oldnode && return newnode
     LazyModel{N}(replacein(x.m, oldnode, newnode))
 end
-
-function findin(x, node)
-    x === node && return(@lens _)
-    return(nothing)
-end
-
-function findin(x::T, node) where {T<:Union{AbstractNode, AbstractMillModel}}
-    x === node && return(@lens _)
-    for k in fieldnames(T)
-        l = findin(getproperty(x, k), node)
-        if l != nothing
-            lo = Setfield.PropertyLens{k}() ∘ l
-            return(lo)
-        end
-    end
-    return(nothing)
-end
-
-function findin(x::NamedTuple, node)
-	x === node && return(@lens _)
-    for k in keys(x)
-    	l = findin(x[k], node)
-    	if l != nothing
-    		lo = Setfield.PropertyLens{k}() ∘ l
-    		return(lo)
-    	end
-    end
-    return(nothing)
-end
-
-function findin(x::Tuple, node)
-    error("findin does not support Tuples due to restrinctions of Lens from Setfield.")
-end
-
-# function findin(x::T, node) where {T<:ArrayNode}
-# 	x === node && return(@lens _)
-# 	x.data === node && return(@lens _.data)
-#     return(nothing)
-# end
-
-# function findin(x::LazyNode{N}, node) where {N}
-# 	x === node && return(@lens _)
-# 	x.data === node && return(@lens _.data)
-#     return(nothing)
-# end
-
-# function findin(x::AbstractBagNode, node)
-# 	x === node && return(@lens _)
-# 	l = findin(x.data, node)
-# 	if l != nothing 
-# 		return((@lens _.data) ∘  l)
-# 	end
-#     return(nothing)
-# end

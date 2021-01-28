@@ -14,6 +14,7 @@ using StatsBase
 using Zygote
 
 using Base: CodeUnits, nameof
+using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 
 import Base: *, ==, isequal, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, eachindex, getindex, setindex!
@@ -74,6 +75,8 @@ export IdentityModel, identity_model
 export HiddenLayerModel
 export mapactivations, reflectinmodel
 
+const MillStruct = Union{AbstractMillModel, AbstractNode}
+
 include("conv.jl")
 export bagconv, BagConv
 
@@ -90,9 +93,10 @@ include("mill_string.jl")
 export MillString, @mill_str
 
 include("util.jl")
-export sparsify, findnonempty, ModelLens, replacein, findin
+export sparsify, pred_lens, list_lens, find_lens, findnonempty_lens
+export replacein, code2lens, lens2code, model_lens, data_lens
 
-Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::Union{AbstractNode, AbstractMillModel})) =
+Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::MillStruct)) =
     HierarchicalUtils.printtree(io, n; htrunc=3)
 
 _show(io, x) = _show_fields(io, x)
@@ -101,6 +105,6 @@ function _show_fields(io, x::T; context=:compact=>true) where T
     print(io, nameof(T), "(", join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)],", "), ")")
 end
 
-Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
+Base.getindex(n::MillStruct, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 end
