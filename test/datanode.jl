@@ -4,14 +4,14 @@
 end
 
 metadata = fill("metadata", 4)
-a = BagNode(ArrayNode(rand(3,4)),[1:4], metadata)
-b = BagNode(ArrayNode(rand(3,4)),[1:2, 3:4], metadata)
-c = BagNode(ArrayNode(rand(3,4)),[1:1, 2:2, 3:4], metadata)
-d = BagNode(ArrayNode(rand(3,4)),[1:4, 0:-1], metadata)
-wa = WeightedBagNode(ArrayNode(rand(3,4)),[1:4], rand(1:4, 4), metadata)
-wb = WeightedBagNode(ArrayNode(rand(3,4)),[1:2, 3:4], rand(1:4, 4), metadata)
-wc = WeightedBagNode(ArrayNode(rand(3,4)),[1:1, 2:2, 3:4], rand(1:4, 4), metadata)
-wd = WeightedBagNode(ArrayNode(rand(3,4)),[1:4, 0:-1], rand(1:4, 4), metadata)
+a = BagNode(ArrayNode(rand(3, 4)),[1:4], metadata)
+b = BagNode(ArrayNode(rand(3, 4)),[1:2, 3:4], metadata)
+c = BagNode(ArrayNode(rand(3, 4)),[1:1, 2:2, 3:4], metadata)
+d = BagNode(ArrayNode(rand(3, 4)),[1:4, 0:-1], metadata)
+wa = WeightedBagNode(ArrayNode(rand(3, 4)),[1:4], rand(1:4, 4), metadata)
+wb = WeightedBagNode(ArrayNode(rand(3, 4)),[1:2, 3:4], rand(1:4, 4), metadata)
+wc = WeightedBagNode(ArrayNode(rand(3, 4)),[1:1, 2:2, 3:4], rand(1:4, 4), metadata)
+wd = WeightedBagNode(ArrayNode(rand(3, 4)),[1:4, 0:-1], rand(1:4, 4), metadata)
 e = ArrayNode(rand(2, 2))
 
 f = ProductNode((wb,b))
@@ -23,7 +23,7 @@ i = ProductNode((
                         b,
                         BagNode(
                                 BagNode(
-                                        ArrayNode(rand(2,4)),
+                                        ArrayNode(rand(2, 4)),
                                         [1:1, 2:2, 3:3, 4:4]
                                        ),
                                 [1:3, 4:4]

@@ -82,5 +82,5 @@ end
 
 for test_f in readdir(".")
     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
-    @eval include($test_f)
+    include(test_f)
 end

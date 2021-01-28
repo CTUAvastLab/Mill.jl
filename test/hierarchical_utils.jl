@@ -1,5 +1,5 @@
 metadata = fill("metadata", 4)
-an1 = ArrayNode(rand(Float32, 3,4))
+an1 = ArrayNode(rand(Float32, 3, 4))
 b = BagNode(an1, [1:4, 0:-1], metadata)
 an2 = ArrayNode(NGramMatrix(["test", "skunk", "mill", "julia"], 3, 10, 17))
 wb = WeightedBagNode(an2, [1:2,3:4], Vector{Float32}([1,2,3,4]), metadata)
