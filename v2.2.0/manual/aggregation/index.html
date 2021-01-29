@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Bag aggregation · Mill.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="Mill.jl logo"/></a><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../motivation/">Motivation</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../nodes/">Nodes</a></li><li><a class="tocitem" href="../more_on_nodes/">More on nodes</a></li><li><a class="tocitem" href="../reflectin/">Model reflection</a></li><li class="is-active"><a class="tocitem" href>Bag aggregation</a><ul class="internal"><li><a class="tocitem" href="#Non-parametric-aggregation"><span>Non-parametric aggregation</span></a></li><li><a class="tocitem" href="#Parametric-aggregation"><span>Parametric aggregation</span></a></li><li><a class="tocitem" href="#Weighted-aggregation"><span>Weighted aggregation</span></a></li><li><a class="tocitem" href="#Default-aggregation-values"><span>Default aggregation values</span></a></li></ul></li><li><a class="tocitem" href="../leaf_data/">Data in leaves</a></li><li><a class="tocitem" href="../missing/">Missing data</a></li><li><a class="tocitem" href="../custom/">Custom nodes</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples/musk/musk/">Musk</a></li><li><a class="tocitem" href="../../examples/graphs/">GNNs in 16 lines</a></li><li><a class="tocitem" href="../../examples/dag/">DAGs</a></li><li><a class="tocitem" href="../../examples/jsons/">Processing JSONs</a></li></ul></li><li><span class="tocitem">External tools</span><ul><li><a class="tocitem" href="../../tools/hierarchical/">HierarchicalUtils.jl</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../citation/">Citation</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>Bag aggregation</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Bag aggregation</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/pevnak/Mill.jl/blob/master/docs/src/manual/aggregation.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Bag-aggregation"><a class="docs-heading-anchor" href="#Bag-aggregation">Bag aggregation</a><a id="Bag-aggregation-1"></a><a class="docs-heading-anchor-permalink" href="#Bag-aggregation" title="Permalink"></a></h1><p>A wrapper type <code>Aggregation</code> and all subtypes of <code>AggregationOperator</code> it wraps are structures that are responsible for mapping of vector representations of multiple instances into a single vector. They all operate element-wise and independently of dimension and thus the output has the same size as representations on the input, unless the <a href="manual/@ref">Concatenation</a> of multiple operators is used or <a href="manual/@ref">Bag Count</a> is enabled.</p><p>Some setup:</p><pre><code class="language-julia-repl">julia&gt; d = 2
+2
+
+julia&gt; X = Float32.([1 2 3 4; 8 7 6 5])
+2×4 Array{Float32,2}:
+ 1.0  2.0  3.0  4.0
+ 8.0  7.0  6.0  5.0
+
+julia&gt; n = ArrayNode(X)
+2×4 ArrayNode{Array{Float32,2},Nothing}:
+ 1.0  2.0  3.0  4.0
+ 8.0  7.0  6.0  5.0
+
+julia&gt; bags = AlignedBags([1:1, 2:3, 4:4])
+AlignedBags(UnitRange{Int64}[1:1, 2:3, 4:4])
+
+julia&gt; Mill.bagcount!(false)
+false</code></pre><p>Different choice of operator, or their combinations, are suitable for different problems. Nevertheless, because the input is interpreted as an unordered bag of instances, every operator is invariant to permutation and also does not scale when increasing size of the bag.</p><h2 id="Non-parametric-aggregation"><a class="docs-heading-anchor" href="#Non-parametric-aggregation">Non-parametric aggregation</a><a id="Non-parametric-aggregation-1"></a><a class="docs-heading-anchor-permalink" href="#Non-parametric-aggregation" title="Permalink"></a></h2><p><code>SegmentedMax</code> is the most straightforward operator defined in one dimension as follows:</p><p class="math-container">\[a_{\max}(\{x_1, \ldots, x_k\}) = \max_{i = 1, \ldots, k} x_i\]</p><p>where <span>$\{x_1, \ldots, x_k\}$</span> are all instances of the given bag. In <code>Mill.jl</code>, the operator is constructed this way:</p><pre><code class="language-julia-repl">julia&gt; a_max = SegmentedMax(d)
+Aggregation{Float32}:
+ SegmentedMax(ψ = Float32[0.0, 0.0])</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">Dimension</header><div class="admonition-body"><p>The dimension of input is required so that the default parameters <code>ψ</code> can be properly instantiated (see <a href="../missing/#Missing-data">Missing data</a> for details).</p></div></div><p>The application is straightforward and can be performed on both raw <code>AbstractArray</code>s or <code>ArrayNode</code>s:</p><pre><code class="language-julia-repl">julia&gt; a_max(X, bags)
+2×3 Array{Float32,2}:
+ 1.0  3.0  4.0
+ 8.0  7.0  5.0
+
+julia&gt; a_max(n, bags)
+2×3 ArrayNode{Array{Float32,2},Nothing}:
+ 1.0  3.0  4.0
+ 8.0  7.0  5.0</code></pre><p>Since we have three bags, we have three columns in the output, each storing the maximal element over all instances of the given bag.</p><h3 id="SegmentedMean"><a class="docs-heading-anchor" href="#SegmentedMean"><code>SegmentedMean</code></a><a id="SegmentedMean-1"></a><a class="docs-heading-anchor-permalink" href="#SegmentedMean" title="Permalink"></a></h3><p><code>SegmentedMean</code> is defined as:</p><p class="math-container">\[a_{\operatorname{mean}}(\{x_1, \ldots, x_k\}) = \frac{1}{k} \sum_{i = 1}^{k} x_i\]</p><p>and used the same way:</p><pre><code class="language-julia-repl">julia&gt; a_mean = SegmentedMean(d)
+Aggregation{Float32}:
+ SegmentedMean(ψ = Float32[0.0, 0.0])
+
+julia&gt; a_mean(X, bags)
+2×3 Array{Float32,2}:
+ 1.0  2.5  4.0
+ 8.0  6.5  5.0
+
+julia&gt; a_mean(n, bags)
+2×3 ArrayNode{Array{Float32,2},Nothing}:
+ 1.0  2.5  4.0
+ 8.0  6.5  5.0</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">Sufficiency of the mean operator</header><div class="admonition-body"><p>In theory, <code>SegmentedMean</code> is sufficient for approximation (<a href="../../references/#Pevny2019">Tomáš Pevný , Vojtěch Kovařík  (2019)</a>), but in practice, a combination of multiple operators performes better.</p></div></div><p>The max aggregation is suitable for cases when one instance in the bag may give evidence strong enough to predict the label. On the other side of the spectrum lies the mean aggregation function, which detects well trends identifiable globally over the whole bag.</p><h2 id="Parametric-aggregation"><a class="docs-heading-anchor" href="#Parametric-aggregation">Parametric aggregation</a><a id="Parametric-aggregation-1"></a><a class="docs-heading-anchor-permalink" href="#Parametric-aggregation" title="Permalink"></a></h2><p>Whereas non-parametric aggregations do not use any parameter, parametric aggregations represent an entire class of functions parametrized by one or more real vectors of parameters, which can be even learned during training.</p><h3 id="SegmentedLSE"><a class="docs-heading-anchor" href="#SegmentedLSE"><code>SegmentedLSE</code></a><a id="SegmentedLSE-1"></a><a class="docs-heading-anchor-permalink" href="#SegmentedLSE" title="Permalink"></a></h3><p><code>SegmentedLSE</code> (log-sum-exp) aggregation (<a href="../../references/#Kraus2015">Oren Z. Kraus , Lei Jimmy Ba , Brendan Frey  (2015)</a>) is parametrized by a vector of positive numbers <span>$\bm{r} \in (\mathbb{R}^+)^d$</span> m that specifies one real parameter for computation in each output dimension:</p><p class="math-container">\[a_{\operatorname{lse}}(\{x_1, \ldots, x_k\}; r) = \frac{1}{r}\log \left(\frac{1}{k} \sum_{i = 1}^{k} \exp({r\cdot x_i})\right)\]</p><p>With different values of <span>$r$</span>, LSE behaves differently and in fact both max and mean operators are limiting cases of LSE. If <span>$r$</span> is very small, the output approaches simple mean, and on the other hand, if <span>$r$</span> is a large number, LSE becomes a smooth approximation of the max function. Naively implementing the definition above may lead to numerical instabilities, however, the <code>Mill.jl</code> implementation is numerically stable.</p><pre><code class="language-julia-repl">julia&gt; a_lse = SegmentedLSE(d)
+Aggregation{Float32}:
+ SegmentedLSE(ψ = Float32[0.527609, -0.922054], ρ = Float32[0.0, 0.0])
+
+julia&gt; a_lse(X, bags)
+2×3 Array{Float32,2}:
+ 1.0  2.58496  4.0
+ 8.0  6.58496  5.0</code></pre><h3 id="SegmentedPNorm"><a class="docs-heading-anchor" href="#SegmentedPNorm"><code>SegmentedPNorm</code></a><a id="SegmentedPNorm-1"></a><a class="docs-heading-anchor-permalink" href="#SegmentedPNorm" title="Permalink"></a></h3><p>(Normalized) <span>$p$</span>-norm operator (<a href="../../references/#Gulcehre2014">Caglar Gulcehre , Kyunghyun Cho , Razvan Pascanu , Yoshua Bengio  (2014)</a>) is parametrized by a vector of real numbers <span>$\bm{p} \in (\mathbb{R}^+)^d$</span>, where <span>$\forall i \in \{1, \ldots ,m \} \colon p_i \geq 1$</span>, and another vector <span>$\bm{c} \in (\mathbb{R}^+)^d$</span>. It is computed with formula:</p><p class="math-container">\[a_{\operatorname{pnorm}}(\{x_1, \ldots, x_k\}; p, c) = \left(\frac{1}{k} \sum_{i = 1}^{k} \vert x_i - c \vert ^ {p} \right)^{\frac{1}{p}}\]</p><p>Again, the <code>Mill.jl</code> implementation is stable.</p><pre><code class="language-julia-repl">julia&gt; a_pnorm = SegmentedPNorm(d)
+Aggregation{Float32}:
+ SegmentedPNorm(ψ = Float32[-0.31064, 0.724103], ρ = Float32[0.187625, 0.238303], c = Float32[0.0, 0.0])
+
+julia&gt; a_pnorm(X, bags)
+2×3 Array{Float32,2}:
+ 1.0  2.53936  4.0
+ 8.0  6.51574  5.0</code></pre><p>Because all parameter constraints are included implicitly (field <code>\rho</code> in both types is a real number that undergoes appropriate transformation before being used), both parametric operators are easy to use and do not require any special treatment. Replacing the definition of aggregation operators while constructing a model (either manually or with <code>reflectinmodel</code>) is enough.</p><h3 id="Concatenation"><a class="docs-heading-anchor" href="#Concatenation">Concatenation</a><a id="Concatenation-1"></a><a class="docs-heading-anchor-permalink" href="#Concatenation" title="Permalink"></a></h3><p>To use a concatenation of two or more operators, one can use an <code>Aggregation</code> constructor:</p><pre><code class="language-julia-repl">julia&gt; a = Aggregation(a_mean, a_max)
+Aggregation{Float32}:
+ SegmentedMean(ψ = Float32[0.0, 0.0])
+ SegmentedMax(ψ = Float32[0.0, 0.0])
+
+julia&gt; a(X, bags)
+4×3 Array{Float32,2}:
+ 1.0  2.5  4.0
+ 8.0  6.5  5.0
+ 1.0  3.0  4.0
+ 8.0  7.0  5.0</code></pre><p>For the most common combinations, <code>Mill.jl</code> provides some convenience definitions:</p><pre><code class="language-julia-repl">julia&gt; SegmentedMeanMax(d)
+Aggregation{Float32}:
+ SegmentedMean(ψ = Float32[0.0, 0.0])
+ SegmentedMax(ψ = Float32[0.0, 0.0])</code></pre><h2 id="Weighted-aggregation"><a class="docs-heading-anchor" href="#Weighted-aggregation">Weighted aggregation</a><a id="Weighted-aggregation-1"></a><a class="docs-heading-anchor-permalink" href="#Weighted-aggregation" title="Permalink"></a></h2><p>Sometimes, different instances in the bag are not equally important and contribute to output to a different extent. For instance, this may come in handy when performing importance sampling over very large bags. <code>SegmentedMean</code> and <code>SegmentedPNorm</code> have definitions taking weights into account:</p><p class="math-container">\[a_{\operatorname{mean}}(\{(x_i, w_i)\}_{i=1}^k) = \frac{1}{\sum_{i=1}^k w_i} \sum_{i = 1}^{k} w_i \cdot x_i\]</p><p class="math-container">\[a_{\operatorname{pnorm}}(\{x_i, w_i\}_{i=1}^k; p, c) = \left(\frac{1}{\sum_{i=1}^k w_i} \sum_{i = 1}^{k} w_i\cdot\vert x_i - c \vert ^ {p} \right)^{\frac{1}{p}}\]</p><p>This is done in <code>Mill.jl</code> by passing an additional parameter:</p><pre><code class="language-julia-repl">julia&gt; w = Float32.([1.0, 0.2, 0.8, 0.5])
+4-element Array{Float32,1}:
+ 1.0
+ 0.2
+ 0.8
+ 0.5
+
+julia&gt; a_mean(X, bags, w)
+2×3 Array{Float32,2}:
+ 1.0  2.8  4.0
+ 8.0  6.2  5.0
+
+julia&gt; a_pnorm(X, bags, w)
+2×3 Array{Float32,2}:
+ 1.0  2.82291  4.0
+ 8.0  6.21051  5.0</code></pre><p>For <code>SegmentedMax</code> (and <code>SegmentedLSE</code>) it is possible to pass in weights, but they are ignored during computation:</p><pre><code class="language-julia-repl">julia&gt; a_max(X, bags, w) == a_max(X, bags)
+true</code></pre><h3 id="WeightedBagNode"><a class="docs-heading-anchor" href="#WeightedBagNode"><code>WeightedBagNode</code></a><a id="WeightedBagNode-1"></a><a class="docs-heading-anchor-permalink" href="#WeightedBagNode" title="Permalink"></a></h3><p><code>WeightedBagNode</code> is used to store instance weights into a dataset. It accepts weights in the constructor:</p><pre><code class="language-julia-repl">julia&gt; wbn = WeightedBagNode(n, bags, w)
+WeightedBagNode with 3 obs
+  └── ArrayNode(2×4 Array with Float32 elements) with 4 obs</code></pre><p>and passes them to aggregation operators:</p><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(wbn)
+BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(10, 10))
+  └── ArrayModel(Dense(2, 10))
+
+julia&gt; m(wbn)
+10×3 ArrayNode{Array{Float32,2},Nothing}:
+ -1.8734703   -1.2511009    -0.83618826
+ -0.21040073  -0.018671105   0.10914851
+ -2.944788    -0.83087844    0.57839465
+ -0.14008355   0.8123967     1.4473834
+ -0.6573569    0.66215295    1.5418266
+ -5.013639    -3.565063     -2.5993452
+ -3.5737412   -4.2283874    -4.664818
+  0.3675685   -0.040648326  -0.31279308
+  2.8834815    0.2998844    -1.4225131
+  4.448814     4.7236457     4.9068675</code></pre><p>Otherwise, <code>WeightedBagNode</code> behaves exactly like the standard <code>BagNode</code>.</p><h3 id="Bag-count"><a class="docs-heading-anchor" href="#Bag-count">Bag count</a><a id="Bag-count-1"></a><a class="docs-heading-anchor-permalink" href="#Bag-count" title="Permalink"></a></h3><p>For some problems, it may be beneficial to use the size of the bag directly and feed it to subsequent layers. Whether this is the case is controlled by <code>Mill.bagcount!(::Bool)</code> function. It is on by default, however, it was disabled at the beginning of this section for demonstration purposes. Let&#39;s turn it back on:</p><pre><code class="language-julia-repl">julia&gt; Mill.bagcount!(true)
+true</code></pre><p>In the aggregation phase, bag count appends one more element which stores the bag size to the output after all operators are applied. Furthermore, in <code>Mill.jl</code>, we opted to perform a mapping <span>$x \mapsto \log(x) + 1$</span> on top of that:</p><pre><code class="language-julia-repl">julia&gt; a_mean(X, bags)
+3×3 Array{Float32,2}:
+ 1.0       2.5      4.0
+ 8.0       6.5      5.0
+ 0.693147  1.09861  0.693147</code></pre><p>The matrix now has three rows, the last one storing the size of the bag.</p><p>When the bag count is on, one needs to have a model accepting corresponding sizes:</p><pre><code class="language-julia-repl">julia&gt; bn = BagNode(n, bags)
+BagNode with 3 obs
+  └── ArrayNode(2×4 Array with Float32 elements) with 4 obs
+
+julia&gt; bm = reflectinmodel(bn)
+BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+  └── ArrayModel(Dense(2, 10))</code></pre><p>Note that the <code>bm</code> (sub)model field of the <code>BagNode</code> has size of <code>(11, 10)</code>, <code>10</code> for aggregation output and <code>1</code> for sizes of bags.</p><pre><code class="language-julia-repl">julia&gt; bm(bn)
+10×3 ArrayNode{Array{Float32,2},Nothing}:
+ -1.5087497   -1.1189346   -0.46795595
+ -0.77520996   0.21532801   1.1663553
+ -2.2345784   -2.719207    -3.4750266
+ -1.5569595   -0.8406515   -0.38705653
+ -3.9682515   -3.4539635   -3.2284687
+ -2.375154    -2.3811972   -2.1634822
+ -1.3517627   -0.77193266   0.052136358
+ -1.2290514   -1.9799336   -2.5244994
+ -0.7639216   -1.2048504   -1.7123332
+ -4.3920274   -3.4399822   -2.5130746</code></pre><p>Model reflection takes bag count toggle into account. If we disable it again, <code>bm</code> (sub)model has size <code>(10, 10)</code>:</p><pre><code class="language-julia-repl">julia&gt; Mill.bagcount!(false)
+false
+
+julia&gt; bm = reflectinmodel(bn)
+BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(10, 10))
+  └── ArrayModel(Dense(2, 10))</code></pre><h2 id="Default-aggregation-values"><a class="docs-heading-anchor" href="#Default-aggregation-values">Default aggregation values</a><a id="Default-aggregation-values-1"></a><a class="docs-heading-anchor-permalink" href="#Default-aggregation-values" title="Permalink"></a></h2><p>When all aggregation operators are printed, one may notice that all of them store one additional vector <code>ψ</code>. This is a vector of default parameters, initialized to all zeros, that are used for empty bags:</p><pre><code class="language-julia-repl">julia&gt; bags = AlignedBags([1:1, 0:-1, 2:3, 0:-1, 4:4])
+AlignedBags(UnitRange{Int64}[1:1, 0:-1, 2:3, 0:-1, 4:4])
+
+julia&gt; a_mean(X, bags)
+3×5 Array{Float32,2}:
+ 1.0       0.0  2.5      0.0  4.0
+ 8.0       0.0  6.5      0.0  5.0
+ 0.693147  0.0  1.09861  0.0  0.693147</code></pre><p>See <a href="../missing/#Missing-data">Missing data</a> page for more information.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reflectin/">« Model reflection</a><a class="docs-footer-nextpage" href="../leaf_data/">Data in leaves »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 29 January 2021 20:00">Friday 29 January 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
