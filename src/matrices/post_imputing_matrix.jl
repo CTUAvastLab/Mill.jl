@@ -40,7 +40,7 @@ _mul(A::PostImputingMatrix, B::NGramMatrix{Maybe{T}}) where {T <: Sequence} =
 _mul_maybe_hot(W, ψ, I) = _impute_maybe_hot(W, ψ, I)[1]
 function rrule(::typeof(_mul_maybe_hot), W, ψ, I)
     C, m = _impute_maybe_hot(W, ψ, I)
-    function dW_thunk(Δ)
+    function ∇W(Δ)
         dW = zero(W)
         @inbounds for (k, i) in enumerate(I)
             if !ismissing(i)
@@ -49,7 +49,7 @@ function rrule(::typeof(_mul_maybe_hot), W, ψ, I)
         end
         dW
     end
-    C, Δ -> (NO_FIELDS, @thunk(dW_thunk(Δ)), @thunk(vec(sum(view(Δ, :, m), dims=2))), DoesNotExist())
+    C, Δ -> (NO_FIELDS, @thunk(∇W(Δ)), @thunk(vec(sum(view(Δ, :, m), dims=2))), DoesNotExist())
 end
 function _impute_maybe_hot(W, ψ, I)
     m = trues(length(I))
@@ -67,7 +67,7 @@ end
 # TODO rewrite this to less parameters once Zygote allows for composite grads
 _mul_ngram(W, ψ, S, n, b, m) = _impute_ngram(W, ψ, S, n, b, m)
 function rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
-    function dW_thunk(Δ)
+    function ∇W(Δ)
         dW = zero(W)
         z = _init_z(n, b)
         for (k, s) in enumerate(S)
@@ -75,7 +75,7 @@ function rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
         end
         dW
     end
-    _impute_ngram(W, ψ, S, n, b, m), Δ -> (NO_FIELDS, @thunk(dW_thunk(Δ)),
+    _impute_ngram(W, ψ, S, n, b, m), Δ -> (NO_FIELDS, @thunk(∇W(Δ)),
                                            @thunk(vec(sum(view(Δ, :, ismissing.(S)), dims=2))),
                                   fill(DoesNotExist(), 4)...)
 end

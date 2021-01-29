@@ -62,10 +62,10 @@ const BAGS2 = [
 ]
 
 const BAGS3 = [
-         (AlignedBags([1:2, 3:4, 0:-1]), ScatteredBags([[2,3,4], [1], []]), AlignedBags([1:4, 0:-1, 5:8, 0:-1])),
+         (AlignedBags([1:2, 3:4, 0:-1]), ScatteredBags([[2, 3, 4], [1], []]), AlignedBags([1:4, 0:-1, 5:8, 0:-1])),
          (AlignedBags([0:-1, 1:2, 3:4]), ScatteredBags([[1], [2], [3, 4]]), AlignedBags([0:-1, 1:7, 0:-1, 8:8])),
-         (AlignedBags([0:-1, 0:-1, 1:2, 3:4]), ScatteredBags([[2,4], [], [3, 1], []]), AlignedBags([1:1, 2:2, 0:-1, 3:8])),
-         (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1,3], [2,4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
+         (AlignedBags([0:-1, 0:-1, 1:2, 3:4]), ScatteredBags([[2, 4], [], [3, 1], []]), AlignedBags([1:1, 2:2, 0:-1, 3:8])),
+         (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1, 3], [2, 4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
 function Mill.unpack2mill(ds::LazyNode{:Sentence})

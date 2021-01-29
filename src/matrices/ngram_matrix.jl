@@ -199,15 +199,15 @@ subset(a::NGramMatrix, i) = NGramMatrix(a.s[i], a.n, a.b, a.m)
 
 Base.hcat(As::NGramMatrix...) = reduce(hcat, collect(As))
 function Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix})
-    ns = unique([A.n for A in As])
-    bs = unique([A.b for A in As])
-    ms = unique([A.m for A in As])
-    if length(ns) > 1 || length(bs) > 1 || length(ms) > 1
+    n, b, m = As[1].n, As[1].b, As[1].m
+    if any(!isequal(n), (A.n for A in As)) ||
+        any(!isequal(b), (A.b for A in As)) ||
+        any(!isequal(m), (A.m for A in As))
         DimensionMismatch(
-            "Matrices do not have the same n, b, or m."
-        ) |> throw
+                          "Matrices do not have the same n, b, or m."
+                         ) |> throw
     end
-    NGramMatrix(reduce(vcat, [i.s for i in As]), only(ns), only(bs), only(ms))
+    NGramMatrix(reduce(vcat, [i.s for i in As]), n, b, m)
 end
 
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Int64, UInt}(x)
@@ -245,16 +245,29 @@ function _mul(A::AbstractMatrix, S::AbstractVector{T}, n, b, m) where T <: Maybe
     end
     C
 end
+
 Zygote.@adjoint function _mul(A::AbstractMatrix, S::AbstractVector{<:Sequence}, n, b, m)
-    function dA_thunk(Δ)
-        dA = zero(A)
-        z = _init_z(n, b)
-        for (k, s) in enumerate(S)
-            _dA_mul_vec!(Δ, k, dA, z, s, n, b, m)
-        end
-        dA
+    return _mul(A, S, n, b, m), Δ -> (_mul_∇A(Δ, A, S, n, b, m), nothing, nothing, nothing, nothing)
+end
+
+function _mul_∇A(Δ, A, S, n, b, m)
+    ∇A = zero(A)
+    z = _init_z(n, b)
+    for (k, s) in enumerate(S)
+        _∇A_mul_vec!(Δ, k, ∇A, z, s, n, b, m)
     end
-    return _mul(A, S, n, b, m), Δ -> (dA_thunk(Δ), nothing, nothing, nothing, nothing)
+    ∇A
+end
+function rrule(::typeof(_mul_∇A), Δ, A, S, n, b, m)
+    y = _mul_∇A(Δ, A, S, n, b, m)
+    function _mul_∇A_pullback(Δ₂)
+        return (NO_FIELDS, _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)...)
+    end
+    y, _mul_∇A_pullback
+end
+
+function _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)
+    _mul(Δ₂, S, n, b, m), nothing, nothing, nothing, nothing, nothing
 end
 
 _mul_vec!(C, k, A, z, s::AbstractString, args...) = _mul_vec!(C, k, A, z, codeunits(s), args...)
@@ -266,14 +279,14 @@ function _mul_vec!(C, k, A, z, s, n, b, m, ψ=nothing)
 end
 _mul_vec!(C, k, A, z, s::Missing, n, b, m, ψ=missing) = @inbounds C[:, k] .= ψ
 
-_dA_mul_vec!(Δ, k, dA, z, s::AbstractString, args...) = _dA_mul_vec!(Δ, k, dA, z, codeunits(s), args...)
-function _dA_mul_vec!(Δ, k, dA, z, s, n, b, m)
+_∇A_mul_vec!(Δ, k, ∇A, z, s::AbstractString, args...) = _∇A_mul_vec!(Δ, k, ∇A, z, codeunits(s), args...)
+function _∇A_mul_vec!(Δ, k, ∇A, z, s, n, b, m)
     @inbounds for i in 1:_len(s, n)
         z = _next_ngram(z, i, s, n, b)
-        @views dA[:, z % m + 1] .+= Δ[:, k]
+        @views ∇A[:, z % m + 1] .+= Δ[:, k]
     end
 end
-_dA_mul_vec!(Δ, k, dA, z, s::Missing, n, b, m) = return
+_∇A_mul_vec!(Δ, k, ∇A, z, s::Missing, n, b, m) = return
 
 Base.hash(M::NGramMatrix, h::UInt) = hash((M.s, M.n, M.b, M.m), h)
 (M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.s == M2.s, true) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m

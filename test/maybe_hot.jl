@@ -63,13 +63,13 @@ end
     @inferred hcat(mhm, mhm)
     @inferred reduce(catobs, [mhm, mhm])
 
-    @test_throws DimensionMismatch hcat(MaybeHotVector.([1, 2], [l, l+1])...)
-    @test_throws DimensionMismatch hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
-    @test_throws DimensionMismatch reduce(catobs, MaybeHotVector.([1, 2], [l, l+1]))
-    @test_throws DimensionMismatch reduce(catobs, MaybeHotMatrix.([[1], [2, 3]], [l, l+1]))
+    @test_throws ArgumentError hcat(MaybeHotVector.([1, 2], [l, l+1])...)
+    @test_throws ArgumentError hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
+    @test_throws ArgumentError reduce(catobs, MaybeHotVector.([1, 2], [l, l+1]))
+    @test_throws ArgumentError reduce(catobs, MaybeHotMatrix.([[1], [2, 3]], [l, l+1]))
 
-    @test_throws ArgumentError reduce(hcat, MaybeHotVector[])
-    @test_throws ArgumentError reduce(hcat, MaybeHotMatrix[])
+    @test reduce(hcat, MaybeHotVector[]) == MaybeHotVector[]
+    @test reduce(hcat, MaybeHotMatrix[]) == MaybeHotMatrix[]
 end
 
 @testset "indexing" begin
