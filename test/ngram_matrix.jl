@@ -172,7 +172,7 @@ end
         b = 256
         A = randn(10, m)
 
-        s = ["hello", "world", "!!!"]
+        s = [randstring(100) for _ in 1:10]
         si = map(codeunits, s)
         sc = map(i -> Int.(i), si)
         B = NGramMatrix(s, n, b, m)
@@ -202,7 +202,7 @@ end
         b = 256
         A = randn(10, m)
 
-        s = ["hello", "world", "!!!"]
+        s = [randstring(100) for _ in 1:10]
         si = map(codeunits, s)
         sc = map(i -> Int.(i), si)
         Ns = string2ngrams(s, n, b, m)
@@ -241,6 +241,18 @@ end
 
         @test dBc === gradient(Bc -> sum(A * Bc), Bc) |> only
         @test isnothing(dBc)
+    end
+end
+
+@testset "NGramMatrix multiplication second derivative" begin
+    for (n, m) in product([2, 3, 5], [10, 100, 1000])
+        s = [randstring(100) for _ in 1:10]
+        B = NGramMatrix(s, n, 256, m)
+        A = randn(30, m)
+        @test grad(central_fdm(5, 1), A -> sum(sin.(A * B)), A)[1] ≈
+            gradient(A -> sum(sin.(A * B)), A)[1] atol = 1e-5
+        f = A -> sum(sin.(gradient(A -> sum(sin.(A * B)), A)[1]))
+        @test grad(central_fdm(5, 1), f, A)[1] ≈ gradient(f, A)[1] atol = 1e-5
     end
 end
 

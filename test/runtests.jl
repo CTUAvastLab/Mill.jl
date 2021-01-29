@@ -10,6 +10,7 @@ using Base: CodeUnits
 using Documenter
 using Flux
 using Flux: onehot, onehotbatch
+using FiniteDifferences
 using Random
 using Combinatorics
 using SparseArrays

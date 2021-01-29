@@ -71,7 +71,7 @@ function rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
         dW = zero(W)
         z = _init_z(n, b)
         for (k, s) in enumerate(S)
-            _dA_mul_vec!(Δ, k, dW, z, s, n, b, m)
+            _∇A_mul_vec!(Δ, k, dW, z, s, n, b, m)
         end
         dW
     end
