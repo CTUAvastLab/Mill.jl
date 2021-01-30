@@ -245,10 +245,10 @@ end
 end
 
 @testset "NGramMatrix multiplication second derivative" begin
-    for (n, m) in product([2, 3, 5], [10, 100, 1000])
-        s = [randstring(100) for _ in 1:10]
+    for (n, m) in product([2, 3], [10, 100])
+        s = [randstring(10) for _ in 1:10]
         B = NGramMatrix(s, n, 256, m)
-        A = randn(30, m)
+        A = randn(10, m)
         @test grad(central_fdm(5, 1), A -> sum(sin.(A * B)), A)[1] ≈
             gradient(A -> sum(sin.(A * B)), A)[1] atol = 1e-5
         f = A -> sum(sin.(gradient(A -> sum(sin.(A * B)), A)[1]))

@@ -216,6 +216,11 @@ end
     end
 end
 
+@testset "r_map and p_map are stable" begin
+    @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
+    @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
+end
+
 @testset "missing values" begin
     dummy = randn(2)
     ψ = randn(2)
@@ -287,7 +292,7 @@ end
         # generate all combinations of aggregations
         anames = ["Sum", "Mean", "Max", "PNorm", "LSE"]
         for idxs in powerset(collect(1:length(anames)))
-            1 ≤ length(idxs) ≤ 3 || continue
+            1 ≤ length(idxs) ≤ 2 || continue
 
             s = Symbol("Segmented", anames[idxs]...)
             a = @eval $s($d) |> f64
@@ -305,9 +310,6 @@ end
 end
 
 @testset "aggregation grad check w.r.t. params" begin
-    # r_map and p_map are stable
-    @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
-    @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
 
     fs = [:SegmentedSum, :SegmentedMean, :SegmentedMax, :SegmentedPNorm, :SegmentedLSE]
     params = [(:ψ1,), (:ψ2,), (:ψ3,), (:ψ4, :ρ1, :c), (:ψ5, :ρ2)]

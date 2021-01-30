@@ -24,7 +24,6 @@ _getindex(X::MaybeHotMatrix, ::Colon, ::Colon) = MaybeHotMatrix(copy(X.I), X.l)
 
 Base.hcat(Xs::MaybeHotMatrix...) = reduce(hcat, collect(Xs))
 function Base.reduce(::typeof(hcat), Xs::Vector{MaybeHotMatrix})
-    @show "ahoj"
     isempty(Xs) && return Xs
     l = Xs[1].l
     if any(!isequal(l), (X.l for X in Xs))
