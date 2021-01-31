@@ -95,7 +95,7 @@ Again, we get one column for each string, and the matrix has the same number of 
 sum(hosts_dense; dims=1)
 ```
 
-This is because we use special abstract characters for the start and the end of the string. If we denote these `^` and `$`, respectively, from string `"foo"`, we get trigrams `^^f`, `^fo`, `foo`, `oo$`, `o$$`. Both string start and string end special characters have a unique mapping to integers, which can be obtained as well as set:
+This is because we use special abstract characters (or tokens) for the start and the end of the string. If we denote these `^` and `$`, respectively, from string `"foo"`, we get trigrams `^^f`, `^fo`, `foo`, `oo$`, `o$$`. Note that these special characters are purely abstract whereas `^` and `$` used only for illustration purposes here are characters like any other. Both string start and string end special characters have a unique mapping to integers, which can be obtained as well as set:
 
 ```@repl leafs
 Mill.string_start_code()

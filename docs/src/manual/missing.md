@@ -117,7 +117,7 @@ maybehotbatch([5, 2, 1], 1:5)
 missing_categorical::AbstractMatrix{Union{Bool, Missing}}
 ```
 
-Howevere, multiplying these matrices with `missing` data leads into `missing` data in the output.
+However, multiplying these matrices with `missing` data leads into `missing` data in the output.
 
 ```@repl missing
 W = rand(2, 5)

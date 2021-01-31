@@ -26,27 +26,13 @@ import Flux.Optimise: apply!
 
 import ChainRulesCore: rrule
 
-# GLOBAL SWITCHES
-const _emptyismissing =     Ref(false)
-const _bagcount =           Ref(true)
-const _wildcard_code =      Ref(UInt8(0)) # NUL in ascii
-const _string_start_code =  Ref(UInt8(2)) # STX in ascii
-const _string_end_code =    Ref(UInt8(3)) # ETX in ascii
-
-for s in Symbol.(["emptyismissing", "bagcount", "wildcard_code", "string_start_code", "string_end_code"])
-    ex = Symbol(s, '!')
-    us = Symbol('_', s)
-    @eval @inline $ex(a) = $us[] = a
-    @eval @inline $s() = $us[]
-end
-
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
 using Base: AbstractVecOrMat
 const Maybe{T} = Union{T, Missing}
 const Optional{T} = Union{T, Nothing}
 
-StatsBase.nobs(::Missing) = nothing
+include("globals.jl")
 
 include("bags.jl")
 export AlignedBags, ScatteredBags, length2bags, remapbag, bags

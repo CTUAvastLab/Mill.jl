@@ -49,13 +49,21 @@ subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
 
 include("arraynode.jl")
 
+StatsBase.nobs(::Missing) = nothing
+
+include("bagnode.jl")
+include("weighted_bagnode.jl")
+
 StatsBase.nobs(a::AbstractBagNode) = length(a.bags)
 StatsBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 Base.ndims(x::AbstractBagNode) = Colon()
 
-include("bagnode.jl")
-include("weighted_bagnode.jl")
 include("productnode.jl")
+
+Base.ndims(x::AbstractProductNode) = Colon()
+StatsBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
+StatsBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
+
 include("lazynode.jl")
 
 catobs(as::DataFrame...) = reduce(catobs, collect(as))

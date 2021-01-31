@@ -19,10 +19,6 @@ mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.meta
 Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
 Base.keys(x::ProductNode) = keys(x.data)
 
-Base.ndims(x::AbstractProductNode) = Colon()
-StatsBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
-StatsBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
-
 function _cattrees(as::Vector{<:Tuple})
     @assert all(length.(as) .== length(as[1]))
     tuple([reduce(catobs, [a[i] for a in as]) for i in eachindex(as[1])]...)
