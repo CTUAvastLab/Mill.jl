@@ -31,9 +31,7 @@ makedocs(
                   "External tools" => [
                                        "HierarchicalUtils.jl" => "tools/hierarchical.md",
                                       ],
-                  "API" => [
-                            "General" => "api/general.md"
-                           ],
+                  "API" => "api.md",
                   "References" => "references.md",
                   "Citation" => "citation.md"
                  ],

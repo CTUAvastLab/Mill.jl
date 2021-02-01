@@ -21,9 +21,4 @@ Go to
 * [Examples](@ref)
 * [Helper tools](@ref)
 * [References](@ref)
-* TODO finish this
-
-```@autodocs
-Modules = [Mill]
-Order   = [:function, :type]
-```
+* TODO finish this and add contents

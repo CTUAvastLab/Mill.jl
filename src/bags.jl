@@ -1,26 +1,75 @@
 using DataStructures: SortedDict, OrderedDict
 
-abstract type AbstractBags end
+_empty_range(t::Type{<:Signed}) = zero(t):-one(t)
+_empty_range(t::Type{<:Unsigned}) = one(t):zero(t)
 
-# one instance belongs to only one bag
-# sorted from left to right
-struct AlignedBags <: AbstractBags
-    bags::Vector{UnitRange{Int}}
+"""
+    AbstractBags{T}
+
+Supertype for structures storing indices of type `T` of bags' instances in [`BagNode`](@ref)s.
+"""
+abstract type AbstractBags{T} end
+
+"""
+    AlignedBags{T <: Integer} <: AbstractBags{T}
+
+`AlignedBags` struct stores indices of bags' instances in one or more `UnitRange{T}`s. This is only possible if instances of every bag are stored in one contiguous block.
+
+See also: [`ScatteredBags`](@ref).
+"""
+struct AlignedBags{T <: Integer} <: AbstractBags{T}
+    bags::Vector{UnitRange{T}}
 end
 
 Flux.@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex,
     Base.eachindex, Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
-AlignedBags() = AlignedBags(Vector{UnitRange{Int}}())
-AlignedBags(ks::UnitRange{Int}...) = AlignedBags(collect(ks))
-function AlignedBags(k::Vector{T}) where {T<:Integer}
+"""
+    AlignedBags()
+
+Construct new `AlignedBags` struct containing no bags.
+
+# Examples
+```jldoctest
+julia> AlignedBags()
+AlignedBags{Int64}(UnitRange{Int64}[])
+```
+"""
+AlignedBags() = AlignedBags(UnitRange{Int}[])
+
+"""
+    AlignedBags(bags::UnitRange{<:Integer}...)
+
+Construct new `AlignedBags` struct from bags in arguments.
+
+# Examples
+```jldoctest
+julia> AlignedBags(1:3, 4:8)
+AlignedBags{Int64}(UnitRange{Int64}[1:3, 4:8])
+```
+"""
+AlignedBags(bags::UnitRange{<:Integer}...) = AlignedBags(collect(bags))
+
+"""
+    AlignedBags(k::Vector{<:Integer})
+
+Construct new `AlignedBags` struct from `Vector` `k` specifying the index of the bag each instance belongs to.
+Throws `ArgumentError` if this is not possible.
+
+# Examples
+```jldoctest
+julia> AlignedBags([2, 2, 1, 1, 1, 3])
+AlignedBags{Int64}(UnitRange{Int64}[1:2, 3:5, 6:6])
+```
+"""
+function AlignedBags(k::Vector{T}) where T <: Integer
     b = AlignedBags()
     !isempty(k) || return b
     a, v = 1, k[1]
     s = Set{T}(v)
     for (i, x) in enumerate(k[2:end])
         if x != v
-            !(x in s) || error("Scattered bags")
+            !(x in s) || ArgumentError("Scattered bags") |> throw
             push!(b.bags, a:i)
             v = x
             a = i+1
@@ -31,18 +80,69 @@ function AlignedBags(k::Vector{T}) where {T<:Integer}
     b
 end
 
-# one instance may belong to more bags
-struct ScatteredBags <: AbstractBags
-    bags::Vector{Vector{Int}}
+"""
+    length2bags(ls::Vector{<:Integer})
+
+Convert lengths of bags given in `ls` to `AlignedBags` with contiguous blocks.
+
+# Examples
+```jlddoctest
+julia> length2bags([1, 3, 2])
+AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:4, 5:6])
+```
+
+See also: [`AlignedBags`](@ref).
+"""
+function length2bags(ls::Vector{T}) where T <: Integer
+    ls = vcat([zero(T)], cumsum(ls))
+    bags = map(i -> i[1] + 1:i[2], zip(ls[1:end-1], ls[2:end]))
+    bags = map(b -> isempty(b) ? _empty_range(T) : b, bags)
+    AlignedBags(bags)
+end
+
+Zygote.@nograd length2bags
+
+"""
+    ScatteredBags{T <: Integer} <: AbstractBags{T}
+
+`ScatteredBags` struct stores indices of bags' instances that are not necessarily contiguous.
+
+See also: [`AlignedBags`](@ref).
+"""
+struct ScatteredBags{T <: Integer} <: AbstractBags{T}
+    bags::Vector{Vector{T}}
 end
 
 Flux.@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex,
     Base.eachindex, Base.first, Base.last, Base.iterate, Base.eltype, Base.length
 
+"""
+    ScatteredBags()
+
+Construct new `ScatteredBags` struct containing no bags.
+
+# Examples
+```jldoctest
+julia> ScatteredBags()
+ScatteredBags{Int64}(Array{Int64,1}[])
+```
+"""
 ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
-function ScatteredBags(k::Vector{T}) where {T<:Integer}
+
+"""
+    ScatteredBags(k::Vector{<:Integer})
+
+Construct new `ScatteredBags` struct from `Vector` `k` specifying the index of the bag each instance belongs to.
+
+# Examples
+```jldoctest
+julia> ScatteredBags([2, 2, 1, 1, 1, 3])
+ScatteredBags{Int64}([[3, 4, 5], [1, 2], [6]])
+```
+"""
+function ScatteredBags(k::Vector{T}) where T <: Integer
     !isempty(k) || return ScatteredBags()
-    d = SortedDict{T, Vector{Int}}()
+    d = SortedDict{T, Vector{T}}()
     for (i, x) in enumerate(k)
         if !(x in keys(d))
             d[x] = Int[]
@@ -52,21 +152,34 @@ function ScatteredBags(k::Vector{T}) where {T<:Integer}
     ScatteredBags(collect(values(d)))
 end
 
-Zygote.@nograd function length2bags(ls::Vector{Int})
-    ls = vcat([0], cumsum(ls))
-    bags = map(i -> i[1]+1:i[2],zip(ls[1:end-1],ls[2:end]))
-    bags = map(b -> isempty(b) ? (0:-1) : b,bags)
-    AlignedBags(bags)
-end
+"""
+    bags(k::Vector{<:Integer})
+    bags(k::Vector{T}) where T <: UnitRange{<:Integer}
+    bags(b::AbstractBags)
 
-# """
-# 		function bags(k::Vector)
+Construct an `AbstractBags` structure that is most suitable for the input
+(`AlignedBags` if possible, `ScatteredBags` otherwise).
 
-# 		creates AlignedBags if it is possible to do so, otherwise creates ScatteredBags instance
-# """
+# Examples
+```jlddoctest
+julia> bags([2, 2, 3, 1])
+AlignedBags{Int64}(UnitRange{Int64}[1:2, 3:3, 4:4])
+
+julia> bags([2, 3, 1, 2])
+ScatteredBags{Int64}([[3], [1, 4], [2]])
+
+julia> bags([1:3, 4:5])
+AlignedBags{Int64}(UnitRange{Int64}[1:3, 4:5])
+
+julia> bags(ScatteredBags())
+ScatteredBags{Int64}(Array{Int64,1}[])
+```
+
+See also: [`AlignedBags`](@ref), [`ScatteredBags`](@ref).
+"""
 bags(b::AbstractBags) = b
-bags(b::Vector{UnitRange{Int}}) = AlignedBags(b)
-function bags(k::Vector{T}) where {T<:Integer}
+bags(b::Vector{T}) where T <: UnitRange{<:Integer} = AlignedBags(b)
+function bags(k::Vector{<:Integer})
     try
         return AlignedBags(k)
     catch ErrorException
@@ -75,56 +188,76 @@ function bags(k::Vector{T}) where {T<:Integer}
 end
 
 """
-    function remapbag(b::Bags,idcs::Vector{Int})
+    remapbags(b::AbstractBags, idcs::VecOrRange{<:Integer}) -> (rb, I)
 
-    bags corresponding to indices with collected indices
+Select a subset of bags in `b` corresponding to indices `idcs` and remap instance indices appropriately.
+Return new bags `rb` as well as a `Vector` of remapped instances `I`.
+
+# Examples
+```jlddoctest
+julia> remapbags(AlignedBags([1:1, 2:3, 4:5]), [1, 3])
+(AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:3]), [1, 4, 5])
+
+julia> remapbags(ScatteredBags([[1,3], [2], Int[]]), [2])
+(ScatteredBags{Int64}([[1]]), [2])
+```
 """
-function remapbag(b::AlignedBags, idcs::VecOrRange{Int})
-    rb = AlignedBags(Vector{UnitRange{Int}}(undef, length(idcs)))
-    offset = 1
-    for (i,j) in enumerate(idcs)
-        rb[i] = (b[j] == 0:-1) ? b[j] : b[j] .- b[j].start .+ offset
+function remapbags(b::AlignedBags{T}, idcs::VecOrRange{<:Integer}) where T
+    rb = AlignedBags(Vector{UnitRange{T}}(undef, length(idcs)))
+    offset = one(T)
+    for (i, j) in enumerate(idcs)
+        rb[i] = (b[j] == _empty_range(T)) ? b[j] : b[j] .- b[j].start .+ offset
         offset += length(b[j])
     end
-    rb, Array{Int}(reduce(vcat, [collect(b[i]) for i in idcs]; init=AlignedBags[]))
+    rb, Array{T}(reduce(vcat, [collect(b[i]) for i in idcs]; init=AlignedBags[]))
 end
 
-function remapbag(b::ScatteredBags, idcs::VecOrRange{<:Int})
-    rb = ScatteredBags(Vector{Vector{Int}}(undef, length(idcs)))
-    m = OrderedDict{Int, Int}((v => i for (i, v) in enumerate(unique(vcat(b.bags[idcs]...)))))
-    for (i,j) in enumerate(idcs)
+function remapbags(b::ScatteredBags{T}, idcs::VecOrRange{<:Int}) where T
+    rb = ScatteredBags(Vector{Vector{T}}(undef, length(idcs)))
+    m = OrderedDict{T, Int}((v => i for (i, v) in enumerate(unique(vcat(b.bags[idcs]...)))))
+    for (i, j) in enumerate(idcs)
         rb[i] = [m[v] for v in b[j]]
     end
     rb, collect(keys(m))
 end
 
-adjustbags(bags::AlignedBags, mask::T) where {T<:Union{Vector{Bool}, BitArray{1}}} = length2bags(map(b -> sum(@view mask[b]), bags))
+"""
+    adjustbags(b::AlignedBags, mask::AbstractVector{Bool})
 
-Base.vcat(b1::AbstractBags, b2::AbstractBags) = _catbags([b1, b2])
-Base.vcat(bs::AbstractBags...) = _catbags(collect(bs))
+Remove indices of instances brom bags `b` and remap the remaining instances accordingly.
 
-function _catbags(bs::Vector{AlignedBags})
-    nbs = AlignedBags()
-    offset = 0
+# Examples
+```jlddoctest
+julia> adjustbags(AlignedBags([1:2, 0:-1, 3:4]), [false, false, true, true])
+AlignedBags{Int64}(UnitRange{Int64}[0:-1, 0:-1, 1:2])
+```
+"""
+adjustbags(b::AlignedBags, mask::AbstractVector{Bool}) = length2bags(map(b -> sum(@view mask[b]), b))
+
+Base.vcat(bs::AbstractBags{T}...) where T = _catbags(collect(bs))
+
+function _catbags(bs::Vector{AlignedBags{T}}) where T <: Integer
+    nbs = AlignedBags(UnitRange{T}[])
+    offset = zero(T)
     for b in bs
         !isempty(b) || continue
-        append!(nbs.bags, [bb .+ (isempty(bb) ? 0 : offset) for bb in b])
-        offset += max(0, mapreduce(i -> isempty(i) ? 0 : maximum(i), max, b))
+        append!(nbs.bags, [bb .+ (isempty(bb) ? zero(T) : offset) for bb in b])
+        offset += max(zero(T), mapreduce(i -> isempty(i) ? zero(T) : maximum(i), max, b))
     end
     mask = length.(nbs.bags) .== 0
     if sum(mask) > 0
-        nbs[mask] = fill(0:-1, sum(mask))
+        nbs[mask] = fill(_empty_range(T), sum(mask))
     end
     nbs
 end
 
-function _catbags(bs::Vector{ScatteredBags})
-    nbs = ScatteredBags()
-    offset = 0
+function _catbags(bs::Vector{ScatteredBags{T}}) where T <: Integer
+    nbs = ScatteredBags(Vector{T}[])
+    offset = zero(T)
     for b in bs
         !isempty(b) || continue
         append!(nbs.bags, [bb .+ offset for bb in b])
-        offset += max(0, mapreduce(i -> isempty(i) ? 0 : maximum(i), max, b))
+        offset += max(zero(T), mapreduce(i -> isempty(i) ? zero(T) : maximum(i), max, b))
     end
     nbs
 end

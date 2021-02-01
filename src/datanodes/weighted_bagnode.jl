@@ -16,7 +16,7 @@ WeightedBagNode(x::T, b::Vector, weights::Vector{W}, metadata::C=nothing) where 
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 
 function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Int}) where {T, B, W}
-    nb, ii = remapbag(x.bags, i)
+    nb, ii = remapbags(x.bags, i)
     emptyismissing() && isempty(ii) && return(WeightedBagNode(missing, nb, W[], nothing))
     WeightedBagNode(subset(x.data,ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
 end

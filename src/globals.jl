@@ -1,12 +1,20 @@
 const _emptyismissing = Ref(false)
 
 """
-Returns the current value of the `emptyismissing` parameter. See the [Empty bags](@ref) section of the docs for more information.
+    Mill.emptyismissing()
+
+Get the current value of the `emptyismissing` parameter.
+
+See also: [`Mill.emptyismissing!`](@ref),  [Empty bags](@ref) (docs).
 """
 emptyismissing() = _emptyismissing[]
 
 """
-Sets the new value of the `emptyismissing` parameter. See the [Empty bags](@ref) section of the docs for more information.
+    Mill.emptyismissing!(::Bool)
+
+Set the new value to the `emptyismissing` parameter.
+
+See also: [`Mill.emptyismissing`](@ref),  [Empty bags](@ref) (docs).
 """
 emptyismissing!(a) = _emptyismissing[] = a
 
@@ -14,12 +22,20 @@ emptyismissing!(a) = _emptyismissing[] = a
 const _bagcount = Ref(true)
 
 """
-Returns the current value of the `bagcount` parameter. See the [Bag count](@ref) section of the docs for more information.
+    Mill.bagcount()
+
+Get the current value of the `bagcount` parameter.
+
+See also: [`Mill.bagcount!`](@ref),  [Bag count](@ref) (docs).
 """
 bagcount() = _bagcount[]
 
 """
-Sets the new value of the `bagcount` parameter. See the [Bag count](@ref) section of the docs for more information.
+    Mill.bagcount!(Bool)
+
+Set the new value to the `bagcount` parameter.
+
+See also: [`Mill.bagcount`](@ref),  [Bag count](@ref) (docs).
 """
 bagcount!(a) = _bagcount[] = a
 
@@ -29,14 +45,22 @@ const _string_start_code = Ref(0x02) # STX in ascii
 """
     Mill.string_start_code()
 
-Returns the current value of the `string_start_code` parameter used as a code point of the abstract string-start character. The default value of the parameter is `0x02`, which corresponds to the `STX` character in ASCII encoding. See the [Strings](@ref) section of the docs for more information.
+Get the current value of the `string_start_code` parameter used as a code point of the abstract string-start character.
+The default value of the parameter is `0x02`, which corresponds to the `STX` character in ASCII encoding.
+
+See also: [`Mill.string_start_code!`](@ref), [`Mill.string_end_code`](@ref),
+    [`Mill.string_end_code!`](@ref), [Strings](@ref) (docs).
 """
 string_start_code() = _string_start_code[]
 
 """
     Mill.string_start_code!(c::UInt8)
 
-Sets the new value of the `string_start_code` parameter used as a code point of the abstract string-start character to `c`. The default value of the parameter is `0x02`, which corresponds to the `STX` character in ASCII encoding. See the [Strings](@ref) section of the docs for more information.
+Set the new value to the `string_start_code` parameter used as a code point of the abstract string-start character to `c`.
+The default value of the parameter is `0x02`, which corresponds to the `STX` character in ASCII encoding.
+
+See also: [`Mill.string_start_code`](@ref), [`Mill.string_end_code`](@ref),
+    [`Mill.string_end_code!`](@ref), [Strings](@ref) (docs).
 """
 string_start_code!(c) = _string_start_code[] = c
 
@@ -46,14 +70,22 @@ const _string_end_code = Ref(0x03) # ETX in ascii
 """
     Mill.string_end_code()
 
-Returns the current value of the `string_end_code` parameter used as a code point of the abstract string-end character. The default value of the parameter is `0x03`, which corresponds to the `ETX` character in ASCII encoding. See the [Strings](@ref) section of the docs for more information.
+Get the current value of the `string_end_code` parameter used as a code point of the abstract string-end character.
+The default value of the parameter is `0x03`, which corresponds to the `ETX` character in ASCII encoding.
+
+See also: [`Mill.string_end_code!`](@ref), [`Mill.string_start_code`](@ref),
+    [`Mill.string_start_code!`](@ref), [Strings](@ref) (docs).
 """
 string_end_code() = _string_end_code[]
 
 """
     Mill.string_end_code!(c::UInt8)
 
-Sets the new value of the `string_end_code` parameter used as a code point of the abstract string-end character to `c`. The default value of the parameter is `0x03`, which corresponds to the `ETX` character in ASCII encoding. See the [Strings](@ref) section of the docs for more information.
+Set the new value to the `string_end_code` parameter used as a code point of the abstract string-end character to `c`.
+The default value of the parameter is `0x03`, which corresponds to the `ETX` character in ASCII encoding.
+
+See also: [`Mill.string_end_code`](@ref), [`Mill.string_start_code`](@ref),
+    [`Mill.string_start_code!`](@ref), [Strings](@ref) (docs).
 """
 string_end_code!(c) = _string_end_code[] = c
 

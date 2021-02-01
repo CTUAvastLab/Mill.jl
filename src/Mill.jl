@@ -35,7 +35,7 @@ const Optional{T} = Union{T, Nothing}
 include("globals.jl")
 
 include("bags.jl")
-export AlignedBags, ScatteredBags, length2bags, remapbag, bags
+export AbstractBags, AlignedBags, ScatteredBags, length2bags, remapbags, bags, adjustbags
 
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode

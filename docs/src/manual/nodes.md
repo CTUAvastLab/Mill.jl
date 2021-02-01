@@ -92,7 +92,7 @@ AlignedBags([1:3, 4:4, 5:6])
 ScatteredBags([[3, 2, 1], [4], [6, 5]])
 ```
 
-The two examples above are semantically equivalent, as bags are unordered collections of instances. An **empty** bag with no instances is in `AlignedBags` specified as empty range `0:-1` and in `ScatteredBags` as an empty vector `[]`. The constructor of `BagNode` accepts directly one of these two structures and tries to automagically decide the better type in other cases.
+The two examples above are semantically equivalent, as bags are unordered collections of instances. An **empty** bag with no instances is in `AlignedBags` specified as empty range `0:-1` and in `ScatteredBags` as an empty vector `Int[]`. The constructor of `BagNode` accepts directly one of these two structures and tries to automagically decide the better type in other cases.
 
 ## `BagModel`
 

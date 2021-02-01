@@ -58,15 +58,23 @@ const BAGS2 = [
         AlignedBags([1:3, 0:-1, 0:-1, 4:7, 0:-1, 8:10]),
         AlignedBags([0:-1, 1:5, 0:-1, 0:-1, 0:-1, 6:10]),
         ScatteredBags([collect(1:3), collect(7:10), collect(4:6)]),
-        ScatteredBags([collect(7:10), [], collect(1:3), [], collect(4:6), []]),
-        ScatteredBags([[], collect(1:10), []]),
+        ScatteredBags([collect(7:10), Int[], collect(1:3), Int[], collect(4:6), Int[]]),
+        ScatteredBags([Int[], collect(1:10), Int[]]),
 ]
 
 const BAGS3 = [
-         (AlignedBags([1:2, 3:4, 0:-1]), ScatteredBags([[2, 3, 4], [1], []]), AlignedBags([1:4, 0:-1, 5:8, 0:-1])),
-         (AlignedBags([0:-1, 1:2, 3:4]), ScatteredBags([[1], [2], [3, 4]]), AlignedBags([0:-1, 1:7, 0:-1, 8:8])),
-         (AlignedBags([0:-1, 0:-1, 1:2, 3:4]), ScatteredBags([[2, 4], [], [3, 1], []]), AlignedBags([1:1, 2:2, 0:-1, 3:8])),
-         (AlignedBags([0:-1, 1:2, 3:4, 0:-1]), ScatteredBags([[], [1, 3], [2, 4], []]), AlignedBags([0:-1, 1:2, 3:6, 7:8]))
+         (AlignedBags([1:2, 3:4, 0:-1]),
+          ScatteredBags([[2, 3, 4], [1], Int[]]),
+          AlignedBags([1:4, 0:-1, 5:8, 0:-1])),
+         (AlignedBags([0:-1, 1:2, 3:4]),
+          ScatteredBags([[1], [2], [3, 4]]),
+          AlignedBags([0:-1, 1:7, 0:-1, 8:8])),
+         (AlignedBags([0:-1, 0:-1, 1:2, 3:4]),
+          ScatteredBags([[2, 4], Int[], [3, 1], Int[]]),
+          AlignedBags([1:1, 2:2, 0:-1, 3:8])),
+         (AlignedBags([0:-1, 1:2, 3:4, 0:-1]),
+          ScatteredBags([Int[], [1, 3], [2, 4], Int[]]),
+          AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
 function Mill.unpack2mill(ds::LazyNode{:Sentence})

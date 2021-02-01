@@ -66,7 +66,7 @@ rrule(::typeof(softplus), x) = softplus.(x), Δ -> (NO_FIELDS, Δ .* σ.(x))
 
 # our definition of type min for Maybe{...} types
 _typemin(t::Type) = typemin(t)
-_typemin(t::Type{Missing}) = missing
+_typemin(::Type{Missing}) = missing
 _typemin(::Type{Maybe{T}}) where T = typemin(T)
 
 include("segmented_sum.jl")
