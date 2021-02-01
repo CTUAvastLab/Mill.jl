@@ -2,6 +2,7 @@ module Mill
 
 using ChainRulesCore
 using Combinatorics
+using DataFrames
 using Flux
 using HierarchicalUtils
 using LearnBase

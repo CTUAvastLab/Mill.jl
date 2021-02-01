@@ -41,3 +41,13 @@ bags
 remapbags
 adjustbags
 ```
+
+## Data nodes
+
+```@docs
+AbstractNode
+AbstractProductNode
+AbstractBagNode
+Mill.data
+Mill.metadata
+```

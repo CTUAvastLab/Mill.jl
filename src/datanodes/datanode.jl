@@ -1,29 +1,65 @@
-using LearnBase
-using DataFrames
+"""
+    AbstractNode
 
+Supertype for any structure representing a data node.
+"""
 abstract type AbstractNode end
+
+"""
+    AbstractProductNode <: AbstractNode
+
+Supertype for any structure representing a data node implementing a Cartesian product of data in subtrees.
+"""
 abstract type AbstractProductNode <: AbstractNode end
+
+"""
+    AbstractBagNode <: AbstractNode
+
+Supertype for any structure representing a data node that implements a multi-instance learning problem.
+"""
 abstract type AbstractBagNode <: AbstractNode end
 
 """
-    data(x::AbstractNode)
+    Mill.data(n::AbstractNode)
 
-    return data hold by the datanode
+Return data stored in node `n`.
+
+# Examples
+```jlddoctest
+julia> Mill.data(ArrayNode([1 2; 3 4], "metadata"))
+2×2 Array{Int64,2}:
+ 1  2
+ 3  4
+
+julia> Mill.data(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"))
+2×2 ArrayNode{Array{Int64,2},Nothing}:
+ 1  2
+ 3  4
+```
+
+See also: [`Mill.metadata`](@ref)
 """
-data(x::AbstractNode) = x.data
+data(n::AbstractNode) = n.data
 
 """
-    metadata(x::AbstractNode)
+    Mill.metadata(n::AbstractNode)
 
-    return metadata hold by the datanode
+Return metadata stored in node `n`.
+
+# Examples
+```jlddoctest
+julia> Mill.metadata(ArrayNode([1 2; 3 4], "metadata"))
+"metadata"
+
+julia> Mill.metadata(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"))
+"metadata"
+```
+
+See also: [`Mill.data`](@ref)
 """
 metadata(x::AbstractNode) = x.metadata
 
-"""
-    catobs(as...)
 
-    concatenates `as...` into a single datanode while preserving their structure
-"""
 function catobs end
 
 mapdata(f, x) = f(x)
