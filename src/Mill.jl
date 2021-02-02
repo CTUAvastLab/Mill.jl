@@ -19,6 +19,7 @@ using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 
 import Base: *, ==, isequal, hash, show, cat, vcat, hcat, _cat
 import Base: size, length, first, last, firstindex, lastindex, eachindex, getindex, setindex!
+import Base: promote_rule, convert
 import Base: reduce, eltype, print_array
 import Base: isascii, codeunits, ncodeunits, codeunit
 
@@ -29,7 +30,7 @@ import ChainRulesCore: rrule
 
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
-using Base: AbstractVecOrMat
+using Base: AbstractVecOrMat, AbstractVecOrTuple
 const Maybe{T} = Union{T, Missing}
 const Optional{T} = Union{T, Nothing}
 

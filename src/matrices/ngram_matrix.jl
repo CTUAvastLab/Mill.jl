@@ -164,21 +164,24 @@ dense matrix is overloaded and `b` is a base for calculation of trigrams. Finall
 The structure essentially represents module one-hot representation of strings, where each columns contains one observation (string).
 Therefore the structure can be viewed as a matrix with `m` rows and `length(s)` columns
 """
-struct NGramMatrix{T, U <: AbstractVector{T}, V} <: AbstractMatrix{V}
-    s::U
+struct NGramMatrix{T, U} <: AbstractMatrix{U}
+    s::Vector{T}
     n::Int
     b::Int
     m::Int
 
-    function NGramMatrix(s::U, n::Int=3, b::Int=256, m::Int=2053) where {T <: Sequence, U <: AbstractVector{T}}
-        new{T, U, Int}(s, n, b, m)
+    function NGramMatrix(s::Vector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Sequence
+        new{T, Int}(s, n, b, m)
     end
 
-    NGramMatrix(s::U, n::Int=3, b::Int=256, m::Int=2053) where U <: AbstractVector{Missing} =
-        new{Missing, U, Missing}(s, n, b, m)
+    NGramMatrix(s::Vector{Missing}, n::Int=3, b::Int=256, m::Int=2053) = new{Missing, Missing}(s, n, b, m)
 
-    function NGramMatrix(s::U, n::Int=3, b::Int=256, m::Int=2053) where {T <: Maybe{Sequence}, U <: AbstractVector{T}}
-        new{T, U, Union{Missing, Int}}(s, n, b, m)
+    function NGramMatrix(s::Vector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Maybe{Sequence}
+        new{T, Maybe{Int}}(s, n, b, m)
+    end
+
+    function NGramMatrix{T, U}(s, n::Int=3, b::Int=256, m::Int=2053) where {T <: Maybe{Sequence}, U <: Maybe{Int}}
+        new{T, U}(convert(Vector{T}, s), n, b, m)
     end
 end
 
@@ -197,8 +200,15 @@ _getindex(X::NGramMatrix, ::Colon, ::Colon) = NGramMatrix(X.s[:], X.n, X.b, X.m)
 
 subset(a::NGramMatrix, i) = NGramMatrix(a.s[i], a.n, a.b, a.m)
 
-Base.hcat(As::NGramMatrix...) = reduce(hcat, collect(As))
-function Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix})
+function Base.convert(::Type{<:NGramMatrix{T}}, A::NGramMatrix) where T
+    NGramMatrix(convert(Vector{T}, A.s), A.n, A.b, A.m)
+end
+
+function Base.promote_rule(::Type{NGramMatrix{T, U}}, ::Type{NGramMatrix{A, B}}) where {T, A, U, B}
+    NGramMatrix{promote_type(T, A), promote_type(U, B)}
+end
+
+function _check_nbm(As::AbstractVecOrTuple{NGramMatrix})
     n, b, m = As[1].n, As[1].b, As[1].m
     if any(!isequal(n), (A.n for A in As)) ||
         any(!isequal(b), (A.b for A in As)) ||
@@ -207,8 +217,31 @@ function Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix})
                           "Matrices do not have the same n, b, or m."
                          ) |> throw
     end
-    NGramMatrix(reduce(vcat, [i.s for i in As]), n, b, m)
+    n, b, m
 end
+
+Base.hcat(As::T...) where T <: NGramMatrix = _typed_hcat(T, As)
+Base.hcat(As::NGramMatrix...) = _typed_hcat(_promote_types(As...), As)
+function _typed_hcat(::Type{T}, As::Tuple{Vararg{NGramMatrix}}) where T <: NGramMatrix
+    T(vcat(getfield.(As, :s)...), _check_nbm(As)...)
+end
+
+Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix}) = _typed_hcat(mapreduce(typeof, promote_type, As), As)
+function _typed_hcat(::Type{T}, As::AbstractVector{<:NGramMatrix}) where T <: NGramMatrix
+    T(reduce(vcat, getfield.(As, :s)), _check_nbm(As)...)
+end
+# Base.hcat(As::NGramMatrix...) = reduce(hcat, collect(As))
+# function Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix})
+#     n, b, m = As[1].n, As[1].b, As[1].m
+#     if any(!isequal(n), (A.n for A in As)) ||
+#         any(!isequal(b), (A.b for A in As)) ||
+#         any(!isequal(m), (A.m for A in As))
+#         DimensionMismatch(
+#                           "Matrices do not have the same n, b, or m."
+#                          ) |> throw
+#     end
+#     NGramMatrix(reduce(vcat, [i.s for i in As]), n, b, m)
+# end
 
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Int64, UInt}(x)
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}

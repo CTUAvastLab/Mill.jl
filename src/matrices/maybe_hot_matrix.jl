@@ -1,15 +1,20 @@
-struct MaybeHotMatrix{T, U, V, W} <: AbstractMatrix{W}
-    I::U
-    l::V
-    MaybeHotMatrix(I::U, l::V) where {T <: Integer, U <: AbstractVector{T}, V <: Integer} = new{T, U, V, Bool}(I, l)
-    MaybeHotMatrix(I::U, l::V) where {U <: AbstractVector{Missing}, V <: Integer} = new{Missing, U, V, Missing}(I, l)
-    function MaybeHotMatrix(I::U, l::V) where {T <: Maybe{Integer}, U <: AbstractVector{T}, V <: Integer}
-        new{T, U, V, Maybe{Bool}}(I, l)
+struct MaybeHotMatrix{T, U, V} <: AbstractMatrix{V}
+    I::Vector{T}
+    l::U
+    MaybeHotMatrix(I::Vector{T}, l::U) where {T <: Integer, U <: Integer} = new{T, U, Bool}(I, l)
+    MaybeHotMatrix(I::Vector{Missing}, l::U) where U <: Integer = new{Missing, U, Missing}(I, l)
+    function MaybeHotMatrix(I::Vector{T}, l::U) where {T <: Maybe{Integer}, U <: Integer}
+        new{T, U, Maybe{Bool}}(I, l)
+    end
+
+    function MaybeHotMatrix{T, U, V}(I, l) where {T <: Maybe{Integer}, U <: Integer, V <: Maybe{Bool}}
+        new{T, U, V}(convert(Vector{T}, I), convert(U, l))
     end
 end
 
-MaybeHotMatrix(x::MaybeHotVector) = MaybeHotMatrix([x.i], x.l)
 MaybeHotMatrix(i::Integer, l::Integer) = MaybeHotMatrix([i], l)
+MaybeHotMatrix(x::MaybeHotVector) = MaybeHotMatrix([x.i], x.l)
+
 
 Base.size(X::MaybeHotMatrix) = (X.l, length(X.I))
 Base.length(X::MaybeHotMatrix) = X.l * length(X.I)
@@ -22,16 +27,34 @@ _getindex(X::MaybeHotMatrix, ::Colon, i::Integer) = MaybeHotVector(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, i::AbstractArray) = MaybeHotMatrix(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, ::Colon) = MaybeHotMatrix(copy(X.I), X.l)
 
-Base.hcat(Xs::MaybeHotMatrix...) = reduce(hcat, collect(Xs))
-function Base.reduce(::typeof(hcat), Xs::Vector{MaybeHotMatrix})
-    isempty(Xs) && return Xs
+function Base.convert(::Type{<:MaybeHotMatrix{T, U}}, X::MaybeHotMatrix) where {T, U}
+    MaybeHotMatrix(convert(Vector{T}, X.I), convert(U, X.l))
+end
+
+function Base.promote_rule(::Type{MaybeHotMatrix{T, U, V}},
+        ::Type{MaybeHotMatrix{A, B, C}}) where {T, A, U, B, V, C}
+    MaybeHotMatrix{promote_type(T, A), promote_type(U, B), promote_type(V, C)}
+end
+
+function _check_l(Xs::AbstractVecOrTuple{MaybeHotMatrix})
     l = Xs[1].l
-    if any(!isequal(l), (X.l for X in Xs))
+    if any(!isequal(l), getfield.(Xs, :l))
         DimensionMismatch(
-            "Number of rows of MaybeHot to hcat must correspond"
+            "Number of rows of `MaybeHotMatrix`s to hcat must correspond"
         ) |> throw
     end
-    MaybeHotMatrix(reduce(vcat, [X.I for X in Xs]), l)
+    l
+end
+
+Base.hcat(Xs::T...) where T <: MaybeHotMatrix = _typed_hcat(T, Xs)
+Base.hcat(Xs::MaybeHotMatrix...) = _typed_hcat(_promote_types(Xs...), Xs)
+function _typed_hcat(::Type{T}, Xs::Tuple{Vararg{MaybeHotMatrix}}) where T <: MaybeHotMatrix
+    T(vcat(getfield.(Xs, :I)...), _check_l(Xs))
+end
+
+Base.reduce(::typeof(hcat), Xs::Vector{<:MaybeHotMatrix}) = _typed_hcat(mapreduce(typeof, promote_type, Xs), Xs)
+function _typed_hcat(::Type{T}, Xs::AbstractVector{<:MaybeHotMatrix}) where T <: MaybeHotMatrix
+    T(reduce(vcat, getfield.(Xs, :I)), _check_l(Xs))
 end
 
 A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))

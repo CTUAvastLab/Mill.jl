@@ -1,8 +1,8 @@
 using Test
 using Mill
-using Mill: nobs, reflectinmodel, sparsify, mapdata
+using Mill: nobs, mapdata
 using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, ∇xbagconv, ∇convsum
-using Mill: ngrams, string2ngrams, countngrams, catobs
+using Mill: ngrams, string2ngrams, countngrams
 using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
 using Mill: Maybe
 using Base.Iterators: partition, product
@@ -40,6 +40,9 @@ gradcheck(f::Function, xs...) = all(gradcheck, zip(gradient(f, xs...), ngradient
 
 gradtest(f, xs::AbstractArray...) = gradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
 gradtest(f, dims...) = gradtest(f, rand.(Float64, dims)...)
+
+areequal(x) = true
+areequal(x, y, zs...) = isequal(x, y) && areequal(y, zs...)
 
 Random.seed!(24)
 

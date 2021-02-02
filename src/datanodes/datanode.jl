@@ -59,6 +59,8 @@ See also: [`Mill.data`](@ref)
 """
 metadata(x::AbstractNode) = x.metadata
 
+_promote_types(x) = typeof(x)
+_promote_types(x, y...) = promote_type(typeof(x), _promote_types(y...))
 
 function catobs end
 
@@ -102,11 +104,12 @@ StatsBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
 
 include("lazynode.jl")
 
-catobs(as::DataFrame...) = reduce(catobs, collect(as))
 catobs(as::Maybe{ArrayNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{BagNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{WeightedBagNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{ProductNode}...) = reduce(catobs, collect(as))
+
+Base.cat(as::AbstractNode...; dims=:) = catobs(as...)
 
 # reduction of common datatypes the way we like it
 reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
@@ -118,8 +121,6 @@ reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
 function reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractNode
     reduce(catobs, skipmissing(as) |> collect)
 end
-
-Base.cat(as::AbstractNode...; dims=:) = reduce(catobs, collect(as))
 
 function Base.show(io::IO, @nospecialize(n::AbstractNode))
     print(io, nameof(typeof(n)))

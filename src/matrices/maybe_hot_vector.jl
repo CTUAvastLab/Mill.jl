@@ -4,6 +4,11 @@ struct MaybeHotVector{T, U, V} <: AbstractVector{V}
 
     MaybeHotVector(i::T, l::U) where {T <: Integer, U <: Integer} = new{T, U, Bool}(i, l)
     MaybeHotVector(i::T, l::U) where {T <: Missing, U <: Integer} = new{T, U, Missing}(i, l)
+    MaybeHotVector(i::T, l::U) where {T <: Maybe{Integer}, U <: Integer} = new{T, U, Maybe{T}}(i, l)
+
+    function MaybeHotVector{T, U, V}(i, l) where {T <: Maybe{Integer}, U <: Integer, V <: Maybe{Bool}}
+        new{T, U, V}(convert(T, i), convert(U, l))
+    end
 end
 
 Base.size(x::MaybeHotVector) = (x.l,)
@@ -11,9 +16,34 @@ Base.length(x::MaybeHotVector) = x.l
 Base.getindex(x::MaybeHotVector, i::Integer) = (@boundscheck checkbounds(x, i); x.i == i)
 Base.getindex(x::MaybeHotVector, ::Colon) = MaybeHotVector(x.i, x.l)
 
-Base.hcat(xs::MaybeHotVector...) = reduce(hcat, collect(xs))
-function Base.reduce(::typeof(hcat), xs::Vector{<:MaybeHotVector})
-    reduce(hcat, MaybeHotMatrix.(xs))
+function Base.convert(::Type{MaybeHotVector{T, U, W}}, x::MaybeHotVector) where {T, U, W}
+    MaybeHotVector{T, U, W}(convert(T, x.i), convert(U, x.l))
+end
+
+function Base.promote_rule(::Type{MaybeHotVector{T, U, V}},
+        ::Type{MaybeHotVector{A, B, C}}) where {T, A, U, B, V, C}
+    MaybeHotVector{promote_type(T, A), promote_type(U, B), promote_type(V, C)}
+end
+
+function _check_l(xs::AbstractVecOrTuple{MaybeHotVector})
+    l = xs[1].l
+    if any(!isequal(l), getfield.(xs, :l))
+        DimensionMismatch(
+            "Number of rows of `MaybeHotMatrix`s to hcat must correspond"
+        ) |> throw
+    end
+    l
+end
+
+Base.hcat(xs::T...) where T <: MaybeHotVector = _typed_hcat(T, xs)
+Base.hcat(xs::MaybeHotVector...) = _typed_hcat(_promote_types(xs...), xs)
+function _typed_hcat(::Type{MaybeHotVector{T, U, V}}, xs::Tuple{Vararg{MaybeHotVector}}) where {T, U, V}
+    MaybeHotMatrix{T, U, V}([getfield.(xs, :i)...], _check_l(xs))
+end
+
+Base.reduce(::typeof(hcat), xs::Vector{<:MaybeHotVector}) = _typed_hcat(mapreduce(typeof, promote_type, xs), xs)
+function _typed_hcat(::Type{MaybeHotVector{T, U, V}}, xs::AbstractVector{<:MaybeHotVector}) where {T, U, V}
+    MaybeHotMatrix{T, U, V}(collect(getfield.(xs, :i)), _check_l(xs))
 end
 
 reduce(::typeof(catobs), as::Vector{<:MaybeHotVector}) = reduce(hcat, as)

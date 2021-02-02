@@ -32,6 +32,7 @@ i = ProductNode((
              ))
 k = ProductNode((a = wb, b = b))
 l = ProductNode((a = wc, b = c))
+m = ProductNode((a = wc, c = c))
 
 @testset "testing nobs" begin
     @test nobs(a) == nobs(wa) == 1
@@ -57,7 +58,7 @@ end
     @test all(cat(e, e, dims = ndims(e)).data .== hcat(e.data, e.data))
 end
 
-@testset "testing BagNode hcat" begin
+@testset "testing BagNode catobs" begin
     @test all(catobs(a, b, c).data.data .== hcat(a.data.data, b.data.data, c.data.data))
     @test all(reduce(catobs, [a, b, c]).data.data .== hcat(a.data.data, b.data.data, c.data.data))
     @test catobs(a, b, c).bags.bags == vcat(a.bags, b.bags, c.bags).bags
@@ -85,7 +86,7 @@ end
     @test all(cat(a, b, dims = ndims(a)).data.data .== hcat(a.data.data, b.data.data))
 end
 
-@testset "testing WeightedBagNode hcat" begin
+@testset "testing WeightedBagNode catobs" begin
     @test all(catobs(wa, wb, wc).data.data .== hcat(wa.data.data, wb.data.data, wc.data.data))
     @test all(reduce(catobs, [wa, wb, wc]).data.data .== hcat(wa.data.data, wb.data.data, wc.data.data))
     @test catobs(wa, wb, wc).bags.bags == vcat(wa.bags, wb.bags, wc.bags).bags
@@ -120,7 +121,14 @@ end
     @test catobs(wa, wb, wc).weights == catobs(wa, wb, missing, wc).weights
 end
 
-@testset "testing hierarchical hcat on product nodes" begin
+@testset "testing catobs stability" begin
+    for n in [a, b, c, d, e, f, h, k, l, wa, wb, wc, wd]
+        @inferred catobs(n, n)
+        @inferred reduce(catobs, [n, n])
+    end
+end
+
+@testset "testing hierarchical catobs on product nodes" begin
     @test all(catobs(f, h).data[1].data.data .== hcat(wb.data.data, wc.data.data))
     @test all(reduce(catobs, [f, h]).data[1].data.data .== hcat(wb.data.data, wc.data.data))
     @test all(catobs(f, h).data[2].data.data .== hcat(b.data.data, c.data.data))
@@ -132,14 +140,17 @@ end
     @test all(catobs(k, l).data[2].data.data .== hcat(b.data.data, c.data.data))
     @test nobs(catobs(k,l)) == nobs(k) + nobs(l)
 
-    # different tuple length
+    # different tuple length or keys or content
+    @test_throws ArgumentError catobs(g, i)
+    @test_throws ArgumentError reduce(catobs, [g, i])
+    @test_throws ArgumentError catobs(k, m)
+    @test_throws ArgumentError reduce(catobs, [k, m])
+    @test_throws ArgumentError catobs(l, m)
+    @test_throws ArgumentError reduce(catobs, [l, m])
+    @test_throws ArgumentError catobs(f, g)
+    @test_throws ArgumentError reduce(catobs, [f, g])
     @test_throws MethodError catobs(f, i)
     @test_throws MethodError reduce(catobs, [f, i])
-    @test_throws MethodError catobs(g, i)
-    @test_throws MethodError reduce(catobs, [g, i])
-    # different content
-    @test_throws MethodError catobs(f, g)
-    @test_throws MethodError reduce(catobs, [f, g])
 end
 
 @testset "testing BagNode indexing" begin

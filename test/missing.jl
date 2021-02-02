@@ -121,7 +121,6 @@ end
     bbb = BagNode(d, [1:1], nothing)
     bbc = BagNode(missing, AlignedBags([0:-1]), nothing)
 
-
     x = reduce(catobs, [c, d])
     y = reduce(catobs, [ba, bb, bc])
     z = reduce(catobs, [bba, bbb, bbc])

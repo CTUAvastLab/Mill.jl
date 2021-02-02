@@ -103,14 +103,32 @@ end
     M2 = NGramMatrix(S2)
     M3 = NGramMatrix(S3)
 
-    @test isequal(hcat(M1, M2), NGramMatrix(vcat(S1, S2)))
-    @test isequal(hcat(M1, M3), NGramMatrix(vcat(S1, S3)))
-    @test isequal(hcat(M2, M3), NGramMatrix(vcat(S2, S3)))
-    @test isequal(hcat(M1, M2, M3), NGramMatrix(vcat(S1, S2, S3)))
+    @test areequal(hcat(M1, M2), reduce(hcat, [M1, M2]), NGramMatrix(vcat(S1, S2)))
+    @test areequal(hcat(M1, M3), reduce(hcat, [M1, M3]), NGramMatrix(vcat(S1, S3)))
+    @test areequal(hcat(M2, M3), reduce(hcat, [M2, M3]), NGramMatrix(vcat(S2, S3)))
+    @test areequal(hcat(M1, M2, M3), reduce(hcat, [M1, M2, M3]), NGramMatrix(vcat(S1, S2, S3)))
+
+    @inferred hcat(M1, M1)
+    @inferred reduce(hcat, [M1, M1])
+    @inferred hcat(M2, M2)
+    @inferred reduce(hcat, [M2, M2])
+    @inferred hcat(M3, M3)
+    @inferred reduce(hcat, [M3, M3])
+    @inferred hcat(M1, M2)
+    @inferred reduce(hcat, [M1, M2])
+    @inferred hcat(M2, M3)
+    @inferred reduce(hcat, [M2, M3])
+    @inferred hcat(M3, M1)
+    @inferred reduce(hcat, [M3, M1])
+    @inferred hcat(M1, M2, M3)
+    @inferred reduce(hcat, [M1, M2, M3])
 
     @test_throws DimensionMismatch hcat(NGramMatrix(S1, 1), NGramMatrix(S1, 2))
     @test_throws DimensionMismatch hcat(NGramMatrix(S1, 2, 256), NGramMatrix(S1, 2, 128))
     @test_throws DimensionMismatch hcat(NGramMatrix(S1, 2, 256, 7), NGramMatrix(S1, 2, 256, 2053))
+    @test_throws DimensionMismatch reduce(hcat, [NGramMatrix(S1, 1), NGramMatrix(S1, 2)])
+    @test_throws DimensionMismatch reduce(hcat, [NGramMatrix(S1, 2, 256), NGramMatrix(S1, 2, 128)])
+    @test_throws DimensionMismatch reduce(hcat, [NGramMatrix(S1, 2, 256, 7), NGramMatrix(S1, 2, 256, 2053)])
 end
 
 @testset "ngram computation" begin
