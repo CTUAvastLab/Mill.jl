@@ -632,6 +632,36 @@ end
     end
 end
 
+@testset "broadcasting" begin
+    function check(A::T, W, ψ) where T
+        @test A .+ A == T(W .+ W, ψ .+ ψ)
+        @test A .- A == T(W .- W, ψ .- ψ)
+        @test A .- 1 == T(W .- 1, ψ .- 1) == -1 .+ A
+        @test 2 .* A == T(2 .* W, 2 .* ψ) == A .* 2
+        @test A .+ A .+ A == 3 .* A == A .* 3
+        A .+= A
+        @test A == T(W .+ W, ψ .+ ψ)
+        A .-= 2 .* A
+        @test A == T(-2 .* W, -2 .* ψ)
+        A .*= -1
+        @test A == T(2 .* W, 2 .* ψ)
+    end
+
+    W = randn(3, 3)
+    ψ = randn(3)
+    A1 = PreImputingMatrix(W, ψ)
+    check(A1, copy(W), copy(ψ))
+    A2 = PostImputingMatrix(W, ψ)
+    check(A2, copy(W), copy(ψ))
+
+    @test_throws MethodError A1 .+ W
+    @test_throws MethodError W .+ A1
+    @test_throws MethodError A2 .+ W
+    @test_throws MethodError W .+ A2
+    @test A1 .+ A2 isa Matrix
+    @test A2 .* A1 isa Matrix
+end
+
 @testset "imputing Dense construction" begin
     A = preimputing_dense(2, 3)
     @test size(A.W) == (3, 2)

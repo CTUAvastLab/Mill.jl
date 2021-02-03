@@ -1,13 +1,13 @@
-struct PreImputingMatrix{T <: Number, R <: AbstractVector{T}, U <: AbstractMatrix{T}} <: AbstractMatrix{T}
+struct PreImputingMatrix{T <: Number, U <: AbstractMatrix{T}, V <: AbstractVector{T}} <: AbstractMatrix{T}
     W::U
-    ψ::R
+    ψ::V
 end
 
 Flux.@functor PreImputingMatrix
 
 PreImputingMatrix(W::AbstractMatrix{T}) where T = PreImputingMatrix(W, zeros(T, size(W, 2)))
 
-Flux.@forward PreImputingMatrix.W Base.size, Base.length, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
+Flux.@forward PreImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
 
 Base.hcat(As::PreImputingMatrix...) = PreImputingMatrix(hcat((A.W for A in As)...), vcat((A.ψ for A in As)...))
 function Base.vcat(As::PreImputingMatrix...)

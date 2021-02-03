@@ -1,13 +1,13 @@
-struct PostImputingMatrix{T <: Number, C <: AbstractVector{T}, U <: AbstractMatrix{T}} <: AbstractMatrix{T}
+struct PostImputingMatrix{T <: Number, U <: AbstractMatrix{T}, V <: AbstractVector{T}} <: AbstractMatrix{T}
     W::U
-    ψ::C
+    ψ::V
 end
 
 Flux.@functor PostImputingMatrix
 
 PostImputingMatrix(W::AbstractMatrix{T}) where T = PostImputingMatrix(W, zeros(T, size(W, 1)))
 
-Flux.@forward PostImputingMatrix.W Base.size, Base.length, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
+Flux.@forward PostImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
 
 Base.vcat(As::PostImputingMatrix...) = PostImputingMatrix(vcat((A.W for A in As)...), vcat((A.ψ for A in As)...))
 function Base.hcat(As::PostImputingMatrix...)
@@ -16,10 +16,10 @@ end
 
 A::PostImputingMatrix * b::AbstractVector = (_check_mul(A, b); _mul(A, b))
 Zygote.@adjoint A::PostImputingMatrix * b::AbstractVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
-A::PostImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
-Zygote.@adjoint A::PostImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 A::PostImputingMatrix * b::MaybeHotVector = (_check_mul(A, b); _mul(A, b))
 Zygote.@adjoint A::PostImputingMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
+A::PostImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
+Zygote.@adjoint A::PostImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 A::PostImputingMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))
 Zygote.@adjoint A::PostImputingMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 A::PostImputingMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))

@@ -23,9 +23,32 @@ include("ngram_matrix.jl")
 include("pre_imputing_matrix.jl")
 include("post_imputing_matrix.jl")
 
-const ImputingMatrix{T, C, U} = Union{PreImputingMatrix{T, C, U}, PostImputingMatrix{T, C, U}}
+const ImputingMatrix{T, U} = Union{PreImputingMatrix{T, U}, PostImputingMatrix{T, U}}
 const PreImputingDense = Dense{T, <: PreImputingMatrix} where T
 const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
+
+Base.zero(X::T) where T <: ImputingMatrix = T(zero(X.W), zero(X.ψ))
+Base.similar(X::T) where T <: ImputingMatrix = T(similar(X.W), similar(X.ψ))
+
+function _split_bc(bc::Base.Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) where T <: ImputingMatrix
+    bc1, bc2 = _split_bc(bc.args)
+    Base.broadcasted(bc.f, bc1...), Base.broadcasted(bc.f, bc2...)
+end
+_split_bc(A::ImputingMatrix) = (A.W, A.ψ)
+_split_bc(x::Tuple) = tuple(zip(_split_bc.(x)...)...)
+_split_bc(x) = (x, x)
+
+Base.BroadcastStyle(::Type{T}) where T <: ImputingMatrix = Broadcast.ArrayStyle{T}()
+
+function Base.copy(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) where T <: ImputingMatrix
+    T(map(Base.copy, _split_bc(bc))...)
+end
+function Base.copyto!(A::T, bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) where T <: ImputingMatrix
+    bc1, bc2 = _split_bc(bc)
+    Base.copyto!(A.W, bc1)
+    Base.copyto!(A.ψ, bc2)
+    return A
+end
 
 _print_params(io::IO, A::PreImputingMatrix) = print_array(io, A.ψ |> permutedims)
 _print_params(io::IO, A::PostImputingMatrix) = print_array(io, A.ψ)
@@ -39,6 +62,23 @@ end
 
 print_array(io::IO, A::NGramMatrix) = print_array(io, A.s)
 
+function update!(opt, x::ImputingMatrix, x̄)
+    if !isnothing(x̄.W)
+        x.W .-= apply!(opt, x.W, x̄.W)
+    end
+    if !isnothing(x̄.ψ)
+        x.ψ .-= apply!(opt, x.ψ, x̄.ψ)
+    end
+end
+function update!(x::ImputingMatrix, x̄)
+    if !isnothing(x̄.W)
+        x.W .-= x̄.W
+    end
+    if !isnothing(x̄.ψ)
+        x.ψ .-= x̄.ψ
+    end
+end
+
 function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix, MaybeHotVector, NGramMatrix}
     if get(io, :compact, false)
         if ndims(X) == 1
@@ -48,15 +88,6 @@ function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix
         end
     else
         _show(io, X)
-    end
-end
-
-function update!(opt, x::ImputingMatrix, x̄)
-    if !isnothing(x̄.W)
-        x.W .-= apply!(opt, x.W, x̄.W)
-    end
-    if !isnothing(x̄.ψ)
-        x.ψ .-= apply!(opt, x.ψ, x̄.ψ)
     end
 end
 

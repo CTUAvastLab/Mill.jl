@@ -174,7 +174,7 @@ end
     @test repr(X; context=:compact => true) == "4×2 PreImputingMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
-        4×2 PreImputingMatrix{Int64,Array{Int64,1},Array{Int64,2}}:
+        4×2 PreImputingMatrix{Int64,Array{Int64,2},Array{Int64,1}}:
         W:
          1  5
          2  6
@@ -191,7 +191,7 @@ end
     @test repr(X; context=:compact => true) == "2×3 PostImputingMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
-        2×3 PostImputingMatrix{Int64,Array{Int64,1},Array{Int64,2}}:
+        2×3 PostImputingMatrix{Int64,Array{Int64,2},Array{Int64,1}}:
         W:
          1  3  5
          2  4  6
