@@ -219,7 +219,7 @@ function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector
     ∇x, tuple(∇W...)
 end
 
-function rrule(::typeof(bagconv), x, bags, fs::Matrix...)
+function ChainRulesCore.rrule(::typeof(bagconv), x, bags, fs::Matrix...)
     bagconv(x, bags, fs...), Δ -> (NO_FIELDS, @thunk(∇xbagconv(Δ, x, bags,  fs...)),
                                    DoesNotExist(),  ∇wbagconv(Δ, x, bags,  fs...)...)
 end
@@ -289,7 +289,7 @@ function ∇convsum(Δ, bags, n)
     tuple(o...)
 end
 
-function rrule(::typeof(convsum), bags, xs...)
+function ChainRulesCore.rrule(::typeof(convsum), bags, xs...)
     convsum(bags, xs...), Δ -> (NO_FIELDS, DoesNotExist(),  ∇convsum(Δ, bags, length(xs))...)
 end
 

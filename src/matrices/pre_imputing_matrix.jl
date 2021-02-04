@@ -25,7 +25,7 @@ _mul(A::PreImputingMatrix, B::AbstractMatrix{Missing}) = repeat(A.W * A.ψ, 1, s
 _mul(A::PreImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * _mul_maybe(A.ψ, B)
 
 _mul_maybe(ψ, B) = _impute_row(ψ, B)[1]
-function rrule(::typeof(_mul_maybe), ψ, B)
+function ChainRulesCore.rrule(::typeof(_mul_maybe), ψ, B)
     X, m = _impute_row(ψ, B)
     X, Δ -> (NO_FIELDS, @thunk(vec(sum(.!m .* Δ, dims=2))), @thunk(m .* Δ))
 end

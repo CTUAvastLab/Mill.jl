@@ -14,7 +14,8 @@ end
 
 MillString(s::AbstractString) = MillString(s, nothing)
 
-Flux.@forward MillString.s length, firstindex, lastindex, nextind, reverse, ncodeunits, codeunit
+Flux.@forward MillString.s Base.length, Base.firstindex, Base.lastindex, Base.nextind, Base.reverse,
+    Base.ncodeunits, Base.codeunit
 
 macro mill_str(s::String)
     quote

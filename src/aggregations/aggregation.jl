@@ -39,7 +39,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", a::Aggregation{T}) where T
     print(io, "Aggregation{$T}:\n")
-    print_array(io, a.fs |> collect)
+    Base.print_array(io, a.fs |> collect)
 end
 
 function Base.show(io::IO, a::T) where T <: AggregationOperator
@@ -62,7 +62,7 @@ end
 @inline weightsum(ws::AbstractVector, i) = ws[i]
 
 # more stable definitions for r_map and p_map
-rrule(::typeof(softplus), x) = softplus.(x), Δ -> (NO_FIELDS, Δ .* σ.(x))
+ChainRulesCore.rrule(::typeof(softplus), x) = softplus.(x), Δ -> (NO_FIELDS, Δ .* σ.(x))
 
 # our definition of type min for Maybe{...} types
 _typemin(t::Type) = typemin(t)

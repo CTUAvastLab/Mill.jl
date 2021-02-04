@@ -82,7 +82,7 @@ function segmented_max_back(Δ, y, x::Missing, ψ, bags)
     Zero(), dψ, DoesNotExist()
 end
 
-function rrule(::typeof(segmented_max_forw), args...)
+function ChainRulesCore.rrule(::typeof(segmented_max_forw), args...)
     y = segmented_max_forw(args...)
     grad = Δ -> (NO_FIELDS, segmented_max_back(Δ, y, args...)...)
     y, grad

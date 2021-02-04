@@ -70,10 +70,10 @@ function _mul(A::AbstractMatrix, B::MaybeHotMatrix)
     C
 end
 
-Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = onehotbatch(X.I, 1:X.l)
+Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = Flux.onehotbatch(X.I, 1:X.l)
 
 maybehotbatch(L, labels) = MaybeHotMatrix([maybehot(l, labels).i for l in L], length(labels))
 
 Base.hash(X::MaybeHotMatrix, h::UInt) where {T, U, V, W} = hash((X.I, X.l), h)
 (X1::MaybeHotMatrix == X2::MaybeHotMatrix) = X1.I == X2.I && X1.l == X2.l
-isequal(X1::MaybeHotMatrix, X2::MaybeHotMatrix) = isequal(X1.I, X2.I) && X1.l == X2.l
+Base.isequal(X1::MaybeHotMatrix, X2::MaybeHotMatrix) = isequal(X1.I, X2.I) && X1.l == X2.l

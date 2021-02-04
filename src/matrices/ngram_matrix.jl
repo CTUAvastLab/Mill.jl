@@ -291,7 +291,7 @@ function _mul_∇A(Δ, A, S, n, b, m)
     end
     ∇A
 end
-function rrule(::typeof(_mul_∇A), Δ, A, S, n, b, m)
+function ChainRulesCore.rrule(::typeof(_mul_∇A), Δ, A, S, n, b, m)
     y = _mul_∇A(Δ, A, S, n, b, m)
     function _mul_∇A_pullback(Δ₂)
         return (NO_FIELDS, _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)...)
@@ -323,4 +323,4 @@ _∇A_mul_vec!(Δ, k, ∇A, z, s::Missing, n, b, m) = return
 
 Base.hash(M::NGramMatrix, h::UInt) = hash((M.s, M.n, M.b, M.m), h)
 (M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.s == M2.s, true) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
-isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
+Base.isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m

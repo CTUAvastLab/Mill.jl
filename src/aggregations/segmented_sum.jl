@@ -81,7 +81,7 @@ function ∇dw_segmented_sum!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, i
     dw[i, j] += Δ[i, bi] * (x[i, j])
 end
 
-function rrule(::typeof(segmented_sum_forw), args...)
+function ChainRulesCore.rrule(::typeof(segmented_sum_forw), args...)
     y = segmented_sum_forw(args...)
     grad = Δ -> (NO_FIELDS, segmented_sum_back(Δ, y, args...)...)
     y, grad

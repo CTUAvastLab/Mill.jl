@@ -17,16 +17,8 @@ using Zygote
 using Base: CodeUnits, nameof
 using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 
-import Base: *, ==, isequal, hash, show, cat, vcat, hcat, _cat
-import Base: size, length, first, last, firstindex, lastindex, eachindex, getindex, setindex!
-import Base: promote_rule, convert
-import Base: reduce, eltype, print_array
-import Base: isascii, codeunits, ncodeunits, codeunit
-
-import Flux: Dense, Chain, update!, onehot, onehotbatch
-import Flux.Optimise: apply!
-
-import ChainRulesCore: rrule
+import Base, Flux, ChainRulesCore
+import Base: *, ==, reduce
 
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}

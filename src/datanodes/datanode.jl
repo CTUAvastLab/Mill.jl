@@ -112,13 +112,14 @@ catobs(as::Maybe{ProductNode}...) = reduce(catobs, collect(as))
 Base.cat(as::AbstractNode...; dims=:) = catobs(as...)
 
 # reduction of common datatypes the way we like it
-reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{<:AbstractMatrix}) = reduce(hcat, as)
-reduce(::typeof(catobs), as::Vector{<:AbstractVector}) = reduce(vcat, as)
-reduce(::typeof(catobs), as::Vector{Missing}) = missing
-reduce(::typeof(catobs), as::Vector{Nothing}) = nothing
-reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
-function reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractNode
+Base.reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
+Base.reduce(::typeof(catobs), as::Vector{<:AbstractMatrix}) = reduce(hcat, as)
+Base.reduce(::typeof(catobs), as::Vector{<:AbstractVector}) = reduce(vcat, as)
+Base.reduce(::typeof(catobs), as::Vector{Missing}) = missing
+Base.reduce(::typeof(catobs), as::Vector{Nothing}) = nothing
+Base.reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
+
+function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractNode
     reduce(catobs, skipmissing(as) |> collect)
 end
 

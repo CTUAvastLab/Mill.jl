@@ -83,7 +83,7 @@ function ∇dw_segmented_mean!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, 
     dw[i, j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws[i]
 end
 
-function rrule(::typeof(segmented_mean_forw), args...)
+function ChainRulesCore.rrule(::typeof(segmented_mean_forw), args...)
     y = segmented_mean_forw(args...)
     grad = Δ -> (NO_FIELDS, segmented_mean_back(Δ, y, args...)...)
     y, grad

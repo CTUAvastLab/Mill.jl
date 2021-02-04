@@ -120,7 +120,8 @@ function segmented_lse_back(Δ, ::Missing, ψ, bags)
     Zero(), dψ, Zero(), DoesNotExist(), Zero()
 end
 
-function rrule(::typeof(segmented_lse_forw), x::AbstractMatrix, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
+function ChainRulesCore.rrule(::typeof(segmented_lse_forw),
+        x::AbstractMatrix, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
     M = _lse_precomp(x, r, bags)
     y = _segmented_lse_norm(x, ψ, r, bags, M)
     grad = Δ -> (NO_FIELDS, segmented_lse_back(Δ, y, x, ψ, r, bags, M)...)

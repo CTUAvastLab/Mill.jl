@@ -38,7 +38,7 @@ _mul(A::PostImputingMatrix, B::NGramMatrix{Maybe{T}}) where {T <: Sequence} =
     _mul_ngram(A.W, A.ψ, B.s, B.n, B.b, B.m)
 
 _mul_maybe_hot(W, ψ, I) = _impute_maybe_hot(W, ψ, I)[1]
-function rrule(::typeof(_mul_maybe_hot), W, ψ, I)
+function ChainRulesCore.rrule(::typeof(_mul_maybe_hot), W, ψ, I)
     C, m = _impute_maybe_hot(W, ψ, I)
     function ∇W(Δ)
         dW = zero(W)
@@ -66,7 +66,7 @@ end
 
 # TODO rewrite this to less parameters once Zygote allows for composite grads
 _mul_ngram(W, ψ, S, n, b, m) = _impute_ngram(W, ψ, S, n, b, m)
-function rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
+function ChainRulesCore.rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
     function ∇W(Δ)
         dW = zero(W)
         z = _init_z(n, b)

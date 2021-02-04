@@ -39,13 +39,13 @@ Base.getindex(x::ArrayNode, i::VecOrRange{<:Int}) = ArrayNode(subset(x.data, i),
 
 Base.hash(e::ArrayNode, h::UInt) = hash((e.data, e.metadata), h)
 (e1::ArrayNode == e2::ArrayNode) = isequal(e1.data == e2.data, true) && e1.metadata == e2.metadata
-isequal(e1::ArrayNode, e2::ArrayNode) = isequal(e1.data, e2.data) && isequal(e1.metadata, e2.metadata)
+Base.isequal(e1::ArrayNode, e2::ArrayNode) = isequal(e1.data, e2.data) && isequal(e1.metadata, e2.metadata)
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::ArrayNode))
     print(io, join(size(n.data), "×"), " ", summary(n))
     if !isempty(n.data)
         print(io, ":\n")
-        print_array(IOContext(io, :typeinfo => eltype(n.data)), n.data)
+        Base.print_array(IOContext(io, :typeinfo => eltype(n.data)), n.data)
     end
 end
 

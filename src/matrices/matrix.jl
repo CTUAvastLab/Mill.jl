@@ -50,27 +50,27 @@ function Base.copyto!(A::T, bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) 
     return A
 end
 
-_print_params(io::IO, A::PreImputingMatrix) = print_array(io, A.ψ |> permutedims)
-_print_params(io::IO, A::PostImputingMatrix) = print_array(io, A.ψ)
+_print_params(io::IO, A::PreImputingMatrix) = Base.print_array(io, A.ψ |> permutedims)
+_print_params(io::IO, A::PostImputingMatrix) = Base.print_array(io, A.ψ)
 
-function print_array(io::IO, A::ImputingMatrix)
+function Base.print_array(io::IO, A::ImputingMatrix)
     println(io, "W:")
-    print_array(io, A.W)
+    Base.print_array(io, A.W)
     println(io, "\n\nψ:")
     _print_params(io, A)
 end
 
-print_array(io::IO, A::NGramMatrix) = print_array(io, A.s)
+Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.s)
 
-function update!(opt, x::ImputingMatrix, x̄)
+function Flux.update!(opt, x::ImputingMatrix, x̄)
     if !isnothing(x̄.W)
-        x.W .-= apply!(opt, x.W, x̄.W)
+        x.W .-= Flux.Optimise.apply!(opt, x.W, x̄.W)
     end
     if !isnothing(x̄.ψ)
-        x.ψ .-= apply!(opt, x.ψ, x̄.ψ)
+        x.ψ .-= Flux.Optimise.apply!(opt, x.ψ, x̄.ψ)
     end
 end
-function update!(x::ImputingMatrix, x̄)
+function Flux.update!(x::ImputingMatrix, x̄)
     if !isnothing(x̄.W)
         x.W .-= x̄.W
     end
