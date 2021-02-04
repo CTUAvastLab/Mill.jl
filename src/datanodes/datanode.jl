@@ -108,6 +108,7 @@ catobs(as::Maybe{ArrayNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{BagNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{WeightedBagNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{ProductNode}...) = reduce(catobs, collect(as))
+catobs(as::Maybe{LazyNode}...) = reduce(catobs, collect(as))
 
 Base.cat(as::AbstractNode...; dims=:) = catobs(as...)
 
