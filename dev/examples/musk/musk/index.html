@@ -104,41 +104,31 @@ BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Chain(
 2×92 ArrayNode{Array{Float32,2},Nothing}:
   81.224525   91.731186   109.81073  …   83.60223  100.75357  178.61896
  -78.0201    -97.48744   -120.47425     -84.58843  -38.0118   -82.55491</code></pre><p>Since <code>Mill.jl</code> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>cross-entropy</code> loss function:</p><pre><code class="language-julia-repl">julia&gt; loss(ds, y_oh) = Flux.logitcrossentropy(model(ds).data, y_oh)
-loss (generic function with 1 method)</code></pre><p>and run simple training procedure using its tooling:</p><pre><code class="language-julia-repl">julia&gt; evalcb = () -&gt; @show(loss(ds, y_oh))
-#3 (generic function with 1 method)
-
-julia&gt; opt = Flux.ADAM()
+loss (generic function with 1 method)</code></pre><p>and run simple training procedure using its tooling:</p><pre><code class="language-julia-repl">julia&gt; opt = Flux.ADAM()
 Flux.Optimise.ADAM(0.001, (0.9, 0.999), IdDict{Any,Any}())
 
-julia&gt; @epochs 10 Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt, cb=throttle(evalcb, 1))
+julia&gt; @epochs 10 begin
+           Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt)
+           println(loss(ds, y_oh))
+       end
 [ Info: Epoch 1
-loss(ds, y_oh) = 88.723656f0
-loss(ds, y_oh) = 0.18845467f0
+0.18636306
 [ Info: Epoch 2
-loss(ds, y_oh) = 0.18634567f0
-loss(ds, y_oh) = 0.18279117f0
+0.18276438
 [ Info: Epoch 3
-loss(ds, y_oh) = 0.18276416f0
-loss(ds, y_oh) = 0.18275133f0
+0.18275538
 [ Info: Epoch 4
-loss(ds, y_oh) = 0.18275471f0
-loss(ds, y_oh) = 0.18273337f0
+0.18272792
 [ Info: Epoch 5
-loss(ds, y_oh) = 0.1827279f0
-loss(ds, y_oh) = 0.18272537f0
+0.1827239
 [ Info: Epoch 6
-loss(ds, y_oh) = 0.18272384f0
-loss(ds, y_oh) = 0.10239869f0
+0.10239069
 [ Info: Epoch 7
-loss(ds, y_oh) = 0.10239057f0
-loss(ds, y_oh) = 0.102381475f0
+0.10238189
 [ Info: Epoch 8
-loss(ds, y_oh) = 0.10238218f0
-loss(ds, y_oh) = 0.10237768f0
+0.102379024
 [ Info: Epoch 9
-loss(ds, y_oh) = 0.10237901f0
-loss(ds, y_oh) = 0.21675302f0
+0.2167421
 [ Info: Epoch 10
-loss(ds, y_oh) = 0.21674213f0
-loss(ds, y_oh) = 0.21673802f0</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
-0.07608695652173914</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 2 February 2021 20:15">Tuesday 2 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+0.21673794</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
+0.07608695652173914</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 4 February 2021 15:14">Thursday 4 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
