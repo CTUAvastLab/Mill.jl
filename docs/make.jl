@@ -1,6 +1,14 @@
 using Documenter, DocumenterCitations
 using Mill
 
+#=
+Useful resources for writing docs:
+    Julia guidelines: https://docs.julialang.org/en/v1/manual/documentation/
+    Documenter syntax: https://juliadocs.github.io/Documenter.jl/stable/man/syntax/ 
+    Showcase: https://juliadocs.github.io/Documenter.jl/stable/showcase/
+    Doctests: https://juliadocs.github.io/Documenter.jl/stable/man/doctests/
+=#
+
 DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill); recursive=true)
 
 makedocs(
