@@ -1,5 +1,5 @@
 struct LazyNode{Name,D} <: AbstractNode
-	data::D
+    data::D
 end
 
 LazyNode(Name::Symbol, values::T) where {T} = LazyNode{Name,T}(values)

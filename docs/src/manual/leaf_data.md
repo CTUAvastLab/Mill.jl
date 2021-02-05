@@ -129,7 +129,7 @@ ds = ProductNode((
 create a model for training and compute some gradients:
 ```@repl leafs
 m = reflectinmodel(ds)
-gradient(() -> sum(m(ds).data), Flux.params(m))
+gradient(() -> sum(Mill.data(m(ds))), Flux.params(m))
 ```
 
 !!! ukn "Numerical features"

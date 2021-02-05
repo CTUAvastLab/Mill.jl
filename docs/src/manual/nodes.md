@@ -9,8 +9,8 @@ using Mill
 
 `Mill.jl` enables representation of arbitrarily complex tree-like hierarchies and appropriate models for these hierarchies. It defines two core abstract types:
 
-1. `AbstractNode` which stores data on any level of abstraction and its subtypes can be further nested
-2. `AbstractModelNode` which helps to define a corresponding model. For each specific implementation of `AbstractNode` we have one or more specific `AbstractModelNode`(s) for processing it.
+1. [`AbstractNode`](@ref) which stores data on any level of abstraction and its subtypes can be further nested
+2. [`AbstractModelNode`](@ref) which helps to define a corresponding model. For each specific implementation of `AbstractNode` we have one or more specific `AbstractModelNode`(s) for processing it.
 
 Below we will go through implementation of `ArrayNode`, `BagNode` and `ProductNode` together with their corresponding models. It is possible to define data and model nodes for more complex behaviors (see [Custom Nodes](@ref)), however, these three core types are already sufficient for a lot of tasks, for instance, representing any `JSON` document and using appropriate models to convert it to a vector represention or classify it (see **TODO**).
 
@@ -21,6 +21,12 @@ Below we will go through implementation of `ArrayNode`, `BagNode` and `ProductNo
 ```@repl nodes
 X = Float32.([1 2 3 4; 5 6 7 8])
 AN = ArrayNode(X)
+```
+
+Data carried by any [`AbstractNode`](@ref) can be accessed with the [`Mill.data`](@ref) function as follows:
+
+```@repl nodes
+Mill.data(AN)
 ```
 
 Similarly, `ArrayModel` wraps any function performing operation over this array. In example below, we wrap a feature matrix `X` and a `Dense` model from [`Flux.jl`](https://fluxml.ai):
@@ -38,16 +44,19 @@ We can apply the model now with `AM(AN)` to get another `ArrayNode` and verify t
 
 ```@repl nodes
 AM(AN)
-f(X) == AM(AN).data
+f(X) == AM(AN) |> Mill.data
 ```
 
 !!! ukn "Model outputs"
     A convenient property of all `Mill.jl` models is that after applying them to a corresponding data node we **always** obtain an `ArrayNode` as output regardless of the type and complexity of the model. This becomes important later.
 
-The most common interpretation of the data inside `ArrayNode`s is that each column contains features of one sample and therefore the node `AN` carries `size(AN.data, 2)` samples. In this sense, `ArrayNode`s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any `AbstractNode` with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
+The most common interpretation of the data inside `ArrayNode`s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, `ArrayNode`s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any `AbstractNode` with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
+
+```@example nodes
+using StatsBase: nobs
+```
 
 ```@repl nodes
-using StatsBase: nobs
 nobs(AN)
 ```
 
@@ -62,7 +71,7 @@ BN = BagNode(AN, [1:1, 2:3, 4:4])
 where for simplicity we used `AN` from the previous example. Each `BagNode` carries `data` and `bags` fields:
 
 ```@repl nodes
-BN.data
+Mill.data(BN)
 BN.bags
 ```
 
@@ -80,13 +89,13 @@ nobs(AN)
 
 In `Mill.jl`, there two ways to store indices of the bag's instances:
 
-    * in `AlignedBags` structure, which accepts a `Vector` of `UnitRange`s and requires all bag's instances stored continuously:
+* in `AlignedBags` structure, which accepts a `Vector` of `UnitRange`s and requires all bag's instances stored continuously:
 
 ```@repl nodes
 AlignedBags([1:3, 4:4, 5:6])
 ```
 
-    * and in `ScatteredBags` structure, which accepts a `Vector` of `Vectors`s storing not necessarily contiguous indices:
+* and in `ScatteredBags` structure, which accepts a `Vector` of `Vectors`s storing not necessarily contiguous indices:
 
 ```@repl nodes
 ScatteredBags([[3, 2, 1], [4], [6, 5]])

@@ -67,7 +67,7 @@ model(ds)
 Since `Mill.jl` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
 
 ```@repl musk
-loss(ds, y_oh) = Flux.logitcrossentropy(model(ds).data, y_oh)
+loss(ds, y_oh) = Flux.logitcrossentropy(model(ds) |> Mill.data, y_oh)
 ```
 
 and run simple training procedure using its tooling:

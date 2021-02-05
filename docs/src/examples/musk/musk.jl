@@ -22,7 +22,7 @@ model = BagModel(
 model(ds)
 
 # define loss function
-loss(ds, y_oh) = Flux.logitcrossentropy(model(ds).data, y_oh)
+loss(ds, y_oh) = Flux.logitcrossentropy(Mill.data(model(ds)), y_oh)
 
 # the usual way of training
 opt = Flux.ADAM()
@@ -32,4 +32,4 @@ opt = Flux.ADAM()
 end
 
 # calculate the error on the training set (no testing set right now)
-mean(mapslices(argmax, model(ds).data, dims=1)' .!= y)
+mean(mapslices(argmax, Mill.data(model(ds)), dims=1)' .!= y)

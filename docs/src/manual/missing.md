@@ -81,9 +81,9 @@ can be changed with the [`Mill.emptyismissing!`](@ref) function:
 
 ```@repl missing
 a = BagNode(ArrayNode(rand(3, 2)), [1:2, 0:-1, 0:-1])
-a[2:3].data
+a[2:3] |> Mill.data
 Mill.emptyismissing!(true)
-a[2:3].data
+a[2:3] |> Mill.data
 missing
 ```
 

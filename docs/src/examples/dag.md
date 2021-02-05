@@ -77,7 +77,7 @@ which means that the `getfromcache!` will do all the heavy lifting. It turns out
 function getfromcache!(cache, g::DagGraph, model::DagModel, i::Int)
     cache[i].freeze && return(copy(cache[i]))
     ds = millvertex!(cache, g, model, i)
-    cache[i][:] = model.m(ds).data
+    cache[i][:] = model.m(ds) |> Mill.data
     return(copy(cache[i]))
 end
 

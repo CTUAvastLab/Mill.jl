@@ -47,7 +47,7 @@ end
 and indexing:
 
 ```@example custom
-Base.getindex(x::PathNode, i::Mill.VecOrRange{<:Int}) = PathNode(subset(x.data, i), subset(x.metadata, i))
+Base.getindex(x::PathNode, i::Mill.VecOrRange{<:Int}) = PathNode(subset(Mill.data(x), i), subset(Mill.metadata(x), i))
 ```
 
 The last touch is to add the definition needed by `HierarchicalUtils.jl`:

@@ -34,10 +34,10 @@ and can be directly applied to obtain a result:
 m(ds)
 ```
 
-Here we again make use of the property that even if each instance is represented with an arbitrarily complex structure, we always obtain a vector representation after applying instance model `im`, regardless of the complexity of `im` and `ds.data`:
+Here we again make use of the property that even if each instance is represented with an arbitrarily complex structure, we always obtain a vector representation after applying instance model `im`, regardless of the complexity of `im` and `Mill.data(ds)`:
 
 ```@repl more_on_nodes
-m.im(ds.data)
+m.im(Mill.data(ds))
 ```
 
 In one final example we demonstrate a complex model consisting of all types of nodes introduced so far:
