@@ -41,7 +41,7 @@ export catobs, removeinstances
 
 include("matrices/matrix.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
-export NGramMatrix, NGramIterator
+export NGramMatrix, NGramIterator, ngrams, ngrams!, countngrams, countngrams!
 export ImputingMatrix, PreImputingMatrix, PostImputingMatrix
 export ImputingDense, PreImputingDense, PostImputingDense
 export preimputing_dense, postimputing_dense, identity_dense

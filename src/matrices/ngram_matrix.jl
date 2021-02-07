@@ -2,22 +2,20 @@ const Code = Union{AbstractVector{<:Integer}, CodeUnits}
 const Sequence = Union{AbstractString, Code}
 
 """
-struct NGramIterator{T}
-s::T
-n::Int
-b::Int
-end
+    NGramIterator{T}
 
-Iterates and enumerates ngrams of collection of integers `s::T` with zero padding. Enumeration is computed as in positional number systems, where items of `s` are digits and `b` is the base.
+Iterates over ngram codes of collection of integers `s` using [`Mill.string_start_code()`](@ref) and [`Mill.string_end_code()`](@ref) for padding. NGram codes are computed as in positional number systems, where items of `s` are digits, `b` is the base, and `m` is modulo.
 
-In order to reduce collisions when mixing ngrams of different order one should avoid zeros and negative integers in `s` and should set base `b` to be equal to the expected number of unique tokkens in `s`.
+In order to reduce collisions when mixing ngrams of different order one should avoid zeros and negative integers in `s` and should set base `b` to the expected number of unique tokens in `s`.
 
 # Examples
 ```jldoctest
 julia> it = Mill.NGramIterator(collect(1:9), 3, 10)
 NGramIterator{Array{Int64,1}}([1, 2, 3, 4, 5, 6, 7, 8, 9], 3, 10, 9223372036854775807)
 
-julia> Mill.string_start_code!(0); Mill.string_end_code!(0); collect(it)
+julia> Mill.string_start_code!(0);
+julia> Mill.string_end_code!(0);
+julia> collect(it)
 11-element Array{Int64,1}:
    1
   12
@@ -32,23 +30,8 @@ julia> Mill.string_start_code!(0); Mill.string_end_code!(0); collect(it)
  900
 ```
 
-```jldoctest
-julia> sit = Mill.NGramIterator(codeunits("deadbeef"), 3, 256)    # creates collisions as codeunits returns tokens from 0x00:0xff
-NGramIterator{Base.CodeUnits{UInt8,String}}(UInt8[0x64, 0x65, 0x61, 0x64, 0x62, 0x65, 0x65, 0x66], 3, 256, 9223372036854775807)
-
-julia> collect(sit)
-10-element Array{Int64,1}:
-     100
-   25701
- 6579553
- 6644068
- 6382690
- 6578789
- 6448485
- 6645094
- 6645248
- 6684672
-```
+See also: [`NGramMatrix`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countngrams`](@ref),
+    [`countngrams!`](@ref).
 """
 struct NGramIterator{T}
     s::T
@@ -59,6 +42,34 @@ struct NGramIterator{T}
     NGramIterator(s::T, n::Int=3, b::Int=256, m::Int=typemax(Int)) where T <: Maybe{Code} = new{T}(s, n, b, m)
 end
 
+"""
+    NGramIterator(s, n=3, b=256, m=typemax(Int))
+
+Construct an [`NGramIterator`](@ref). If `s` is an `AbstractString` it is first converted
+to integers with `Base.codeunits`.
+
+# Examples
+```jlddoctest
+julia> sit = Mill.NGramIterator("deadbeef", 3, 256, 17)
+NGramIterator{Base.CodeUnits{UInt8,String}}(UInt8[0x64, 0x65, 0x61, 0x64, 0x62, 0x65, 0x65, 0x66], 3, 256, 9223372036854775807)
+
+julia> collect(sit)
+10-element Array{Int64,1}:
+ 14
+  5
+  9
+  9
+  6
+ 10
+ 11
+ 15
+ 16
+  0
+```
+
+See also: [`NGramMatrix`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countngrams`](@ref),
+    [`countngrams!`](@ref).
+"""
 NGramIterator(s::AbstractString, args...) = NGramIterator(codeunits(s), args...)
 
 Base.eltype(::NGramIterator) = Int
@@ -98,10 +109,31 @@ Base.hash(it::NGramIterator{T}, h::UInt) where {T} = hash((string(T), it.s, it.n
     it1.n === it2.n && it1.b === it2.b && it1.m === it2.m
 
 """
-ngrams!(o,x,n::Int,b::Int)
+    ngrams!(o, x, n=3, b=256)
 
-store indexes of `n` grams of `x` with base `b` to `o`
+Store codes of `n` grams of `x` using base `b` to `o`.
 
+# Examples
+```jlddoctest
+julia> o = zeros(Int, 5)
+5-element Array{Int64,1}:
+ 0
+ 0
+ 0
+ 0
+ 0
+
+julia> ngrams!(o, "foo", 3, 256)
+5-element Array{Int64,1}:
+ 2763366
+ 2778735
+ 6713199
+ 7302912
+ 7274496
+```
+
+See also: [`ngrams`](@ref), [`countngrams`](@ref),
+    [`countngrams!`](@ref), [`NGramMatrix`](@ref), [`NGramIterator`](@ref).
 """
 function ngrams!(o, x::Sequence, args...)
     for (i, idx) in enumerate(NGramIterator(x, args...))
@@ -111,18 +143,52 @@ function ngrams!(o, x::Sequence, args...)
 end
 
 """
-ngrams(x,n::Int,b::Int)
+    ngrams(o, x, n=3, b=256)
 
-indexes of `n` grams of `x` with base `b`
+Return codes of `n` grams of `x` using base `b`.
 
+# Examples
+```jlddoctest
+julia> ngrams("foo", 3, 256)
+5-element Array{Int64,1}:
+ 2763366
+ 2778735
+ 6713199
+ 7302912
+ 7274496
+```
+
+See also: [`ngrams!`](@ref), [`countngrams`](@ref),
+    [`countngrams!`](@ref), [`NGramMatrix`](@ref), [`NGramIterator`](@ref).
 """
 ngrams(x::Sequence, args...) = collect(NGramIterator(x, args...))
 
 """
-function countngrams!(o,x,n::Int,b::Int)
+    countngrams!(o, x, n, b, m=length(o))
 
-counts number of of `n` grams of `x` with base `b` to `o` and store it to o
+Count the number of of `n` grams of `x` using base `b` and modulo `m` and store the result to `o`.
 
+# Examples
+```jlddoctest
+julia> o = zeros(Int, 5)
+5-element Array{Int64,1}:
+ 0
+ 0
+ 0
+ 0
+ 0
+
+julia> countngrams!(o, "foo", 3, 256)
+5-element Array{Int64,1}:
+ 1
+ 2
+ 1
+ 0
+ 1
+```
+
+See also: [`countngrams`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref),
+    [`NGramMatrix`](@ref), [`NGramIterator`](@ref).
 """
 countngrams!(o, x::Sequence, n::Int, b::Int) = countngrams!(o, x, n, b, length(o))
 function countngrams!(o, x::Sequence, args...)
@@ -133,36 +199,35 @@ function countngrams!(o, x::Sequence, args...)
 end
 
 """
-function countngrams(x,n::Int,b::Int)
+    countngrams(o, x, n, b, m)
 
-counts number of of `n` grams of `x` with base `b` to `o`
+Count the number of of `n` grams of `x` using base `b` and modulo `m` into a vector of length `m`.
+
+# Examples
+```jlddoctest
+julia> countngrams("foo", 3, 256, 5)
+5-element Array{Int64,1}:
+ 1
+ 2
+ 1
+ 0
+ 1
+```
+
+See also: [`countngrams!`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref),
+    [`NGramMatrix`](@ref), [`NGramIterator`](@ref).
+"""
+countngrams(x, n, b, m) = countngrams!(zeros(Int, m), x, n, b)
 
 """
-countngrams(x, n::Int, b::Int, m) = countngrams!(zeros(Int,m), x, n, b)
-function countngrams(x::Vector{<:Sequence}, n::Int, b::Int, m)
-    o = zeros(Int, m, length(x))
-    for (i,s) in enumerate(x)
-        countngrams!(view(o,:,i), x[i], n, b)
-    end
-    o
-end
+    NGramMatrix{T, U} <: AbstractMatrix{U}
 
-string2ngrams(x::AbstractArray{<:Sequence}, n, b, m) = countngrams(Vector(x[:]), n, b, m)
-string2ngrams(x::Sequence, n, b, m) = countngrams(x, n, b, m)
+A matrix-like structure for lazily representing sequences like strings as ngrams of
+cardinality `n` using `b` as a base for calculations and `m` as the modulo. Therefore, the matrix
+has `m` rows and one column for representing each sequence. Missing sequences are supported.
 
-"""
-struct NGramMatrix{T}
-s::Vector{T}
-n::Int
-b::Int
-m::Int
-end
-
-Represents strings stored in array `s` as ngrams of cardinality `n`. Strings are internally stored as strings and the multiplication with
-dense matrix is overloaded and `b` is a base for calculation of trigrams. Finally `m` is the modulo applied on indexes of ngrams.
-
-The structure essentially represents module one-hot representation of strings, where each columns contains one observation (string).
-Therefore the structure can be viewed as a matrix with `m` rows and `length(s)` columns
+See also: [`NGramIterator`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countngrams`](@ref),
+    [`countngrams!`](@ref).
 """
 struct NGramMatrix{T, U} <: AbstractMatrix{U}
     s::Vector{T}
@@ -185,6 +250,27 @@ struct NGramMatrix{T, U} <: AbstractMatrix{U}
     end
 end
 
+"""
+    NGramMatrix(s, n=3, b=256, m=2053)
+
+Construct an [`NGramMatrix`](@ref). `s` can either be a single sequnce or a `Vector`.
+
+# Examples
+```jlddoctest
+julia> NGramMatrix([1,2,3])
+2053×1 NGramMatrix{Array{Int64,1},Int64}:
+ [1, 2, 3]
+
+julia> NGramMatrix(["a", missing, "c"], 2, 128)
+2053×3 NGramMatrix{Union{Missing, String},Union{Missing, Int64}}:
+ "a"
+ missing
+ "c"
+```
+
+See also: [`NGramIterator`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countngrams`](@ref),
+    [`countngrams!`](@ref).
+"""
 NGramMatrix(s::Maybe{Sequence}, args...) = NGramMatrix([s], args...)
 
 NGramIterator(A::NGramMatrix, i::Integer) = NGramIterator(A.s[i], A.n, A.b, A.m)
@@ -230,18 +316,6 @@ Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix}) = _typed_hcat(mapreduce(t
 function _typed_hcat(::Type{T}, As::AbstractVector{<:NGramMatrix}) where T <: NGramMatrix
     T(reduce(vcat, getfield.(As, :s)), _check_nbm(As)...)
 end
-# Base.hcat(As::NGramMatrix...) = reduce(hcat, collect(As))
-# function Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix})
-#     n, b, m = As[1].n, As[1].b, As[1].m
-#     if any(!isequal(n), (A.n for A in As)) ||
-#         any(!isequal(b), (A.b for A in As)) ||
-#         any(!isequal(m), (A.m for A in As))
-#         DimensionMismatch(
-#                           "Matrices do not have the same n, b, or m."
-#                          ) |> throw
-#     end
-#     NGramMatrix(reduce(vcat, [i.s for i in As]), n, b, m)
-# end
 
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Int64, UInt}(x)
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}

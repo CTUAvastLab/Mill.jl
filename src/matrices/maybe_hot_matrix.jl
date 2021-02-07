@@ -1,3 +1,12 @@
+"""
+    MaybeHotMatrix{T, U, V} <: AbstractMatrix{V}
+
+A matrix-like structure for representing one-hot encoded variables. Like `Flux.OneHotMatrix` but supports `missing` values.
+
+Construct with the `maybehotbatch` function.
+
+See also: [`maybehotbatch`](@ref), [`MaybeHotVector`](@ref), [`maybehotmatrix`](@ref).
+"""
 struct MaybeHotMatrix{T, U, V} <: AbstractMatrix{V}
     I::Vector{T}
     l::U
@@ -14,7 +23,6 @@ end
 
 MaybeHotMatrix(i::Integer, l::Integer) = MaybeHotMatrix([i], l)
 MaybeHotMatrix(x::MaybeHotVector) = MaybeHotMatrix([x.i], x.l)
-
 
 Base.size(X::MaybeHotMatrix) = (X.l, length(X.I))
 Base.length(X::MaybeHotMatrix) = X.l * length(X.I)
@@ -72,6 +80,29 @@ end
 
 Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = Flux.onehotbatch(X.I, 1:X.l)
 
+"""
+    maybehotbatch(ls, labels)
+
+Return a [`MaybeHotMatrix`](@ref) in which each column corresponds to one element of `ls`
+containing `1` at its first occurence in `labels` with all other elements set to `0`.
+
+# Examples
+```jlddoctest
+julia> maybehotbatch([:c, :a], [:a, :b, :c])
+3×2 MaybeHotMatrix{Int64,Int64,Bool}:
+ 0  1
+ 0  0
+ 1  0
+
+julia> maybehotbatch([missing, 2], 1:3)
+3×2 MaybeHotMatrix{Union{Missing, Int64},Int64,Union{Missing, Bool}}:
+ missing  false
+ missing   true
+ missing  false
+```
+
+See also: [`maybehot`](@ref), [`MaybeHotMatrix`](@ref), [`MaybeHotVector`](@ref).
+"""
 maybehotbatch(L, labels) = MaybeHotMatrix([maybehot(l, labels).i for l in L], length(labels))
 
 Base.hash(X::MaybeHotMatrix, h::UInt) where {T, U, V, W} = hash((X.I, X.l), h)

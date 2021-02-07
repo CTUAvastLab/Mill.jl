@@ -79,3 +79,29 @@ LazyNode(::Symbol, ::Any)
 
 Mill.unpack2mill
 ```
+
+## Special arrays
+
+```@docs
+MaybeHotVector
+maybehot
+MaybeHotMatrix
+maybehotbatch
+
+NGramIterator
+NGramIterator(::AbstractString, ::Any, ::Any, ::Any)
+ngrams
+ngrams!
+countngrams
+countngrams!
+NGramMatrix
+NGramMatrix(::Missing)
+
+PostImputingMatrix
+PostImputingMatrix(::AbstractMatrix)
+postimputing_dense
+
+PreImputingMatrix
+PreImputingMatrix(::AbstractMatrix)
+preimputing_dense
+```

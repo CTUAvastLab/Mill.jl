@@ -1,3 +1,12 @@
+"""
+    MaybeHotVector{T, U, V} <: AbstractVector{V}
+
+A vector-like structure for representing one-hot encoded variables. Like `Flux.OneHotVector` but supports `missing` values.
+
+Construct with the `maybehot` function.
+
+See also: [`maybehot`](@ref), [`MaybeHotMatrix`](@ref), [`maybehotbatch`](@ref).
+"""
 struct MaybeHotVector{T, U, V} <: AbstractVector{V}
     i::T
     l::U
@@ -56,6 +65,29 @@ _mul(A::AbstractMatrix, b::MaybeHotVector{<:Integer}) = A[:, b.i]
 
 Flux.onehot(x::MaybeHotVector{<:Integer}) = Flux.onehot(x.i, 1:x.l)
 
+"""
+    maybehot(l, labels)
+
+Return a [`MaybeHotVector`](@ref) where the first occurence of `l` in `labels` is set to `1`
+and all other elements are set to `0`.
+
+# Examples
+```jlddoctest
+julia> maybehot(:b, [:a, :b, :c])
+3-element MaybeHotVector{Int64,Int64,Bool}:
+ 0
+ 1
+ 0
+
+julia> maybehot(missing, 1:3)
+3-element MaybeHotVector{Missing,Int64,Missing}:
+ missing
+ missing
+ missing
+```
+
+See also: [`maybehotbatch`](@ref), [`MaybeHotVector`](@ref), [`MaybeHotMatrix`](@ref).
+"""
 maybehot(::Missing, labels) = MaybeHotVector(missing, length(labels))
 function maybehot(l, labels)
     i = findfirst(isequal(l), labels)

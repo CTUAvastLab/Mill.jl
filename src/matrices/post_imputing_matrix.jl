@@ -1,3 +1,32 @@
+"""
+    PostImputingMatrix{T <: Number, U <: AbstractMatrix{T}, V <: AbstractVector{T}} <: AbstractMatrix{T}
+
+A parametrized matrix that fills in a default vector of parameters whenever a \"missing\" column
+is encountered during multiplication.
+
+Supports multiplication with [`NGramMatrix`](@ref), [`MaybeHotMatrix`](@ref) and [`MaybeHotVector`](@ref).
+For any other `AbstractMatrix` it falls back to standard multiplication.
+
+# Examples
+```jlddoctest
+julia> A = PostImputingMatrix(ones(2, 2), -ones(2))
+2×2 PostImputingMatrix{Float64,Array{Float64,2},Array{Float64,1}}:
+W:
+ 1.0  1.0
+ 1.0  1.0
+
+ψ:
+ -1.0
+ -1.0
+
+julia> A * maybehotbatch([1, missing], 1:2)
+2×2 Array{Float64,2}:
+ 1.0  -1.0
+ 1.0  -1.0
+```
+
+See also: [`PreImputingMatrix`](@ref).
+"""
 struct PostImputingMatrix{T <: Number, U <: AbstractMatrix{T}, V <: AbstractVector{T}} <: AbstractMatrix{T}
     W::U
     ψ::V
@@ -5,6 +34,26 @@ end
 
 Flux.@functor PostImputingMatrix
 
+"""
+    PostImputingMatrix(W::AbstractMatrix{T}, ψ=zeros(T, size(W, 1))) where T
+
+Construct a [`PostImputingMatrix`](@ref) with multiplication parameters `W` and default parameters `ψ`.
+
+# Examples
+```jlddoctest
+julia> PostImputingMatrix([1 2; 3 4])
+2×2 PostImputingMatrix{Int64,Array{Int64,2},Array{Int64,1}}:
+W:
+ 1  2
+ 3  4
+
+ψ:
+ 0
+ 0
+```
+
+See also: [`PreImputingMatrix`](@ref).
+"""
 PostImputingMatrix(W::AbstractMatrix{T}) where T = PostImputingMatrix(W, zeros(T, size(W, 1)))
 
 Flux.@forward PostImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex

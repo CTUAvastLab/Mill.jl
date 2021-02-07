@@ -1,3 +1,28 @@
+"""
+    PreImputingMatrix{T <: Number, U <: AbstractMatrix{T}, V <: AbstractVector{T}} <: AbstractMatrix{T}
+
+A parametrized matrix that fills in elements from a default vector of parameters whenever a `missing`
+element is encountered during multiplication.
+
+# Examples
+```jlddoctest
+julia> A = PreImputingMatrix(ones(2, 2), -ones(2))
+2×2 PreImputingMatrix{Float64,Array{Float64,2},Array{Float64,1}}:
+W:
+ 1.0  1.0
+ 1.0  1.0
+
+ψ:
+ -1.0  -1.0
+
+julia> A * [0 1; missing -1]
+2×2 Array{Float64,2}:
+ -1.0  0.0
+ -1.0  0.0
+```
+
+See also: [`PreImputingMatrix`](@ref).
+"""
 struct PreImputingMatrix{T <: Number, U <: AbstractMatrix{T}, V <: AbstractVector{T}} <: AbstractMatrix{T}
     W::U
     ψ::V
@@ -5,6 +30,24 @@ end
 
 Flux.@functor PreImputingMatrix
 
+"""
+    PreImputingMatrix(W::AbstractMatrix{T}, ψ=zeros(T, size(W, 2))) where T
+
+Construct a [`PreImputingMatrix`](@ref) with multiplication parameters `W` and default parameters `ψ`.
+
+# Examples
+julia> PreImputingMatrix([1 2; 3 4])
+2×2 PreImputingMatrix{Int64,Array{Int64,2},Array{Int64,1}}:
+W:
+ 1  2
+ 3  4
+
+ψ:
+ 0  0
+```
+
+See also: [`PostImputingMatrix`](@ref).
+"""
 PreImputingMatrix(W::AbstractMatrix{T}) where T = PreImputingMatrix(W, zeros(T, size(W, 2)))
 
 Flux.@forward PreImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
