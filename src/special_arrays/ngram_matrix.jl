@@ -13,9 +13,7 @@ In order to reduce collisions when mixing ngrams of different order one should a
 julia> it = Mill.NGramIterator(collect(1:9), 3, 10)
 NGramIterator{Array{Int64,1}}([1, 2, 3, 4, 5, 6, 7, 8, 9], 3, 10, 9223372036854775807)
 
-julia> Mill.string_start_code!(0);
-julia> Mill.string_end_code!(0);
-julia> collect(it)
+julia> Mill.string_start_code!(0); Mill.string_end_code!(0); collect(it)
 11-element Array{Int64,1}:
    1
   12

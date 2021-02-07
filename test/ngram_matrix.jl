@@ -165,10 +165,6 @@ end
     end
 end
 
-@testset "string2ngrams" begin
-    @test size(string2ngrams(["", "a"], 3, 256, 2053)) == (2053,2)
-end
-
 @testset "NGramMatrix to SparseMatrix" begin
     for (n, m) in product([2,3,5], [10, 100, 1000])
         b = 256
@@ -179,9 +175,9 @@ end
         Bi = NGramMatrix(si, n, b, m)
         Bc = NGramMatrix(sc, n, b, m)
         @test SparseMatrixCSC(B) == SparseMatrixCSC(Bi) == SparseMatrixCSC(Bc)
-        @test SparseMatrixCSC(string2ngrams(s, n, b, m)) == SparseMatrixCSC(B)
-        @test SparseMatrixCSC(string2ngrams(si, n, b, m)) == SparseMatrixCSC(Bi)
-        @test SparseMatrixCSC(string2ngrams(sc, n, b, m)) == SparseMatrixCSC(Bc)
+        @test SparseMatrixCSC(countngrams(s, n, b, m)) == SparseMatrixCSC(B)
+        @test SparseMatrixCSC(countngrams(si, n, b, m)) == SparseMatrixCSC(Bi)
+        @test SparseMatrixCSC(countngrams(sc, n, b, m)) == SparseMatrixCSC(Bc)
     end
 end
 
@@ -197,7 +193,7 @@ end
         Bi = NGramMatrix(si, n, b, m)
         Bc = NGramMatrix(sc, n, b, m)
 
-        @test all(A * B ≈ A * string2ngrams(s, n, b, m))
+        @test all(A * B ≈ A * countngrams(s, n, b, m))
         @test all(A * Bi ≈ A * B)
         @test all(A * Bc ≈ A * B)
 
@@ -223,9 +219,9 @@ end
         s = [randstring(100) for _ in 1:10]
         si = map(codeunits, s)
         sc = map(i -> Int.(i), si)
-        Ns = string2ngrams(s, n, b, m)
-        Nsi = string2ngrams(si, n, b, m)
-        Nsc = string2ngrams(sc, n, b, m)
+        Ns = countngrams(s, n, b, m)
+        Nsi = countngrams(si, n, b, m)
+        Nsc = countngrams(sc, n, b, m)
         B = NGramMatrix(s, n, b, m)
         Bi = NGramMatrix(si, n, b, m)
         Bc = NGramMatrix(sc, n, b, m)
@@ -315,13 +311,13 @@ begin
     A = randn(80,2053);
     s = [randstring(10) for i in 1:1000];
     B = NGramMatrix(s, 3, 256, 2053)
-    C = sparse(string2ngrams(s, 3, 256, size(A, 2)));
+    C = sparse(countngrams(s, 3, 256, size(A, 2)));
     println("A * B::NGramMatrix (This should be the fastest)");
     @btime A*B;                                                 # 526.456 μs (2002 allocations: 671.95 KiB)
-    println("A * string2ngrams(s, 3, 256, size(A, 2))")
-    @btime A*string2ngrams(s, 3, 256, size(A, 2));                   # 154.646 ms (3013 allocations: 16.38 MiB)
-    println("A * sparse(string2ngrams(s, 3, 256, size(A, 2)))")
-    @btime A*sparse(string2ngrams(s, 3, 256, size(A, 2)));           # 7.525 ms (3013 allocations: 16.57 MiB)
-    print("A * C where C = sparse(string2ngrams(s, 3, 256, size(A, 2)));");
+    println("A * countngrams(s, 3, 256, size(A, 2))")
+    @btime A * countngrams(s, 3, 256, size(A, 2));                   # 154.646 ms (3013 allocations: 16.38 MiB)
+    println("A * sparse(countngrams(s, 3, 256, size(A, 2)))")
+    @btime A*sparse(countngrams(s, 3, 256, size(A, 2)));           # 7.525 ms (3013 allocations: 16.57 MiB)
+    print("A * C where C = sparse(countngrams(s, 3, 256, size(A, 2)));");
     @btime A*C;                                                 # 1.527 ms (2 allocations: 625.08 KiB)
 end
