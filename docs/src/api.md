@@ -17,10 +17,13 @@ Pages = ["api.md"]
 ```@docs
 Mill.emptyismissing
 Mill.emptyismissing!
+
 Mill.bagcount
 Mill.bagcount!
+
 Mill.string_start_code
 Mill.string_start_code!
+
 Mill.string_end_code
 Mill.string_end_code!
 ```
@@ -29,13 +32,16 @@ Mill.string_end_code!
 
 ```@docs
 AbstractBags
+
 AlignedBags
 AlignedBags()
 AlignedBags(::UnitRange{<:Integer}...)
 AlignedBags(::Vector{<:Integer})
+
 ScatteredBags
 ScatteredBags()
 ScatteredBags(::Vector{<:Integer})
+
 length2bags
 bags
 remapbags
@@ -48,6 +54,28 @@ adjustbags
 AbstractNode
 AbstractProductNode
 AbstractBagNode
+
 Mill.data
 Mill.metadata
+catobs
+Mill.subset
+Mill.mapdata
+removeinstances
+
+ArrayNode
+ArrayNode(::AbstractArray)
+
+BagNode
+BagNode(::AbstractNode, ::AbstractVector, m)
+
+WeightedBagNode
+WeightedBagNode(::AbstractNode, ::AbstractVector, ::Vector, m)
+
+ProductNode
+ProductNode(::Any)
+
+LazyNode
+LazyNode(::Symbol, ::Any)
+
+Mill.unpack2mill
 ```

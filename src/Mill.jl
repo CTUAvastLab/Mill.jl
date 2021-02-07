@@ -26,6 +26,9 @@ using Base: AbstractVecOrMat, AbstractVecOrTuple
 const Maybe{T} = Union{T, Missing}
 const Optional{T} = Union{T, Nothing}
 
+_promote_types(x) = typeof(x)
+_promote_types(x, y...) = promote_type(typeof(x), _promote_types(y...))
+
 include("globals.jl")
 
 include("bags.jl")

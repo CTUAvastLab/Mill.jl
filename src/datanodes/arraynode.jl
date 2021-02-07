@@ -1,14 +1,32 @@
 """
+    ArrayNode{A <: AbstractArray, C} <: AbstractNode
 
+Data node for storing array-like data of type `A` and metadata of type `C`. The convention is that samples are stored along the last axis, e.g. in columns of a matrix.
 
+See also: [`AbstractNode`](@ref), [`ArrayModel`](@ref).
 """
-struct ArrayNode{A<:AbstractArray,C} <: AbstractNode
+struct ArrayNode{A <: AbstractArray, C} <: AbstractNode
     data::A
     metadata::C
 end
 
-ArrayNode(data::AbstractArray) = ArrayNode(data, nothing)
-# ArrayNode(data::AbstractNode, a...) = data
+"""
+    ArrayNode(d::AbstractArray, m=nothing)
+
+Construct a new [`ArrayNode`](@ref) with data `d` and metadata `m`.
+
+# Examples
+```jldoctest
+julia> a = ArrayNode([1 2; 3 4; 5 6])
+3×2 ArrayNode{Array{Int64,2},Nothing}:
+ 1  2
+ 3  4
+ 5  6
+```
+
+See also: [`AbstractNode`](@ref), [`ArrayModel`](@ref).
+"""
+ArrayNode(d::AbstractArray) = ArrayNode(d, nothing)
 
 Flux.@functor ArrayNode
 

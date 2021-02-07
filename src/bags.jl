@@ -27,7 +27,7 @@ Flux.@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, B
 """
     AlignedBags()
 
-Construct new `AlignedBags` struct containing no bags.
+Construct a new [`AlignedBags`](@ref) struct containing no bags.
 
 # Examples
 ```jldoctest
@@ -40,7 +40,7 @@ AlignedBags() = AlignedBags(UnitRange{Int}[])
 """
     AlignedBags(bags::UnitRange{<:Integer}...)
 
-Construct new `AlignedBags` struct from bags in arguments.
+Construct a new [`AlignedBags`](@ref) struct from bags in arguments.
 
 # Examples
 ```jldoctest
@@ -53,7 +53,7 @@ AlignedBags(bags::UnitRange{<:Integer}...) = AlignedBags(collect(bags))
 """
     AlignedBags(k::Vector{<:Integer})
 
-Construct new `AlignedBags` struct from `Vector` `k` specifying the index of the bag each instance belongs to.
+Construct a new [`AlignedBags`](@ref) struct from `Vector` `k` specifying the index of the bag each instance belongs to.
 Throws `ArgumentError` if this is not possible.
 
 # Examples
@@ -119,7 +119,7 @@ Flux.@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex,
 """
     ScatteredBags()
 
-Construct new `ScatteredBags` struct containing no bags.
+Construct a new `ScatteredBags` struct containing no bags.
 
 # Examples
 ```jldoctest
@@ -132,7 +132,7 @@ ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
 """
     ScatteredBags(k::Vector{<:Integer})
 
-Construct new `ScatteredBags` struct from `Vector` `k` specifying the index of the bag each instance belongs to.
+Construct a new `ScatteredBags` struct from `Vector` `k` specifying the index of the bag each instance belongs to.
 
 # Examples
 ```jldoctest

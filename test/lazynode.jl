@@ -1,7 +1,7 @@
 @testset "LazyNode" begin
     ss = ["Hello world.", "Make peace.", "Make food.", "Eat penam."]
 
-    @test LazyNode{:Sentence,Vector{String}}(ss).data == ss
+    @test LazyNode{:Sentence}(ss).data == ss
     @test LazyNode(:Sentence, ss).data == ss
     @test LazyNode{:Sentence}(ss).data == ss
     @test nobs(LazyNode{:Sentence}(ss)) == 4

@@ -22,7 +22,7 @@ _show_submodels(io, m::ProductModel) = print(io, " … ↦ ", m.m)
 _show_submodels(io, m::LazyModel{Name}) where {Name} = print(io, "{", Name, "}")
 _show_submodels(io, _) = print(io)
 
-function reflectinmodel(x, fm=d->Flux.Dense(d, 10), fa=d->SegmentedMean(d); fsm=Dict(), fsa=Dict(),
+function reflectinmodel(x, fm=d -> Dense(d, 10), fa=d -> SegmentedMean(d); fsm=Dict(), fsa=Dict(),
                single_key_identity=true, single_scalar_identity=true)
     _reflectinmodel(x, fm, fa, fsm, fsa, "", single_key_identity, single_scalar_identity)[1]
 end
