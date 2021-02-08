@@ -1,7 +1,3 @@
-####
-#	We really need partial evaluation !!!
-####
-
 function partialeval(m::IdentityModel, ds::ArrayNode, skipnode)
     ds === skipnode && return(m, skipnode, true)
     (m, skipnode, false)

@@ -2,7 +2,7 @@ using Test
 using Mill
 using Mill: nobs, mapdata
 using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, ∇xbagconv, ∇convsum
-using Mill: ngrams, string2ngrams, countngrams
+using Mill: ngrams, countngrams
 using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
 using Mill: Maybe
 using Base.Iterators: partition, product
@@ -88,7 +88,7 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
 end
 
 @testset "Doctests" begin
-    DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill); recursive=true)
+    DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill, Setfield, HierarchicalUtils); recursive=true)
     doctest(Mill)
 end
 

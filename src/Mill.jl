@@ -39,7 +39,7 @@ export AbstractNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export catobs, removeinstances
 
-include("matrices/matrix.jl")
+include("special_arrays/special_arrays.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
 export NGramMatrix, NGramIterator, ngrams, ngrams!, countngrams, countngrams!
 export ImputingMatrix, PreImputingMatrix, PostImputingMatrix

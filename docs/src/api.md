@@ -105,3 +105,22 @@ PreImputingMatrix
 PreImputingMatrix(::AbstractMatrix)
 preimputing_dense
 ```
+
+## Utilities
+
+```@docs
+sparsify
+
+list_lens
+find_lens
+pred_lens
+
+code2lens
+lens2code
+
+model_lens
+data_lens
+
+replacein
+```
+

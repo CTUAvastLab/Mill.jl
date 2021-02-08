@@ -1,10 +1,3 @@
-
-"""
-BagChain(layers...)
-BagChain multiple layers / functions together, so that they are called in sequence
-on a given input supported by bags.
-
-"""
 struct BagChain{T<:Tuple}
     layers::T
     BagChain(xs...) = new{typeof(xs)}(xs)

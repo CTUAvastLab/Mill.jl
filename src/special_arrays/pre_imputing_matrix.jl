@@ -36,6 +36,7 @@ Flux.@functor PreImputingMatrix
 Construct a [`PreImputingMatrix`](@ref) with multiplication parameters `W` and default parameters `ψ`.
 
 # Examples
+```jlddoctest
 julia> PreImputingMatrix([1 2; 3 4])
 2×2 PreImputingMatrix{Int64,Array{Int64,2},Array{Int64,1}}:
 W:

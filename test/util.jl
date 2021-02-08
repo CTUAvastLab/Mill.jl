@@ -47,10 +47,10 @@ end
 
 @testset "code2lens & lens2code" begin
     for t in list_traversal(x)
-        @test all(l -> all(t .== lens2code(x, l)), code2lens(x, t))
+        @test t == lens2code(x, code2lens(x, t))
     end
     for t in list_traversal(m)
-        @test all(l -> all(t .== lens2code(m, l)), code2lens(m, t))
+        @test t == lens2code(m, code2lens(m, t))
     end
 end
 

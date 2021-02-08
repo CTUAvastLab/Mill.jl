@@ -11,12 +11,6 @@ _subsetof(bags) = bags[_getrange(length(bags))]
 
 _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 
-"""
-    _addmatvec!(o, i, W, x, j)
-
-    add a product of matrix `W` with a j-th column of `x` to i-th columns of `o`
-
-"""
 function _addmatvec!(o::Matrix, i, W::Matrix, x::Matrix, j)
     @inbounds for s in 1:size(W, 2)
         for r in 1:size(W, 1)
@@ -37,13 +31,6 @@ function _addmatvec!(o::Matrix, i, W::Matrix, x::SparseMatrixCSC, j)
     end
 end
 
-
-"""
-    _addmattvec!(o, i, W, x, j)
-
-    add a product of a transposed matrix `W` with a j-th column of `x` to i-th columns of `o`
-
-"""
 function _addmattvec!(o::Matrix, i, W::Matrix, x::AbstractMatrix, j)
     @inbounds for s in 1:size(W, 1)
         for r in 1:size(W, 2)
@@ -52,12 +39,6 @@ function _addmattvec!(o::Matrix, i, W::Matrix, x::AbstractMatrix, j)
     end
 end
 
-"""
-    _outeradd!(W, Δ, i, x, j)
-
-    add an outer product of i-th column of `Δ` and transposed `j`-th columns of `x` to `W`
-
-"""
 function _addvecvect!(W::Matrix, Δ::Matrix, i, x::AbstractMatrix, j)
     @inbounds for r in 1:size(W, 2)
         for s in 1:size(W, 1)
@@ -224,23 +205,6 @@ function ChainRulesCore.rrule(::typeof(bagconv), x, bags, fs::Matrix...)
                                    DoesNotExist(),  ∇wbagconv(Δ, x, bags,  fs...)...)
 end
 
-"""
-    struct BagConv{T, F}
-        W::T
-        σ::F
-    end
-
-    Convolution over a matrix `X` correctly handing borders between bags. The convolution is little bit special, as it 
-    assumes that input is always a matrix (never a tensor) and the kernel always spans the full dimension of the vector.
-
-    BagConv(d::Int, o::Int, n::Int, σ = identity)
-    `d` --- input dimension
-    `o` --- output dimension (number of channels)
-    `n` --- size of convolution
-    `σ` --- transfer function used after the convolution
-
-    note that of `n` equals one, then the convolution boils down to multiplication of input data `x` with a matrix `W` 
-"""
 struct BagConv{T, F}
     W::T
     σ::F
