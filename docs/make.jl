@@ -15,6 +15,7 @@ makedocs(
          CitationBibliography(joinpath(@__DIR__, "references.bib")),
          sitename = "Mill.jl",
          format = Documenter.HTML(sidebar_sitename=false,
+                                  collapselevel = 1,
                                   prettyurls=get(ENV, "CI", nothing) == "true",
                                   assets=["assets/favicon.ico", "assets/custom.css"]),
          modules = [Mill],
@@ -37,9 +38,17 @@ makedocs(
                                  "Processing JSONs" => "examples/jsons.md"
                                 ],
                   "External tools" => [
-                                       "HierarchicalUtils.jl" => "tools/hierarchical.md",
+                                       "HierarchicalUtils.jl" => "tools/hierarchical.md"
                                       ],
-                  "API" => "api.md",
+                  "API" => [
+                            "General" => "api/general.md",
+                            "Data nodes" => "api/data_nodes.md",
+                            "Bags" => "api/bags.md",
+                            "Model nodes" => "api/model_nodes.md",
+                            "Aggregation" => "api/aggregation.md",
+                            "Special Arrays" => "api/special_arrays.md",
+                            "Utilities" => "api/utilities.md"
+                           ],
                   "References" => "references.md",
                   "Citation" => "citation.md"
                  ],
