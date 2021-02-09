@@ -4,7 +4,7 @@ using Mill
 
 # Bag aggregation
 
-A wrapper type `Aggregation` and all subtypes of `AggregationOperator` it wraps are structures that are responsible for mapping of vector representations of multiple instances into a single vector. They all operate element-wise and independently of dimension and thus the output has the same size as representations on the input, unless the [Concatenation](@ref) of multiple operators is used or [Bag Count](@ref) is enabled.
+A wrapper type [`Aggregation`](@ref) and all subtypes of [`AggregationOperator`](@ref) it wraps are structures that are responsible for mapping of vector representations of multiple instances into a single vector. They all operate element-wise and independently of dimension and thus the output has the same size as representations on the input, unless the [Concatenation](@ref) of multiple operators is used or [Bag Count](@ref) is enabled.
 
 Some setup:
 
@@ -13,8 +13,6 @@ d = 2
 X = Float32.([1 2 3 4; 8 7 6 5])
 n = ArrayNode(X)
 bags = AlignedBags([1:1, 2:3, 4:4])
-
-Mill.bagcount!(false)
 ```
 
 Different choice of operator, or their combinations, are suitable for different problems. Nevertheless, because the input is interpreted as an unordered bag of instances, every operator is invariant to permutation and also does not scale when increasing size of the bag.
@@ -30,11 +28,18 @@ a_{\max}(\{x_1, \ldots, x_k\}) = \max_{i = 1, \ldots, k} x_i
 where ``\{x_1, \ldots, x_k\}`` are all instances of the given bag. In `Mill.jl`, the operator is constructed this way:
 
 ```@repl aggregation
-a_max = SegmentedMax(d)
+a_max = max_aggregation(d)
 ```
 
 !!! ukn "Dimension"
     The dimension of input is required so that the default parameters `ψ` can be properly instantiated (see [Missing data](@ref) for details).
+
+!!! ukn "Operator construction"
+    It is also possible to get the operator by calling the constructor directly:
+    ```julia
+    SegmentedMax(d)
+    ```
+    However, it is recommended to use [`max_aggregation`](@ref) that returns `Aggregation` structure.
 
 The application is straightforward and can be performed on both raw `AbstractArray`s or `ArrayNode`s:
 
@@ -56,7 +61,7 @@ a_{\operatorname{mean}}(\{x_1, \ldots, x_k\}) = \frac{1}{k} \sum_{i = 1}^{k} x_i
 and used the same way:
 
 ```@repl aggregation
-a_mean = SegmentedMean(d)
+a_mean = mean_aggregation(d)
 a_mean(X, bags)
 a_mean(n, bags)
 ```
@@ -66,6 +71,21 @@ a_mean(n, bags)
 
 The max aggregation is suitable for cases when one instance in the bag may give evidence strong enough to predict the label. On the other side of the spectrum lies the mean aggregation function, which detects well trends identifiable globally over the whole bag.
 
+### `SegmentedSum`
+
+The last non-parametric operator is `SegmentedSum`, defined as:
+
+```math
+a_{\operatorname{mean}}(\{x_1, \ldots, x_k\}) = \sum_{i = 1}^{k} x_i
+```
+
+and used the same way:
+
+```@repl aggregation
+a_sum = sum_aggregation(d)
+a_sum(X, bags)
+a_sum(n, bags)
+```
 ## Parametric aggregation
 
 Whereas non-parametric aggregations do not use any parameter, parametric aggregations represent an entire class of functions parametrized by one or more real vectors of parameters, which can be even learned during training.
@@ -81,7 +101,7 @@ a_{\operatorname{lse}}(\{x_1, \ldots, x_k\}; r) = \frac{1}{r}\log \left(\frac{1}
 With different values of ``r``, LSE behaves differently and in fact both max and mean operators are limiting cases of LSE. If ``r`` is very small, the output approaches simple mean, and on the other hand, if ``r`` is a large number, LSE becomes a smooth approximation of the max function. Naively implementing the definition above may lead to numerical instabilities, however, the `Mill.jl` implementation is numerically stable.
 
 ```@repl aggregation
-a_lse = SegmentedLSE(d)
+a_lse = lse_aggregation(d)
 a_lse(X, bags)
 ```
 
@@ -96,7 +116,7 @@ a_{\operatorname{pnorm}}(\{x_1, \ldots, x_k\}; p, c) = \left(\frac{1}{k} \sum_{i
 Again, the `Mill.jl` implementation is stable.
 
 ```@repl aggregation
-a_pnorm = SegmentedPNorm(d)
+a_pnorm = pnorm_aggregation(d)
 a_pnorm(X, bags)
 ```
 
@@ -104,7 +124,7 @@ Because all parameter constraints are included implicitly (field `\rho` in both 
 
 ### Concatenation
 
-To use a concatenation of two or more operators, one can use an `Aggregation` constructor:
+To use a concatenation of two or more operators, one can use the `Aggregation` constructor:
 
 ```@repl aggregation
 a = Aggregation(a_mean, a_max)
@@ -114,7 +134,8 @@ a(X, bags)
 For the most common combinations, `Mill.jl` provides some convenience definitions:
 
 ```@repl aggregation
-SegmentedMeanMax(d)
+meanmax_aggregation(d)
+pnormlse_aggregation(d)
 ```
 
 ## Weighted aggregation
@@ -162,11 +183,7 @@ Otherwise, `WeightedBagNode` behaves exactly like the standard `BagNode`.
 
 ### Bag count
 
-For some problems, it may be beneficial to use the size of the bag directly and feed it to subsequent layers. Whether this is the case is controlled by `Mill.bagcount!(::Bool)` function. It is on by default, however, it was disabled at the beginning of this section for demonstration purposes. Let's turn it back on:
-
-```@repl aggregation
-Mill.bagcount!(true)
-```
+For some problems, it may be beneficial to use the size of the bag directly and feed it to subsequent layers. This is controlled by [`Mill.bagcount!`](@ref) function (on by default).
 
 In the aggregation phase, bag count appends one more element which stores the bag size to the output after all operators are applied. Furthermore, in `Mill.jl`, we opted to perform a mapping ``x \mapsto \log(x) + 1`` on top of that:
 
@@ -199,6 +216,11 @@ bm = reflectinmodel(bn)
 ```@setup aggregation
 Mill.bagcount!(true)
 ```
+
+!!! ukn "Aggregation bagcount"
+    Only [`Aggregation`](@ref) supports bagcount. Lower level plain [`AggregationOperator`](@ref)s
+    ([`SegmentedMean`](@ref), [`SegmentedMax`](@ref) and others) are intended for inner use and thus 
+    do not support it.
 
 ## Default aggregation values
 

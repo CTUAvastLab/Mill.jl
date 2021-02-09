@@ -31,7 +31,7 @@ empty_bags_2 = ScatteredBags([[1, 2], [], [3, 4, 5], []])
 To obtain the vector representation for a bag, be it for dircetly predicting some value or using it to represent some higher-level structures, we need to deal with these empty bags. This is done in [`Bag aggregation`](@ref). Each `AggregationOperator` carries a vector of parameters `ψ`, initialized to zeros upon creation:
 
 ```@repl missing
-a = SegmentedSumMax(2)
+a = maxsum_aggregation(2)
 ```
 
 When we evaluate any `BagModel`, these values are used to compute output for empty bags instead of the aggregation itself. See the demo below:

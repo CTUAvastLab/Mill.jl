@@ -9,7 +9,8 @@ Useful resources for writing docs:
     Doctests: https://juliadocs.github.io/Documenter.jl/stable/man/doctests/
 =#
 
-DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill, Setfield, HierarchicalUtils); recursive=true)
+DocMeta.setdocmeta!(Mill, :DocTestSetup,
+                    :(using Mill, Flux, Setfield, HierarchicalUtils, SparseArrays); recursive=true)
 
 makedocs(
          CitationBibliography(joinpath(@__DIR__, "references.bib")),

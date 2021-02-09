@@ -44,9 +44,9 @@ b = ScatteredBags(g.fadjlist)
 Finally, we create two models. First model called `lift` will pre-process the description of vertices to some latent space for message passing, and the second one will realize the message passing itself, which we will call `mp`:
 
 ```@repl gnn
-lift = reflectinmodel(X, d -> Dense(d, 10), d -> SegmentedMean(d))
+lift = reflectinmodel(X, d -> Dense(d, 10), d -> mean_aggregation(d))
 U = lift(X)
-mp = reflectinmodel(BagNode(U, b), d -> Dense(d, 10), d -> SegmentedMean(d))
+mp = reflectinmodel(BagNode(U, b), d -> Dense(d, 10), d -> mean_aggregation(d))
 ```
 
 Notice that `BagNode(U, b)` now essentially encodes vertex features as well as the adjacency matrix. This also means that one step of message passing algorithm can be realized as:
@@ -58,10 +58,10 @@ Y = mp(BagNode(U, b))
 and it is differentiable, which can be verified by executing:
 
 ```@repl gnn
-gradient(() -> sum(sin.(mp(BagNode(U, b)) |> Mill.data)), Flux.params(mp))
+gradient(() -> sum(sin.(mp(BagNode(U, b)) |> Mill.data)), params(mp))
 ```
 
-If we put everything together, the GNN implementation is implemented in the following block of code (16 lines of mostly sugar).
+If we put everything together, the GNN implementation is implemented in the following 16 lines:
 
 ```@example gnn
 struct GNN{L,M, R}
@@ -92,7 +92,7 @@ As it is the case with whole `Mill.jl`, even this graph neural network is proper
 ```@example gnn
 zd = 10
 f(d) = Chain(Dense(d, zd, relu), Dense(zd, zd))
-agg(d) = SegmentedMeanMax(d)
+agg(d) = meanmax_aggregation(d)
 gnn = GNN(reflectinmodel(X, f, agg),
           BagModel(f(zd), agg(zd), f(2zd + 1)),
           f(2zd)) 
@@ -101,7 +101,7 @@ nothing # hide
 
 ```@repl gnn
 gnn(g, X, 5)
-gradient(() -> gnn(g, X, 5) |> sum, Flux.params(gnn))
+gradient(() -> gnn(g, X, 5) |> sum, params(gnn))
 ```
 
 The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in `X`, however, any `Mill.jl` hierarchy is applicable.

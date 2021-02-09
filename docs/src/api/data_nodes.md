@@ -1,5 +1,9 @@
 # Data nodes
 
+```@example
+using Mill, Flux, Setfield, HierarchicalUtils, SparseArrays
+```
+
 ## Index
 ```@index
 Pages = ["data_nodes.md"]

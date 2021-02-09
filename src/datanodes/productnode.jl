@@ -22,7 +22,7 @@ end
 Construct a new [`ProductNode`](@ref) with data `ds`, and metadata `m`. `ds` should be an iterable (preferably `Tuple` or `NamedTuple`) and all its elements must contain the same number of observations.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> ProductNode((ArrayNode(zeros(2, 2)), ArrayNode(Flux.onehotbatch([1, 2], 1:2))))
 ProductNode with 2 obs
   ├── ArrayNode(2×2 Array with Float64 elements) with 2 obs

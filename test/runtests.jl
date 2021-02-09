@@ -3,7 +3,7 @@ using Mill
 using Mill: nobs, mapdata
 using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, ∇xbagconv, ∇convsum
 using Mill: ngrams, countngrams
-using Mill: p_map, inv_p_map, r_map, inv_r_map, bagnorm
+using Mill: p_map, inv_p_map, r_map, inv_r_map, _bagnorm
 using Mill: Maybe
 using Base.Iterators: partition, product
 using Base: CodeUnits
@@ -81,14 +81,14 @@ const BAGS3 = [
         ]
 
 function Mill.unpack2mill(ds::LazyNode{:Sentence})
-    s = ds.data
-    ss = map(x -> split(x, " "),s)
-    x = NGramMatrix(reduce(vcat, ss), 3, 256, 2053)
-    BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
+    s = split.(ds.data, " ")
+    x = NGramMatrix(reduce(vcat, s))
+    BagNode(ArrayNode(x), Mill.length2bags(length.(s)))
 end
 
 @testset "Doctests" begin
-    DocMeta.setdocmeta!(Mill, :DocTestSetup, :(using Mill, Setfield, HierarchicalUtils); recursive=true)
+    DocMeta.setdocmeta!(Mill, :DocTestSetup,
+                        :(using Mill, Flux, Setfield, HierarchicalUtils, SparseArrays); recursive=true)
     doctest(Mill)
 end
 

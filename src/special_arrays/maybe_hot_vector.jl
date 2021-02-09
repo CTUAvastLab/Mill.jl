@@ -72,7 +72,7 @@ Return a [`MaybeHotVector`](@ref) where the first occurence of `l` in `labels` i
 and all other elements are set to `0`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> maybehot(:b, [:a, :b, :c])
 3-element MaybeHotVector{Int64,Int64,Bool}:
  0

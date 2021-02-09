@@ -24,7 +24,7 @@ end
 Construct a new [`WeightedBagNode`](@ref) with data `d`, bags `b`, weights `w` and metadata `m`. If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> BagNode(ArrayNode(NGramMatrix(["s1", "s2"])), bags([1:2, 0:-1]), [0.2, 0.8])
 BagNode with 2 obs
   └── ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs

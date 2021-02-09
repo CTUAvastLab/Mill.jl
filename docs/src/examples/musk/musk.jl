@@ -15,7 +15,7 @@ y_oh = Flux.onehotbatch(y, 1:2)             # one-hot encoding
 # create the model
 model = BagModel(
     ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
-    SegmentedMeanMax(10),                                       # aggregation
+    meanmax_aggregation(10),                                    # aggregation
     ArrayModel(Chain(Dense(21, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
 
 # check forward pass

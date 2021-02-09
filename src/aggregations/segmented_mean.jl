@@ -1,10 +1,29 @@
+"""
+    SegmentedMean{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+
+[`AggregationOperator`](@ref) implementing segmented mean aggregation:
+
+``
+f(\\{x_1, \\ldots, x_k\\}) = \\frac{1}{k} \\sum_{i = 1}^{k} x_i
+``
+
+Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered.
+
+!!! warn "Construction"
+    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
+    get this operator with [`mean_aggregation`](@ref) instead of calling the `SegmentedMean` constructor directly.
+
+See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`mean_aggregation`](@ref),
+    [`SegmentedMax`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
+"""
 struct SegmentedMean{T, V <: AbstractVector{T}} <: AggregationOperator{T}
     ψ::V
 end
 
 Flux.@functor SegmentedMean
 
-_SegmentedMean(d::Int) = SegmentedMean(zeros(Float32, d))
+SegmentedMean{T}(d::Int) where T = SegmentedMean(zeros(T, d))
+SegmentedMean(d::Int) = SegmentedMean{Float32}(d)
 
 Flux.@forward SegmentedMean.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype
@@ -34,10 +53,10 @@ function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstra
         else
             for j in b
                 for i in 1:size(x, 1)
-                    y[i, bi] += weight(w, i, j, eltype(x)) * x[i, j]
+                    y[i, bi] += _weight(w, i, j, eltype(x)) * x[i, j]
                 end
             end
-            @views y[:, bi] ./= bagnorm(w, b)
+            @views y[:, bi] ./= _bagnorm(w, b)
         end
     end
     y
@@ -53,10 +72,10 @@ function segmented_mean_back(Δ, y, x, ψ, bags, w)
                 dψ[i] += Δ[i, bi]
             end
         else
-            ws = bagnorm(w, b)
+            ws = _bagnorm(w, b)
             for j in b
                 for i in 1:size(x, 1)
-                    dx[i, j] += weight(w, i, j, eltype(x)) * Δ[i, bi] / weightsum(ws, i)
+                    dx[i, j] += _weight(w, i, j, eltype(x)) * Δ[i, bi] / _weightsum(ws, i)
                     ∇dw_segmented_mean!(dw, Δ, x, y, w, ws, i, j, bi)
                 end
             end

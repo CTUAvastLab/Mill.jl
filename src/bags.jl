@@ -86,7 +86,7 @@ end
 Convert lengths of bags given in `ls` to `AlignedBags` with contiguous blocks.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> length2bags([1, 3, 2])
 AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:4, 5:6])
 ```
@@ -161,7 +161,7 @@ Construct an `AbstractBags` structure that is most suitable for the input
 (`AlignedBags` if possible, `ScatteredBags` otherwise).
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> bags([2, 2, 3, 1])
 AlignedBags{Int64}(UnitRange{Int64}[1:2, 3:3, 4:4])
 
@@ -194,7 +194,7 @@ Select a subset of bags in `b` corresponding to indices `idcs` and remap instanc
 Return new bags `rb` as well as a `Vector` of remapped instances `I`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> remapbags(AlignedBags([1:1, 2:3, 4:5]), [1, 3])
 (AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:3]), [1, 4, 5])
 
@@ -227,7 +227,7 @@ end
 Remove indices of instances brom bags `b` and remap the remaining instances accordingly.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> adjustbags(AlignedBags([1:2, 0:-1, 3:4]), [false, false, true, true])
 AlignedBags{Int64}(UnitRange{Int64}[0:-1, 0:-1, 1:2])
 ```

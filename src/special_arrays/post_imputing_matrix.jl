@@ -8,7 +8,7 @@ Supports multiplication with [`NGramMatrix`](@ref), [`MaybeHotMatrix`](@ref) and
 For any other `AbstractMatrix` it falls back to standard multiplication.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> A = PostImputingMatrix(ones(2, 2), -ones(2))
 2×2 PostImputingMatrix{Float64,Array{Float64,2},Array{Float64,1}}:
 W:
@@ -40,7 +40,7 @@ Flux.@functor PostImputingMatrix
 Construct a [`PostImputingMatrix`](@ref) with multiplication parameters `W` and default parameters `ψ`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> PostImputingMatrix([1 2; 3 4])
 2×2 PostImputingMatrix{Int64,Array{Int64,2},Array{Int64,1}}:
 W:

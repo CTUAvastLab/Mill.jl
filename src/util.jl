@@ -41,7 +41,7 @@ end
 Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n` conforming to predicate `p`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
@@ -63,7 +63,7 @@ pred_lens(p::Function, n) = _pred_lens(p, n)
 Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
@@ -71,7 +71,7 @@ ProductNode with 2 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> list_lens(n)
-9-element Array{Setfield.Lens,1}:
+9-element Array{Lens,1}:
  (@lens _)
  (@lens _.data[1])
  (@lens _.data[1].data)
@@ -93,7 +93,7 @@ list_lens(n) = pred_lens(t -> true, n)
 Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n` that have at least one observation.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
@@ -101,7 +101,7 @@ ProductNode with 2 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> findnonempty_lens(n)
-3-element Array{Setfield.Lens,1}:
+3-element Array{Lens,1}:
  (@lens _)
  (@lens _.data[1])
  (@lens _.data[2])
@@ -118,7 +118,7 @@ Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n` tha
 compared to `x` using `Base.===`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
@@ -151,7 +151,7 @@ Convert code `c` from [`HierarchicalUtils`](@ref) traversal to `Setfield.Lens` s
 the same node in tree `n`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])));
 
 julia> printtree(n; trav=true)
@@ -175,7 +175,7 @@ Convert `Setfield.Lens` l to code `c` from [`HierarchicalUtils`](@ref) traversal
 the same node in tree `n`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])));
 
 julia> printtree(n; trav=true)
@@ -199,7 +199,7 @@ lens2code(n::MillStruct, l::Lens) = HierarchicalUtils.find_traversal(n, get(n, l
 Convert `Setfield.Lens` `l` for a data node to a new lens for accessing the same location in model `m`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
@@ -208,7 +208,7 @@ ProductNode with 2 obs
 
 julia> m = reflectinmodel(n)
 ProductModel … ↦ ArrayModel(Dense(20, 10))
-  ├── BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+  ├── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
   │     └── ArrayModel(Dense(2, 10))
   └── ArrayModel(Dense(2, 10))
 
@@ -234,7 +234,7 @@ model_lens(::Union{AbstractMillModel, NamedTuple, Tuple}, lens::IdentityLens) = 
 Convert `Setfield.Lens` `l` for a model node to a new lens for accessing the same location in data node `n`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
@@ -243,7 +243,7 @@ ProductNode with 2 obs
 
 julia> m = reflectinmodel(n)
 ProductModel … ↦ ArrayModel(Dense(20, 10))
-  ├── BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+  ├── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
   │     └── ArrayModel(Dense(2, 10))
   └── ArrayModel(Dense(2, 10))
 
@@ -271,7 +271,7 @@ Replace in data node or model `n` each occurence of `old` by `new`.
 Short description
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs

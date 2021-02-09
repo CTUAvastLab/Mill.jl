@@ -15,7 +15,7 @@ end
     x = BagNode(ArrayNode(randn(2, 4)), [1:2,3:4])
     m = BagModel(
         ArrayModel(Chain(Dense(2,2,leakyrelu), Dense(2,2))),
-        SegmentedMeanMax(2),
+        meanmax_aggregation(2),
         ArrayModel(Chain(Dense(5,2,leakyrelu), Dense(2,2))))
 
     hm, o = HiddenLayerModel(m, x, 3)

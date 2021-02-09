@@ -29,7 +29,7 @@ BagModel(im::AbstractMillModel, a) = BagModel(im, a, ArrayModel(identity))
 
 function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
     im, o = HiddenLayerModel(m.im, x.data, k)
-    a = SegmentedMax(k)
+    a = max_aggregation(k)
     b = m.a(o, x.bags)
     bm, o = HiddenLayerModel(m.bm, b, k+1)
     BagModel(im, a, bm), o

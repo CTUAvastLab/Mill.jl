@@ -50,7 +50,8 @@ export preimputing_dense, postimputing_dense, identity_dense
 
 include("aggregations/aggregation.jl")
 # agg. types exported in aggregation.jl
-export Aggregation
+export AggregationOperator, Aggregation
+export SegmentedMean, SegmentedMax, SegmentedSum, SegmentedLSE, SegmentedPNorm
 
 include("modelnodes/modelnode.jl")
 export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel

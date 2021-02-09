@@ -1,5 +1,9 @@
 # General
 
+```@example
+using Mill, Flux, Setfield, HierarchicalUtils, SparseArrays
+```
+
 ## Index
 ```@index
 Pages = ["general.md"]

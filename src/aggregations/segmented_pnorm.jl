@@ -1,4 +1,22 @@
-# https://arxiv.org/pdf/1311.1780.pdf
+"""
+    SegmentedPNorm{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+
+[`AggregationOperator`](@ref) implementing segmented p-norm aggregation:
+
+``
+f(\\{x_1, \\ldots, x_k\\}; p, c) = \\left(\\frac{1}{k} \\sum_{i = 1}^{k} \\vert x_i - c \\vert ^ {p} \\right)^{\\frac{1}{p}}
+``
+
+Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered,
+and vectors of parameters `p` and `c` used during computation.
+
+!!! warn "Construction"
+    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
+    get this operator with [`pnorm_aggregation`](@ref) instead of calling the `SegmentedPNorm` constructor directly.
+
+See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`pnorm_aggregation`](@ref),
+    [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedLSE`](@ref).
+"""
 struct SegmentedPNorm{T, V <: AbstractVector{T}} <: AggregationOperator{T}
     ψ::V
     ρ::V
@@ -7,7 +25,8 @@ end
 
 Flux.@functor SegmentedPNorm
 
-_SegmentedPNorm(d::Int) = SegmentedPNorm(randn(Float32, d), randn(Float32, d), zeros(Float32, d))
+SegmentedPNorm(d::Int) = SegmentedPNorm{Float32}(d)
+SegmentedPNorm{T}(d::Int) where T = SegmentedPNorm(zeros(T, d), randn(T, d), randn(T, d))
 
 Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype
@@ -66,14 +85,14 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
                 y[i, bi] = ψ[i]
             end
         else
-            ws = bagnorm(w, b)
+            ws = _bagnorm(w, b)
             for j in b
                 for i in 1:size(a, 1)
-                    y[i, bi] += weight(w, i, j, eltype(a)) * abs(a[i, j]/M[i, bi])^p[i]
+                    y[i, bi] += _weight(w, i, j, eltype(a)) * abs(a[i, j]/M[i, bi])^p[i]
                 end
             end
             for i in 1:size(a, 1)
-                y[i, bi] = M[i, bi] * (y[i, bi] / weightsum(ws, i)) ^ (one(eltype(a))/p[i])
+                y[i, bi] = M[i, bi] * (y[i, bi] / _weightsum(ws, i)) ^ (one(eltype(a))/p[i])
             end
         end
     end
@@ -99,22 +118,22 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
                 dψ[i] += Δ[i, bi]
             end
         else
-            ws = bagnorm(w, b)
+            ws = _bagnorm(w, b)
             dps1 .= zero(eltype(p))
             dps2 .= zero(eltype(p))
             for j in b
                 for i in 1:size(a, 1)
                     ab = abs(a[i, j])
-                    da[i, j] = Δ[i, bi] * weight(w, i, j, eltype(p)) * sign(a[i, j]) / weightsum(ws, i) 
+                    da[i, j] = Δ[i, bi] * _weight(w, i, j, eltype(p)) * sign(a[i, j]) / _weightsum(ws, i) 
                     da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
-                    ww = weight(w, i, j, eltype(p)) * (ab / M[i, bi]) ^ p[i]
+                    ww = _weight(w, i, j, eltype(p)) * (ab / M[i, bi]) ^ p[i]
                     dps1[i] += ww * log(ab)
                     dps2[i] += ww
                 end
             end
             for i in 1:size(a, 1)
                 t = y[i, bi] / p[i]
-                t *= dps1[i] / dps2[i] - (p[i] * log(M[i, bi]) + log(dps2[i]) - log(weightsum(ws, i))) / p[i]
+                t *= dps1[i] / dps2[i] - (p[i] * log(M[i, bi]) + log(dps2[i]) - log(_weightsum(ws, i))) / p[i]
                 dp[i] += Δ[i, bi] * t
             end
         end

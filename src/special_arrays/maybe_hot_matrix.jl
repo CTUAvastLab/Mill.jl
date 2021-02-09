@@ -87,7 +87,7 @@ Return a [`MaybeHotMatrix`](@ref) in which each column corresponds to one elemen
 containing `1` at its first occurence in `labels` with all other elements set to `0`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> maybehotbatch([:c, :a], [:a, :b, :c])
 3×2 MaybeHotMatrix{Int64,Int64,Bool}:
  0  1

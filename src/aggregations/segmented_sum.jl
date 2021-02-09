@@ -1,10 +1,29 @@
+"""
+    SegmentedSum{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+
+[`AggregationOperator`](@ref) implementing segmented sum aggregation:
+
+``
+f(\\{x_1, \\ldots, x_k\\}) = \\sum_{i = 1}^{k} x_i
+``
+
+Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered.
+
+!!! warn "Construction"
+    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
+    get this operator with [`sum_aggregation`](@ref) instead of calling the `SegmentedSum` constructor directly.
+
+See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`sum_aggregation`](@ref),
+    [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
+"""
 struct SegmentedSum{T, V <: AbstractVector{T}} <: AggregationOperator{T}
     ψ::V
 end
 
 Flux.@functor SegmentedSum
 
-_SegmentedSum(d::Int) = SegmentedSum(zeros(Float32, d))
+SegmentedSum{T}(d::Int) where T = SegmentedSum(zeros(T, d))
+SegmentedSum(d::Int) = SegmentedSum{Float32}(d)
 
 Flux.@forward SegmentedSum.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype
@@ -34,7 +53,7 @@ function segmented_sum_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstrac
         else
             for j in b
                 for i in 1:size(x, 1)
-                    y[i, bi] += weight(w, i, j, eltype(x)) * x[i, j]
+                    y[i, bi] += _weight(w, i, j, eltype(x)) * x[i, j]
                 end
             end
         end
@@ -54,7 +73,7 @@ function segmented_sum_back(Δ, y, x, ψ, bags, w)
         else
             for j in b
                 for i in 1:size(x, 1)
-                    dx[i, j] = weight(w, i, j, eltype(x)) * Δ[i, bi]
+                    dx[i, j] = _weight(w, i, j, eltype(x)) * Δ[i, bi]
                     ∇dw_segmented_sum!(dw, Δ, x, y, w, i, j, bi)
                 end
             end

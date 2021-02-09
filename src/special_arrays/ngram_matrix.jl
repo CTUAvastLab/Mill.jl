@@ -8,26 +8,6 @@ Iterates over ngram codes of collection of integers `s` using [`Mill.string_star
 
 In order to reduce collisions when mixing ngrams of different order one should avoid zeros and negative integers in `s` and should set base `b` to the expected number of unique tokens in `s`.
 
-# Examples
-```jldoctest
-julia> it = Mill.NGramIterator(collect(1:9), 3, 10)
-NGramIterator{Array{Int64,1}}([1, 2, 3, 4, 5, 6, 7, 8, 9], 3, 10, 9223372036854775807)
-
-julia> Mill.string_start_code!(0); Mill.string_end_code!(0); collect(it)
-11-element Array{Int64,1}:
-   1
-  12
- 123
- 234
- 345
- 456
- 567
- 678
- 789
- 890
- 900
-```
-
 See also: [`NGramMatrix`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countngrams`](@ref),
     [`countngrams!`](@ref).
 """
@@ -47,22 +27,39 @@ Construct an [`NGramIterator`](@ref). If `s` is an `AbstractString` it is first 
 to integers with `Base.codeunits`.
 
 # Examples
-```jlddoctest
-julia> sit = Mill.NGramIterator("deadbeef", 3, 256, 17)
-NGramIterator{Base.CodeUnits{UInt8,String}}(UInt8[0x64, 0x65, 0x61, 0x64, 0x62, 0x65, 0x65, 0x66], 3, 256, 9223372036854775807)
-
-julia> collect(sit)
+```jldoctest
+julia> NGramIterator("deadbeef", 3, 256, 17) |> collect
 10-element Array{Int64,1}:
- 14
-  5
+  2
+ 16
   9
   9
   6
  10
  11
  15
- 16
-  0
+  2
+  6
+
+julia> NGramIterator(collect(1:9), 3, 10, 1009) |> collect
+11-element Array{Int64,1}:
+ 221
+ 212
+ 123
+ 234
+ 345
+ 456
+ 567
+ 678
+ 789
+ 893
+ 933
+
+julia> Mill.string_start_code()
+0x02
+
+julia> Mill.string_end_code()
+0x03
 ```
 
 See also: [`NGramMatrix`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countngrams`](@ref),
@@ -112,7 +109,7 @@ Base.hash(it::NGramIterator{T}, h::UInt) where {T} = hash((string(T), it.s, it.n
 Store codes of `n` grams of `x` using base `b` to `o`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> o = zeros(Int, 5)
 5-element Array{Int64,1}:
  0
@@ -123,11 +120,11 @@ julia> o = zeros(Int, 5)
 
 julia> ngrams!(o, "foo", 3, 256)
 5-element Array{Int64,1}:
- 2763366
- 2778735
+  131686
+  157295
  6713199
- 7302912
- 7274496
+ 7302915
+ 7275267
 ```
 
 See also: [`ngrams`](@ref), [`countngrams`](@ref),
@@ -146,14 +143,14 @@ end
 Return codes of `n` grams of `x` using base `b`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> ngrams("foo", 3, 256)
 5-element Array{Int64,1}:
- 2763366
- 2778735
+  131686
+  157295
  6713199
- 7302912
- 7274496
+ 7302915
+ 7275267
 ```
 
 See also: [`ngrams!`](@ref), [`countngrams`](@ref),
@@ -167,7 +164,7 @@ ngrams(x::Sequence, args...) = collect(NGramIterator(x, args...))
 Count the number of of `n` grams of `x` using base `b` and modulo `m` and store the result to `o`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> o = zeros(Int, 5)
 5-element Array{Int64,1}:
  0
@@ -178,8 +175,8 @@ julia> o = zeros(Int, 5)
 
 julia> countngrams!(o, "foo", 3, 256)
 5-element Array{Int64,1}:
- 1
  2
+ 1
  1
  0
  1
@@ -203,11 +200,11 @@ Count the number of of `n` grams of `x` using base `b` and modulo `m` into a vec
 in case `x` is a single sequence or into a matrix with `m` rows if `x` is an iterable of sequences.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> countngrams("foo", 3, 256, 5)
 5-element Array{Int64,1}:
- 1
  2
+ 1
  1
  0
  1
@@ -270,7 +267,7 @@ end
 Construct an [`NGramMatrix`](@ref). `s` can either be a single sequnce or a `Vector`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> NGramMatrix([1,2,3])
 2053×1 NGramMatrix{Array{Int64,1},Int64}:
  [1, 2, 3]
@@ -367,7 +364,7 @@ function _mul(A::AbstractMatrix, S::AbstractVector{T}, n, b, m) where T <: Maybe
     C
 end
 
-Zygote.@adjoint function _mul(A::AbstractMatrix, S::AbstractVector{<:Sequence}, n, b, m)
+Zygote.@adjoint function _mul(A::AbstractMatrix, S::AbstractVector{<:Maybe{Sequence}}, n, b, m)
     return _mul(A, S, n, b, m), Δ -> (_mul_∇A(Δ, A, S, n, b, m), nothing, nothing, nothing, nothing)
 end
 

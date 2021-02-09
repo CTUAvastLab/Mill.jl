@@ -109,7 +109,7 @@ Each `BagNode` is processed by a `BagModel`, which contains two (sub)models and 
 
 ```@repl nodes
 im = ArrayModel(Dense(2, 3))
-a = SegmentedMax(3)
+a = max_aggregation(3)
 bm = ArrayModel(Dense(4, 4))
 BM = BagModel(im, a, bm)
 ```

@@ -22,11 +22,11 @@
           └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
 
     bnm = reflectinmodel(bn)
-    @test repr(bnm) == "BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))"
+    @test repr(bnm) == "BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))"
     @test repr(bnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), bnm) == 
         """
-        BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+        BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
           └── ArrayModel(Dense(2, 10))"""
 
     wbn = WeightedBagNode(an, bags([1:2, 3:5]), rand(5) |> f32)
@@ -38,11 +38,11 @@
           └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
 
     wbnm = reflectinmodel(wbn)
-    @test repr(wbnm) == "BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))"
+    @test repr(wbnm) == "BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))"
     @test repr(wbnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), wbnm) == 
         """
-        BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+        BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
           └── ArrayModel(Dense(2, 10))"""
 
     pn = ProductNode((;bn, wbn))
@@ -62,9 +62,9 @@
     @test repr(MIME("text/plain"), pnm) ==
         """
         ProductModel … ↦ ArrayModel(Dense(20, 10))
-          ├─── bn: BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+          ├─── bn: BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
           │          └── ArrayModel(Dense(2, 10))
-          └── wbn: BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+          └── wbn: BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
                      └── ArrayModel(Dense(2, 10))"""
 
     ln = LazyNode{:Sentence}(["a", "b", "c", "d"])
@@ -78,12 +78,12 @@
     @test repr(MIME("text/plain"), lnm) == 
         """
         LazyModel{Sentence}
-          └── BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
+          └── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
                 └── ArrayModel(Dense(2053, 10))"""
 end
 
 @testset "aggregation io" begin
-    a = SegmentedMax(3)
+    a = max_aggregation(3)
     @test repr(a) == "⟨SegmentedMax(3)⟩"
     @test repr(a; context=:compact => true) == "Aggregation(3)"
     @test repr(MIME("text/plain"), a) ==
@@ -107,8 +107,8 @@ end
          SegmentedPNorm(ψ = Float32[0.0, 0.0], ρ = Float32[1.0, 1.0], c = Float32[-1.0, -1.0])
          SegmentedLSE(ψ = Float32[0.0, 0.0], ρ = Float32[1.0, 1.0])"""
 
-    a = SegmentedMean(zeros(2))
-    @test repr(a) == "SegmentedMean(ψ = [0.0, 0.0])"
+    a = SegmentedMean(2)
+    @test repr(a) == "SegmentedMean(ψ = Float32[0.0, 0.0])"
     @test repr(a; context=:compact => true) == "SegmentedMean(2)"
     @test repr(a) == repr(MIME("text/plain"), a)
 end

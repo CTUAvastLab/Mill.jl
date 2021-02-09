@@ -97,19 +97,15 @@ end
 Like `Flux.Dense`, but use a [`PreImputingMatrix`](@ref) instead of a standard matrix.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> d = preimputing_dense(2, 3)
 [pre_imputing]Dense(2, 3)
 
-julia> d.W
-3×2 PreImputingMatrix{Float32,Array{Float32,2},Array{Float32,1}}:
-W:
- -0.320288   0.75464
-  0.265993  -0.439838
- -0.146348  -0.142698
+julia> typeof(d.W)
+PreImputingMatrix{Float32,Array{Float32,2},Array{Float32,1}}
 
-ψ:
- 0.0  0.0
+julia> typeof(d.b)
+Array{Float32,1}
 ```
 
 See also: [`PreImputingMatrix`](@ref), [`postimputing_dense`](@ref), [`PostImputingMatrix`](@ref).
@@ -123,21 +119,15 @@ preimputing_dense(args...) = preimputing_dense(Dense(args...))
 Like `Flux.Dense`, but use a [`PostImputingMatrix`](@ref) instead of a standard matrix.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> d = postimputing_dense(2, 3)
 [post_imputing]Dense(2, 3)
 
-julia> d.W
-3×2 PostImputingMatrix{Float32,Array{Float32,2},Array{Float32,1}}:
-W:
- -0.911716  -0.436985
-  0.129055   0.62615
-  0.952452  -0.484807
+julia> typeof(d.W)
+PostImputingMatrix{Float32,Array{Float32,2},Array{Float32,1}}
 
-ψ:
- 0.0
- 0.0
- 0.0
+julia> typeof(d.b)
+Array{Float32,1}
 ```
 
 See also: [`PostImputingMatrix`](@ref), [`preimputing_dense`](@ref), [`PreImputingMatrix`](@ref).

@@ -75,7 +75,7 @@ end
 @testset "testing model operations missing values" begin
     a = BagNode(ArrayNode(rand(3,4)), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
-    m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMean(2), ArrayModel(Dense(3, 2)))
+    m = BagModel(ArrayModel(Dense(3, 2)), mean_aggregation(2), ArrayModel(Dense(3, 2)))
 
     @testset "BagNode" begin
         x = reduce(catobs, [a, e])

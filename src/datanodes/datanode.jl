@@ -25,7 +25,7 @@ abstract type AbstractBagNode <: AbstractNode end
 Return data stored in node `n`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> Mill.data(ArrayNode([1 2; 3 4], "metadata"))
 2×2 Array{Int64,2}:
  1  2
@@ -47,7 +47,7 @@ data(n::AbstractNode) = n.data
 Return metadata stored in node `n`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> Mill.metadata(ArrayNode([1 2; 3 4], "metadata"))
 "metadata"
 
@@ -70,7 +70,7 @@ In case of repeated calls with varying number of arguments or argument types, us
 to save compilation time.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> catobs(ArrayNode(zeros(2, 2)), ArrayNode([1 2; 3 4]))
 2×4 ArrayNode{Array{Float64,2},Nothing}:
  0.0  0.0  1.0  2.0
@@ -101,7 +101,7 @@ Extract a subset `i` of samples (observations) stored in node `n`.
 Similar to `Base.getindex` or `MLDataPattern.getobs` but defined for all `Mill.jl` compatible data as well.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> Mill.subset(ArrayNode(NGramMatrix(["Hello", "world"])), 2)
 2053×1 ArrayNode{NGramMatrix{String,Int64},Nothing}:
  "world"
@@ -121,12 +121,12 @@ function subset end
 Remove instances from `n` using `mask` and remap bag indices accordingly.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> b1 = BagNode(ArrayNode([1 2 3; 4 5 6]), bags([1:2, 0:-1, 3:3]))
 BagNode with 3 obs
   └── ArrayNode(2×3 Array with Int64 elements) with 3 obs
 
-julia> b2 = removeinstances(b, [false, true, true])
+julia> b2 = removeinstances(b1, [false, true, true])
 BagNode with 3 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
@@ -147,7 +147,7 @@ function removeinstances end
 Recursively apply `f` to data in all leaves of `x`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> n1 = ProductNode((a=ArrayNode(zeros(2,2)), b=ArrayNode(ones(2,2))))
 ProductNode with 2 obs
   ├── a: ArrayNode(2×2 Array with Float64 elements) with 2 obs

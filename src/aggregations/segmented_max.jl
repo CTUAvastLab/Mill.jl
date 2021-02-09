@@ -1,10 +1,29 @@
+"""
+    SegmentedMax{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+
+[`AggregationOperator`](@ref) implementing segmented max aggregation:
+
+``
+f(\\{x_1, \\ldots, x_k\\}) = \\max_{i = 1, \\ldots, k} x_i
+``
+
+Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered.
+
+!!! warn "Construction"
+    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
+    get this operator with [`max_aggregation`](@ref) instead of calling the `SegmentedMax` constructor directly.
+
+See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`max_aggregation`](@ref),
+    [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
+"""
 struct SegmentedMax{T, V <: AbstractVector{T}} <: AggregationOperator{T}
     ψ::V
 end
 
 Flux.@functor SegmentedMax
 
-_SegmentedMax(d::Int) = SegmentedMax(zeros(Float32, d))
+SegmentedMax{T}(d::Int) where T = SegmentedMax(zeros(T, d))
+SegmentedMax(d::Int) = SegmentedMax{Float32}(d)
 
 Flux.@forward SegmentedMax.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

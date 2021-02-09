@@ -52,7 +52,7 @@ Once the data are in `Mill.jl` internal format, we will manually create a model.
 ```@repl musk
 model = BagModel(
     ArrayModel(Dense(166, 10, Flux.relu)),                      # model on the level of Flows
-    SegmentedMeanMax(10),                                       # aggregation
+    meanmax_aggregation(10),                                    # aggregation
     ArrayModel(Chain(Dense(21, 10, Flux.relu), Dense(10, 2))))  # model on the level of bags
 ```
 

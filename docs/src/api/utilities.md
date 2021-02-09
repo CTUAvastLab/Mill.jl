@@ -1,5 +1,9 @@
 # Utilities
 
+```@example
+using Mill, Flux, Setfield, HierarchicalUtils, SparseArrays
+```
+
 ## Index
 ```@index
 Pages = ["utilities.md"]
@@ -11,6 +15,7 @@ sparsify
 
 list_lens
 find_lens
+findnonempty_lens
 pred_lens
 
 code2lens

@@ -23,7 +23,7 @@ end
 Construct a new [`BagNode`](@ref) with data `d`, bags `b`, and metadata `m`. If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> BagNode(ArrayNode(maybehotbatch([1, missing, 2], 1:2)), AlignedBags([1:1, 2:3]))
 BagNode with 2 obs
   └── ArrayNode(2×3 MaybeHotMatrix with Union{Missing, Bool} elements) with 3 obs

@@ -30,7 +30,7 @@ The sample `ds` serves here as a *specimen* needed to specify a structure of the
 To have better control over the topology, `reflectinmodel` accepts up to two more optional arguments and four keyword arguments:
 
 * The first optional argument expects a function that returns a layer (or a set of layers) given input dimension `d` (defaults to `d -> Flux.Dense(d, 10)`).
-* The second optional argument is a function returning aggregation function for `BagModel` nodes (defaults to `d -> SegmentedMean(d)`).
+* The second optional argument is a function returning aggregation function for `BagModel` nodes (defaults to `d -> mean_aggregation(d)`).
 
 Compare the following example to the previous one:
 
@@ -39,7 +39,7 @@ using Flux
 ```
 
 ```@repl reflection
-m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMax(d));
+m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> max_aggregation(d));
 printtree(m)
 
 m(ds)
@@ -65,14 +65,14 @@ These identifiers can be used to override the default construction functions. No
 For example to specify just the last feed forward neural network:
 
 ```@repl reflection
-reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d);
+reflectinmodel(ds, d -> Dense(d, 5, relu), d -> meanmax_aggregation(d);
     fsm = Dict("" => d -> Chain(Dense(d, 20, relu), Dense(20, 12)))) |> printtree
 ```
 
 Both keyword arguments in action:
 
 ```@repl reflection
-reflectinmodel(ds, d -> Dense(d, 5, relu), d -> SegmentedMeanMax(d);
+reflectinmodel(ds, d -> Dense(d, 5, relu), d -> meanmax_aggregation(d);
     fsm = Dict("" => d -> Chain(Dense(d, 20, relu), Dense(20, 12))),
-    fsa = Dict("Y" => d -> SegmentedMean(d), "g" => d -> SegmentedPNorm(d))) |> printtree
+    fsa = Dict("Y" => d -> mean_aggregation(d), "g" => d -> pnorm_aggregation(d))) |> printtree
 ```
