@@ -19,7 +19,7 @@ end
 Construct a new [`LazyNode`](@ref) with name `Name`, data `d`, and metadata `m`.
 
 # Examples
-```jlddoctest
+```jldoctest
 julia> LazyNode(:Codons, ["GGGCGGCGA", "CCTCGCGGG"])
 LazyNode{Codons} with 2 obs
 ```
@@ -28,6 +28,32 @@ See also: [`AbstractNode`](@ref), [`LazyModel`](@ref), [`Mill.unpack2mill`](@ref
 """
 LazyNode(Name::Symbol, d::T, m::C=nothing) where {T, C} = LazyNode{Name, T, C}(d, m)
 LazyNode{Name}(d::T, m::C=nothing) where {Name, T, C} = LazyNode{Name, T, C}(d, m)
+
+"""
+    Mill.unpack2mill(x::LazyNode)
+
+Return a representation of [`LazyNode`](@ref) `x` using `Mill.jl` structures. Every custom
+[`LazyNode`](@ref) should have a special method as it is used in [`LazyModel`](@ref).
+
+# Examples
+```jldoctest unpack2mill; output=false
+function Mill.unpack2mill(ds::LazyNode{:Sentence})
+    s = split.(ds.data, " ")
+    x = NGramMatrix(reduce(vcat, s))
+    BagNode(ArrayNode(x), Mill.length2bags(length.(s)))
+end
+# output
+
+```
+```jldoctest unpack2mill
+julia> LazyNode{:Sentence}(["foo bar", "baz"]) |> Mill.unpack2mill
+BagNode with 2 obs
+  └── ArrayNode(2053×3 NGramMatrix with Int64 elements) with 3 obs
+```
+
+See also: [`LazyNode`](@ref), [`LazyModel`](@ref).
+"""
+function unpack2mill end
 
 Base.ndims(x::LazyNode) = Colon()
 StatsBase.nobs(a::LazyNode) = length(a.data)
