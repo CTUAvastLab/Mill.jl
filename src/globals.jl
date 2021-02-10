@@ -88,10 +88,5 @@ string_end_code!(c) = _string_end_code[] = c
 
 const _wildcard_code = Ref(0x00) # NUL in ascii
 
-"""
-"""
 wildcard_code() = _wildcard_code[]
-
-"""
-"""
 wildcard_code!(c) = _wildcard_code[] = c

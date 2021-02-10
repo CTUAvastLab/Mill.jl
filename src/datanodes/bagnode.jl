@@ -1,9 +1,12 @@
 """
     BagNode{T <: Union{AbstractNode, Missing}, B <: AbstractBags, C} <: AbstractBagNode
 
-Data node that represents a multi-instance learning problem. Contains instances stored in a subtree of type `T`, bag indices of type `B` and optional metadata of type `C`.
+Data node that represents a multi-instance learning problem.
+Contains instances stored in a subtree of type `T`,
+bag indices of type `B` and optional metadata of type `C`.
 
-See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractNode`](@ref), [`BagModel`](@ref).
+See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref),
+    [`AbstractNode`](@ref), [`BagModel`](@ref).
 """
 struct BagNode{T <: Maybe{AbstractNode}, B <: AbstractBags, C} <: AbstractBagNode
     data::T
@@ -20,7 +23,8 @@ end
     BagNode(d::Union{AbstractNode, Missing}, b::AbstractBags, m=nothing)
     BagNode(d::Union{AbstractNode, Missing}, b::AbstractVector, m=nothing)
 
-Construct a new [`BagNode`](@ref) with data `d`, bags `b`, and metadata `m`. If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
+Construct a new [`BagNode`](@ref) with data `d`, bags `b`, and metadata `m`.
+If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
 
 # Examples
 ```jldoctest
@@ -33,7 +37,8 @@ BagNode with 2 obs
   └── ArrayNode(2×5 Array with Float64 elements) with 5 obs
 ```
 
-See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractNode`](@ref), [`BagModel`](@ref).
+See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref),
+    [`AbstractNode`](@ref), [`BagModel`](@ref).
 """
 BagNode(d::Maybe{AbstractNode}, b::AbstractVector, m=nothing) = BagNode(d, bags(b), m)
 

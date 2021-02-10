@@ -5,8 +5,10 @@ using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, 
 using Mill: ngrams, countngrams
 using Mill: p_map, inv_p_map, r_map, inv_r_map, _bagnorm
 using Mill: Maybe
+
 using Base.Iterators: partition, product
 using Base: CodeUnits
+
 using Documenter
 using Flux
 using Flux: onehot, onehotbatch
@@ -16,6 +18,7 @@ using Combinatorics
 using SparseArrays
 using DataFrames
 using HierarchicalUtils
+
 using BenchmarkTools: @btime
 
 function ngradient(f, xs::AbstractArray...)
@@ -88,7 +91,7 @@ end
 
 @testset "Doctests" begin
     DocMeta.setdocmeta!(Mill, :DocTestSetup,
-                        :(using Mill, Flux, Setfield, HierarchicalUtils, SparseArrays); recursive=true)
+                        :(using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils); recursive=true)
     doctest(Mill)
 end
 

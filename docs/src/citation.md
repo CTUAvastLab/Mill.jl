@@ -1,4 +1,4 @@
-## Citation
+# Citation
 
 For citing, please use the following entry:
 

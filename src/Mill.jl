@@ -22,6 +22,7 @@ import Base: *, ==, reduce
 
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
+const VecOrTupOrNTup{T} = Union{Vector{<:T}, Tuple{Vararg{T}}, NamedTuple{K, <:Tuple{Vararg{T}}} where K}
 using Base: AbstractVecOrMat, AbstractVecOrTuple
 const Maybe{T} = Union{T, Missing}
 const Optional{T} = Union{T, Nothing}

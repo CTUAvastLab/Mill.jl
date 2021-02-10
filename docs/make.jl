@@ -1,5 +1,5 @@
 using Documenter, DocumenterCitations
-using Mill
+using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
 
 #=
 Useful resources for writing docs:
@@ -10,7 +10,7 @@ Useful resources for writing docs:
 =#
 
 DocMeta.setdocmeta!(Mill, :DocTestSetup,
-                    :(using Mill, Flux, Setfield, HierarchicalUtils, SparseArrays); recursive=true)
+                        :(using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils); recursive=true)
 
 makedocs(
          CitationBibliography(joinpath(@__DIR__, "references.bib")),

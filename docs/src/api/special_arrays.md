@@ -1,9 +1,5 @@
 # Special arrays
 
-```@example
-using Mill, Flux, Setfield, HierarchicalUtils, SparseArrays
-```
-
 ## Index
 ```@index
 Pages = ["special_arrays.md"]
