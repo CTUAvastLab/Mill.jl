@@ -7,6 +7,16 @@
 * **fast** 
 * and dependent on only handful of other packages
 
+Go to
+
+* [Motivation](@ref) for a brief introduction into the philosophy of `Mill.jl`
+* [Manual](@ref) for brief tutorial into `Mill.jl` 
+* [Examples](@ref) for some examples of `Mill.jl` use
+* [External tools](@ref) to see examples of integration with other packages
+* [API](@ref) for an extensive API reference
+* [References](@ref) for related literature
+* [Citation](@ref) for preferred citation entry
+
 ## Installation
 
 Run the following in REPL:
@@ -14,11 +24,3 @@ Run the following in REPL:
 ```julia
 ] add Mill
 ```
-Go to
-
-* [Motivation](@ref) for a brief introduction into the philosophy of `Mill.jl`
-* [Architecture of Mill](@ref overview) 
-* [Examples](@ref)
-* [Helper tools](@ref)
-* [References](@ref)
-* TODO finish this and add contents
