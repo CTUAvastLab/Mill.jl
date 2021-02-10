@@ -17,7 +17,7 @@ where the input sample ``\bm{x}`` is a vector (or generally speaking any tensor)
 
 Most of the time, a skilled botanist is able to identify a specimen not by making use of any measuring device, but by visual or tactile inspection of its stem, leaves and blooms. For different species, different parts of the flower may need to be examined for indicators. At the same time, many species may have nearly identical-looking leaves or blooms, therefore, one needs to step back, consider the whole picture, and appropriately combine lower-level observations into high-level conclusions about the given specimen.
 
-If we want to use such more elaborate description of the Iris flower using fixed size structures, we will have a hard time, because every specimen can have a different amounts of leaves or blooms (or they may be completely missing). This means that to use the usual *fixed dimension* paradigm, we have to either somehow select a single leaf (blossom) and extract features from them, or design procedures for aggregating such features over whole sets, so that the output has fixed dimension. This is clearly undesirable. `Mill.jl` a framework that seamlessly deals with these challenges in data representation.
+If we want to use such more elaborate description of the Iris flower using fixed size structures, we will have a hard time, because every specimen can have a different amounts of leaves or blooms (or they may be completely missing). This means that to use the usual *fixed dimension* paradigm, we have to either somehow select a single leaf (blossom) and extract features from them, or design procedures for aggregating such features over whole sets, so that the output has fixed dimension. This is clearly undesirable. [`Mill.jl`](https://github.com/pevnak/Mill.jl) a framework that seamlessly deals with these challenges in data representation.
 
 ## Hierarchical Multiple Instance Learning
 
@@ -33,7 +33,7 @@ The HMIL model corresponding to the Iris example above would comprise two FFNs a
 
 [^2]: Some methods for MIL problems require instance-level labels as well, which are not always available.
 
-The `Mill.jl` library simplifies implementation of machine learning problems using (H)MIL representation. In theory, it can represent any problem that can be represented in JSONs. That is why we have created a separate tool, [`JsonGrinder.jl`](https://github.com/pevnak/JsonGrinder.jl), which helps with processing JSON documents for learning.
+The [`Mill.jl`](https://github.com/pevnak/Mill.jl) library simplifies implementation of machine learning problems using (H)MIL representation. In theory, it can represent any problem that can be represented in JSONs. That is why we have created a separate tool, [`JsonGrinder.jl`](https://github.com/pevnak/JsonGrinder.jl), which helps with processing JSON documents for learning.
 
 In [Pevny2019](@cite), authors have further extended the [Universal approximation theorem](https://en.wikipedia.org/wiki/Universal_approximation_theorem) to MIL problems, their Cartesian products, and nested MIL problems, i.e. a case where instances of one bag are in fact bags again.
 
@@ -41,7 +41,7 @@ In [Pevny2019](@cite), authors have further extended the [Universal approximatio
 HMIL problems can be seen as a special subset of general graphs. They differ in two important ways:
 * In general graphs, vertices are of a small number of semantic type, whereas in HMIL problems, the number of semantic types of vertices is much higher (it is helpful to think about HMIL problems as about those for which JSON is a natural representation).
 * The computational graph of HMIL is a **tree**, which introduces assumption that there exist an efficient inference. Contrary, in general graphs (with loops) there is no efficient inference and one has to resort to message passing (Loopy belief propagation).
-* One update message in **loopy belief propagation** can be viewed as a MIL problem, as it has to produce a vector based on infomation inthe neighborhood, which can contain arbitrary number of vertices.
+* One update message in **loopy belief propagation** can be viewed as a MIL problem, as it has to produce a vector based on infomation inthe neighborhood, which can contain an arbitrary number of vertices.
 
 ## Difference to sequences
 The major difference is that instances in bag are not ordered in any way. This means that if a sequence ``(a,b,c)`` should be treated as a set, then the output of a function `f` should be the same for any permutation, i.e. ``f(abc) = f(cba) = f(bac) = \ldots``. This property has a dramatic implication on the computational complexity. Sequences are typically modeled using Recurrent Neural Networks (RNNs), where the output is calculated as ``f(abc) = g(a, g(b, g(c)))`` (slightly abusing the notation). During optimization, a gradient of ``g`` needs to be calculated recursively, giving raise to infamous vanishing / exploding gradient problems. In constrast, (H)MIL models calculate the output as ``f(\frac{1}{3}(g(a) + g(b) + g(c)))`` (slightly abusing notation again), which means that the gradient of ``g`` can be calculated in parallel and not recurrently. 

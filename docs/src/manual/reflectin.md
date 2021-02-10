@@ -4,7 +4,7 @@ using Mill
 
 # Model Reflection
 
-Since constructions of large models can be a tedious and error-prone process, `Mill.jl` provides `reflectinmodel` function that helps to automate it. The simplest definition accepts only one argument, a sample `ds`, and returns a compatible model:
+Since constructions of large models can be a tedious and error-prone process, [`Mill.jl`](https://github.com/pevnak/Mill.jl) provides [`reflectinmodel`](@ref) function that helps to automate it. The simplest definition accepts only one argument, a sample `ds`, and returns a compatible model:
 
 ```@repl reflection
 ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
@@ -25,12 +25,12 @@ m(ds)
 
 The sample `ds` serves here as a *specimen* needed to specify a structure of the problem and calculate dimensions.
 
-## Optional arguments
+### Optional arguments
 
-To have better control over the topology, `reflectinmodel` accepts up to two more optional arguments and four keyword arguments:
+To have better control over the topology, [`reflectinmodel`](@ref) accepts up to two more optional arguments and four keyword arguments:
 
 * The first optional argument expects a function that returns a layer (or a set of layers) given input dimension `d` (defaults to `d -> Flux.Dense(d, 10)`).
-* The second optional argument is a function returning aggregation function for `BagModel` nodes (defaults to `d -> mean_aggregation(d)`).
+* The second optional argument is a function returning aggregation function for [`BagModel`](@ref) nodes (defaults to `d -> mean_aggregation(d)`).
 
 Compare the following example to the previous one:
 
@@ -45,9 +45,9 @@ printtree(m)
 m(ds)
 ```
 
-## Keyword arguments
+### Keyword arguments
 
-The `reflectinmodel` allows even further customization. To index into the sample (or model), we can use `printtree(ds; trav=true)` from [HierarchicalUtils.jl](@ref) that prints the sample together with identifiers of individual nodes:
+The [`reflectinmodel`](@ref) allows even further customization. To index into the sample (or model), we can use `printtree(ds; trav=true)` from [HierarchicalUtils.jl](@ref) that prints the sample together with identifiers of individual nodes:
 
 ```@example reflection
 using HierarchicalUtils

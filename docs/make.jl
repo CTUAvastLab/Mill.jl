@@ -41,13 +41,13 @@ makedocs(
                   "External tools" => [
                                        "HierarchicalUtils.jl" => "tools/hierarchical.md"
                                       ],
-                  "API" => [
-                            "General" => "api/general.md",
-                            "Data nodes" => "api/data_nodes.md",
-                            "Bags" => "api/bags.md",
-                            "Model nodes" => "api/model_nodes.md",
+                  "Public API" => [
                             "Aggregation" => "api/aggregation.md",
+                            "Bags" => "api/bags.md",
+                            "Data nodes" => "api/data_nodes.md",
+                            "Model nodes" => "api/model_nodes.md",
                             "Special Arrays" => "api/special_arrays.md",
+                            "Switches" => "api/switches.md",
                             "Utilities" => "api/utilities.md"
                            ],
                   "References" => "references.md",

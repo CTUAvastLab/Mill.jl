@@ -147,7 +147,7 @@ end
 """
     code2lens(n, c)
 
-Convert code `c` from [`HierarchicalUtils`](@ref) traversal to `Setfield.Lens` such that they access
+Convert code `c` from [HierarchicalUtils.jl](@ref) traversal to `Setfield.Lens` such that they access
 the same node in tree `n`.
 
 # Examples
@@ -171,7 +171,7 @@ code2lens(n::MillStruct, c::AbstractString) = find_lens(n, n[c]) |> only
 """
     lens2code(n, l)
 
-Convert `Setfield.Lens` l to code `c` from [`HierarchicalUtils`](@ref) traversal such that they access
+Convert `Setfield.Lens` l to code `c` from [HierarchicalUtils.jl](@ref) traversal such that they access
 the same node in tree `n`.
 
 # Examples

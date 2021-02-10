@@ -12,7 +12,7 @@ and vectors of parameters `p` and `c` used during computation.
 
 !!! warn "Construction"
     The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
-    get this operator with [`pnorm_aggregation`](@ref) instead of calling the `SegmentedPNorm` constructor directly.
+    get this operator with [`pnorm_aggregation`](@ref) instead of calling the [`SegmentedPNorm`](@ref) constructor directly.
 
 See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`pnorm_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedLSE`](@ref).

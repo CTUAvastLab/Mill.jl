@@ -15,18 +15,20 @@ abstract type AggregationOperator{T <: Number} end
 
 A container that implements a concatenation of one or more `AggregationOperator`s.
 
-Construct with e.g. `mean_aggregation([t::Type, ]d)`, `max_aggregation([t::Type, ]d)` for single operators and with e.g.
-`pnormlse_aggregation([t::Type, ]d)` for concatenations. With these calls all parameters inside operators are initialized
-randomly as `Float32` arrays, unless type `t` is further specified. It is also possible to call the constructor directly,
-see Examples.
+Construct with e.g. `mean_aggregation([t::Type, ]d)`, `max_aggregation([t::Type, ]d)` for single
+operators and with e.g. `pnormlse_aggregation([t::Type, ]d)` for concatenations. With these calls
+all parameters inside operators are initialized randomly as `Float32` arrays, unless type `t` is
+further specified. It is also possible to call the constructor directly, see Examples.
 
-Intended to be used as a functor like any other [`AggregationOperator`](@ref):
+Intended to be used as a functor:
 
     (a::Aggregation)(x, bags[, w])
 
-where `x` is either `Missing`, `AbstractMatrix` or [`ArrayNode`](@ref), `bags` is [`AlignedBags`](@ref) structure and optionally `w` is an `AbstractVector` of weights.
+where `x` is either `Missing`, `AbstractMatrix` or [`ArrayNode`](@ref),
+`bags` is [`AbstractBags`](@ref) structure and optionally `w` is an `AbstractVector` of weights.
 
-If [`Mill.bagcount`](@ref) is on, one more row is added to the result containing bag size after ``x ↦ \\log(x + 1)`` transformation.
+If [`Mill.bagcount`](@ref) is on, one more row is added to the result containing bag size
+after ``x ↦ \\log(x + 1)`` transformation.
 
 # Examples
 ```jldoctest

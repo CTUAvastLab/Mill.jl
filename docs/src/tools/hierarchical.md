@@ -4,7 +4,7 @@ using StatsBase: nobs
 ```
 
 # HierarchicalUtils.jl
-Mill.jl uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features.
+[`Mill.jl`](https://github.com/pevnak/Mill.jl) uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features.
 
 ```@example hierarchical 
 using HierarchicalUtils

@@ -114,7 +114,7 @@ preimputing_dense(d::Dense) = Dense(PreImputingMatrix(d.W), d.b, d.σ)
 preimputing_dense(args...) = preimputing_dense(Dense(args...))
 
 """
-    postimputing_dense(in, out, σ)
+    postimputing_dense(d_in, d_out, σ)
 
 Like `Flux.Dense`, but use a [`PostImputingMatrix`](@ref) instead of a standard matrix.
 

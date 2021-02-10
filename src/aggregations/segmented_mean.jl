@@ -11,7 +11,7 @@ Stores a vector of parameters `ψ` that are filled into the resulting matrix in 
 
 !!! warn "Construction"
     The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
-    get this operator with [`mean_aggregation`](@ref) instead of calling the `SegmentedMean` constructor directly.
+    get this operator with [`mean_aggregation`](@ref) instead of calling the [`SegmentedMean`](@ref) constructor directly.
 
 See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`mean_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).

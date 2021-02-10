@@ -13,7 +13,8 @@ abstract type AbstractBags{T} end
 """
     AlignedBags{T <: Integer} <: AbstractBags{T}
 
-`AlignedBags` struct stores indices of bags' instances in one or more `UnitRange{T}`s. This is only possible if instances of every bag are stored in one contiguous block.
+[`AlignedBags`](@ref) struct stores indices of bags' instances in one or more `UnitRange{T}`s.
+This is only possible if instances of every bag are stored in one contiguous block.
 
 See also: [`ScatteredBags`](@ref).
 """
@@ -83,7 +84,7 @@ end
 """
     length2bags(ls::Vector{<:Integer})
 
-Convert lengths of bags given in `ls` to `AlignedBags` with contiguous blocks.
+Convert lengths of bags given in `ls` to [`AlignedBags`](@ref) with contiguous blocks.
 
 # Examples
 ```jldoctest
@@ -105,7 +106,7 @@ Zygote.@nograd length2bags
 """
     ScatteredBags{T <: Integer} <: AbstractBags{T}
 
-`ScatteredBags` struct stores indices of bags' instances that are not necessarily contiguous.
+[`ScatteredBags`](@ref) struct stores indices of bags' instances that are not necessarily contiguous.
 
 See also: [`AlignedBags`](@ref).
 """
@@ -119,7 +120,7 @@ Flux.@forward ScatteredBags.bags Base.getindex, Base.setindex!, Base.firstindex,
 """
     ScatteredBags()
 
-Construct a new `ScatteredBags` struct containing no bags.
+Construct a new [`ScatteredBags`](@ref) struct containing no bags.
 
 # Examples
 ```jldoctest
@@ -132,7 +133,7 @@ ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
 """
     ScatteredBags(k::Vector{<:Integer})
 
-Construct a new `ScatteredBags` struct from `Vector` `k` specifying the index of the bag each instance belongs to.
+Construct a new [`ScatteredBags`](@ref) struct from `Vector` `k` specifying the index of the bag each instance belongs to.
 
 # Examples
 ```jldoctest
@@ -157,8 +158,8 @@ end
     bags(k::Vector{T}) where T <: UnitRange{<:Integer}
     bags(b::AbstractBags)
 
-Construct an `AbstractBags` structure that is most suitable for the input
-(`AlignedBags` if possible, `ScatteredBags` otherwise).
+Construct an [`AbstractBags`](@ref) structure that is most suitable for the input
+([`AlignedBags`](@ref) if possible, [`ScatteredBags`](@ref) otherwise).
 
 # Examples
 ```jldoctest

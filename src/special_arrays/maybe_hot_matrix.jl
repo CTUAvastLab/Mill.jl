@@ -1,11 +1,12 @@
 """
     MaybeHotMatrix{T, U, V} <: AbstractMatrix{V}
 
-A matrix-like structure for representing one-hot encoded variables. Like `Flux.OneHotMatrix` but supports `missing` values.
+A matrix-like structure for representing one-hot encoded variables.
+Like `Flux.OneHotMatrix` but supports `missing` values.
 
-Construct with the `maybehotbatch` function.
+Construct with the [`maybehotbatch`](@ref) function.
 
-See also: [`maybehotbatch`](@ref), [`MaybeHotVector`](@ref), [`maybehotmatrix`](@ref).
+See also: [`MaybeHotVector`](@ref), [`maybehot`](@ref).
 """
 struct MaybeHotMatrix{T, U, V} <: AbstractMatrix{V}
     I::Vector{T}
