@@ -1,5 +1,5 @@
 ```@setup musk
-using Random; Random.seed!(42)
+using Random; Random.seed!(0)
 
 using Pkg
 old_path = Pkg.project().path

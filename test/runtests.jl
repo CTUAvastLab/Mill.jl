@@ -47,7 +47,7 @@ gradtest(f, dims...) = gradtest(f, rand.(Float64, dims)...)
 areequal(x) = true
 areequal(x, y, zs...) = isequal(x, y) && areequal(y, zs...)
 
-Random.seed!(24)
+Random.seed!(25)
 
 const BAGS = [
       length2bags([1, 2, 3]),

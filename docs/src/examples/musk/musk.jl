@@ -1,4 +1,4 @@
-using Random; Random.seed!(42)
+using Random; Random.seed!(0)
 
 using FileIO, JLD2, Statistics, Mill, Flux
 using Flux: throttle, @epochs

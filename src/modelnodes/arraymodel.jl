@@ -5,7 +5,7 @@ A model node for processing [`ArrayNode`](@ref)s. It applies a (sub)model `m` st
 the [`ArrayNode`](@ref).
 
 # Examples
-```jldoctest
+```jldoctest; filter=r"-?[0-9]+\\.[0-9]+"
 julia> Random.seed!(0);
 
 julia> n = ArrayNode(randn(Float32, 2, 2))

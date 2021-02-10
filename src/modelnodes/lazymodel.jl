@@ -14,7 +14,7 @@ end
 # output
 
 ```
-```jldoctest unpack2mill
+```jldoctest unpack2mill; filter=r"-?[0-9]+\\.[0-9]+"
 julia> Random.seed!(0);
 
 julia> n = LazyNode{:Sentence}(["foo bar", "baz"])
