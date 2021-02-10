@@ -2,43 +2,43 @@
 <html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>GNNs in 16 lines · Mill.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="Mill.jl logo"/></a><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../motivation/">Motivation</a></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../manual/nodes/">Nodes</a></li><li><a class="tocitem" href="../../manual/more_on_nodes/">More on nodes</a></li><li><a class="tocitem" href="../../manual/reflectin/">Model reflection</a></li><li><a class="tocitem" href="../../manual/aggregation/">Bag aggregation</a></li><li><a class="tocitem" href="../../manual/leaf_data/">Data in leaves</a></li><li><a class="tocitem" href="../../manual/missing/">Missing data</a></li><li><a class="tocitem" href="../../manual/custom/">Custom nodes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4"><span class="docs-label">Examples</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../musk/musk/">Musk</a></li><li class="is-active"><a class="tocitem" href>GNNs in 16 lines</a></li><li><a class="tocitem" href="../dag/">DAGs</a></li><li><a class="tocitem" href="../jsons/">Processing JSONs</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">External tools</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../tools/hierarchical/">HierarchicalUtils.jl</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Public API</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../api/aggregation/">Aggregation</a></li><li><a class="tocitem" href="../../api/bags/">Bags</a></li><li><a class="tocitem" href="../../api/data_nodes/">Data nodes</a></li><li><a class="tocitem" href="../../api/model_nodes/">Model nodes</a></li><li><a class="tocitem" href="../../api/special_arrays/">Special Arrays</a></li><li><a class="tocitem" href="../../api/switches/">Switches</a></li><li><a class="tocitem" href="../../api/utilities/">Utilities</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../citation/">Citation</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>GNNs in 16 lines</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>GNNs in 16 lines</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/pevnak/Mill.jl/blob/master/docs/src/examples/graphs.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="GNNs-in-16-lines"><a class="docs-heading-anchor" href="#GNNs-in-16-lines">GNNs in 16 lines</a><a id="GNNs-in-16-lines-1"></a><a class="docs-heading-anchor-permalink" href="#GNNs-in-16-lines" title="Permalink"></a></h1><p>As has been mentioned in <a href="../../references/#Mandlik2020">Šimon Mandlík , Tomáš Pevný  (2020)</a>, multiple instance learning is an essential piece for implementing message passing inference over graphs, the main concept behind spatial <em>Graph Neural Networks</em> (GNNs). It is straightforward and quick to achieve this with <a href="https://github.com/pevnak/Mill.jl"><code>Mill.jl</code></a>. We begin with some dependencies:</p><pre><code class="language-julia">using Flux, LightGraphs, Statistics</code></pre><p>Let&#39;s assume a graph <code>g</code>, in this case created by <code>barabasi_albert</code> function from <a href="https://github.com/JuliaGraphs/LightGraphs.jl"><code>LightGraphs.jl</code></a></p><pre><code class="language-julia-repl">julia&gt; g = barabasi_albert(10, 3, 2)
 {10, 14} undirected simple Int64 graph</code></pre><p><img src="../graph.svg" alt/></p><p>Furthermore, let&#39;s assume that each vertex is described by seven features stored in a matrix <code>X</code>:</p><pre><code class="language-julia-repl">julia&gt; X = ArrayNode(randn(Float32, 7, 10))
 7×10 ArrayNode{Array{Float32,2},Nothing}:
- -0.57326734   1.302048     -0.12917157  …   0.25176042  -1.3238173
- -0.6477046   -0.74886936    0.31763422     -0.27972317   0.08623145
-  1.4700525   -0.6276024    -1.5694724       0.92961866  -1.2974677
-  0.35722548  -0.8944712     2.1708345      -1.154389    -0.09200214
- -0.44810563  -0.092307895  -1.1381761       0.66244185   0.9496539
-  0.66744936   0.12298241    0.51685166  …  -0.4527306    0.449748
- -1.2327908   -0.11951379    0.33923545      0.2118487   -0.54630566</code></pre><p>We use <a href="../../api/bags/#Mill.ScatteredBags"><code>ScatteredBags</code></a> from <a href="https://github.com/pevnak/Mill.jl"><code>Mill.jl</code></a> to encode neighbors of each vertex. In other words, each vertex is described by a bag of its neighbors. This information is conveniently stored in <code>fadjlist</code> field of <code>g</code>, therefore the bags can be constructed as:</p><pre><code class="language-julia-repl">julia&gt; b = ScatteredBags(g.fadjlist)
-ScatteredBags{Int64}([[4, 5, 8, 9, 10], Int64[], [4], [1, 3, 5, 6], [1, 4, 6, 7], [4, 5, 7, 8], [5, 6, 10], [1, 6, 9], [1, 8], [1, 7]])</code></pre><p>Finally, we create two models. First model called <code>lift</code> will pre-process the description of vertices to some latent space for message passing, and the second one will realize the message passing itself, which we will call <code>mp</code>:</p><pre><code class="language-julia-repl">julia&gt; lift = reflectinmodel(X, d -&gt; Dense(d, 10), d -&gt; mean_aggregation(d))
+ -0.71987087  -1.5724549   -1.5184456    …  -0.5412494   0.9366378
+ -0.47671765   0.7876164   -0.48706046      -1.8537823   0.11180565
+ -2.1090326    0.18614346  -0.058453005      2.4702165   0.03893127
+ -0.29114115  -1.1554592    1.5107393       -0.24529675  0.65012705
+  0.86611646   0.35894898   1.429662         0.21414821  1.4759902
+  1.7003107    0.4293417   -0.59569544   …   0.38093776  0.36861312
+ -0.8663937   -1.7268225    0.09193569       0.70367265  0.19617517</code></pre><p>We use <a href="../../api/bags/#Mill.ScatteredBags"><code>ScatteredBags</code></a> from <a href="https://github.com/pevnak/Mill.jl"><code>Mill.jl</code></a> to encode neighbors of each vertex. In other words, each vertex is described by a bag of its neighbors. This information is conveniently stored in <code>fadjlist</code> field of <code>g</code>, therefore the bags can be constructed as:</p><pre><code class="language-julia-repl">julia&gt; b = ScatteredBags(g.fadjlist)
+ScatteredBags{Int64}([[4, 5, 6, 8, 10], Int64[], [4, 5], [1, 3, 6, 7], [1, 3, 8], [1, 4, 7, 9], [4, 6], [1, 5, 9], [6, 8, 10], [1, 9]])</code></pre><p>Finally, we create two models. First model called <code>lift</code> will pre-process the description of vertices to some latent space for message passing, and the second one will realize the message passing itself, which we will call <code>mp</code>:</p><pre><code class="language-julia-repl">julia&gt; lift = reflectinmodel(X, d -&gt; Dense(d, 10), d -&gt; mean_aggregation(d))
 ArrayModel(Dense(7, 10))
 
 julia&gt; U = lift(X)
 10×10 ArrayNode{Array{Float32,2},Nothing}:
-  1.2839786   -0.5281974    1.9112184   …  -1.1921414    0.1840613
-  0.33034375  -0.10956444   1.4960576      -0.8933684    1.1730591
-  0.29989725   0.5704529    0.12397782     -0.27019668   0.105127305
-  0.45317176   1.0947739   -1.5950059       1.0143815   -1.3991013
-  0.40562898   0.1953083    2.3644907      -1.515791     0.40813997
- -0.53251797  -0.21577442   1.4803731   …  -0.78800046   0.3727382
- -0.56516075  -0.59938145   0.37530917     -0.33421275   1.0154489
-  0.43566236  -0.24902709  -0.5123498       0.18778393  -0.085369535
- -0.62331164   0.20546497   1.3427199      -0.7136345   -0.07369643
-  0.41127762  -1.000295     0.71456146     -0.4017807   -0.4784297
+  0.6251189    0.061926667   0.6848143   …  -1.009919      0.5939955
+  0.46618962  -0.23205404    0.6137765      -1.5457915    -0.36108932
+  0.20321344  -0.16246155   -1.4144809      -0.037406668  -0.2216417
+ -1.6710632    0.39998275    0.4646503       0.54822475   -0.6841421
+  0.92795837   0.39636734    0.68313247     -2.1025798     0.8674364
+  0.14087713   0.2994227     0.7591523   …  -0.50602883   -0.40068945
+ -0.49896875   0.2304577    -0.2758594       0.8767631     0.040759012
+ -2.489465    -1.2589436    -1.6292559       1.3135122    -1.030167
+  1.0355448   -0.41126987    1.6064657      -0.9082379     0.74378985
+ -0.6607285   -1.5247045    -0.4010767      -0.26768705   -0.5314003
 
 julia&gt; mp = reflectinmodel(BagNode(U, b), d -&gt; Dense(d, 10), d -&gt; mean_aggregation(d))
 BagModel … ↦ ⟨SegmentedMean(10)⟩ ↦ ArrayModel(Dense(11, 10))
   └── ArrayModel(Dense(10, 10))</code></pre><p>Notice that <code>BagNode(U, b)</code> now essentially encodes vertex features as well as the adjacency matrix. This also means that one step of message passing algorithm can be realized as:</p><pre><code class="language-julia-repl">julia&gt; Y = mp(BagNode(U, b))
 10×10 ArrayNode{Array{Float32,2},Nothing}:
- -0.74144816   0.0  -0.45275733  -0.7820739   …  -0.80646265  -0.7874574
-  0.78699917   0.0   0.6323989    0.85939115      0.22112417   0.37279555
-  0.99940014   0.0   1.1320512    0.9267589       0.7748881    0.49964854
-  0.42890492   0.0   1.0106642    0.3030027       1.0844412    0.13011952
-  0.011545197  0.0  -0.11735878   0.19562863      0.17170998   0.040425446
- -0.21062832   0.0   0.4945466   -0.65376884  …  -0.17678602  -0.7552182
-  0.0487439    0.0   0.41355512  -0.5347083       0.16487229  -0.12210942
- -0.503246     0.0  -0.39297977  -0.8514754      -0.27076545  -0.204528
- -1.4117769    0.0  -1.9319642   -0.34456807     -1.6920166   -0.1818549
-  0.9768207    0.0   0.49499887   0.52228326      1.2565972    0.6155479</code></pre><p>and it is differentiable, which can be verified by executing:</p><pre><code class="language-julia-repl">julia&gt; gradient(() -&gt; sum(sin.(mp(BagNode(U, b)) |&gt; Mill.data)), params(mp))
+ -0.75630623   0.0  -2.2457776    0.2977905   …   0.64042366   -0.37129962
+  0.41187534   0.0   0.17434505  -0.13007295      0.3573174    -0.24210757
+ -0.022360202  0.0  -1.0886871    0.15501541      0.7235354     0.04056639
+  0.44385186   0.0  -0.5986598    0.98678493      0.86410904    0.5167007
+ -0.14404999   0.0  -0.45529723   0.56117725      0.07774284    0.079274215
+  0.26493883   0.0   1.8427358   -0.39799082  …  -0.82193947   -0.027570117
+ -0.5831376    0.0  -0.76768047   0.18206596     -0.054478273   0.042683322
+ -0.07724197   0.0   0.7543353   -0.5555905      -0.49369964    0.012217362
+ -0.49488255   0.0   0.5010525   -0.45442802     -0.93879545   -0.17267624
+ -0.40922526   0.0  -0.49351493   0.23073998     -0.096623965   0.13605985</code></pre><p>and it is differentiable, which can be verified by executing:</p><pre><code class="language-julia-repl">julia&gt; gradient(() -&gt; sum(sin.(mp(BagNode(U, b)) |&gt; Mill.data)), params(mp))
 Grads(...)</code></pre><p>If we put everything together, the GNN implementation is implemented in the following 16 lines:</p><pre><code class="language-julia">struct GNN{L,M, R}
     lift::L
     mp::M
@@ -64,16 +64,16 @@ gnn = GNN(reflectinmodel(X, f, agg),
           BagModel(f(zd), agg(zd), f(2zd + 1)),
           f(2zd))</code></pre><pre><code class="language-julia-repl">julia&gt; gnn(g, X, 5)
 10×1 Array{Float32,2}:
- -0.09188711
-  0.050531905
-  0.12860835
-  0.0034303062
-  0.060144994
-  0.030557526
-  0.08863573
- -0.09972803
- -0.0625429
- -0.01511353
+  0.17439556
+  0.04143815
+  0.09957611
+  0.02708693
+  0.1573443
+ -0.097312
+  0.12773852
+  0.060760032
+  0.03163352
+  0.11661985
 
 julia&gt; gradient(() -&gt; gnn(g, X, 5) |&gt; sum, params(gnn))
-Grads(...)</code></pre><p>The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in <code>X</code>, however, any <a href="https://github.com/pevnak/Mill.jl"><code>Mill.jl</code></a> hierarchy is applicable.</p><p>To put different weights on edges, one can use <a href="../../api/data_nodes/#Mill.WeightedBagNode"><code>WeightedBagNode</code></a>s instead.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../musk/musk/">« Musk</a><a class="docs-footer-nextpage" href="../dag/">DAGs »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 February 2021 17:00">Wednesday 10 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Grads(...)</code></pre><p>The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in <code>X</code>, however, any <a href="https://github.com/pevnak/Mill.jl"><code>Mill.jl</code></a> hierarchy is applicable.</p><p>To put different weights on edges, one can use <a href="../../api/data_nodes/#Mill.WeightedBagNode"><code>WeightedBagNode</code></a>s instead.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../musk/musk/">« Musk</a><a class="docs-footer-nextpage" href="../dag/">DAGs »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 February 2021 17:15">Wednesday 10 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

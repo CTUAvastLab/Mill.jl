@@ -32,16 +32,16 @@ BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(
         └── ArrayModel(Dense(2, 10))
 julia&gt; m(ds)
 10×3 ArrayNode{Array{Float32,2},Nothing}:
- -2.1792257    -1.0850393    -1.5592153
- -1.4873006    -0.7411694    -0.85151386
- -0.115248315   0.20486943   -1.0259029
-  2.4909804     1.3434975     0.5567155
- -1.6702032    -0.416696     -1.3018355
- -0.13249543    0.5325798    -0.030196434
-  0.54670846    0.58080035   -0.14706883
- -1.1093658     0.083586074  -0.7716425
- -1.1174213    -0.17112726   -0.8069762
-  0.8558143    -0.6825589    -0.0640522</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h3 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h3><p>To have better control over the topology, <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <a href="../../api/model_nodes/#Mill.BagModel"><code>BagModel</code></a> nodes (defaults to <code>d -&gt; mean_aggregation(d)</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia">using Flux</code></pre><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; max_aggregation(d));
+ -0.038918063  -1.0269539    -1.019303
+  1.1405787     0.4443741    -0.22033617
+ -0.41863015   -2.121142     -0.9783317
+  0.35558683    0.25830314   -0.9468039
+  0.034859784  -0.503356     -0.035982188
+ -0.80761534   -0.35997766    0.39803472
+ -0.6087157     0.06487247    1.0217441
+ -1.7817953    -0.029188544   1.4289896
+ -0.73254365    2.8453107    -1.0076041
+ -0.48766953   -0.9546175     1.3383192</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h3 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h3><p>To have better control over the topology, <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <a href="../../api/model_nodes/#Mill.BagModel"><code>BagModel</code></a> nodes (defaults to <code>d -&gt; mean_aggregation(d)</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia">using Flux</code></pre><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; max_aggregation(d));
 
 julia&gt; printtree(m)
 BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
@@ -55,11 +55,11 @@ BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
         └── ArrayModel(Dense(2, 5, relu))
 julia&gt; m(ds)
 5×3 ArrayNode{Array{Float32,2},Nothing}:
- 0.0         0.0        0.0
- 0.0         0.0        0.0
- 0.90538144  1.3679037  1.1335557
- 0.0         0.0        0.0
- 0.0         0.0        0.0</code></pre><h3 id="Keyword-arguments"><a class="docs-heading-anchor" href="#Keyword-arguments">Keyword arguments</a><a id="Keyword-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Keyword-arguments" title="Permalink"></a></h3><p>The <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> allows even further customization. To index into the sample (or model), we can use <code>printtree(ds; trav=true)</code> from <a href="../../tools/hierarchical/#HierarchicalUtils.jl">HierarchicalUtils.jl</a> that prints the sample together with identifiers of individual nodes:</p><pre><code class="language-julia">using HierarchicalUtils</code></pre><pre><code class="language-julia-repl">julia&gt; printtree(ds; trav=true)
+ 0.26268238  0.051359285  0.0
+ 0.0         0.0          0.0
+ 0.44163176  0.9266923    0.4310562
+ 0.08718503  0.0          0.0
+ 0.0         0.0          0.0</code></pre><h3 id="Keyword-arguments"><a class="docs-heading-anchor" href="#Keyword-arguments">Keyword arguments</a><a id="Keyword-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Keyword-arguments" title="Permalink"></a></h3><p>The <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> allows even further customization. To index into the sample (or model), we can use <code>printtree(ds; trav=true)</code> from <a href="../../tools/hierarchical/#HierarchicalUtils.jl">HierarchicalUtils.jl</a> that prints the sample together with identifiers of individual nodes:</p><pre><code class="language-julia">using HierarchicalUtils</code></pre><pre><code class="language-julia-repl">julia&gt; printtree(ds; trav=true)
 BagNode with 3 obs [&quot;&quot;]
   └── ProductNode with 5 obs [&quot;U&quot;]
         ├── BagNode with 5 obs [&quot;Y&quot;]
@@ -89,4 +89,4 @@ BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Chain(De
         ├── BagModel … ↦ ⟨SegmentedPNorm(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
         │     └── BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(11, 5, relu))
         │           └── ArrayModel(Dense(2, 5, relu))
-        └── ArrayModel(Dense(2, 5, relu))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 February 2021 17:00">Wednesday 10 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+        └── ArrayModel(Dense(2, 5, relu))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 February 2021 17:15">Wednesday 10 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

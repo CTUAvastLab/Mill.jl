@@ -102,8 +102,8 @@ julia&gt; y_oh = Flux.onehotbatch(y, 1:2)           # one-hot encoding
 BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Chain(Dense(21, 10, relu), Dense(10, 2)))
   └── ArrayModel(Dense(166, 10, relu))</code></pre><p>Instances are first passed through a single layer with 10 neurons (input dimension is 166) with <code>relu</code> non-linearity, then we use <code>mean</code> and <code>max</code> aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and <code>relu</code> nonlinearity followed by linear layer with 2 neurons (output dimension).</p><p>Let&#39;s check that forward pass works:</p><pre><code class="language-julia-repl">julia&gt; model(ds)
 2×92 ArrayNode{Array{Float32,2},Nothing}:
-  81.224525   91.731186   109.81073  …   83.60223  100.75357  178.61896
- -78.0201    -97.48744   -120.47425     -84.58843  -38.0118   -82.55491</code></pre><p>Since <a href="https://github.com/pevnak/Mill.jl"><code>Mill.jl</code></a> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>cross-entropy</code> loss function:</p><pre><code class="language-julia-repl">julia&gt; loss(ds, y_oh) = Flux.logitcrossentropy(model(ds) |&gt; Mill.data, y_oh)
+ -53.442574  -0.2558828  83.72547  …   76.199455   13.771168   93.648926
+  74.2793    61.853767   80.78974     127.780235  184.7922    186.74655</code></pre><p>Since <a href="https://github.com/pevnak/Mill.jl"><code>Mill.jl</code></a> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>cross-entropy</code> loss function:</p><pre><code class="language-julia-repl">julia&gt; loss(ds, y_oh) = Flux.logitcrossentropy(model(ds) |&gt; Mill.data, y_oh)
 loss (generic function with 1 method)</code></pre><p>and run simple training procedure using its tooling:</p><pre><code class="language-julia-repl">julia&gt; opt = Flux.ADAM()
 ADAM(0.001, (0.9, 0.999), IdDict{Any,Any}())
 
@@ -112,23 +112,23 @@ julia&gt; @epochs 10 begin
            println(loss(ds, y_oh))
        end
 [ Info: Epoch 1
-0.18636306
+0.000724976
 [ Info: Epoch 2
-0.18276438
+0.00022896787
 [ Info: Epoch 3
-0.18275538
+9.6597934e-5
 [ Info: Epoch 4
-0.18272792
+4.9691786e-5
 [ Info: Epoch 5
-0.1827239
+2.6964015e-5
 [ Info: Epoch 6
-0.10239069
+1.5253498e-5
 [ Info: Epoch 7
-0.10238189
+8.909118e-6
 [ Info: Epoch 8
-0.102379024
+5.22561e-6
 [ Info: Epoch 9
-0.2167421
+3.078655e-6
 [ Info: Epoch 10
-0.21673794</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
-0.07608695652173914</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 February 2021 17:00">Wednesday 10 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+1.8554995e-6</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
+0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 February 2021 17:15">Wednesday 10 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

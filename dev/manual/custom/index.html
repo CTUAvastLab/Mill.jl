@@ -30,16 +30,16 @@ PathModel
 
 julia&gt; pm(ds).data
 10×2 Array{Float32,2}:
- -0.213045   -0.253511
- -0.119614   -0.169478
- -0.074072   -0.11179
-  0.177359    0.26006
- -0.275834   -0.318906
-  0.0786394   0.167033
- -0.0199534  -0.06426
-  0.621424    0.641123
- -0.376593   -0.434459
-  0.549025    0.731622</code></pre><p>The final touch would be to overload the <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> as</p><pre><code class="language-julia">function Mill.reflectinmodel(ds::PathNode, args...)
+ -0.47714    -0.572013
+ -0.0310436  -0.0704895
+  0.391016    0.422294
+  0.41583     0.480285
+  0.126027    0.187971
+ -0.30234    -0.398954
+ -0.171723   -0.252697
+ -0.483189   -0.674319
+  0.167859    0.307745
+  0.550983    0.667438</code></pre><p>The final touch would be to overload the <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> as</p><pre><code class="language-julia">function Mill.reflectinmodel(ds::PathNode, args...)
     pm = reflectinmodel(path2mill(ds), args...)
     PathModel(pm, path2mill)
 end</code></pre><p>which makes things even easier</p><pre><code class="language-julia-repl">julia&gt; pm = reflectinmodel(ds)
@@ -47,13 +47,13 @@ PathModel
 
 julia&gt; pm(ds).data
 10×2 Array{Float32,2}:
- -0.408127  -0.422062
- -0.346483  -0.387405
- -0.450724  -0.582592
-  0.398847   0.567212
-  0.122994   0.255068
-  0.485871   0.567504
-  0.065503   0.0601322
- -0.161233  -0.176144
-  0.148948   0.264972
-  0.226111   0.195902</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../missing/">« Missing data</a><a class="docs-footer-nextpage" href="../../examples/musk/musk/">Musk »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 February 2021 17:00">Wednesday 10 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+  0.66415     0.649883
+  0.19207     0.208901
+  0.0267312  -0.00317923
+  0.0642215   0.0501003
+ -0.105406   -0.167113
+ -0.476674   -0.501406
+ -0.281625   -0.395572
+ -0.60416    -0.703313
+ -0.0924248  -0.158902
+  0.596379    0.542492</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../missing/">« Missing data</a><a class="docs-footer-nextpage" href="../../examples/musk/musk/">Musk »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 February 2021 17:15">Wednesday 10 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
