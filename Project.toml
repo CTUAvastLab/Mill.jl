@@ -1,7 +1,7 @@
 name = "Mill"
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
 authors = ["Tomas Pevny <pevnak@protonmail.ch>", "Simon Mandlik <simon.mandlik@gmail.com>"]
-version = "2.3.0"
+version = "2.4.0"
 
 [deps]
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
