@@ -123,7 +123,7 @@ function _reflectinmodel(x::AbstractBagNode, fm, fa, fsm, fsa, s, ski, ssi)
     im, d = _reflectinmodel(x.data, fm, fa, fsm, fsa, s * encode(1, 1), ski, ssi)
     agg = haskey(fsa, c) ? fsa[c](d) : fa(d)
     d = size(BagModel(im, agg)(x).data, 1)
-    bm = haskey(fsm, c) ? fms[c](d) : fm(d)
+    bm = haskey(fsm, c) ? fsm[c](d) : fm(d)
     m = BagModel(im, agg, bm)
     m, size(m(x).data, 1)
 end
