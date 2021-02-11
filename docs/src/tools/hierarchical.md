@@ -4,7 +4,7 @@ using StatsBase: nobs
 ```
 
 # HierarchicalUtils.jl
-[`Mill.jl`](https://github.com/pevnak/Mill.jl) uses [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) which brings a lot of additional features.
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) uses [HierarchicalUtils.jl](https://github.com/CTUAvastLab/HierarchicalUtils.jl) which brings a lot of additional features.
 
 ```@example hierarchical 
 using HierarchicalUtils
@@ -67,4 +67,4 @@ TypeIterator(BagModel, m) |> collect
 PredicateIterator(x -> nobs(x) ≥ 10, ds) |> collect
 ```
 
-For the complete showcase of possibilites, refer to [HierarchicalUtils.jl](https://github.com/Sheemon7/HierarchicalUtils.jl) and [this notebook](https://github.com/Sheemon7/HierarchicalUtils.jl/blob/master/examples/mill_integration.ipynb)
+For the complete showcase of possibilites, refer to [HierarchicalUtils.jl](https://github.com/CTUAvastLab/HierarchicalUtils.jl) and [this notebook](https://github.com/CTUAvastLab/HierarchicalUtils.jl/blob/master/examples/mill_integration.ipynb)

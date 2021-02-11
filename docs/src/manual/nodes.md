@@ -7,7 +7,7 @@ using Mill
 
 # Nodes
 
-[`Mill.jl`](https://github.com/pevnak/Mill.jl) enables representation of arbitrarily complex tree-like hierarchies and appropriate models for these hierarchies. It defines two core abstract types:
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) enables representation of arbitrarily complex tree-like hierarchies and appropriate models for these hierarchies. It defines two core abstract types:
 
 1. [`AbstractNode`](@ref) which stores data on any level of abstraction and its subtypes can be further nested
 2. [`AbstractMillModel`](@ref) which helps to define a corresponding model. For each specific implementation of [`AbstractNode`](@ref) we have one or more specific [`AbstractMillModel`](@ref)s for processing it.
@@ -48,7 +48,7 @@ f(X) == AM(AN) |> Mill.data
 ```
 
 !!! ukn "Model outputs"
-    A convenient property of all [`Mill.jl`](https://github.com/pevnak/Mill.jl) models is that after applying them to a corresponding data node we **always** obtain an [`ArrayNode`](@ref) as output regardless of the type and complexity of the model. This becomes important later.
+    A convenient property of all [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) models is that after applying them to a corresponding data node we **always** obtain an [`ArrayNode`](@ref) as output regardless of the type and complexity of the model. This becomes important later.
 
 The most common interpretation of the data inside [`ArrayNode`](@ref)s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, [`ArrayNode`](@ref)s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any [`AbstractNode`](@ref) with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
 
@@ -87,7 +87,7 @@ whereas they are formed using four instances:
 nobs(AN)
 ```
 
-In [`Mill.jl`](https://github.com/pevnak/Mill.jl), there two ways to store indices of the bag's instances:
+In [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), there two ways to store indices of the bag's instances:
 
 * in [`AlignedBags`](@ref) structure, which accepts a `Vector` of `UnitRange`s and requires all bag's instances stored continuously:
 
@@ -148,7 +148,7 @@ The whole procedure is depicted in the following picture:
 Three instances of the [`BagNode`](@ref) are represented by red subtrees are first mapped with instance model `im`, aggregated (aggregation operator here is a concatenation of two different operators ``a_1`` and ``a_2``), and the results of aggregation are transformed with bag model `bm`.
 
 !!! ukn "Musk example"
-    Another handy feature of [`Mill.jl`](https://github.com/pevnak/Mill.jl) models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
+    Another handy feature of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
 
 ## [`ProductNode`](@ref)s and [`ProductModel`](@ref)s
 

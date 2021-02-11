@@ -15,7 +15,7 @@ draw(SVG("graph.svg"), gp)
 
 # GNNs in 16 lines
 
-As has been mentioned in [Mandlik2020](@cite), multiple instance learning is an essential piece for implementing message passing inference over graphs, the main concept behind spatial *Graph Neural Networks* (GNNs). It is straightforward and quick to achieve this with [`Mill.jl`](https://github.com/pevnak/Mill.jl). We begin with some dependencies:
+As has been mentioned in [Mandlik2020](@cite), multiple instance learning is an essential piece for implementing message passing inference over graphs, the main concept behind spatial *Graph Neural Networks* (GNNs). It is straightforward and quick to achieve this with [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). We begin with some dependencies:
 
 ```@example gnn
 using Flux, LightGraphs, Statistics
@@ -35,7 +35,7 @@ Furthermore, let's assume that each vertex is described by seven features stored
 X = ArrayNode(randn(Float32, 7, 10))
 ```
 
-We use [`ScatteredBags`](@ref) from [`Mill.jl`](https://github.com/pevnak/Mill.jl) to encode neighbors of each vertex. In other words, each vertex is described by a bag of its neighbors. This information is conveniently stored in `fadjlist` field of `g`, therefore the bags can be constructed as:
+We use [`ScatteredBags`](@ref) from [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) to encode neighbors of each vertex. In other words, each vertex is described by a bag of its neighbors. This information is conveniently stored in `fadjlist` field of `g`, therefore the bags can be constructed as:
 
 ```@repl gnn
 b = ScatteredBags(g.fadjlist)
@@ -87,7 +87,7 @@ end
 nothing # hide
 ```
 
-As it is the case with whole [`Mill.jl`](https://github.com/pevnak/Mill.jl), even this graph neural network is properly integrated with [`Flux.jl`](https://fluxml.ai) ecosystem and suports automatic differentiation:
+As it is the case with whole [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), even this graph neural network is properly integrated with [`Flux.jl`](https://fluxml.ai) ecosystem and suports automatic differentiation:
 
 ```@example gnn
 zd = 10
@@ -104,6 +104,6 @@ gnn(g, X, 5)
 gradient(() -> gnn(g, X, 5) |> sum, params(gnn))
 ```
 
-The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in `X`, however, any [`Mill.jl`](https://github.com/pevnak/Mill.jl) hierarchy is applicable.
+The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in `X`, however, any [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) hierarchy is applicable.
 
 To put different weights on edges, one can use [`WeightedBagNode`](@ref)s instead.

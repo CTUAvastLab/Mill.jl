@@ -57,5 +57,5 @@ makedocs(
         )
 
 deploydocs(
-           repo = "github.com/pevnak/Mill.jl.git",
+           repo = "github.com/CTUAvastLab/Mill.jl.git",
           )

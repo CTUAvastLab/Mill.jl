@@ -8,7 +8,7 @@ Pkg.instantiate()
 ```
 
 # Musk
-[`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/pevnak/Mill.jl). The full example is also accessible [here](https://github.com/pevnak/Mill.jl/tree/master/docs/src/examples/musk/), as well as a Julia environment to run it.
+[`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). The full example is also accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/docs/src/examples/musk/), as well as a Julia environment to run it.
 
 For the demo, we load all dependencies:
 
@@ -19,7 +19,7 @@ using Mill: reflectinmodel
 using Base.Iterators: repeated
 ```
 
-and then load the dataset and transform it into a [`Mill.jl`](https://github.com/pevnak/Mill.jl) structure. The `musk.jld2` file contains:
+and then load the dataset and transform it into a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. The `musk.jld2` file contains:
 
 * a matrix with features `fMat`:
 
@@ -47,7 +47,7 @@ y = map(i -> maximum(y[i]) + 1, ds.bags)  # create labels on bags
 y_oh = Flux.onehotbatch(y, 1:2)           # one-hot encoding
 ```
 
-Once the data are in [`Mill.jl`](https://github.com/pevnak/Mill.jl) internal format, we will manually create a model. [`BagModel`](@ref) is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
+Once the data are in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) internal format, we will manually create a model. [`BagModel`](@ref) is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
 
 ```@repl musk
 model = BagModel(
@@ -64,7 +64,7 @@ Let's check that forward pass works:
 model(ds)
 ```
 
-Since [`Mill.jl`](https://github.com/pevnak/Mill.jl) is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
+Since [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
 
 ```@repl musk
 loss(ds, y_oh) = Flux.logitcrossentropy(model(ds) |> Mill.data, y_oh)

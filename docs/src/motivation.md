@@ -17,7 +17,7 @@ where the input sample ``\bm{x}`` is a vector (or generally speaking any tensor)
 
 Most of the time, a skilled botanist is able to identify a specimen not by making use of any measuring device, but by visual or tactile inspection of its stem, leaves and blooms. For different species, different parts of the flower may need to be examined for indicators. At the same time, many species may have nearly identical-looking leaves or blooms, therefore, one needs to step back, consider the whole picture, and appropriately combine lower-level observations into high-level conclusions about the given specimen.
 
-If we want to use such more elaborate description of the Iris flower using fixed size structures, we will have a hard time, because every specimen can have a different amounts of leaves or blooms (or they may be completely missing). This means that to use the usual *fixed dimension* paradigm, we have to either somehow select a single leaf (blossom) and extract features from them, or design procedures for aggregating such features over whole sets, so that the output has fixed dimension. This is clearly undesirable. [`Mill.jl`](https://github.com/pevnak/Mill.jl) a framework that seamlessly deals with these challenges in data representation.
+If we want to use such more elaborate description of the Iris flower using fixed size structures, we will have a hard time, because every specimen can have a different amounts of leaves or blooms (or they may be completely missing). This means that to use the usual *fixed dimension* paradigm, we have to either somehow select a single leaf (blossom) and extract features from them, or design procedures for aggregating such features over whole sets, so that the output has fixed dimension. This is clearly undesirable. [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) a framework that seamlessly deals with these challenges in data representation.
 
 ## Hierarchical Multiple Instance Learning
 
@@ -33,7 +33,7 @@ The HMIL model corresponding to the Iris example above would comprise two FFNs a
 
 [^2]: Some methods for MIL problems require instance-level labels as well, which are not always available.
 
-The [`Mill.jl`](https://github.com/pevnak/Mill.jl) library simplifies implementation of machine learning problems using (H)MIL representation. In theory, it can represent any problem that can be represented in JSONs. That is why we have created a separate tool, [`JsonGrinder.jl`](https://github.com/pevnak/JsonGrinder.jl), which helps with processing JSON documents for learning.
+The [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) library simplifies implementation of machine learning problems using (H)MIL representation. In theory, it can represent any problem that can be represented in JSONs. That is why we have created a separate tool, [`JsonGrinder.jl`](https://github.com/CTUAvastLab/JsonGrinder.jl), which helps with processing JSON documents for learning.
 
 In [Pevny2019](@cite), authors have further extended the [Universal approximation theorem](https://en.wikipedia.org/wiki/Universal_approximation_theorem) to MIL problems, their Cartesian products, and nested MIL problems, i.e. a case where instances of one bag are in fact bags again.
 

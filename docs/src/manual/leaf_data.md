@@ -4,7 +4,7 @@ using Mill
 
 # Data in leaves
 
-In [`Mill.jl`](https://github.com/pevnak/Mill.jl) tree-like data representations, there are always some raw data on the leaf level, whereas on higher levels instances are grouped into bags ([`BagNode`](@ref)s), and different sets are joined together with Cartesion products ([`ProductNode`](@ref)s) and thus more abstract concepts are created. In this section we look into several examples how the lowest-level data can be represented.
+In [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) tree-like data representations, there are always some raw data on the leaf level, whereas on higher levels instances are grouped into bags ([`BagNode`](@ref)s), and different sets are joined together with Cartesion products ([`ProductNode`](@ref)s) and thus more abstract concepts are created. In this section we look into several examples how the lowest-level data can be represented.
 
 For this purpose, let's assume that we would like to identify infected computers in a network from their HTTP traffic. Since one computer can make an arbitrary number of connections during the observation period, modelling the computer as a *bag* of connections seems like the most natural approach:
 
@@ -68,7 +68,7 @@ hosts = [
 ]
 ```
 
-[`Mill.jl`](https://github.com/pevnak/Mill.jl) offers `n`gram histogram-based representation for strings. To get started, we pass the vector of strings into the constructor of [`NGramMatrix`](@ref):
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) offers `n`gram histogram-based representation for strings. To get started, we pass the vector of strings into the constructor of [`NGramMatrix`](@ref):
 
 ```@repl leafs
 hosts_ngrams = NGramMatrix(hosts, 3, 256, 7)
@@ -139,4 +139,4 @@ gradient(() -> sum(Mill.data(m(ds))), params(m))
 !!! ukn "Numerical features"
     To put all numerical features into one [`ArrayNode`](@ref) is a design choice. We could as well introduce more keys in the final [`ProductNode`](@ref). The model treats these two cases differently (see [Nodes](@ref) section).
 
-This dummy example illustrates the versatility of [`Mill.jl`](https://github.com/pevnak/Mill.jl). With little to no preprocessing we are able to process complex hierarchical structures and avoid manually designing feature extraction procedures. For a more involved study on processing Internet traffic with [`Mill.jl`](https://github.com/pevnak/Mill.jl), see for example [Pevny2020](@cite).
+This dummy example illustrates the versatility of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). With little to no preprocessing we are able to process complex hierarchical structures and avoid manually designing feature extraction procedures. For a more involved study on processing Internet traffic with [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), see for example [Pevny2020](@cite).
