@@ -29,18 +29,21 @@ end
 
 function reduce(::typeof(vcat), as::Vector{T}) where {T<:ArrayNode}
     data = reduce(vcat, [a.data for a in as])
-    metadata = as[1].metadata == nothing ? nothing : as[1].metadata
+    metadata = reduce(vcat, [a.metadata for a in as])
     ArrayNode(data, metadata)
 end
-
-# hcat and vcat only for ArrayNode
 function Base.vcat(as::ArrayNode...)
     data = vcat([a.data for a in as]...)
-    metadata = as[1].metadata == nothing ? nothing : as[1].metadata
+    metadata = reduce(vcat, [a.metadata for a in as])
     ArrayNode(data, metadata)
 end
 
 Base.hcat(as::ArrayNode...) = reduce(catobs, collect(as))
+function reduce(::typeof(hcat), as::Vector{T}) where {T<:ArrayNode}
+    data = reduce(hcat, [a.data for a in as])
+    metadata = reduce(hcat, [a.metadata for a in as])
+    ArrayNode(data, metadata)
+end
 
 Base.getindex(x::ArrayNode, i::VecOrRange) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
 
