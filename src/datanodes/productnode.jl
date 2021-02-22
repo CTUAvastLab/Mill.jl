@@ -18,6 +18,8 @@ Flux.@functor ProductNode
 
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
+dropmeta(x::ProductNode) = ProductNode(x.data)
+
 Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
 Base.keys(x::ProductNode) = keys(x.data)
 

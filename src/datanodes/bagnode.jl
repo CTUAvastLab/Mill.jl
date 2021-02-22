@@ -15,6 +15,8 @@ Flux.@functor BagNode
 
 mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 
+dropmeta(x::BagNode) = BagNode(x.data, x.bags)
+
 function Base.getindex(x::BagNode, i::VecOrRange)
     nb, ii = remapbag(x.bags, i)
     _emptyismissing[] && isempty(ii) && return(BagNode(missing, nb, nothing))

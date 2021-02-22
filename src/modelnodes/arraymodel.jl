@@ -11,7 +11,7 @@ end
 
 Flux.@functor ArrayModel
 
-(m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x)
+(m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x) |> dropmeta
 
 identity_model() = ArrayModel(identity)
 const IdentityModel = ArrayModel{typeof(identity)}
@@ -21,7 +21,6 @@ function HiddenLayerModel(m::ArrayModel, x::ArrayNode, k::Int)
 	layers = map(x -> Dense(size(x,1), k), os)
 	ArrayModel(layers), ArrayNode(os[end])
 end
-
 
 function mapactivations(hm::ArrayModel, x::ArrayNode, m::ArrayModel)
 	os = Flux.activations(m.m, x.data)

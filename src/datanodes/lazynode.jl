@@ -1,5 +1,5 @@
 struct LazyNode{Name,D} <: AbstractNode
-	data::D
+    data::D
 end
 
 const LazyNode{Name} = LazyNode{Name, D} where {D}
@@ -10,6 +10,7 @@ Base.ndims(x::LazyNode) = Colon()
 StatsBase.nobs(a::LazyNode) = length(a.data)
 StatsBase.nobs(a::LazyNode, ::Type{ObsDim.Last}) = nobs(a.data)
 
+dropmeta(x::LazyNode) = LazyNode(x.data)
 
 const VectorOfLazy{N} = Vector{T} where {T<:LazyNode{N,M} where {M}}
 function Base.reduce(::typeof(Mill.catobs), as::VectorOfLazy{N}) where {N}

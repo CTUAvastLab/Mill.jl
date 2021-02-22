@@ -60,6 +60,8 @@ end
 
 mapdata(f, x) = f(x)
 
+function dropmeta end
+
 # functions to make datanodes compatible with getindex and with MLDataPattern
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
 Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractNode = x[findall(i)]
