@@ -90,12 +90,12 @@ Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 
 function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
-    xx = reduce(vcat, [m.ms[i](x.data[i]) for i in 1:length(m.ms)])
+    xx = ArrayNode(vcat([m.ms[i](x.data[i]) |> data for i in 1:length(m.ms)]...))
     m.m(xx)
 end
 
 function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-    xx = reduce(vcat, [m.ms[k](x.data[k]) for k in keys(m.ms)])
+    xx = ArrayNode(vcat([m.ms[k](x.data[k]) |> data for k in keys(m.ms)]...))
     m.m(xx)
 end
 

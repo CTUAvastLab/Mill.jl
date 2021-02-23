@@ -67,10 +67,10 @@ function BagModel(im::Union{MillFunction, AbstractMillModel}, a::Aggregation,
     BagModel(_make_array_model(im), a, _make_array_model(bm))
 end
 
-(m::BagModel)(x::WeightedBagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
-
-(m::BagModel)(x::BagNode) = m.bm(m.a(m.im(x.data), x.bags))
+(m::BagModel)(x::BagNode{<:AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags))
 (m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags)))
+(m::BagModel)(x::WeightedBagNode{<:AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
+(m::BagModel)(x::WeightedBagNode{Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags, x.weights)))
 
 function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
     im, o = HiddenLayerModel(m.im, x.data, k)

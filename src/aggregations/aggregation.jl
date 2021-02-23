@@ -75,7 +75,7 @@ function (a::Aggregation{T})(x::Union{AbstractArray, Missing}, bags::AbstractBag
     o = reduce(vcat, (f(x, bags, args...) for f in a.fs))
     bagcount() ? vcat(o, Zygote.@ignore permutedims(log.(one(T) .+ length.(bags)))) : o
 end
-(a::Union{AggregationOperator, Aggregation})(x::ArrayNode, args...) = mapdata(x -> a(x, args...), x)
+(a::Union{AggregationOperator, Aggregation})(x::ArrayNode, args...) = ArrayNode(a(x.data, args...))
 Flux.@forward Aggregation.fs Base.getindex, Base.firstindex, Base.lastindex, Base.first, Base.last, Base.iterate, Base.eltype
 
 Base.length(a::Aggregation) = sum(length.(a.fs))
