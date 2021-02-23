@@ -139,7 +139,7 @@ end
             W = abs.(randn(6))
             r1, r2 = randn(2)
             # doesn't use weights
-            @test all(SegmentedLSE(dummy, [ρ1, ρ2])(X, bags) .== SegmentedLSE(dummy, [ρ1, ρ2])(X, bags, W))
+            @test SegmentedLSE(dummy, [ρ1, ρ2])(X, bags) == SegmentedLSE(dummy, [ρ1, ρ2])(X, bags, W)
             # the bigger value of r, the closer we are to the real maximum
             @test isapprox(SegmentedLSE(dummy, [100.0, 100.0])(X, bags), SegmentedMax(dummy)(X, bags), atol=0.1)
         end

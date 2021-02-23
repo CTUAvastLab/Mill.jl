@@ -149,19 +149,19 @@ end
     end
 
     @testset "testing ngrams on vector of Ints" begin
-        @test all(ngrams(x,3,b) .== map(x -> indexes(x,b),slicer(x,3)))
-        @test all(ngrams(x,2,b) .== map(x -> indexes(x,b),slicer(x,2)))
-        @test all(ngrams(x,1,b) .== map(x -> indexes(x,b),slicer(x,1)))
+        @test ngrams(x,3,b) == map(x -> indexes(x,b),slicer(x,3))
+        @test ngrams(x,2,b) == map(x -> indexes(x,b),slicer(x,2))
+        @test ngrams(x,1,b) == map(x -> indexes(x,b),slicer(x,1))
     end
 
     @testset "testing frequency of ngrams on vector of Ints and on Strings" begin
-        @test all(countngrams(x,3,b,10) .== idx2vec(map(x -> indexes(x,b), slicer(x,3)), 10))
+        @test countngrams(x,3,b,10) == idx2vec(map(x -> indexes(x,b), slicer(x,3)), 10)
         for s in split("Lorem ipsum dolor sit amet, consectetur adipiscing elit")
-            @test all(countngrams(s,3,256,10) .== idx2vec(ngrams(s,3,256),10))
+            @test countngrams(s,3,256,10) == idx2vec(ngrams(s,3,256),10)
         end
 
         s = split("Lorem ipsum dolor sit amet, consectetur adipiscing elit")
-        @test all(countngrams(s,3,256,10) .== hcat(map(ss -> idx2vec(ngrams(ss,3,256), 10),s)...))
+        @test countngrams(s,3,256,10) == hcat(map(ss -> idx2vec(ngrams(ss,3,256), 10),s)...)
     end
 end
 
@@ -274,16 +274,16 @@ end
     s = ["hello", "world", "!!!"]
     si = map(i -> Int.(codeunits(i)), s)
     for (a, s) in [(NGramMatrix(s, 3, 256, 2057), s), (NGramMatrix(si, 3, 256, 2057), si)]
-        @test all(reduce(catobs, [a, a]).s .== vcat(s,s))
-        @test all(hcat(a,a).s .== vcat(s,s))
+        @test reduce(catobs, [a, a]).s == vcat(s,s)
+        @test hcat(a,a).s == vcat(s,s)
 
         W = randn(40, 2057)
         @test gradcheck(x -> sum(x * a), W)
 
         a = ArrayNode(a, nothing)
-        @test all(reduce(catobs, [a, a]).data.s .== vcat(s,s))
+        @test reduce(catobs, [a, a]).data.s == vcat(s,s)
         a = BagNode(a, [1:3], nothing)
-        @test all(reduce(catobs, [a, a]).data.data.s .== vcat(s,s))
+        @test reduce(catobs, [a, a]).data.data.s == vcat(s,s)
     end
 end
 

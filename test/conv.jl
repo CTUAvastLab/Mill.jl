@@ -55,9 +55,9 @@ end
         @test convsum(bags, x, y) == [21  10  2100  21000  10000]
         @test convsum(bags, x, y, z) == [42  21  4200  42100  21000]
 
-        @test all(ngradient(x -> sum(convsum(bags,x, y, z)), x)[1] .== ∇convsum(Δ, bags, 3)[1])
-        @test all(ngradient(y -> sum(convsum(bags,x, y, z)), y)[1] .== ∇convsum(Δ, bags, 3)[2])
-        @test all(ngradient(z -> sum(convsum(bags,x, y, z)), z)[1] .== ∇convsum(Δ, bags, 3)[3])
+        @test ngradient(x -> sum(convsum(bags,x, y, z)), x)[1] == ∇convsum(Δ, bags, 3)[1]
+        @test ngradient(y -> sum(convsum(bags,x, y, z)), y)[1] == ∇convsum(Δ, bags, 3)[2]
+        @test ngradient(z -> sum(convsum(bags,x, y, z)), z)[1] == ∇convsum(Δ, bags, 3)[3]
 
         @test gradtest((a, b, c) -> convsum(bags, a, b, c), x, y, z)
     end
