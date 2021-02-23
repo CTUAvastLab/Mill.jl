@@ -13,6 +13,7 @@ AbstractBagNode
 
 Mill.data
 Mill.metadata
+dropmeta
 catobs
 Mill.subset
 Mill.mapdata

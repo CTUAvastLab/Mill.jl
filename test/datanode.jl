@@ -3,20 +3,22 @@
     @test Mill.bags(k).bags == [1:3,4:5,6:6]
 end
 
-metadata = fill("metadata", 4)
-a = BagNode(ArrayNode(rand(3, 4)),[1:4], metadata)
-b = BagNode(ArrayNode(rand(3, 4)),[1:2, 3:4], metadata)
-c = BagNode(ArrayNode(rand(3, 4)),[1:1, 2:2, 3:4], metadata)
-d = BagNode(ArrayNode(rand(3, 4)),[1:4, 0:-1], metadata)
-wa = WeightedBagNode(ArrayNode(rand(3, 4)),[1:4], rand(1:4, 4), metadata)
-wb = WeightedBagNode(ArrayNode(rand(3, 4)),[1:2, 3:4], rand(1:4, 4), metadata)
-wc = WeightedBagNode(ArrayNode(rand(3, 4)),[1:1, 2:2, 3:4], rand(1:4, 4), metadata)
-wd = WeightedBagNode(ArrayNode(rand(3, 4)),[1:4, 0:-1], rand(1:4, 4), metadata)
-e = ArrayNode(rand(2, 2))
+md2 = fill("metadata", 2)
+md3 = fill("metadata", 3)
+md4 = fill("metadata", 4)
+a = BagNode(ArrayNode(rand(3, 4)), [1:4], md4)
+b = BagNode(ArrayNode(rand(3, 4)), [1:2, 3:4], md4)
+c = BagNode(ArrayNode(rand(3, 4)), [1:1, 2:2, 3:4], md4)
+d = BagNode(ArrayNode(rand(3, 4)), [1:4, 0:-1], md4)
+wa = WeightedBagNode(ArrayNode(rand(3, 4)), [1:4], rand(1:4, 4), md4)
+wb = WeightedBagNode(ArrayNode(rand(3, 4)), [1:2, 3:4], rand(1:4, 4), md4)
+wc = WeightedBagNode(ArrayNode(rand(3, 4)), [1:1, 2:2, 3:4], rand(1:4, 4), md4)
+wd = WeightedBagNode(ArrayNode(rand(3, 4)), [1:4, 0:-1], rand(1:4, 4), md4)
+e = ArrayNode(rand(2, 2), md2)
 
-f = ProductNode((wb,b))
-g = ProductNode([c, wc])
-h = ProductNode((wc,c))
+f = ProductNode((wb,b), md2)
+g = ProductNode([c, wc], md3)
+h = ProductNode((wc,c), md3)
 i = ProductNode((
               b,
               ProductNode((
@@ -29,10 +31,10 @@ i = ProductNode((
                                 [1:3, 4:4]
                                )
                        ))
-             ))
-k = ProductNode((a = wb, b = b))
-l = ProductNode((a = wc, b = c))
-m = ProductNode((a = wc, c = c))
+             ), md2)
+k = ProductNode((a = wb, b = b), md2)
+l = ProductNode((a = wc, b = c), md3)
+m = ProductNode((a = wc, c = c), md3)
 
 @testset "testing nobs" begin
     @test nobs(a) == nobs(wa) == 1
@@ -254,7 +256,7 @@ end
 @testset "testing equals and hash" begin
     a2 = deepcopy(a)
     i2 = deepcopy(i)
-    k2 = ProductNode((a = wb, b = b))
+    k2 = ProductNode((a = wb, b = b), md2)
     metadata1 = fill("metadata", 4)
     metadata2 = "Oh, Hi Mark"
     r = rand(3,4)
@@ -324,4 +326,10 @@ end
     @test h != i
     @test isequal(h, h)
     @test !isequal(h, i)
+end
+
+@testset "dropmeta" begin
+    for n in [a, b, c, d, e, f, h, k, l, wa, wb, wc, wd]
+        @test dropmeta(n) |> Mill.metadata |> isnothing
+    end
 end

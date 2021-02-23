@@ -32,6 +32,8 @@ Flux.@functor ArrayNode
 
 mapdata(f, x::ArrayNode) = ArrayNode(mapdata(f, x.data), x.metadata)
 
+dropmeta(x::ArrayNode) = ArrayNode(x.data)
+
 Base.ndims(x::ArrayNode) = Colon()
 StatsBase.nobs(a::ArrayNode) = size(a.data, 2)
 StatsBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)

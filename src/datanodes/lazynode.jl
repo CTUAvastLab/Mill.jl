@@ -59,6 +59,10 @@ Base.ndims(x::LazyNode) = Colon()
 StatsBase.nobs(a::LazyNode) = length(a.data)
 StatsBase.nobs(a::LazyNode, ::Type{ObsDim.Last}) = nobs(a.data)
 
+mapdata(f, x::LazyNode{N}) where N = LazyNode{N}(mapdata(f, x.data), x.metadata)
+
+dropmeta(x::LazyNode{N}) where N = LazyNode{N}(x.data)
+
 function Base.reduce(::typeof(catobs), as::Vector{<: LazyNode{N}}) where N
     LazyNode{N}(reduce(catobs, data.(as)), reduce(catobs, metadata.(as)))
 end

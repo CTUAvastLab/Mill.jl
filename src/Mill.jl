@@ -38,7 +38,7 @@ export AbstractBags, AlignedBags, ScatteredBags, length2bags, remapbags, bags, a
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
-export catobs, removeinstances
+export catobs, removeinstances, dropmeta
 
 include("special_arrays/special_arrays.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch

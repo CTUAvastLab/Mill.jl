@@ -142,6 +142,31 @@ AlignedBags{Int64}(UnitRange{Int64}[1:1, 0:-1, 2:2])
 function removeinstances end
 
 """
+    dropmeta(n:AbstractNode)
+
+Drop metadata stored in data node `n`.
+
+# Examples
+```jldoctest
+julia> n1 = ArrayNode(NGramMatrix(["foo", "bar"]), ["metafoo", "metabar"])
+2053×2 ArrayNode{NGramMatrix{String,Int64},Array{String,1}}:
+ "foo"
+ "bar"
+
+julia> n2 = dropmeta(n1)
+2053×2 ArrayNode{NGramMatrix{String,Int64},Nothing}:
+ "foo"
+ "bar"
+
+julia> isnothing(Mill.metadata(n2))
+true
+```
+
+See also: [`Mill.metadata`](@ref).
+"""
+function dropmeta end
+
+"""
     mapdata(f, x)
 
 Recursively apply `f` to data in all leaves of `x`.
@@ -195,7 +220,6 @@ StatsBase.nobs(::Missing) = nothing
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")
-
 StatsBase.nobs(a::AbstractBagNode) = length(a.bags)
 StatsBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
 Base.ndims(x::AbstractBagNode) = Colon()
