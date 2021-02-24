@@ -47,16 +47,16 @@ BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(
 
 julia&gt; m(ds)
 10×3 ArrayNode{Array{Float32,2},Nothing}:
- -1.065589      -2.4036987   -1.2661439
-  0.043658443    0.2956295    0.37168837
- -1.0958911     -1.4858038   -0.87121737
-  1.1850482      1.0890555    1.1080894
-  0.0103996815  -0.6553936   -0.5043688
- -0.1944636     -0.25665137  -0.114986196
-  0.7850331      0.87222743   1.4043158
- -0.32910517     0.3159621   -0.27999502
- -0.12815368     1.2642355    0.332956
-  0.010332675    0.20051233   0.088707946</code></pre><h2 id="Node-conveniences"><a class="docs-heading-anchor" href="#Node-conveniences">Node conveniences</a><a id="Node-conveniences-1"></a><a class="docs-heading-anchor-permalink" href="#Node-conveniences" title="Permalink"></a></h2><p>To make the handling of data and model hierarchies easier, <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> provides several tools. Let&#39;s setup some data:</p><pre><code class="language-julia-repl">julia&gt; AN = ArrayNode(Float32.([1 2 3 4; 5 6 7 8]))
+ -1.065589     -2.403699    -1.2661438
+  0.043658696   0.29562968   0.3716884
+ -1.0958914    -1.485804    -0.8712174
+  1.1850481     1.0890557    1.1080893
+  0.010399726  -0.6553933   -0.504369
+ -0.19446395   -0.25665173  -0.11498614
+  0.7850331     0.87222713   1.4043156
+ -0.32910505    0.3159623   -0.2799949
+ -0.12815362    1.2642359    0.3329558
+  0.010332645   0.20051254   0.088708095</code></pre><h2 id="Node-conveniences"><a class="docs-heading-anchor" href="#Node-conveniences">Node conveniences</a><a id="Node-conveniences-1"></a><a class="docs-heading-anchor-permalink" href="#Node-conveniences" title="Permalink"></a></h2><p>To make the handling of data and model hierarchies easier, <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> provides several tools. Let&#39;s setup some data:</p><pre><code class="language-julia-repl">julia&gt; AN = ArrayNode(Float32.([1 2 3 4; 5 6 7 8]))
 2×4 ArrayNode{Array{Float32,2},Nothing}:
  1.0  2.0  3.0  4.0
  5.0  6.0  7.0  8.0
@@ -164,4 +164,4 @@ true</code></pre><p>Again, the effect is recurrent and everything is appropriate
 AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:3, 4:4])
 
 julia&gt; catobs(BN[3], BN[[1]]).bags
-AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:2])</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">More tips</header><div class="admonition-body"><p>For more tips for handling datasets and models, see <a href="../../tools/hierarchical/#HierarchicalUtils.jl">External tools</a>.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nodes/">« Nodes</a><a class="docs-footer-nextpage" href="../reflectin/">Model reflection »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 11 February 2021 16:53">Thursday 11 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:2])</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">More tips</header><div class="admonition-body"><p>For more tips for handling datasets and models, see <a href="../../tools/hierarchical/#HierarchicalUtils.jl">External tools</a>.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../nodes/">« Nodes</a><a class="docs-footer-nextpage" href="../reflectin/">Model reflection »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 24 February 2021 08:42">Wednesday 24 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
