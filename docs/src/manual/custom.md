@@ -5,13 +5,13 @@ using Flux
 
 ## Adding custom nodes
 
-`Mill.jl` data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into `Mill.jl` environment:
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) environment:
 
 * allow nesting (if needed)
-* implement `getindex` to obtain subsets of observations. For this purpose, `Mill.jl` defines a `subset` function for common datatypes, which can be used.
-* allow concatenation of nodes with `catobs`. Optionally, implement `reduce(catobs, ...)` as well to avoid excessive compilations if a number of arguments will vary a lot
+* implement `getindex` to obtain subsets of observations. For this purpose, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) defines a [`Mill.subset`](@ref) function for common datatypes, which can be used.
+* allow concatenation of nodes with [`catobs`](@ref). Optionally, implement `reduce(catobs, ...)` as well to avoid excessive compilations if a number of arguments will vary a lot
 * define a specialized method for `nobs`
-* register the custom node with [`HierarchicalUtils.jl`](@ref) to obtain pretty printing, iterators and other functionality
+* register the custom node with [HierarchicalUtils.jl](@ref) to obtain pretty printing, iterators and other functionality
 
 ## Unix path example
 
@@ -47,10 +47,12 @@ end
 and indexing:
 
 ```@example custom
-Base.getindex(x::PathNode, i::Mill.VecOrRange{<:Int}) = PathNode(subset(x.data, i), subset(x.metadata, i))
+function Base.getindex(x::PathNode, i::Mill.VecOrRange{<:Int})
+    PathNode(Mill.subset(Mill.data(x), i), Mill.subset(Mill.metadata(x), i))
+end
 ```
 
-The last touch is to add the definition needed by `HierarchicalUtils.jl`:
+The last touch is to add the definition needed by [HierarchicalUtils.jl](@ref):
 
 ```@example custom
 import HierarchicalUtils
@@ -65,7 +67,7 @@ Now, we are ready to create the first `PathNode`:
 ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
 ```
 
-Similarly, we define a `ModelNode` type which will be a counterpart processing the data:
+Similarly, we define a model node type which will be a counterpart processing the data:
 
 ```@example custom
 struct PathModel{T, F} <: AbstractMillModel
@@ -76,7 +78,7 @@ end
 Flux.@functor PathModel
 ```
 
-Note that the part of the `ModelNode` is a function which converts the pathname string to a `Mill.jl` structure. For simplicity, we use a trivial `NGramMatrix` representation in this example and define `path2mill` as follows:
+Note that the part of the model node is a function which converts the pathname string to a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. For simplicity, we use a trivial [`NGramMatrix`](@ref) representation in this example and define `path2mill` as follows:
 
 ```@example custom
 function path2mill(s::String)
@@ -95,7 +97,7 @@ Now we define how the model node is applied:
 (m::PathModel)(x::PathNode) = m.m(m.path2mill(x))
 ```
 
-And again, define everything needed in `HierarchicalUtils.jl`:
+And again, define everything needed in [HierarchicalUtils.jl](@ref):
 
 ```@example custom
 HierarchicalUtils.NodeType(::Type{<:PathModel}) = HierarchicalUtils.LeafNode()
@@ -109,7 +111,7 @@ pm = PathModel(reflectinmodel(path2mill(ds)), path2mill)
 pm(ds).data
 ```
 
-The final touch would be to overload the `reflectinmodel` as
+The final touch would be to overload the [`reflectinmodel`](@ref) as
 
 ```@example custom
 function Mill.reflectinmodel(ds::PathNode, args...)

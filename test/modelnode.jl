@@ -22,13 +22,13 @@ end
 
 @testset "testing simple tuple models" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    x = ProductNode((ArrayNode(randn(Float32, 3, 4)), ArrayNode(randn(Float32, 4, 4))))
+    x = ProductNode((a=ArrayNode(randn(Float32, 3, 4)), b=ArrayNode(randn(Float32, 4, 4))))
     m = reflectinmodel(x, layerbuilder)
     @test eltype(m(x).data) == Float32
     @test size(m(x).data) == (2, 4)
     @test m isa ProductModel
-    @test m.ms[1] isa ArrayModel
-    @test m.ms[2] isa ArrayModel
+    @test m.ms[:a] isa ArrayModel
+    @test m.ms[:b] isa ArrayModel
 
     x = ProductNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                   BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
@@ -58,7 +58,7 @@ end
     a = BagNode(BagNode(ArrayNode(randn(2,2)),[1:2]),[1:1])
     b = BagNode(missing,[0:-1])
     c = BagNode(a.data[1:0], [0:-1])
-    m = reflectinmodel(a, d -> Dense(d,2), d -> SegmentedMeanMax(d))
+    m = reflectinmodel(a, d -> Dense(d,2), d -> meanmax_aggregation(d))
     abc = catobs(a, b, c)
     bca = catobs(b, c, a)
     ma = m(a).data
@@ -125,32 +125,37 @@ end
 # pn.m should be identity for any product node pn with a single key
 @testset "single key dictionary reflect in model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    fsm = Dict("" => layerbuilder)
+
     x1 = (ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
     x2 = (a = ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
     x3 = (a = ArrayNode(randn(Float32, 3, 4)), b = ArrayNode(randn(Float32, 3, 4))) |> ProductNode
 
     m1 = reflectinmodel(x1, layerbuilder; single_key_identity=false)
     m1_ski = reflectinmodel(x1, layerbuilder; single_key_identity=true)
+    m1_ski_fsm = reflectinmodel(x1, layerbuilder; fsm=fsm, single_key_identity=true)
     m2 = reflectinmodel(x2, layerbuilder; single_key_identity=false)
     m2_ski = reflectinmodel(x2, layerbuilder; single_key_identity=true)
+    m2_ski_fsm = reflectinmodel(x2, layerbuilder; fsm=fsm, single_key_identity=true)
     m3 = reflectinmodel(x3, layerbuilder; single_key_identity=false)
     m3_ski = reflectinmodel(x3, layerbuilder; single_key_identity=true)
+    m3_ski_fsm = reflectinmodel(x3, layerbuilder; fsm=fsm, single_key_identity=true)
 
-    for m in [m1, m1_ski]
+    for m in [m1, m1_ski, m1_ski_fsm]
         @test eltype(m(x1).data) == Float32
         @test size(m(x1).data) == (2, 4)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
     end
 
-    for m in [m2, m2_ski]
+    for m in [m2, m2_ski, m2_ski_fsm]
         @test eltype(m(x2).data) == Float32
         @test size(m(x2).data) == (2, 4)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
     end
 
-    for m in [m3, m3_ski]
+    for m in [m3, m3_ski, m3_ski_fsm]
         @test eltype(m(x3).data) == Float32
         @test size(m(x3).data) == (2, 4)
         @test m isa ProductModel
@@ -164,6 +169,10 @@ end
     @test m1_ski.m isa IdentityModel
     @test m2_ski.m isa IdentityModel
     @test m3_ski.m isa ArrayModel{<:Dense}
+    # fsm overrides ski
+    @test m1_ski_fsm.m isa ArrayModel{<:Dense}
+    @test m2_ski_fsm.m isa ArrayModel{<:Dense}
+    @test m3_ski_fsm.m isa ArrayModel{<:Dense}
 end
 
 # array model for matrices with one row should implement identity
@@ -257,7 +266,7 @@ end
         end
 
         bn = BagNode(ArrayNode(x), bags1)
-        abuilder = d -> SegmentedPNormLSE(d)
+        abuilder = d -> pnormlse_aggregation(d)
         m = reflectinmodel(bn, layerbuilder) |> f64
         @test gradtest(x) do x
             bn = BagNode(ArrayNode(x), bags1)
@@ -272,7 +281,7 @@ end
         end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
-        abuilder = d -> SegmentedMeanMax(d)
+        abuilder = d -> meanmax_aggregation(d)
         m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         @test gradtest(x, y) do x, y
             tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
@@ -281,7 +290,7 @@ end
 
         bn = BagNode(ArrayNode(z), bags3)
         bnn = BagNode(bn, bags1)
-        abuilder = d -> SegmentedSumMaxPNormLSE(d)
+        abuilder = d -> summaxpnormlse_aggregation(d)
         m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
         @test gradtest(z) do z
             bn = BagNode(ArrayNode(z), bags3)
@@ -302,7 +311,7 @@ end
         w3 = abs.(randn(8)) .+ 0.1
 
         bn = BagNode(ArrayNode(x), bags1, w)
-        abuilder = d -> SegmentedPNormLSE(d)
+        abuilder = d -> pnormlse_aggregation(d)
         m = reflectinmodel(bn, layerbuilder) |> f64
         @test gradtest(x) do x
             bn = BagNode(ArrayNode(x), bags1, w)
@@ -310,7 +319,7 @@ end
         end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
-        abuilder = d -> SegmentedMeanMax(d)
+        abuilder = d -> meanmax_aggregation(d)
         m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         @test gradtest(x, y) do x, y
             tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
@@ -319,7 +328,7 @@ end
 
         bn = BagNode(ArrayNode(z), bags3, w3)
         bnn = BagNode(bn, bags1)
-        abuilder = d -> SegmentedSumMaxPNormLSE(d)
+        abuilder = d -> summaxpnormlse_aggregation(d)
         m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
         @test gradtest(z) do z
             bn = BagNode(ArrayNode(z), bags3, w3)
@@ -345,7 +354,7 @@ end
         end
 
         bn = BagNode(ArrayNode(x), bags1)
-        abuilder = d -> SegmentedPNormLSE(d)
+        abuilder = d -> pnormlse_aggregation(d)
         m = reflectinmodel(bn, layerbuilder, abuilder) |> f64
         a1, a2 = rand(ACTIVATIONS, 2)
         @test gradtest(params(m)...) do W1, b1, ψ1, ρ1, c, ψ2, ρ2, W2, b2
@@ -370,7 +379,7 @@ end
         end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
-        abuilder = d -> SegmentedSumMaxPNormLSE(d)
+        abuilder = d -> summaxpnormlse_aggregation(d)
         m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
         @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, ψ13, ρ11, c1, ψ14, ρ12,
@@ -402,7 +411,7 @@ end
 
         bn = BagNode(ArrayNode(z), bags3)
         bnn = BagNode(bn, bags1)
-        abuilder = d -> SegmentedMeanMax(d)
+        abuilder = d -> meanmax_aggregation(d)
         m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
         a1, a2, a3 = rand(ACTIVATIONS, 3)
         @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, W2, b2, ψ21, ψ22, W3, b3
@@ -437,7 +446,7 @@ end
         w3 = abs.(randn(8)) .+ 0.1
 
         bn = BagNode(ArrayNode(x), bags1, w)
-        abuilder = d -> SegmentedPNormLSE(d)
+        abuilder = d -> pnormlse_aggregation(d)
         m = reflectinmodel(bn, layerbuilder, abuilder) |> f64
         a1, a2 = rand(ACTIVATIONS, 2)
         @test gradtest(params(m)...) do W1, b1, ψ1, ρ1, c, ψ2, ρ2, W2, b2
@@ -451,7 +460,7 @@ end
         end
 
         tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
-        abuilder = d -> SegmentedSumMaxPNormLSE(d)
+        abuilder = d -> summaxpnormlse_aggregation(d)
         m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
         a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
         @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, ψ13, ρ11, c1, ψ14, ρ12,
@@ -483,7 +492,7 @@ end
 
         bn = BagNode(ArrayNode(z), bags3, w3)
         bnn = BagNode(bn, bags1, w)
-        abuilder = d -> SegmentedMeanMax(d)
+        abuilder = d -> meanmax_aggregation(d)
         m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
         a1, a2, a3 = rand(ACTIVATIONS, 3)
         @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, W2, b2, ψ21, ψ22, W3, b3

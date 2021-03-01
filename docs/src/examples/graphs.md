@@ -15,7 +15,7 @@ draw(SVG("graph.svg"), gp)
 
 # GNNs in 16 lines
 
-As has been mentioned in [Mandlik2020](@cite), multiple instance learning is an essential piece for implementing message passing inference over graphs, the main concept behind spatial *Graph Neural Networks* (GNNs). It is straightforward and quick to achieve this with `Mill.jl`. We begin with some dependencies:
+As has been mentioned in [Mandlik2020](@cite), multiple instance learning is an essential piece for implementing message passing inference over graphs, the main concept behind spatial *Graph Neural Networks* (GNNs). It is straightforward and quick to achieve this with [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). We begin with some dependencies:
 
 ```@example gnn
 using Flux, LightGraphs, Statistics
@@ -35,7 +35,7 @@ Furthermore, let's assume that each vertex is described by seven features stored
 X = ArrayNode(randn(Float32, 7, 10))
 ```
 
-We use `ScatteredBags` from `Mill.jl` to encode neighbors of each vertex. In other words, each vertex is described by a bag of its neighbors. This information is conveniently stored in `fadjlist` field of `g`, therefore the bags can be constructed as:
+We use [`ScatteredBags`](@ref) from [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) to encode neighbors of each vertex. In other words, each vertex is described by a bag of its neighbors. This information is conveniently stored in `fadjlist` field of `g`, therefore the bags can be constructed as:
 
 ```@repl gnn
 b = ScatteredBags(g.fadjlist)
@@ -44,9 +44,9 @@ b = ScatteredBags(g.fadjlist)
 Finally, we create two models. First model called `lift` will pre-process the description of vertices to some latent space for message passing, and the second one will realize the message passing itself, which we will call `mp`:
 
 ```@repl gnn
-lift = reflectinmodel(X, d -> Dense(d, 10), d -> SegmentedMean(d))
+lift = reflectinmodel(X, d -> Dense(d, 10), d -> mean_aggregation(d))
 U = lift(X)
-mp = reflectinmodel(BagNode(U, b), d -> Dense(d, 10), d -> SegmentedMean(d))
+mp = reflectinmodel(BagNode(U, b), d -> Dense(d, 10), d -> mean_aggregation(d))
 ```
 
 Notice that `BagNode(U, b)` now essentially encodes vertex features as well as the adjacency matrix. This also means that one step of message passing algorithm can be realized as:
@@ -58,10 +58,10 @@ Y = mp(BagNode(U, b))
 and it is differentiable, which can be verified by executing:
 
 ```@repl gnn
-gradient(() -> sum(sin.(mp(BagNode(U, b)).data)), Flux.params(mp))
+gradient(() -> sum(sin.(mp(BagNode(U, b)) |> Mill.data)), params(mp))
 ```
 
-If we put everything together, the GNN implementation is implemented in the following block of code (16 lines of mostly sugar).
+If we put everything together, the GNN implementation is implemented in the following 16 lines:
 
 ```@example gnn
 struct GNN{L,M, R}
@@ -81,18 +81,18 @@ function (m::GNN)(g, X, n)
     U = m.lift(X)
     bags = Mill.ScatteredBags(g.fadjlist)
     o = mpstep(m, U, bags, n)
-    m.m(vcat(mean(o.data, dims = 2), maximum(o.data, dims = 2)))
+    m.m(vcat(mean(Mill.data(o), dims = 2), maximum(Mill.data(o), dims = 2)))
 end
 
 nothing # hide
 ```
 
-As it is the case with whole `Mill.jl`, even this graph neural network is properly integrated with [`Flux.jl`](https://fluxml.ai) ecosystem and suports automatic differentiation:
+As it is the case with whole [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), even this graph neural network is properly integrated with [`Flux.jl`](https://fluxml.ai) ecosystem and suports automatic differentiation:
 
 ```@example gnn
 zd = 10
 f(d) = Chain(Dense(d, zd, relu), Dense(zd, zd))
-agg(d) = SegmentedMeanMax(d)
+agg(d) = meanmax_aggregation(d)
 gnn = GNN(reflectinmodel(X, f, agg),
           BagModel(f(zd), agg(zd), f(2zd + 1)),
           f(2zd)) 
@@ -101,9 +101,9 @@ nothing # hide
 
 ```@repl gnn
 gnn(g, X, 5)
-gradient(() -> gnn(g, X, 5) |> sum, Flux.params(gnn))
+gradient(() -> gnn(g, X, 5) |> sum, params(gnn))
 ```
 
-The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in `X`, however, any `Mill.jl` hierarchy is applicable.
+The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in `X`, however, any [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) hierarchy is applicable.
 
 To put different weights on edges, one can use [`WeightedBagNode`](@ref)s instead.

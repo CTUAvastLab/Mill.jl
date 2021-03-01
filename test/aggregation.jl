@@ -1,7 +1,7 @@
 @testset "basic attributes" begin
     a1 = SegmentedMean(1:4 |> collect)
     a2 = SegmentedMean(4)
-    a3 = SegmentedMeanMax(4)
+    a3 = meanmax_aggregation(4)
 
     @test length(a1) == 4
     @test size(a1) == (4,)
@@ -45,7 +45,7 @@ end
 
     # Aggregation
     @test test_equal(vcat(SegmentedMean(5)), SegmentedMean(5))
-    @test test_equal(vcat(SegmentedMean(5), SegmentedMax(5)), SegmentedMeanMax(5))
+    @test test_equal(vcat(mean_aggregation(5), max_aggregation(5)), meanmax_aggregation(5))
 end
 
 @testset "flattening" begin
@@ -54,10 +54,10 @@ end
           Aggregation(SegmentedMean(2), Aggregation(SegmentedMax(2))),
           Aggregation((SegmentedMean(2), SegmentedMax(2))),
           Aggregation((Aggregation(SegmentedMean(2)), SegmentedMax(2))),
-          Aggregation(SegmentedMeanMax(2)),
-          Aggregation(Aggregation(SegmentedMeanMax(2))),
-          Aggregation((SegmentedMeanMax(2),)),
-          SegmentedMeanMax(2)
+          Aggregation(meanmax_aggregation(2)),
+          Aggregation(Aggregation(meanmax_aggregation(2))),
+          Aggregation((meanmax_aggregation(2),)),
+          meanmax_aggregation(2)
          ]
 
     @test all(length.(as) .== 4)
@@ -72,15 +72,15 @@ end
     bags = BAGS[1]
     baglengths = log.(1.0 .+ [1.0 2.0 3.0]) |> f32
     @assert baglengths == log.(1 .+ length.(bags)') |> f32
-    @test SegmentedMean(2)(X, bags) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0; baglengths]
-    @test SegmentedSum(2)(X, bags) ≈ [length.(bags)' .* SegmentedMean(2)(X, bags)[1:2, :]; baglengths]
-    @test SegmentedMax(2)(X, bags) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0; baglengths]
-    @test SegmentedMeanMax(2)(X, bags) ≈ vcat(SegmentedMean(2)(X, bags)[1:2, :],
-                                              SegmentedMax(2)(X, bags)[1:2, :], baglengths)
-    @test SegmentedMean(2)(X, bags, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24; baglengths]
-    bagnorms = [bagnorm(W, b) for b in bags]
-    @test SegmentedSum(2)(X, bags, W) ≈ [bagnorms' .* SegmentedMean(2)(X, bags, W)[1:2, :]; baglengths]
-    @test SegmentedMax(2)(X, bags, W) ≈ SegmentedMax(2)(X, bags)
+    @test mean_aggregation(2)(X, bags) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0; baglengths]
+    @test sum_aggregation(2)(X, bags) ≈ [length.(bags)' .* mean_aggregation(2)(X, bags)[1:2, :]; baglengths]
+    @test max_aggregation(2)(X, bags) ≈ [1.0 5.0 11.0; 2.0 6.0 12.0; baglengths]
+    @test meanmax_aggregation(2)(X, bags) ≈ vcat(mean_aggregation(2)(X, bags)[1:2, :],
+                                              max_aggregation(2)(X, bags)[1:2, :], baglengths)
+    @test mean_aggregation(2)(X, bags, W) ≈ [1.0 4.0 236/24; 2.0 5.0 260/24; baglengths]
+    bagnorms = [_bagnorm(W, b) for b in bags]
+    @test sum_aggregation(2)(X, bags, W) ≈ [bagnorms' .* mean_aggregation(2)(X, bags, W)[1:2, :]; baglengths]
+    @test max_aggregation(2)(X, bags, W) ≈ max_aggregation(2)(X, bags)
 end
 
 @testset "matrix weights" begin
@@ -139,7 +139,7 @@ end
             W = abs.(randn(6))
             r1, r2 = randn(2)
             # doesn't use weights
-            @test all(SegmentedLSE(dummy, [ρ1, ρ2])(X, bags) .== SegmentedLSE(dummy, [ρ1, ρ2])(X, bags, W))
+            @test SegmentedLSE(dummy, [ρ1, ρ2])(X, bags) == SegmentedLSE(dummy, [ρ1, ρ2])(X, bags, W)
             # the bigger value of r, the closer we are to the real maximum
             @test isapprox(SegmentedLSE(dummy, [100.0, 100.0])(X, bags), SegmentedMax(dummy)(X, bags), atol=0.1)
         end
@@ -206,7 +206,10 @@ end
     b2 = bags([0:-1])
 
     for a in [SegmentedMax(2), SegmentedSum(2), SegmentedMean(2),
-              SegmentedLSE(2), SegmentedPNorm(2), SegmentedSumMeanMaxPNormLSE(2)]
+              SegmentedLSE(2), SegmentedPNorm(2),
+              max_aggregation(2), sum_aggregation(2), mean_aggregation(2),
+              lse_aggregation(2), pnormlse_aggregation(2),
+              summeanmaxpnormlse_aggregation(2)]
         @test eltype(a(X1, b1)) === Float32
         @test eltype(a(X2, b1)) === Maybe{Float32}
         @test eltype(a(X3, b1)) === Maybe{Float32}
@@ -214,6 +217,21 @@ end
 
         @test_throws MethodError a(randn(2, 2), b1)
     end
+
+    for b in BAGS2
+        o = meanmaxpnormlse_aggregation(10)
+        X = rand(Float32, 10, 100)
+        w = abs.(randn(Float32, size(X, 2))) .+ 0.1
+        w_mat = abs.(randn(Float32, size(X))) .+ 0.1
+        @inferred o(X, b)
+        @inferred o(X, b, w |> f32)
+        @inferred o(X, b, w_mat |> f32)
+     end
+end
+
+@testset "r_map and p_map are stable" begin
+    @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
+    @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
 end
 
 @testset "missing values" begin
@@ -254,29 +272,16 @@ end
         @test [a1; baglengths] == a2
     end
 
-    test_count(SegmentedSum(2))
-    test_count(SegmentedMean(2))
-    test_count(SegmentedMax(2))
-    test_count(SegmentedPNorm(2))
-    test_count(SegmentedLSE(2))
-    test_count(SegmentedPNormLSE(2))
-    test_count(SegmentedMeanMaxPNormLSE(2))
-end
-
-@testset "type inferrence" begin
-    for b in BAGS2
-        o = SegmentedMeanMaxPNormLSE(10)
-        X = rand(Float32, 10, 100)
-        w = abs.(randn(Float32, size(X, 2))) .+ 0.1
-        w_mat = abs.(randn(Float32, size(X))) .+ 0.1
-        @inferred o(X, b)
-        @inferred o(X, b, w |> f32)
-        @inferred o(X, b, w_mat |> f32)
-     end
+    test_count(sum_aggregation(2))
+    test_count(mean_aggregation(2))
+    test_count(max_aggregation(2))
+    test_count(pnorm_aggregation(2))
+    test_count(lse_aggregation(2))
+    test_count(pnormlse_aggregation(2))
+    test_count(meanmaxpnormlse_aggregation(2))
 end
 
 # we use Float64 to compute precise gradients
-
 @testset "aggregation grad check w.r.t. input" begin
     for bags in BAGS2
         d = rand(1:20)
@@ -287,9 +292,9 @@ end
         # generate all combinations of aggregations
         anames = ["Sum", "Mean", "Max", "PNorm", "LSE"]
         for idxs in powerset(collect(1:length(anames)))
-            1 ≤ length(idxs) ≤ 3 || continue
+            1 ≤ length(idxs) ≤ 2 || continue
 
-            s = Symbol("Segmented", anames[idxs]...)
+            s = Symbol(lowercase.(anames[idxs])..., "_aggregation")
             a = @eval $s($d) |> f64
             @test gradtest(x) do x
                 a(x, bags)
@@ -305,9 +310,6 @@ end
 end
 
 @testset "aggregation grad check w.r.t. params" begin
-    # r_map and p_map are stable
-    @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
-    @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
 
     fs = [:SegmentedSum, :SegmentedMean, :SegmentedMax, :SegmentedPNorm, :SegmentedLSE]
     params = [(:ψ1,), (:ψ2,), (:ψ3,), (:ψ4, :ρ1, :c), (:ψ5, :ρ2)]

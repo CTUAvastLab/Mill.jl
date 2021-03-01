@@ -2,6 +2,7 @@ module Mill
 
 using ChainRulesCore
 using Combinatorics
+using DataFrames
 using Flux
 using HierarchicalUtils
 using LearnBase
@@ -14,50 +15,34 @@ using StatsBase
 using Zygote
 
 using Base: CodeUnits, nameof
+using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 
-import Base: *, ==, isequal, hash, show, cat, vcat, hcat, _cat
-import Base: size, length, first, last, firstindex, lastindex, eachindex, getindex, setindex!
-import Base: reduce, eltype, print_array
-import Base: isascii, codeunits, ncodeunits, codeunit
-
-import Flux: Dense, Chain, update!, onehot, onehotbatch
-import Flux.Optimise: apply!
-
-import ChainRulesCore: rrule
-
-# GLOBAL SWITCHES
-const _emptyismissing =     Ref(false)
-const _bagcount =           Ref(true)
-const _wildcard_code =      Ref(UInt8(0)) # NUL in ascii
-const _string_start_code =  Ref(UInt8(2)) # STX in ascii
-const _string_end_code =    Ref(UInt8(3)) # ETX in ascii
-
-for s in Symbol.(["emptyismissing", "bagcount", "wildcard_code", "string_start_code", "string_end_code"])
-    ex = Symbol(s, '!')
-    us = Symbol('_', s)
-    @eval @inline $ex(a) = $us[] = a
-    @eval @inline $s() = $us[]
-end
+import Base, Flux, ChainRulesCore
+import Base: *, ==, reduce
 
 # COMMON ALIASES
 const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
-using Base: AbstractVecOrMat
+const VecOrTupOrNTup{T} = Union{Vector{<:T}, Tuple{Vararg{T}}, NamedTuple{K, <:Tuple{Vararg{T}}} where K}
+using Base: AbstractVecOrMat, AbstractVecOrTuple
 const Maybe{T} = Union{T, Missing}
 const Optional{T} = Union{T, Nothing}
 
-StatsBase.nobs(::Missing) = nothing
+_promote_types(x) = typeof(x)
+_promote_types(x, y...) = promote_type(typeof(x), _promote_types(y...))
+
+include("switches.jl")
 
 include("bags.jl")
-export AlignedBags, ScatteredBags, length2bags, remapbag, bags
+export AbstractBags, AlignedBags, ScatteredBags, length2bags, remapbags, bags, adjustbags
 
 include("datanodes/datanode.jl")
 export AbstractNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
-export catobs, removeinstances
+export catobs, removeinstances, dropmeta
 
-include("matrices/matrix.jl")
+include("special_arrays/special_arrays.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
-export NGramMatrix, NGramIterator
+export NGramMatrix, NGramIterator, ngrams, ngrams!, countngrams, countngrams!
 export ImputingMatrix, PreImputingMatrix, PostImputingMatrix
 export ImputingDense, PreImputingDense, PostImputingDense
 export preimputing_dense, postimputing_dense, identity_dense
@@ -66,13 +51,16 @@ export preimputing_dense, postimputing_dense, identity_dense
 
 include("aggregations/aggregation.jl")
 # agg. types exported in aggregation.jl
-export Aggregation
+export AggregationOperator, Aggregation
+export SegmentedMean, SegmentedMax, SegmentedSum, SegmentedLSE, SegmentedPNorm
 
 include("modelnodes/modelnode.jl")
 export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel
 export IdentityModel, identity_model
 export HiddenLayerModel
 export mapactivations, reflectinmodel
+
+const MillStruct = Union{AbstractMillModel, AbstractNode}
 
 include("conv.jl")
 export bagconv, BagConv
@@ -90,10 +78,11 @@ include("mill_string.jl")
 export MillString, @mill_str
 
 include("util.jl")
-export sparsify, findnonempty, ModelLens, replacein, findin
+export sparsify, pred_lens, list_lens, find_lens, findnonempty_lens
+export replacein, code2lens, lens2code, model_lens, data_lens
 
-Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::Union{AbstractNode, AbstractMillModel})) =
-    HierarchicalUtils.printtree(io, n; htrunc=3)
+Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::MillStruct)) =
+    HierarchicalUtils.printtree(io, n; htrunc=3, vtrunc=3)
 
 _show(io, x) = _show_fields(io, x)
 
@@ -101,6 +90,6 @@ function _show_fields(io, x::T; context=:compact=>true) where T
     print(io, nameof(T), "(", join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)],", "), ")")
 end
 
-Base.getindex(n::Union{AbstractNode, AbstractMillModel}, i::AbstractString) = HierarchicalUtils.walk(n, i)
+Base.getindex(n::MillStruct, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 end

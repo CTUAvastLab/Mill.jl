@@ -1,4 +1,11 @@
-struct WeightedBagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, W, C} <: AbstractBagNode
+"""
+    WeightedBagNode{T <: Union{AbstractNode, Missing}, B <: AbstractBags, W, C} <: AbstractBagNode
+
+Structure like [`BagNode`](@ref) but allows to specify weights of type `W` of each instance.
+
+See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractNode`](@ref), [`BagModel`](@ref).
+"""
+struct WeightedBagNode{T <: Maybe{AbstractNode}, B <: AbstractBags, W, C} <: AbstractBagNode
     data::T
     bags::B
     weights::Vector{W}
@@ -10,27 +17,50 @@ struct WeightedBagNode{T <: Union{Missing, AbstractNode}, B <: AbstractBags, W, 
     end
 end
 
-WeightedBagNode(x::T, b::Vector, weights::Vector{W}, metadata::C=nothing) where {T, W, C} =
-    WeightedBagNode(x, bags(b), weights, metadata)
+"""
+    WeightedBagNode(d::Union{AbstractNode, Missing}, b::AbstractBags, w::Vector, m=nothing)
+    WeightedBagNode(d::Union{AbstractNode, Missing}, b::AbstractVector, w::Vector, m=nothing)
+
+Construct a new [`WeightedBagNode`](@ref) with data `d`, bags `b`, weights `w` and metadata `m`. If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
+
+# Examples
+```jldoctest
+julia> BagNode(ArrayNode(NGramMatrix(["s1", "s2"])), bags([1:2, 0:-1]), [0.2, 0.8])
+BagNode with 2 obs
+  └── ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+
+julia> BagNode(ArrayNode(zeros(2, 2)), [1, 2], [1, 2])
+BagNode with 2 obs
+  └── ArrayNode(2×2 Array with Float64 elements) with 2 obs
+```
+
+See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractNode`](@ref), [`BagModel`](@ref).
+"""
+WeightedBagNode(d::Maybe{AbstractNode}, b::AbstractVector, weights::Vector, metadata=nothing) =
+    WeightedBagNode(d, bags(b), weights, metadata)
 
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 
+dropmeta(x::WeightedBagNode) = WeightedBagNode(x.data, x.bags, x.weights)
+
 function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Int}) where {T, B, W}
-    nb, ii = remapbag(x.bags, i)
+    nb, ii = remapbags(x.bags, i)
     emptyismissing() && isempty(ii) && return(WeightedBagNode(missing, nb, W[], nothing))
     WeightedBagNode(subset(x.data,ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
 end
 
-function reduce(::typeof(catobs), as::Vector{T}) where {T <: WeightedBagNode}
+function reduce(::typeof(catobs), as::Vector{<:WeightedBagNode})
     d = filter(!ismissing, data.(as))
     md = filter(!isnothing, metadata.(as))
     bags = reduce(vcat, [a.bags for a in as])
-    WeightedBagNode(isempty(d) ? missing : reduce(catobs, d),
-                    bags, reduce(vcat, [a.weights for a in as]),
-            isempty(md) ? nothing : reduce(catobs, md))
+    WeightedBagNode(reduce(catobs, d), bags, reduce(vcat, [a.weights for a in as]), reduce(catobs, md))
 end
 
-removeinstances(a::WeightedBagNode, mask) = WeightedBagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), subset(a.weights, findall(mask)), a.metadata)
+function removeinstances(a::WeightedBagNode, mask)
+    WeightedBagNode(subset(a.data, findall(mask)),
+        adjustbags(a.bags, mask),
+        subset(a.weights, findall(mask)), a.metadata)
+end
 
 Base.hash(e::WeightedBagNode, h::UInt) = hash((e.data, e.bags, e.weights, e.metadata), h)
 (e1::WeightedBagNode == e2::WeightedBagNode) =

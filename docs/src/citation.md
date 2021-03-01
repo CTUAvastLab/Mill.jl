@@ -1,4 +1,4 @@
-## Citation
+# Citation
 
 For citing, please use the following entry:
 
@@ -7,6 +7,6 @@ For citing, please use the following entry:
     author = {Tomáš Pevný and Šimon Mandlík},
     title = {{Mill.jl framework: a flexible library for (hierarchical) multi-instance learning}},
     year = 2018,
-    howpublished = "\url{https://github.com/pevnak/Mill.jl}"
+    howpublished = "\url{https://github.com/CTUAvastLab/Mill.jl}"
 }
 ```

@@ -1,4 +1,4 @@
-using Random; Random.seed!(42)
+using Random; Random.seed!(0)
 
 using FileIO, JLD2, Statistics, Mill, Flux
 using Flux: throttle, @epochs
@@ -15,19 +15,21 @@ y_oh = Flux.onehotbatch(y, 1:2)             # one-hot encoding
 # create the model
 model = BagModel(
     ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
-    SegmentedMeanMax(10),                                       # aggregation
+    meanmax_aggregation(10),                                    # aggregation
     ArrayModel(Chain(Dense(21, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
 
 # check forward pass
 model(ds)
 
 # define loss function
-loss(ds, y_oh) = Flux.logitcrossentropy(model(ds).data, y_oh)
+loss(ds, y_oh) = Flux.logitcrossentropy(Mill.data(model(ds)), y_oh)
 
 # the usual way of training
-evalcb = () -> @show(loss(ds, y_oh))
 opt = Flux.ADAM()
-@epochs 10 Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt, cb=evalcb)
+@epochs 10 begin
+    Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt)
+    println(loss(ds, y_oh))
+end
 
 # calculate the error on the training set (no testing set right now)
-mean(mapslices(argmax, model(ds).data, dims=1)' .!= y)
+mean(mapslices(argmax, Mill.data(model(ds)), dims=1)' .!= y)

@@ -1,4 +1,22 @@
-# https://arxiv.org/abs/1511.05286
+"""
+    SegmentedLSE{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+
+[`AggregationOperator`](@ref) implementing segmented log-sum-exp (LSE) aggregation:
+
+``
+f(\\{x_1, \\ldots, x_k\\}; r) = \\frac{1}{r}\\log \\left(\\frac{1}{k} \\sum_{i = 1}^{k} \\exp({r\\cdot x_i})\\right)
+``
+
+Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered,
+and a vector of parameters `r` used during computation.
+
+!!! warn "Construction"
+    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
+    get this operator with [`lse_aggregation`](@ref) instead of calling the [`SegmentedLSE`](@ref) constructor directly.
+
+See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`lse_aggregation`](@ref),
+    [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref).
+"""
 struct SegmentedLSE{T, V <: AbstractVector{T}} <: AggregationOperator{T}
     ψ::V
     ρ::V
@@ -6,7 +24,8 @@ end
 
 Flux.@functor SegmentedLSE
 
-_SegmentedLSE(d::Int) = SegmentedLSE(randn(Float32, d), zeros(Float32, d))
+SegmentedLSE(d::Int) = SegmentedLSE{Float32}(d)
+SegmentedLSE{T}(d::Int) where T = SegmentedLSE(zeros(T, d), randn(T, d))
 
 Flux.@forward SegmentedLSE.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype
@@ -120,7 +139,8 @@ function segmented_lse_back(Δ, ::Missing, ψ, bags)
     Zero(), dψ, Zero(), DoesNotExist(), Zero()
 end
 
-function rrule(::typeof(segmented_lse_forw), x::AbstractMatrix, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
+function ChainRulesCore.rrule(::typeof(segmented_lse_forw),
+        x::AbstractMatrix, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
     M = _lse_precomp(x, r, bags)
     y = _segmented_lse_norm(x, ψ, r, bags, M)
     grad = Δ -> (NO_FIELDS, segmented_lse_back(Δ, y, x, ψ, r, bags, M)...)

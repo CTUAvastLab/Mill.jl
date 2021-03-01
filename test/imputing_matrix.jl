@@ -136,7 +136,7 @@ end
 end
 
 @testset "correct post imputing behavior for maybe hot vector" begin
-    for (m, n) in product(fill((2, 5, 10, 20), 2)...)
+    for (m, n) in product(fill((2, 5, 10), 2)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -153,7 +153,7 @@ end
 end
 
 @testset "correct post imputing behavior for maybe hot matrix" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -178,7 +178,7 @@ end
 end
 
 @testset "correct post imputing behavior for ngram matrix" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -208,7 +208,7 @@ end
 end
 
 @testset "imputing matrix * full vector gradient testing" begin
-    for (m, n) in product(fill((2, 5, 10, 20), 2)...)
+    for (m, n) in product(fill((2, 5, 10), 2)...)
         b = randn(n)
         W = randn(m, n)
 
@@ -249,7 +249,7 @@ end
 end
 
 @testset "imputing matrix * full matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         B = randn(n, k)
         W = randn(m, n)
 
@@ -290,7 +290,7 @@ end
 end
 
 @testset "post imputing matrix * full maybe hot vector gradient testing" begin
-    for (m, n) in product(fill((2, 5, 10, 20), 2)...), i in [rand(1:n) for _ in 1:3]
+    for (m, n) in product(fill((2, 5, 10), 2)...), i in [rand(1:n) for _ in 1:3]
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -314,7 +314,7 @@ end
 end
 
 @testset "post imputing matrix * full maybe hot matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...), I in [rand(1:n, k) for _ in 1:3]
+    for (m, n, k) in product(fill((2, 5, 10), 3)...), I in [rand(1:n, k) for _ in 1:3]
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -338,7 +338,7 @@ end
 end
 
 @testset "post imputing matrix * full ngram matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -363,7 +363,7 @@ end
 end
 
 @testset "post imputing matrix * empty maybe hot vector gradient testing" begin
-    for (m, n) in product(fill((2, 5, 10, 20), 2)...)
+    for (m, n) in product(fill((2, 5, 10), 2)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -387,7 +387,7 @@ end
 end
 
 @testset "post imputing matrix * empty maybe hot matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -411,7 +411,7 @@ end
 end
 
 @testset "post imputing matrix * empty ngram matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -436,7 +436,7 @@ end
 end
 
 @testset "post imputing matrix * mixed maybe hot matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -464,7 +464,7 @@ end
 end
 
 @testset "post imputing matrix * mixed ngram matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -492,7 +492,7 @@ end
 end
 
 @testset "pre imputing matrix * empty vector gradient testing" begin
-    for (m, n) in product(fill((1, 5, 10, 20), 2)...)
+    for (m, n) in product(fill((1, 5, 10), 2)...)
         W = randn(m, n)
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
@@ -515,7 +515,7 @@ end
 end
 
 @testset "pre imputing matrix * empty missing matrix gradient testing" begin
-    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((1, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
@@ -538,7 +538,7 @@ end
 end
 
 @testset "pre imputing matrix * mixed vector gradient testing" begin
-    for (m, n) in product(fill((1, 5, 10, 20), 2)...)
+    for (m, n) in product(fill((1, 5, 10), 2)...)
         W = randn(m, n)
         ψ = randn(n)
         b = Vector{Union{Float64, Missing}}(randn(n))
@@ -552,7 +552,7 @@ end
 end
 
 @testset "pre imputing matrix * mixed matrix gradient testing" begin
-    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((1, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(n)
         B = Matrix{Union{Float64, Missing}}(randn(n, k))
@@ -577,7 +577,7 @@ end
         end
     end
 
-    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...)
+    for (m, n, k) in product(fill((1, 5, 10), 3)...)
         # https://github.com/FluxML/Flux.jl/issues/1479
         if m == 1 || n == 1 || k == 1
             continue
@@ -630,6 +630,36 @@ end
         X = maybehotbatch(S, 1:n)
         check(d, X, false, true)
     end
+end
+
+@testset "broadcasting" begin
+    function check(A::T, W, ψ) where T
+        @test A .+ A == T(W .+ W, ψ .+ ψ)
+        @test A .- A == T(W .- W, ψ .- ψ)
+        @test A .- 1 == T(W .- 1, ψ .- 1) == -1 .+ A
+        @test 2 .* A == T(2 .* W, 2 .* ψ) == A .* 2
+        @test A .+ A .+ A == 3 .* A == A .* 3
+        A .+= A
+        @test A == T(W .+ W, ψ .+ ψ)
+        A .-= 2 .* A
+        @test A == T(-2 .* W, -2 .* ψ)
+        A .*= -1
+        @test A == T(2 .* W, 2 .* ψ)
+    end
+
+    W = randn(3, 3)
+    ψ = randn(3)
+    A1 = PreImputingMatrix(W, ψ)
+    check(A1, copy(W), copy(ψ))
+    A2 = PostImputingMatrix(W, ψ)
+    check(A2, copy(W), copy(ψ))
+
+    @test_throws MethodError A1 .+ W
+    @test_throws MethodError W .+ A1
+    @test_throws MethodError A2 .+ W
+    @test_throws MethodError W .+ A2
+    @test A1 .+ A2 isa Matrix
+    @test A2 .* A1 isa Matrix
 end
 
 @testset "imputing Dense construction" begin

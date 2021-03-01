@@ -1,38 +1,77 @@
-struct ProductNode{T,C} <: AbstractProductNode
+"""
+    ProductNode{T, C} <: AbstractProductNode
+
+Data node representing a Cartesian product of several spaces each represented by subtree stored in iterable of type `T`. May store metadata of type `C`.
+
+See also: [`AbstractProductNode`](@ref), [`AbstractNode`](@ref), [`ProductModel`](@ref).
+"""
+struct ProductNode{T, C} <: AbstractProductNode
     data::T
     metadata::C
 
-    function ProductNode{T,C}(data::T, metadata::C) where {T, C}
+    function ProductNode{T, C}(data::T, metadata::C) where {T, C}
         @assert(length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data),
                 "All subtrees must have an equal amount of instances!")
-        new(data, metadata)
+        new{T, C}(data, metadata)
     end
 end
 
-ProductNode(data::T) where {T} = ProductNode{T, Nothing}(data, nothing)
-ProductNode(data::T, metadata::C) where {T, C} = ProductNode{T, C}(data, metadata)
+"""
+    ProductNode(ds, m=nothing)
+
+Construct a new [`ProductNode`](@ref) with data `ds`, and metadata `m`. `ds` should be an iterable (preferably `Tuple` or `NamedTuple`) and all its elements must contain the same number of observations.
+
+# Examples
+```jldoctest
+julia> ProductNode((ArrayNode(zeros(2, 2)), ArrayNode(Flux.onehotbatch([1, 2], 1:2))))
+ProductNode with 2 obs
+  ├── ArrayNode(2×2 Array with Float64 elements) with 2 obs
+  └── ArrayNode(2×2 OneHotMatrix with Bool elements) with 2 obs
+
+julia> ProductNode((x1 = ArrayNode(NGramMatrix(["Hello", "world"])),
+                    x2 = BagNode(ArrayNode([1 2; 3 4]), [1:3, 4:4])))
+ProductNode with 2 obs
+  ├── x1: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+  └── x2: BagNode with 2 obs
+            └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+
+julia> ProductNode((ArrayNode([1 2; 3 4]), ArrayNode([1; 3])))
+ERROR: AssertionError: All subtrees must have an equal amount of instances!
+[...]
+```
+
+See also: [`AbstractProductNode`](@ref), [`AbstractNode`](@ref), [`ProductModel`](@ref).
+"""
+ProductNode(ds::T) where {T} = ProductNode{T, Nothing}(ds, nothing)
+ProductNode(ds::T, m::C) where {T, C} = ProductNode{T, C}(ds, m)
 
 Flux.@functor ProductNode
 
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
+dropmeta(x::ProductNode) = ProductNode(x.data)
+
 Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
 Base.keys(x::ProductNode) = keys(x.data)
 
-Base.ndims(x::AbstractProductNode) = Colon()
-StatsBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
-StatsBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
-
-function _cattrees(as::Vector{<:Tuple})
-    @assert all(length.(as) .== length(as[1]))
-    tuple([reduce(catobs, [a[i] for a in as]) for i in eachindex(as[1])]...)
+_length_error() = ArgumentError("Trying to `catobs` `ProductNode`s with different subtrees") |> throw
+function _check_length(as::Vector{<:Tuple})
+    if any(length.(as) .!= length(as[1]))
+        _length_error()
+    end
 end
-function _cattrees(as::Vector{<:NamedTuple{K}}) where K
-    (; [k => reduce(catobs, getindex.(as, k)) for k in K]...) 
+function _check_length(as::Vector{<:NamedTuple{K}}) where K end
+_check_length(as) = _length_error()
+
+_cattrees(as::Vector{T}) where T <: Tuple = convert(T, tuple(reduce.(catobs, zip(as...))...))
+function _cattrees(as::Vector{T}) where {K, T <: NamedTuple{K}}
+    convert(T, (; [k => reduce(catobs, getindex.(as, k)) for k in K]...))
 end
 
-function reduce(::typeof(catobs), as::Vector{T}) where {T <: ProductNode}
-    d = _cattrees(data.(as))
+function reduce(::typeof(catobs), as::Vector{<:ProductNode})
+    d = data.(as)
+    _check_length(d)
+    d = _cattrees(d)
     md = reduce(catobs, metadata.(as))
     ProductNode(d, md)
 end

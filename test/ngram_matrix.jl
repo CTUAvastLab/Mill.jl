@@ -103,14 +103,32 @@ end
     M2 = NGramMatrix(S2)
     M3 = NGramMatrix(S3)
 
-    @test isequal(hcat(M1, M2), NGramMatrix(vcat(S1, S2)))
-    @test isequal(hcat(M1, M3), NGramMatrix(vcat(S1, S3)))
-    @test isequal(hcat(M2, M3), NGramMatrix(vcat(S2, S3)))
-    @test isequal(hcat(M1, M2, M3), NGramMatrix(vcat(S1, S2, S3)))
+    @test areequal(hcat(M1, M2), reduce(hcat, [M1, M2]), NGramMatrix(vcat(S1, S2)))
+    @test areequal(hcat(M1, M3), reduce(hcat, [M1, M3]), NGramMatrix(vcat(S1, S3)))
+    @test areequal(hcat(M2, M3), reduce(hcat, [M2, M3]), NGramMatrix(vcat(S2, S3)))
+    @test areequal(hcat(M1, M2, M3), reduce(hcat, [M1, M2, M3]), NGramMatrix(vcat(S1, S2, S3)))
+
+    @inferred hcat(M1, M1)
+    @inferred reduce(hcat, [M1, M1])
+    @inferred hcat(M2, M2)
+    @inferred reduce(hcat, [M2, M2])
+    @inferred hcat(M3, M3)
+    @inferred reduce(hcat, [M3, M3])
+    @inferred hcat(M1, M2)
+    @inferred reduce(hcat, [M1, M2])
+    @inferred hcat(M2, M3)
+    @inferred reduce(hcat, [M2, M3])
+    @inferred hcat(M3, M1)
+    @inferred reduce(hcat, [M3, M1])
+    @inferred hcat(M1, M2, M3)
+    @inferred reduce(hcat, [M1, M2, M3])
 
     @test_throws DimensionMismatch hcat(NGramMatrix(S1, 1), NGramMatrix(S1, 2))
     @test_throws DimensionMismatch hcat(NGramMatrix(S1, 2, 256), NGramMatrix(S1, 2, 128))
     @test_throws DimensionMismatch hcat(NGramMatrix(S1, 2, 256, 7), NGramMatrix(S1, 2, 256, 2053))
+    @test_throws DimensionMismatch reduce(hcat, [NGramMatrix(S1, 1), NGramMatrix(S1, 2)])
+    @test_throws DimensionMismatch reduce(hcat, [NGramMatrix(S1, 2, 256), NGramMatrix(S1, 2, 128)])
+    @test_throws DimensionMismatch reduce(hcat, [NGramMatrix(S1, 2, 256, 7), NGramMatrix(S1, 2, 256, 2053)])
 end
 
 @testset "ngram computation" begin
@@ -131,24 +149,20 @@ end
     end
 
     @testset "testing ngrams on vector of Ints" begin
-        @test all(ngrams(x,3,b) .== map(x -> indexes(x,b),slicer(x,3)))
-        @test all(ngrams(x,2,b) .== map(x -> indexes(x,b),slicer(x,2)))
-        @test all(ngrams(x,1,b) .== map(x -> indexes(x,b),slicer(x,1)))
+        @test ngrams(x,3,b) == map(x -> indexes(x,b),slicer(x,3))
+        @test ngrams(x,2,b) == map(x -> indexes(x,b),slicer(x,2))
+        @test ngrams(x,1,b) == map(x -> indexes(x,b),slicer(x,1))
     end
 
     @testset "testing frequency of ngrams on vector of Ints and on Strings" begin
-        @test all(countngrams(x,3,b,10) .== idx2vec(map(x -> indexes(x,b), slicer(x,3)), 10))
+        @test countngrams(x,3,b,10) == idx2vec(map(x -> indexes(x,b), slicer(x,3)), 10)
         for s in split("Lorem ipsum dolor sit amet, consectetur adipiscing elit")
-            @test all(countngrams(s,3,256,10) .== idx2vec(ngrams(s,3,256),10))
+            @test countngrams(s,3,256,10) == idx2vec(ngrams(s,3,256),10)
         end
 
         s = split("Lorem ipsum dolor sit amet, consectetur adipiscing elit")
-        @test all(countngrams(s,3,256,10) .== hcat(map(ss -> idx2vec(ngrams(ss,3,256), 10),s)...))
+        @test countngrams(s,3,256,10) == hcat(map(ss -> idx2vec(ngrams(ss,3,256), 10),s)...)
     end
-end
-
-@testset "string2ngrams" begin
-    @test size(string2ngrams(["", "a"], 3, 256, 2053)) == (2053,2)
 end
 
 @testset "NGramMatrix to SparseMatrix" begin
@@ -161,9 +175,9 @@ end
         Bi = NGramMatrix(si, n, b, m)
         Bc = NGramMatrix(sc, n, b, m)
         @test SparseMatrixCSC(B) == SparseMatrixCSC(Bi) == SparseMatrixCSC(Bc)
-        @test SparseMatrixCSC(string2ngrams(s, n, b, m)) == SparseMatrixCSC(B)
-        @test SparseMatrixCSC(string2ngrams(si, n, b, m)) == SparseMatrixCSC(Bi)
-        @test SparseMatrixCSC(string2ngrams(sc, n, b, m)) == SparseMatrixCSC(Bc)
+        @test SparseMatrixCSC(countngrams(s, n, b, m)) == SparseMatrixCSC(B)
+        @test SparseMatrixCSC(countngrams(si, n, b, m)) == SparseMatrixCSC(Bi)
+        @test SparseMatrixCSC(countngrams(sc, n, b, m)) == SparseMatrixCSC(Bc)
     end
 end
 
@@ -172,14 +186,14 @@ end
         b = 256
         A = randn(10, m)
 
-        s = ["hello", "world", "!!!"]
+        s = [randstring(100) for _ in 1:10]
         si = map(codeunits, s)
         sc = map(i -> Int.(i), si)
         B = NGramMatrix(s, n, b, m)
         Bi = NGramMatrix(si, n, b, m)
         Bc = NGramMatrix(sc, n, b, m)
 
-        @test all(A * B ≈ A * string2ngrams(s, n, b, m))
+        @test all(A * B ≈ A * countngrams(s, n, b, m))
         @test all(A * Bi ≈ A * B)
         @test all(A * Bc ≈ A * B)
 
@@ -202,12 +216,12 @@ end
         b = 256
         A = randn(10, m)
 
-        s = ["hello", "world", "!!!"]
+        s = [randstring(100) for _ in 1:10]
         si = map(codeunits, s)
         sc = map(i -> Int.(i), si)
-        Ns = string2ngrams(s, n, b, m)
-        Nsi = string2ngrams(si, n, b, m)
-        Nsc = string2ngrams(sc, n, b, m)
+        Ns = countngrams(s, n, b, m)
+        Nsi = countngrams(si, n, b, m)
+        Nsc = countngrams(sc, n, b, m)
         B = NGramMatrix(s, n, b, m)
         Bi = NGramMatrix(si, n, b, m)
         Bc = NGramMatrix(sc, n, b, m)
@@ -244,20 +258,32 @@ end
     end
 end
 
+@testset "NGramMatrix multiplication second derivative" begin
+    for (n, m) in product([2, 3], [10, 100])
+        s = [randstring(10) for _ in 1:10]
+        B = NGramMatrix(s, n, 256, m)
+        A = randn(10, m)
+        @test grad(central_fdm(5, 1), A -> sum(sin.(A * B)), A)[1] ≈
+            gradient(A -> sum(sin.(A * B)), A)[1] atol = 1e-5
+        f = A -> sum(sin.(gradient(A -> sum(sin.(A * B)), A)[1]))
+        @test grad(central_fdm(5, 1), f, A)[1] ≈ gradient(f, A)[1] atol = 1e-5
+    end
+end
+
 @testset "integration with MILL & Flux" begin
     s = ["hello", "world", "!!!"]
     si = map(i -> Int.(codeunits(i)), s)
     for (a, s) in [(NGramMatrix(s, 3, 256, 2057), s), (NGramMatrix(si, 3, 256, 2057), si)]
-        @test all(reduce(catobs, [a, a]).s .== vcat(s,s))
-        @test all(hcat(a,a).s .== vcat(s,s))
+        @test reduce(catobs, [a, a]).s == vcat(s,s)
+        @test hcat(a,a).s == vcat(s,s)
 
         W = randn(40, 2057)
         @test gradcheck(x -> sum(x * a), W)
 
         a = ArrayNode(a, nothing)
-        @test all(reduce(catobs, [a, a]).data.s .== vcat(s,s))
+        @test reduce(catobs, [a, a]).data.s == vcat(s,s)
         a = BagNode(a, [1:3], nothing)
-        @test all(reduce(catobs, [a, a]).data.data.s .== vcat(s,s))
+        @test reduce(catobs, [a, a]).data.data.s == vcat(s,s)
     end
 end
 
@@ -285,13 +311,13 @@ begin
     A = randn(80,2053);
     s = [randstring(10) for i in 1:1000];
     B = NGramMatrix(s, 3, 256, 2053)
-    C = sparse(string2ngrams(s, 3, 256, size(A, 2)));
+    C = sparse(countngrams(s, 3, 256, size(A, 2)));
     println("A * B::NGramMatrix (This should be the fastest)");
     @btime A*B;                                                 # 526.456 μs (2002 allocations: 671.95 KiB)
-    println("A * string2ngrams(s, 3, 256, size(A, 2))")
-    @btime A*string2ngrams(s, 3, 256, size(A, 2));                   # 154.646 ms (3013 allocations: 16.38 MiB)
-    println("A * sparse(string2ngrams(s, 3, 256, size(A, 2)))")
-    @btime A*sparse(string2ngrams(s, 3, 256, size(A, 2)));           # 7.525 ms (3013 allocations: 16.57 MiB)
-    print("A * C where C = sparse(string2ngrams(s, 3, 256, size(A, 2)));");
+    println("A * countngrams(s, 3, 256, size(A, 2))")
+    @btime A * countngrams(s, 3, 256, size(A, 2));                   # 154.646 ms (3013 allocations: 16.38 MiB)
+    println("A * sparse(countngrams(s, 3, 256, size(A, 2)))")
+    @btime A*sparse(countngrams(s, 3, 256, size(A, 2)));           # 7.525 ms (3013 allocations: 16.57 MiB)
+    print("A * C where C = sparse(countngrams(s, 3, 256, size(A, 2)));");
     @btime A*C;                                                 # 1.527 ms (2 allocations: 625.08 KiB)
 end

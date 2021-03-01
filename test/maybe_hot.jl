@@ -39,37 +39,45 @@ end
     I = [1, missing, 3, missing, 5]
     mhm = MaybeHotMatrix(I, l)
     mhm2 = MaybeHotMatrix([1,5,3], l)
-    mhvs = MaybeHotVector.(I, l)
+    mhm3 = MaybeHotMatrix(fill(missing, 4), l)
+    mhvs = [MaybeHotVector.(I, l)...]
 
-    @test all(mhv -> isequal(reduce(hcat, [mhv]), MaybeHotMatrix(mhv)), mhvs)
-    @test all(mhv -> isequal(reduce(catobs, [mhv]), MaybeHotMatrix(mhv)), mhvs)
+    @test all(mhv -> areequal(hcat(mhv), reduce(hcat, [mhv]), MaybeHotMatrix(mhv)),
+              mhvs)
 
-    @test isequal(hcat(mhm), mhm)
-    @test isequal(reduce(hcat, [mhm]), mhm)
-    @test isequal(reduce(catobs, [mhm]), mhm)
+    @test all(mhm -> areequal(hcat(mhm), reduce(hcat, [mhm]), mhm), [mhm, mhm2, mhm3])
 
-    @test isequal(hcat(mhvs...), mhm)
-    @test isequal(reduce(hcat, mhvs), mhm)
-    @test isequal(reduce(catobs, mhvs), mhm)
+    @test areequal(hcat(mhvs...), reduce(hcat, mhvs), mhm)
 
-    @test isequal(hcat(mhm, mhm), hcat(mhvs..., mhvs...))
-    @test isequal(hcat(mhm, mhm), hcat(mhm, mhvs...))
-    @test isequal(hcat(mhm, mhm), hcat(mhvs..., mhm))
+    @test areequal(hcat(mhm, mhm),
+                   reduce(hcat, [mhm, mhm]),
+                   hcat(mhvs..., mhvs...),
+                   reduce(hcat, [mhvs..., mhvs...]),
+                   MaybeHotMatrix(vcat(I, I), l))
 
-    @test isequal(hcat(mhm, mhm2), hcat(mhvs..., mhm2))
+    @test areequal(hcat(mhm, mhm2), reduce(hcat, [mhm, mhm2]), MaybeHotMatrix(vcat(mhm.I, mhm2.I), l))
+    @test areequal(hcat(mhm, mhm3), reduce(hcat, [mhm, mhm3]), MaybeHotMatrix(vcat(mhm.I, mhm3.I), l))
+    @test areequal(hcat(mhm3, mhm2), reduce(hcat, [mhm3, mhm2]), MaybeHotMatrix(vcat(mhm3.I, mhm2.I), l))
 
     @inferred hcat(mhm)
-    @inferred reduce(catobs, [mhm])
-    @inferred hcat(mhm, mhm)
-    @inferred reduce(catobs, [mhm, mhm])
+    @inferred reduce(hcat, [mhm])
+    @inferred hcat(mhm2)
+    @inferred reduce(hcat, [mhm2])
+    @inferred hcat(mhm3)
+    @inferred reduce(hcat, [mhm3])
+    @inferred hcat(mhm, mhm2)
+    @inferred reduce(hcat, [mhm, mhm2])
+    @inferred hcat(mhm, mhm3)
+    @inferred reduce(hcat, [mhm, mhm3])
+    @inferred hcat(mhm, mhm2, mhm3)
+    @inferred reduce(hcat, [mhm, mhm2, mhm3])
+    @inferred hcat(mhvs...)
+    @inferred reduce(hcat, mhvs)
 
     @test_throws DimensionMismatch hcat(MaybeHotVector.([1, 2], [l, l+1])...)
     @test_throws DimensionMismatch hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
-    @test_throws DimensionMismatch reduce(catobs, MaybeHotVector.([1, 2], [l, l+1]))
-    @test_throws DimensionMismatch reduce(catobs, MaybeHotMatrix.([[1], [2, 3]], [l, l+1]))
-
-    @test_throws ArgumentError reduce(hcat, MaybeHotVector[])
-    @test_throws ArgumentError reduce(hcat, MaybeHotMatrix[])
+    @test_throws DimensionMismatch reduce(hcat, MaybeHotVector.([1, 2], [l, l+1]))
+    @test_throws DimensionMismatch reduce(hcat, MaybeHotMatrix.([[1], [2, 3]], [l, l+1]))
 end
 
 @testset "indexing" begin
