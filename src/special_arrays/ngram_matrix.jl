@@ -390,18 +390,22 @@ end
 
 _mul_vec!(C, k, A, z, s::AbstractString, args...) = _mul_vec!(C, k, A, z, codeunits(s), args...)
 function _mul_vec!(C, k, A, z, s, n, b, m, ψ=nothing)
-    @inbounds for i in 1:_len(s, n)
-        z = _next_ngram(z, i, s, n, b)
-        @views C[:, k] .+= A[:, z % m + 1]
+    @inbounds for l in 1:_len(s, n)
+        z = _next_ngram(z, l, s, n, b)
+        @inbounds for i in 1:size(C, 1)
+            C[i, k] += A[i, z % m + 1]
+        end
     end
 end
 _mul_vec!(C, k, A, z, s::Missing, n, b, m, ψ=missing) = @inbounds C[:, k] .= ψ
 
 _∇A_mul_vec!(Δ, k, ∇A, z, s::AbstractString, args...) = _∇A_mul_vec!(Δ, k, ∇A, z, codeunits(s), args...)
 function _∇A_mul_vec!(Δ, k, ∇A, z, s, n, b, m)
-    @inbounds for i in 1:_len(s, n)
-        z = _next_ngram(z, i, s, n, b)
-        @views ∇A[:, z % m + 1] .+= Δ[:, k]
+    @inbounds for l in 1:_len(s, n)
+        z = _next_ngram(z, l, s, n, b)
+        @inbounds for i in 1:size(∇A, 1)
+            ∇A[i, z % m + 1] += Δ[i, k]
+        end
     end
 end
 _∇A_mul_vec!(Δ, k, ∇A, z, s::Missing, n, b, m) = return
