@@ -1,8 +1,3 @@
-@testset "creating bags" begin
-    k = [2, 2, 2, 1, 1, 3]
-    @test Mill.bags(k).bags == [1:3,4:5,6:6]
-end
-
 md2 = fill("metadata", 2)
 md3 = fill("metadata", 3)
 md4 = fill("metadata", 4)

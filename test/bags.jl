@@ -20,10 +20,11 @@
 end
 
 @testset "bags()" begin
-    @test Mill.bags(Int[]) isa AlignedBags
-    @test Mill.bags([1, 1, 1, 2, 2, 3, 3]) isa AlignedBags
-    @test Mill.bags([2, 2, 2, 1, 1, 3, 3]) isa AlignedBags
-    @test Mill.bags([1, 2, 1]) isa ScatteredBags
+    @test Mill.bags(Int[]) == AlignedBags(Int[])
+    @test Mill.bags([1, 1, 1, 2, 2, 3, 3]) == AlignedBags([1:3, 4:5, 6:7])
+    @test Mill.bags([2, 2, 2, 1, 1, 3, 3]) == AlignedBags([1:3, 4:5, 6:7])
+    @test Mill.bags([1, 2, 1]) == ScatteredBags([[1, 3], [2]])
+    @test Mill.bags([2, 2, 2, 1, 1, 3]) == AlignedBags([1:3, 4:5, 6:6])
 end
 
 @testset "length2bags" begin
