@@ -1,6 +1,6 @@
 struct VCatView{T,N} <: AbstractMatrix{T}
 	matrices::NTuple{N, Matrix{T}}
-	offsets::Tuple
+	offsets::NTuple{N + 1, Int}
 end
 
 function VCatView(xs::NTuple{N,T}) where {N, T<:Matrix}
@@ -13,13 +13,14 @@ Base.size(x::VCatView) = (x.offsets[end], size(x.matrices[1],2))
 Base.size(x::VCatView, i::Int) = i == 1 ? x.offsets[end] : size(x.matrices[1], 2)
 Base.eltype(x::VCatView{T,N}) where {T,N} = T
 band(b::VCatView, i) = b.offsets[i]+1:b.offsets[i+1]
-# function Base.getindex(x::VCatView, i, j)
-# 	offset = 0 
-# 	while x.offsets[offset+1] < i 
-# 		offset+=1;
-# 	end
-# 	x.matrices[offset][i - x.offsets[offset], j]
-# end
+
+function Base.getindex(x::VCatView, i, j)
+	offset = 0 
+	while x.offsets[offset+1] < i 
+		offset+=1;
+	end
+	x.matrices[offset][i - x.offsets[offset], j]
+end
 
 import Base.*
 
