@@ -215,7 +215,7 @@ end
 function mulkernel!(C, A, jB, mA, nA, idxs)
     for iB in idxs
         miB = mod(iB, nA) + 1
-        @avx for iA in 1:mA
+        @inbounds for iA in 1:mA
             C[iA, jB] += A[iA, miB]
         end
     end
@@ -227,7 +227,7 @@ function mulkernel!(C, A, jB, mA, nA, s, N, B)
     for j in 1:l
         iB = nextgram(s, iB, j, N, B)
         miB = mod(iB, nA) + 1
-        @avx for iA in 1:mA
+        @inbounds for iA in 1:mA
             C[iA, jB] += A[iA, miB]
         end
     end
@@ -239,10 +239,14 @@ function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T<:AbstractString}
     @assert nA == size(B,1)
     nB = length(B)
     C = zeros(eltype(A), mA, nB)
-    for jB in 1:length(B)
-        # mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
-        mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
+    Threads.@threads for p in 1:ceil(Int, length(B) / 10)
+        for jB in (p-1)*10+1:min(p*10, length(B))
+            mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
+        end
     end
+    # for jB in 1:length(B)
+        # mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
+    # end
     return C
 end
 
@@ -251,10 +255,15 @@ function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T}
     @assert nA == size(B,1)
     nB = length(B)
     C = zeros(eltype(A), mA, nB)
-    for jB in 1:length(B)
-        # mulkernel!(C, A, jB, mA, nA, NGramIterator(B, jB))
-        mulkernel!(C, A, jB, mA, nA, B.s[jB], B.n, B.b)
+    parts = collect(Iterators.partition(1:length(B), 10))
+    Threads.@threads for p in 1:length(parts)
+        for jB in parts[p]
+            mulkernel!(C, A, jB, mA, nA, B.s[jB], B.n, B.b)
+        end
     end
+    # for jB in 1:length(B)
+    #     mulkernel!(C, A, jB, mA, nA, B.s[jB], B.n, B.b)
+    # end
     return C
 end
 
