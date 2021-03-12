@@ -9,6 +9,7 @@ using Zygote
 using HierarchicalUtils
 using ThreadsX
 using ThreadTools
+using ThreadPools
 using LoopVectorization
 using Zygote: @adjoint
 using LinearAlgebra

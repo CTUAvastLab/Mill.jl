@@ -1,13 +1,12 @@
-struct VCatView{T,N} <: AbstractMatrix{T}
+struct VCatView{T,N,M} <: AbstractMatrix{T}
 	matrices::NTuple{N, Matrix{T}}
-	offsets::NTuple{N + 1, Int}
+	offsets::NTuple{M, Int}
 end
 
 function VCatView(xs::NTuple{N,T}) where {N, T<:Matrix}
 	offsets = (0, accumulate(+, map(x -> size(x,1), xs))...)
 	VCatView(xs, offsets)
 end
-
 
 Base.size(x::VCatView) = (x.offsets[end], size(x.matrices[1],2))
 Base.size(x::VCatView, i::Int) = i == 1 ? x.offsets[end] : size(x.matrices[1], 2)
@@ -43,8 +42,16 @@ end
 @adjoint function *(a::Matrix, b::VCatView)
   return a * b, Δ-> begin 
   		matrices = map(1:length(b.matrices)) do i 
-			view(a,:,band(b, i))' * Δ
+			view(a,:, band(b, i))' * Δ
 		end
 		(Δ * b', VCatView(tuple(matrices...), b.offsets))
+	end
+end
+
+@adjoint function VCatView(xs::NTuple{N,T}) where {N, T<:Matrix}
+	offsets = (0, accumulate(+, map(x -> size(x,1), xs))...)
+	VCatView(xs, offsets), Δ -> begin 
+		# @show typeof(Δ.matrices)
+		(Δ.matrices, )
 	end
 end

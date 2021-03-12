@@ -23,8 +23,20 @@ Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel{P,T}) where {P<:NamedTuple,T} = keys(m.ms)
 Base.keys(m::ProductModel{P,T}) where {P<:Tuple,T} = 1:length(m.ms)
 
-function (m::ProductModel)(x::ProductNode)
-    length(m.ms) == 1 && return(m.m(m.ms[1](x.data[1])))
-    xs = ThreadsX.map(i -> m.ms[i](x.data[i]), keys(m))
-    m.m(vcat(xs...))
+function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:Tuple,T,MS<:Tuple, M} 
+    xx = ArrayNode(vcat([m.ms[i](x.data[i]) |> data for i in 1:length(m.ms)]...))
+    m.m(xx)
+end
+
+function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:NamedTuple,T,MS<:NamedTuple, M} 
+    ks = Zygote.@ignore collect(keys(m.ms))
+    if length(ks) == 1 
+        child_m, child_ds = only(m.ms), only(x.data)
+        return(m.m(child_m(child_ds)))
+    end
+    # xs = ThreadPools.qmap(k -> m.ms[k](x.data[k]).data, ks)
+    # xs = ThreadTools.tmap(k -> m.ms[k](x.data[k]).data, ks)
+    xs = ThreadsX.map(k -> m.ms[k](x.data[k]).data, ks)
+    xx = ArrayNode(VCatView(tuple(xs...)))
+    m.m(xx)
 end

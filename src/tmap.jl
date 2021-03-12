@@ -36,5 +36,25 @@ function ∇ttmap(cx, f, args...)
 end
 
 Zygote.@adjoint function ThreadTools.tmap(f, args::Union{AbstractArray,Tuple}...)
-    ∇ttmap(__context__, f, args...)
+    ∇qmap(__context__, f, args...)
+end
+
+function ∇qmap(cx, f, args::Vector)
+    ys_and_backs = ThreadPools.qmap((args...) -> Zygote._pullback(cx, f, args...), args)
+    if isempty(ys_and_backs)
+      ys_and_backs, _ -> nothing
+    else
+      ys, backs = Zygote.unzip(ys_and_backs)
+      ys, function (Δ)
+        # Apply pullbacks in reverse order. Needed for correctness if `f` is stateful.
+        Δf_and_args_zipped = ThreadPools.qmap((f, δ) -> f(δ), Zygote._tryreverse(ThreadPools.qmap, backs, Δ)...)
+        Δf_and_args = Zygote.unzip(Zygote._tryreverse(ThreadPools.qmap, Δf_and_args_zipped))
+        Δf = reduce(Zygote.accum, Δf_and_args[1])
+        (Δf, Δf_and_args[2:end]...)
+      end
+    end
+end
+
+Zygote.@adjoint function ThreadPools.qmap(f, args)
+    ∇qmap(__context__, f, args)
 end
