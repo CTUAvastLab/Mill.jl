@@ -38,7 +38,7 @@ function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:NamedTuple,T,MS<
     # xs = ThreadTools.tmap(k -> m.ms[k](x.data[k]).data, ks)
     xs = ThreadsX.map(k -> m.ms[k](x.data[k]).data, ks)
     # xs = map(k -> m.ms[k](x.data[k]).data, ks)
-    # xx = ArrayNode(vcat(xs...))
-    xx = ArrayNode(VCatView(tuple(xs...)))
+    xx = ArrayNode(vcat(xs...))
+    # xx = ArrayNode(VCatView(tuple(xs...)))
     m.m(xx)
 end
