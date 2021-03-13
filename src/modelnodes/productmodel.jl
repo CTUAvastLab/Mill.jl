@@ -34,11 +34,11 @@ function (m::ProductModel{MS,M})(x::ProductNode{P,T}) where {P<:NamedTuple,T,MS<
         child_m, child_ds = only(m.ms), only(x.data)
         return(m.m(child_m(child_ds)))
     end
+    # xs = map(k -> m.ms[k](x.data[k]).data, ks)
     # xs = ThreadPools.qmap(k -> m.ms[k](x.data[k]).data, ks)
     # xs = ThreadTools.tmap(k -> m.ms[k](x.data[k]).data, ks)
     xs = ThreadsX.map(k -> m.ms[k](x.data[k]).data, ks)
-    # xs = map(k -> m.ms[k](x.data[k]).data, ks)
-    xx = ArrayNode(vcat(xs...))
-    # xx = ArrayNode(VCatView(tuple(xs...)))
+    # xx = ArrayNode(vcat(xs...))
+    xx = ArrayNode(VCatView(tuple(xs...)))
     m.m(xx)
 end
