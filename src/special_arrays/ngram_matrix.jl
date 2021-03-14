@@ -240,7 +240,7 @@ has `m` rows and one column for representing each sequence. Missing sequences ar
 See also: [`NGramIterator`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countngrams`](@ref),
     [`countngrams!`](@ref).
 """
-struct NGramMatrix{T, U <: AbstractVector{T}, V} <: AbstractMatrix{V}
+struct NGramMatrix{T, U, V} <: AbstractMatrix{V}
     s::U
     n::Int
     b::Int
@@ -256,6 +256,11 @@ struct NGramMatrix{T, U <: AbstractVector{T}, V} <: AbstractMatrix{V}
 
     function NGramMatrix(s::AbstractVector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Maybe{Sequence}
         new{T, typeof(s), Maybe{Int}}(s, n, b, m)
+    end
+
+    function NGramMatrix{T, U, V}(s, n::Int=3, b::Int=256, m::Int=2053) where
+            {T <: Maybe{Sequence}, U <: AbstractVector{T}, V <: Maybe{Int}}
+        new{T, U, V}(convert(U, s), n, b, m)
     end
 end
 
@@ -299,9 +304,16 @@ function Base.convert(::Type{<:NGramMatrix{T, U}}, A::NGramMatrix) where {T, U <
     NGramMatrix(convert(U, A.s), A.n, A.b, A.m)
 end
 
-function Base.promote_rule(::Type{NGramMatrix{T, U, V}}, ::Type{NGramMatrix{A, B, W}}) where {T, A, U, B, V, W}
-    NGramMatrix{promote_type(T, A), promote_type(U, B), promote_type(V, W)}
+function Base.promote_rule(::Type{NGramMatrix{T, U, V}}, ::Type{NGramMatrix{A, B, C}}) where
+    {T, A, U, B, V, C}
+    NGramMatrix{promote_type(T, A), promote_type(U, B), promote_type(V, C)}
 end
+function Base.promote_rule(::Type{<:NGramMatrix{Missing, U, V}}, ::Type{<:NGramMatrix{A, B, C}}) where
+    {A <: Sequence, U, B, V, C}
+    X = Union{Missing, A}
+    NGramMatrix{X, promote_type(U, B){X}, promote_type(V, C)}
+end
+Base.promote_rule(t1::Type{<:NGramMatrix{<:Sequence}}, t2::Type{<:NGramMatrix{Missing}}) = promote_rule(t2, t1)
 
 function _check_nbm(As::AbstractVecOrTuple{NGramMatrix})
     n, b, m = As[1].n, As[1].b, As[1].m
@@ -316,7 +328,13 @@ function _check_nbm(As::AbstractVecOrTuple{NGramMatrix})
 end
 
 Base.hcat(As::T...) where T <: NGramMatrix = _typed_hcat(T, As)
-Base.hcat(As::NGramMatrix...) = _typed_hcat(_promote_types(As...), As)
+# Base.hcat(As::NGramMatrix...) = _typed_hcat(_promote_types(As...), As)
+function Base.hcat(As::NGramMatrix...)
+    @show As
+    @show _promote_types(As...)
+    @show typeof.(As)
+    _typed_hcat(_promote_types(As...), As)
+end
 function _typed_hcat(::Type{T}, As::Tuple{Vararg{NGramMatrix}}) where T <: NGramMatrix
     T(vcat(getfield.(As, :s)...), _check_nbm(As)...)
 end
