@@ -222,7 +222,7 @@ See also: [`countngrams!`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref),
     [`NGramMatrix`](@ref), [`NGramIterator`](@ref).
 """
 countngrams(x, n, b, m) = countngrams!(zeros(Int, m), x, n, b)
-function countngrams(x::Vector{<:Sequence}, n, b, m)
+function countngrams(x::AbstractVector{<:Sequence}, n, b, m)
     o = zeros(Int, m, length(x))
     for (i, s) in enumerate(x)
         countngrams!(view(o, :, i), x[i], n, b, m)
@@ -240,40 +240,38 @@ has `m` rows and one column for representing each sequence. Missing sequences ar
 See also: [`NGramIterator`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countngrams`](@ref),
     [`countngrams!`](@ref).
 """
-struct NGramMatrix{T, U} <: AbstractMatrix{U}
-    s::Vector{T}
+struct NGramMatrix{T, U <: AbstractVector{T}, V} <: AbstractMatrix{V}
+    s::U
     n::Int
     b::Int
     m::Int
 
-    function NGramMatrix(s::Vector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Sequence
-        new{T, Int}(s, n, b, m)
+    function NGramMatrix(s::AbstractVector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Sequence
+        new{T, typeof(s), Int}(s, n, b, m)
     end
 
-    NGramMatrix(s::Vector{Missing}, n::Int=3, b::Int=256, m::Int=2053) = new{Missing, Missing}(s, n, b, m)
-
-    function NGramMatrix(s::Vector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Maybe{Sequence}
-        new{T, Maybe{Int}}(s, n, b, m)
+    function NGramMatrix(s::AbstractVector{Missing}, n::Int=3, b::Int=256, m::Int=2053)
+        new{Missing, typeof(s), Missing}(s, n, b, m)
     end
 
-    function NGramMatrix{T, U}(s, n::Int=3, b::Int=256, m::Int=2053) where {T <: Maybe{Sequence}, U <: Maybe{Int}}
-        new{T, U}(convert(Vector{T}, s), n, b, m)
+    function NGramMatrix(s::AbstractVector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Maybe{Sequence}
+        new{T, typeof(s), Maybe{Int}}(s, n, b, m)
     end
 end
 
 """
     NGramMatrix(s, n=3, b=256, m=2053)
 
-Construct an [`NGramMatrix`](@ref). `s` can either be a single sequnce or a `Vector`.
+Construct an [`NGramMatrix`](@ref). `s` can either be a single sequence or any `AbstractVector`.
 
 # Examples
 ```jldoctest
 julia> NGramMatrix([1,2,3])
-2053×1 NGramMatrix{Array{Int64,1},Int64}:
+2053×1 NGramMatrix{Array{Int64,1},Array{Array{Int64,1},1},Int64}:
  [1, 2, 3]
 
 julia> NGramMatrix(["a", missing, "c"], 2, 128)
-2053×3 NGramMatrix{Union{Missing, String},Union{Missing, Int64}}:
+2053×3 NGramMatrix{Union{Missing, String},Array{Union{Missing, String},1},Union{Missing, Int64}}:
  "a"
  missing
  "c"
@@ -291,18 +289,18 @@ Base.size(A::NGramMatrix) = (A.m, length(A.s))
 Base.size(A::NGramMatrix, d) = (d == 1) ? A.m : length(A.s)
 
 Base.getindex(X::NGramMatrix, idcs...) = (@boundscheck checkbounds(X, idcs...); _getindex(X, idcs...))
-_getindex(X::NGramMatrix, ::Colon, i::Integer) = NGramMatrix([X.s[i]], X.n, X.b, X.m)
+_getindex(X::NGramMatrix, ::Colon, i::Integer) = NGramMatrix(X.s[[i]], X.n, X.b, X.m)
 _getindex(X::NGramMatrix, ::Colon, i::AbstractArray) = NGramMatrix(X.s[i], X.n, X.b, X.m)
 _getindex(X::NGramMatrix, ::Colon, ::Colon) = NGramMatrix(X.s[:], X.n, X.b, X.m)
 
 subset(a::NGramMatrix, i) = NGramMatrix(a.s[i], a.n, a.b, a.m)
 
-function Base.convert(::Type{<:NGramMatrix{T}}, A::NGramMatrix) where T
-    NGramMatrix(convert(Vector{T}, A.s), A.n, A.b, A.m)
+function Base.convert(::Type{<:NGramMatrix{T, U}}, A::NGramMatrix) where {T, U <: AbstractVector{T}}
+    NGramMatrix(convert(U, A.s), A.n, A.b, A.m)
 end
 
-function Base.promote_rule(::Type{NGramMatrix{T, U}}, ::Type{NGramMatrix{A, B}}) where {T, A, U, B}
-    NGramMatrix{promote_type(T, A), promote_type(U, B)}
+function Base.promote_rule(::Type{NGramMatrix{T, U, V}}, ::Type{NGramMatrix{A, B, W}}) where {T, A, U, B, V, W}
+    NGramMatrix{promote_type(T, A), promote_type(U, B), promote_type(V, W)}
 end
 
 function _check_nbm(As::AbstractVecOrTuple{NGramMatrix})

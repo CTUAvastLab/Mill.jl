@@ -15,7 +15,7 @@ using Flux: onehot, onehotbatch
 using FiniteDifferences
 using Random
 using Combinatorics
-using SparseArrays
+using SparseArrays, PooledArrays
 using DataFrames
 using HierarchicalUtils
 

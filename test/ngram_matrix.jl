@@ -10,7 +10,7 @@ end
 
 @testset "NGramMatrix construction types and basics" begin
     M1 = NGramMatrix(["hello", "world"])
-    M2 = NGramMatrix(["a part", "is", missing])
+    M2 = NGramMatrix(["a part", "is", missing] |> PooledArray)
     M3 = NGramMatrix([missing, missing])
     @test M1 isa NGramMatrix{String}
     @test M1 isa AbstractMatrix{Int64}
@@ -25,7 +25,7 @@ end
 
     M1 = NGramMatrix([codeunits("hello"), codeunits("world")])
     M2 = NGramMatrix([codeunits("a part"), codeunits("is"), missing])
-    M3 = NGramMatrix([missing, missing])
+    M3 = NGramMatrix([missing, missing] |> PooledArray)
     @test M1 isa NGramMatrix{<:CodeUnits}
     @test M1 isa AbstractMatrix{Int64}
     @test M2 isa NGramMatrix{<:Union{CodeUnits, Missing}}
@@ -37,7 +37,7 @@ end
     @test size(M2) == (2053, 3)
     @test size(M3) == (2053, 2)
 
-    M1 = NGramMatrix([[1,2,3], [4,5,6]])
+    M1 = NGramMatrix([[1,2,3], [4,5,6]] |> PooledArray)
     M2 = NGramMatrix([Int[], [0], missing])
     M3 = NGramMatrix([missing, missing])
     @test M1 isa NGramMatrix{Vector{Int64}}
@@ -54,7 +54,7 @@ end
 
 @testset "Indexing" begin
     S1 = ["hello", "world"]
-    S2 = ["a part", "is", missing]
+    S2 = ["a part", "is", missing] |> PooledArray
     S3 = [missing, missing]
     M1 = NGramMatrix(S1)
     M2 = NGramMatrix(S2)
@@ -64,7 +64,7 @@ end
         @test M1[:, i] == NGramMatrix(S1[i])
     end
     for i in eachindex(S2)
-        @test isequal(M2[:, i], NGramMatrix(S2[i]))
+        @test isequal(M2[:, i], NGramMatrix([S2[i]] |> PooledArray))
     end
     for i in eachindex(S3)
         @test isequal(M3[:, i], NGramMatrix(S3[i]))
@@ -216,7 +216,7 @@ end
         b = 256
         A = randn(10, m)
 
-        s = [randstring(100) for _ in 1:10]
+        s = [randstring(100) for _ in 1:10] |> PooledArray
         si = map(codeunits, s)
         sc = map(i -> Int.(i), si)
         Ns = countngrams(s, n, b, m)

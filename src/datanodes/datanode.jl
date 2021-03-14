@@ -103,7 +103,7 @@ Similar to `Base.getindex` or `MLDataPattern.getobs` but defined for all `Mill.j
 # Examples
 ```jldoctest
 julia> Mill.subset(ArrayNode(NGramMatrix(["Hello", "world"])), 2)
-2053×1 ArrayNode{NGramMatrix{String,Int64},Nothing}:
+2053×1 ArrayNode{NGramMatrix{String,Array{String,1},Int64},Nothing}:
  "world"
 
 julia> Mill.subset(BagNode(ArrayNode(randn(2, 8)), [1:2, 3:3, 4:7, 8:8]), 1:3)
@@ -149,12 +149,12 @@ Drop metadata stored in data node `n`.
 # Examples
 ```jldoctest
 julia> n1 = ArrayNode(NGramMatrix(["foo", "bar"]), ["metafoo", "metabar"])
-2053×2 ArrayNode{NGramMatrix{String,Int64},Array{String,1}}:
+2053×2 ArrayNode{NGramMatrix{String,Array{String,1},Int64},Array{String,1}}:
  "foo"
  "bar"
 
 julia> n2 = dropmeta(n1)
-2053×2 ArrayNode{NGramMatrix{String,Int64},Nothing}:
+2053×2 ArrayNode{NGramMatrix{String,Array{String,1},Int64},Nothing}:
  "foo"
  "bar"
 
