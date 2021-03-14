@@ -328,13 +328,7 @@ function _check_nbm(As::AbstractVecOrTuple{NGramMatrix})
 end
 
 Base.hcat(As::T...) where T <: NGramMatrix = _typed_hcat(T, As)
-# Base.hcat(As::NGramMatrix...) = _typed_hcat(_promote_types(As...), As)
-function Base.hcat(As::NGramMatrix...)
-    @show As
-    @show _promote_types(As...)
-    @show typeof.(As)
-    _typed_hcat(_promote_types(As...), As)
-end
+Base.hcat(As::NGramMatrix...) = _typed_hcat(_promote_types(As...), As)
 function _typed_hcat(::Type{T}, As::Tuple{Vararg{NGramMatrix}}) where T <: NGramMatrix
     T(vcat(getfield.(As, :s)...), _check_nbm(As)...)
 end
