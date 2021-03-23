@@ -239,14 +239,14 @@ function mul(A::AbstractMatrix, B::NGramMatrix{T}) where {T<:AbstractString}
     @assert nA == size(B,1)
     nB = length(B)
     C = zeros(eltype(A), mA, nB)
-    Threads.@threads for p in 1:ceil(Int, length(B) / 10)
-        for jB in (p-1)*10+1:min(p*10, length(B))
-            mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
-        end
-    end
-    # for jB in 1:length(B)
-        # mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
+    # Threads.@threads for p in 1:ceil(Int, length(B) / 10)
+    #     for jB in (p-1)*10+1:min(p*10, length(B))
+    #         mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
+    #     end
     # end
+    for jB in 1:length(B)
+        mulkernel!(C, A, jB, mA, nA, codeunits(B.s[jB]), B.n, B.b)
+    end
     return C
 end
 

@@ -3,10 +3,10 @@ using LinearAlgebra
 using Setfield
 using ThreadPools
 using Profile, ProfileSVG
-using ChainRules
 # ccall((:openblas_get_num_threads64_, Base.libblas_name), Cint, ())
 
 deduplicatable(ds::ArrayNode) = true
+deduplicatable(ds::BagNode) = false
 function deduplicatable(ds::ProductNode)
 	all(subds isa ArrayNode for subds in ds.data)
 end
@@ -31,7 +31,7 @@ end
 function deduplicate(ds::BagNode)
 	!deduplicatable(ds.data) && return(ds)
 
-	keep = Vector{Int}()
+	keep = fill(false, Mill.nobs(ds.data))
 	item2level = Dict{Any,Int}()
 	idx2newidx = Dict{Any,Int}()
 	newidx = 1
@@ -40,7 +40,7 @@ function deduplicate(ds::BagNode)
 		if !haskey(item2level, x)
 			item2level[x] = newidx
 			newidx += 1
-			push!(keep, i)
+			keep[i] = true
 		end
 		idx2newidx[i] = item2level[x]
 	end
@@ -75,6 +75,8 @@ ps = Flux.params(m);
 @btime m(dds)								#  
 @btime gradient(() -> sum(m(ds).data), ps)  #  
 @btime gradient(() -> sum(m(ds).data), ps)  #
+@btime gradient(() -> sum(m(dds).data), ps)  #  
+@btime gradient(() -> sum(m(dds).data), ps)  #
 
 Profile.clear()
 @profile gradient(() -> sum(m(ds).data), ps)
@@ -102,19 +104,23 @@ ProfileSVG.save("/tmp/profile.svg")
 using Mill, BenchmarkTools, Serialization, Zygote, Flux
 using LinearAlgebra
 using Setfield
-using ThreadPools
+using PrayTools
 m, dss = deserialize("model_and_samples.jls")
+dss = tuple(dss...)
 ds = catobs(dss...);
 ps = Flux.params(m);
-@btime m(ds)								#
-@btime m(ds)								# 46.100 ms (3385 allocations: 27.02 MiB)
-@btime gradient(() -> sum(m(ds).data), ps)  #  
-@btime gradient(() -> sum(m(ds).data), ps)  # 130.273 ms (14561 allocations: 82.94 MiB)
+@btime m(ds)								
+@btime m(ds)								
+@btime gradient(() -> sum(m(ds).data), ps)  
+@btime gradient(() -> sum(m(ds).data), ps)  
+
+function Base.reduce(::typeof(Mill.catobs), as::Vector{T}) where {T <: Flux.OneHotMatrix{Array{Flux.OneHotVector,1}}}
+    data = reduce(vcat, map(x -> x.data, as))
+    Flux.OneHotMatrix(as[1].height, data)
+end
+@btime gradient(() -> sum(m(ds).data), ps)  
 
 
-dss = [ds[i] for i in 1:Mill.nobs(ds)];
-#time of the inference
-@btime m(ds)
-@btime ThreadPools.qmap(oneds -> m(oneds), dss)
-@btime ThreadPools.qmap(oneds -> gradient(() -> sum(m(dss).data), ps), dss)
-
+# Simulating Karel's approach to model paralelism
+pdss = map(x -> (x,), dss)
+@btime PrayTools.pgradient(x -> sum(m(x).data), ps, pdss)
