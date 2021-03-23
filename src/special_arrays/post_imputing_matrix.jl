@@ -91,9 +91,11 @@ function ChainRulesCore.rrule(::typeof(_mul_maybe_hot), W, ψ, I)
     C, m = _impute_maybe_hot(W, ψ, I)
     function ∇W(Δ)
         dW = zero(W)
-        @inbounds for (k, i) in enumerate(I)
-            if !ismissing(i)
-                @views dW[:, i] .+= Δ[:, k]
+        @inbounds for (k, j) in enumerate(I)
+            if !ismissing(j)
+                for i in 1:size(dW, 1)
+                    dW[i, j] += Δ[i, k]
+                end
             end
         end
         dW
@@ -104,10 +106,12 @@ function _impute_maybe_hot(W, ψ, I)
     m = trues(length(I))
     C = similar(ψ, size(W, 1), length(I))
     C .= ψ
-    @inbounds for (k, i) in enumerate(I)
-        if !ismissing(I[k])
-            m[k] = false
-            C[:, k] .= @view W[:, i]
+    @inbounds for (j, k) in enumerate(I)
+        if !ismissing(k)
+            m[j] = false
+            for i in 1:size(C, 1)
+                C[i, j] = W[i, k]
+            end
         end
     end
     C, m
