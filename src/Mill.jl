@@ -12,6 +12,7 @@ using Setfield
 using SparseArrays
 using Statistics
 using StatsBase
+using LightGraphs
 using Zygote
 
 using Base: CodeUnits, nameof

@@ -20,6 +20,13 @@ Supertype for any data node structure representing a multi-instance learning pro
 abstract type AbstractBagNode <: AbstractNode end
 
 """
+    AbstractGraphNode <: AbstractNode
+
+Supertype for any data node structure representing a graph learning problem.
+"""
+abstract type AbstractGraphNode <: AbstractNode end
+
+"""
     Mill.data(n::AbstractNode)
 
 Return data stored in node `n`.
@@ -262,3 +269,6 @@ end
 
 _show_data(io, n::LazyNode{Name}) where {Name} = print(io, "{", Name, "}")
 _show_data(io, _) = print(io)
+
+include("graphnode.jl")
+export GraphNode

@@ -191,3 +191,6 @@ function _reflectinmodel(ds::LazyNode{Name}, fm, fa, fsm, fsa, s, ski, ssi) wher
     pm, d = Mill._reflectinmodel(unpack2mill(ds), fm, fa, fsm, fsa, s * Mill.encode(1, 1), ski, ssi)
     LazyModel{Name}(pm), d
 end
+
+include("graphmodel.jl")
+export GraphModel
