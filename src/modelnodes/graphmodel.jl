@@ -5,9 +5,8 @@ abstract type AbstractGraphModel <: AbstractMillModel end
 struct GraphModel{V,E,M,R} <: AbstractGraphModel
 	vlifter::V
 	elifter::E
-	messager::M
+	messagers::M
 	reducer::R
-	nsteps::Int
 end
 
 edge(i,j) = Edge(min(j,i), max(j,i))
@@ -36,27 +35,27 @@ Zygote.@nograd millbags
 
 
 function (m::GraphModel)(g::GraphNode)
-	o = messagepass(m, 
+	o = messagepass(m.messagers, 
 		g, 
 		m.vlifter(g.vprops), 
-		m.elifter(g.eprops), 
-		m.nsteps)
+		m.elifter(g.eprops))
 	m.reducer(BagNode(o, g.components))
 end
 
 function (m::VGraphModel)(g::GraphNode)
-	o = messagepass(m, 
+	o = messagepass(m.messagers, 
 		g, 
 		m.vlifter(g.vprops),
-		nothing,
-		m.nsteps)
+		nothing)
 	m.reducer(BagNode(o, g.components))
 end
 
-function messagepass(m::GraphModel, g::GraphNode, vx, ex, n)
-	n == 0 && return(vx)
+function messagepass(messagers::Tuple, g::GraphNode, vx, ex)
+	isempty(messagers) && return(vx)
 	ds = message(g, vx, ex)
-	messagepass(m, g, m.messager(ds), ex, n - 1)
+	m = first(messagers)
+	messagers = Base.tail(messagers)
+	messagepass(messagers, g, m(ds), ex)
 end
 
 #####
@@ -118,18 +117,19 @@ function reflectinmodel(g::GraphNode;
 	msg = message(g, lvx, lex)
 	messager = reflectinmodel(msg, fnn, agg)
 	onev = messager(msg)
+	messagers = tuple(fill(messager, nsteps)...)
 	reducer = reflectinmodel(BagNode(onev, g.components), fnn, agg, fsm = Dict("" => lastfnn))
-	GraphModel(vlifter, elifter, messager, reducer, nsteps)
+	GraphModel(vlifter, elifter, messagers, reducer)
 end
 
 #####
 #	Hooking to HierarchicalUtils
 #####
 
-NodeType(::Type{<:GraphModel}) = InnerNode()
-noderepr(::GraphModel) = "gnn"
-
-children(n::GraphModel) = [:vertex => n.vlifter, :edge => n.elifter, :messager => n.messager, :reducer => n.reducer]
+HierarchicalUtils.NodeType(::Type{<:GraphModel}) = InnerNode()
+HierarchicalUtils.noderepr(::GraphModel) = "gnn"
+HierarchicalUtils.children(n::GraphModel{V,E,M,R}) where {V,E<:Nothing,M,R} = [:vertex => n.vlifter, :messagers => n.messagers, :reducer => n.reducer]
+HierarchicalUtils.children(n::GraphModel) = [:vertex => n.vlifter, :edge => n.elifter, :messager => n.messagers[1], :reducer => n.reducer]
 
 Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::GraphModel)) = 
 HierarchicalUtils.printtree(io, n; htrunc=3)

@@ -1,5 +1,7 @@
 ```@setup nodes
 using Mill
+using Flux
+using LightGraphs
 ```
 
 !!! ukw "Tip"
@@ -14,7 +16,7 @@ using Mill
 
 Below we will go through implementation of [`ArrayNode`](@ref), [`BagNode`](@ref) and [`ProductNode`](@ref) together with their corresponding models. It is possible to define data and model nodes for more complex behaviors (see [Adding custom nodes](@ref)), however, these three core types are already sufficient for a lot of tasks, for instance, representing any `JSON` document and using appropriate models to convert it to a vector represention or classify it (see [Processing JSONs](@ref)).
 
-## [`ArrayNode`](@ref) and [`ArrayModel`](@ref)
+## [`ArrayNode`](@ref) and [`ArrayModel`](@ref) 
 
 [`ArrayNode`](@ref) thinly wraps an array of features (specifically any subtype of `AbstractArray`):
 
@@ -184,3 +186,62 @@ Application of another product model (this time with four subtrees (keys)) can b
 
 !!! unk "Indexing in product nodes"
     In general, we recommend to use `NamedTuple`s, because the key can be used for indexing both [`ProductNode`](@ref)s and [`ProductModel`](@ref)s.
+
+
+
+## [`GraphNode`](@ref)s and [`GraphModel`](@ref)
+
+*The `GraphNode` and `GraphModel` is new feature and should be considered experimental. The API might undergo some changes.*
+
+[`GraphNode`](@ref) holds data about *undirected* graphs with features on edges (`eprops`) and vertices (`vprops`). The properties on edges and vertices can be arbitrary `Abstractnode` (`GraphNode`, `BagNode`, `ProductNode`, and `ArrayNode`). Properties on vertices can be missing, in which case `eprop` is `nothing`.
+
+
+The construction of `GraphNode` is at the moment a bit tricky, due to not well thought api (suggestions welcomed). An example from unit test might look as
+```@repl nodes
+g = LightGraphs.SimpleGraph(3);
+add_edge!(g, 1, 2);
+add_edge!(g, 2, 3);
+add_edge!(g, 1, 3);
+vprops = ProductNode((a = ArrayNode(randn(2,3)),
+	b = BagNode((ArrayNode(randn(2,5))), AlignedBags([1:2,3:5,0:-1]))
+	));
+eprops = ArrayNode(randn(3,3));
+edge2id = Dict(e => i	for (i,e) in enumerate(edges(g)));
+fadjlist = ScatteredBags(g.fadjlist);
+components = AlignedBags([1:3]);
+gn = GraphNode(vprops, 
+	eprops, 
+	edge2id,
+	fadjlist,
+	components)
+```
+where 
+`vprops <: AbstractNode` properties of vertices
+
+`eprops <: Union{AbstractNode,Nothing}` properties of edges
+
+`edge2id` maps `Edge` to an index of `eprops`. The property of an edge `e` is `eprops[edge2id[e]]`
+
+`fadjacency` is an adjacency matrix of a graph(s), for each vertex it contains a list (`Vector{Int}`)
+		of indexes with which it is connected. No connection is indecated by empty vector.
+
+`components` identifies set of vertices of which single sample consists of. Although it is not enforced
+		there should not be edges between vertices from different components.
+
+The `GraphNode` supports the usual set of operations like `getindex` and `catobs` where one observation is one component. 
+
+Analogically, `GraphModel` contains 
+
+`vlifter`  is a `MillModel` converting vertex properties to vector
+
+`elifter` is a `MillModel` converting edge properties to vector
+
+`messagers` is a tuple of models, each performing one message pass. The input representation of the graph is a `BagNode` with `ScatteredBags` describing the neighborhood of each vertex. This is the point where I would like to hook to `GeometricFlux`.
+
+`reducer` is a `BagModel` converting properties of a set of vertices (one component precisely) to a single vector representation.
+
+
+`GraphModel` can be created by `reflectinmodel` from an example of a graph, though you might wish to create your own.
+```@repl nodes
+m = reflectinmodel(gn, lastfnn = d -> Chain(Dense(d, 32), Dense(32, 2)))
+```

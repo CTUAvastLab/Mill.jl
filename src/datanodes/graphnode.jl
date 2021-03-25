@@ -1,8 +1,20 @@
 """
-	A Mill node holding information about encoding 
+	struct GraphNode{V<:AbstractNode,E,G<:LightGraphs.Edge} <: AbstractGraphNode
+		vprops::V
+		eprops::E
+		edge2id::Dict{G, Int}
+		fadjacency::ScatteredBags
+		components::AlignedBags
+	end
 
 
-	Each component is understood as a separate graphs over which an inference is executed
+	`vprops <: AbstractNode` properties of vertices
+	`eprops <: Union{AbstractNode,Nothing}` properties of edges
+	`edge2id` maps `Edge` to an index of `eprops`. The property of an edge `e` is `eprops[edge2id[e]]`
+	`fadjacency` is an adjacency matrix of a graph(s), for each vertex it contains a list (`Vector{Int}`)
+			of indexes with which it is connected. No connection is indecated by empty vector.
+	`components` identifies set of vertices of which single sample consists of. Although it is not enforced
+			there should not be edges between vertices from different components.
 """
 struct GraphNode{V<:AbstractNode,E,G<:LightGraphs.Edge} <: AbstractGraphNode
 	vprops::V
@@ -210,9 +222,11 @@ StatsBase.nobs(g::GraphNode) = length(g.components)
 LightGraphs.nv(g::GraphNode) = nobs(g.vprops)
 LightGraphs.ne(g::GraphNode) = length(g.edge2id)
 
-NodeType(::Type{<:GraphNode}) = InnerNode()
-noderepr(::GraphNode) = "Graph"
-children(n::GraphNode) = [:vertices => n.vprops, :edges => n.eprops]
+HierarchicalUtils.NodeType(::Type{<:GraphNode}) = InnerNode()
+HierarchicalUtils.noderepr(::GraphNode) = "Graph"
+HierarchicalUtils.children(n::GraphNode) = [:vertices => n.vprops, :edges => n.eprops]
+HierarchicalUtils.children(n::GraphNode{V,E,G}) where {V<:AbstractNode,E<:Nothing,G<:LightGraphs.Edge} = [:vertices => n.vprops]
+HierarchicalUtils.children(n::GraphNode) = [:vertices => n.vprops, :edges => n.eprops]
 Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::GraphNode)) = 
 	HierarchicalUtils.printtree(io, n; htrunc=3)
 
