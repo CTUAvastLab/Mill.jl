@@ -20,6 +20,7 @@ makedocs(
                                   prettyurls=get(ENV, "CI", nothing) == "true",
                                   assets=["assets/favicon.ico", "assets/custom.css"]),
          modules = [Mill],
+         # doctest = false,
          pages = [
                   "Home" => "index.md",
                   "Motivation" => "motivation.md",
