@@ -6,43 +6,22 @@ using Mill: ngrams, countngrams
 using Mill: p_map, inv_p_map, r_map, inv_r_map, _bagnorm
 using Mill: Maybe
 
+using Mill: gradtest, gradf
+
 using Base.Iterators: partition, product
 using Base: CodeUnits
 
 using Documenter
 using Flux
 using Flux: onehot, onehotbatch
-using FiniteDifferences
 using Random
 using Combinatorics
-using SparseArrays, PooledArrays
+using SparseArrays
+using PooledArrays
 using DataFrames
 using HierarchicalUtils
 
 using BenchmarkTools: @btime
-
-function ngradient(f, xs::AbstractArray...)
-  grads = zero.(xs)
-  for (x, Δ) in zip(xs, grads), i in 1:length(x)
-    δ = sqrt(eps())
-    tmp = x[i]
-    x[i] = tmp - δ/2
-    y1 = f(xs...)
-    x[i] = tmp + δ/2
-    y2 = f(xs...)
-    x[i] = tmp
-    Δ[i] = (y2-y1)/δ
-  end
-  return grads
-end
-
-# TODO rewrite this check once all ChainRule types are available
-# https://github.com/FluxML/Zygote.jl/issues/603
-gradcheck((ag, ng)) = isnothing(ag) ? all(ng .== 0) : isapprox(ng, ag, rtol = 1e-5, atol = 1e-5)
-gradcheck(f::Function, xs...) = all(gradcheck, zip(gradient(f, xs...), ngradient(f, xs...)))
-
-gradtest(f, xs::AbstractArray...) = gradcheck((xs...) -> sum(sin.(f(xs...))), xs...)
-gradtest(f, dims...) = gradtest(f, rand.(Float64, dims)...)
 
 areequal(x) = true
 areequal(x, y, zs...) = isequal(x, y) && areequal(y, zs...)
@@ -88,6 +67,19 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
     x = NGramMatrix(reduce(vcat, s))
     BagNode(ArrayNode(x), Mill.length2bags(length.(s)))
 end
+
+nonparam_aggregations(d, t::Type{<:Real}=Float64) = Aggregation(
+        SegmentedSum(randn(t, d)),
+        SegmentedMean(randn(t, d)),
+        SegmentedMax(randn(t, d)),
+        meanmax_aggregation(t, d))
+
+param_aggregations(d, t::Type{<:Real}=Float64) = Aggregation(
+        SegmentedPNorm(randn(t, d), randn(t, d), randn(t, d)),
+        SegmentedLSE(randn(t, d), randn(t, d)),
+        summeanmaxpnormlse_aggregation(t, d))
+
+all_aggregations(d) = Aggregation((nonparam_aggregations(d), param_aggregations(d)))
 
 @testset "Doctests" begin
     DocMeta.setdocmeta!(Mill, :DocTestSetup,

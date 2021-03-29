@@ -212,7 +212,7 @@ end
 end
 
 @testset "NGramMatrix multiplication gradtest" begin
-    for (n, m) in product([2,3,5], [10, 100, 1000])
+    for (n, m) in product([2,3,5], [10, 20])
         b = 256
         A = randn(10, m)
 
@@ -229,48 +229,42 @@ end
         Ssi = SparseMatrixCSC(Bi)
         Ssc = SparseMatrixCSC(Bc)
 
-        dA, dB = gradient(sum ∘ *, A, B)
-        @test dA ≈ gradient(A -> sum(A * B), A) |> only
-        @test dA ≈ gradient(A -> sum(A * Ns), A) |> only
-        @test dA ≈ gradient(A -> sum(A * Ss), A) |> only
-        @test gradtest(A -> sum(A * B), A)
+        f = gradf(*, A, B)
+        dNs = gradient(f, A, Ns)[1]
+        dSs = gradient(f, A, Ss)[1]
 
-        @test dB === gradient(B -> sum(A * B), B) |> only
+        dA, dB = gradient(f, A, B)
+        @test dA ≈ dNs
+        @test dA ≈ dSs
         @test isnothing(dB)
+        @test gradtest(A -> A * B, A)
 
-        dA, dBi = gradient(sum ∘ *, A, Bi)
-        @test dA ≈ gradient(A -> sum(A * Bi), A) |> only
-        @test dA ≈ gradient(A -> sum(A * Ns), A) |> only
-        @test dA ≈ gradient(A -> sum(A * Ss), A) |> only
-        @test gradtest(A -> sum(A * Bi), A)
-
-        @test dBi === gradient(Bi -> sum(A * Bi), Bi) |> only
+        dA, dBi = gradient(f, A, Bi)
+        @test dA ≈ dNs
+        @test dA ≈ dSs
         @test isnothing(dBi)
+        @test gradtest(A -> A * Bi, A)
 
-        dA, dBc = gradient(sum ∘ *, A, Bc)
-        @test dA ≈ gradient(A -> sum(A * Bc), A) |> only
-        @test dA ≈ gradient(A -> sum(A * Ns), A) |> only
-        @test dA ≈ gradient(A -> sum(A * Ss), A) |> only
-        @test gradtest(A -> sum(A * Bc), A)
-
-        @test dBc === gradient(Bc -> sum(A * Bc), Bc) |> only
-        @test isnothing(dBc)
+        dA, dBc = gradient(f, A, Bc)
+        @test dA ≈ dNs
+        @test dA ≈ dSs
+        @test isnothing(dBi)
+        @test gradtest(A -> A * Bc, A)
     end
 end
 
 @testset "NGramMatrix multiplication second derivative" begin
-    for (n, m) in product([2, 3], [10, 100])
+    for (n, m) in product([2, 3], [10, 20])
         s = [randstring(10) for _ in 1:10]
         B = NGramMatrix(s, n, 256, m)
         A = randn(10, m)
-        @test grad(central_fdm(5, 1), A -> sum(sin.(A * B)), A)[1] ≈
-            gradient(A -> sum(sin.(A * B)), A)[1] atol = 1e-5
-        f = A -> sum(sin.(gradient(A -> sum(sin.(A * B)), A)[1]))
-        @test grad(central_fdm(5, 1), f, A)[1] ≈ gradient(f, A)[1] atol = 1e-5
+        f = gradf(A -> sin.(A * B), A)
+        df = gradf(A -> gradient(f, A)[1], A)
+        @test gradtest(df, A)
     end
 end
 
-@testset "integration with MILL & Flux" begin
+@testset "integration with MiLL & Flux" begin
     s = ["hello", "world", "!!!"]
     si = map(i -> Int.(codeunits(i)), s)
     for (a, s) in [(NGramMatrix(s, 3, 256, 2057), s), (NGramMatrix(si, 3, 256, 2057), si)]
@@ -278,7 +272,7 @@ end
         @test hcat(a,a).s == vcat(s,s)
 
         W = randn(40, 2057)
-        @test gradcheck(x -> sum(x * a), W)
+        @test gradtest(W -> W * a, W)
 
         a = ArrayNode(a, nothing)
         @test reduce(catobs, [a, a]).data.s == vcat(s,s)

@@ -183,7 +183,7 @@ end
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
 
-        S = [randstring(rand(1:1000)) for _ in 1:k] |> PooledArray
+        S = [randstring(rand(1:100)) for _ in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
         @test A * B ≈ W * Matrix(SparseMatrixCSC(B))
         @inferred A * B
@@ -214,36 +214,22 @@ end
 
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
+
+        @test gradtest((W, ψ, b) -> PreImputingMatrix(W, ψ) * b, W, ψ, b)
+
         (dW, dψ), db = gradient(sum ∘ *, A, b)
-
-        @test gradtest((W, ψ) -> sum(PreImputingMatrix(W, ψ) * b), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PreImputingMatrix(W, ψ) * b), W) |> only
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
-        @test gradtest(W -> sum(PreImputingMatrix(W, ψ) * b), W)
-
-        @test dψ === gradient(ψ -> sum(PreImputingMatrix(W, ψ) * b), ψ) |> only
         @test isnothing(dψ)
-        @test gradtest(ψ -> sum(PreImputingMatrix(W, ψ) * b), ψ)
-
-        @test db ≈ gradient(b -> sum(PreImputingMatrix(W, ψ) * b), b) |> only
         @test db ≈ gradient(b -> sum(W * b), b) |> only
 
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
+
+        @test gradtest((W, ψ, b) -> PostImputingMatrix(W, ψ) * b, W, ψ, b)
+
         (dW, dψ), db = gradient(sum ∘ *, A, b)
-
-        @test gradtest((W, ψ) -> sum(PreImputingMatrix(W, ψ) * b), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * b), W) |> only
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * b), W)
-
-        @test dψ === gradient(ψ -> sum(PostImputingMatrix(W, ψ) * b), ψ) |> only
         @test isnothing(dψ)
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * b), ψ)
-
-        @test db ≈ gradient(b -> sum(PostImputingMatrix(W, ψ) * b), b) |> only
         @test db ≈ gradient(b -> sum(W * b), b) |> only
     end
 end
@@ -255,36 +241,22 @@ end
 
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
+
+        @test gradtest((W, ψ, B) -> PreImputingMatrix(W, ψ) * B, W, ψ, B)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PreImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PreImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
-        @test gradtest(W -> sum(PreImputingMatrix(W, ψ) * B), W)
-
-        @test dψ === gradient(ψ -> sum(PreImputingMatrix(W, ψ) * B), ψ) |> only
         @test isnothing(dψ)
-        @test gradtest(ψ -> sum(PreImputingMatrix(W, ψ) * B), ψ)
-
-        @test dB ≈ gradient(B -> sum(PreImputingMatrix(W, ψ) * B), B) |> only
         @test dB ≈ gradient(B -> sum(W * B), B) |> only
 
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
+
+        @test gradtest((W, ψ, B) -> PostImputingMatrix(W, ψ) * B, W, ψ, B)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * B), W)
-
-        @test dψ === gradient(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ) |> only
         @test isnothing(dψ)
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ)
-
-        @test dB ≈ gradient(B -> sum(PostImputingMatrix(W, ψ) * B), B) |> only
         @test dB ≈ gradient(B -> sum(W * B), B) |> only
     end
 end
@@ -296,19 +268,11 @@ end
         A = PostImputingMatrix(W, ψ)
         b = MaybeHotVector(i, n)
 
+        @test gradtest((W, ψ) -> PostImputingMatrix(W, ψ) * b, W, ψ)
+
         (dW, dψ), db = gradient(sum ∘ *, A, b)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * b), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * b), W) |> only
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * b), W)
-
-        @test dψ === gradient(ψ -> sum(PostImputingMatrix(W, ψ) * b), ψ) |> only
         @test isnothing(dψ)
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * b), ψ)
-
-        @test db === gradient(b -> sum(PostImputingMatrix(W, ψ) * b), b) |> only
         @test isnothing(db)
     end
 end
@@ -320,19 +284,11 @@ end
         A = PostImputingMatrix(W, ψ)
         B = MaybeHotMatrix(I, n)
 
+        @test gradtest((W, ψ) -> PostImputingMatrix(W, ψ) * B, W, ψ)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * B), W)
-
-        @test dψ === gradient(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ) |> only
         @test isnothing(dψ)
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ)
-
-        @test dB === gradient(B -> sum(PostImputingMatrix(W, ψ) * B), B) |> only
         @test isnothing(dB)
     end
 end
@@ -342,22 +298,14 @@ end
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
-        S = [randstring(rand(1:1000)) for _ in 1:k] |> PooledArray
+        S = [randstring(rand(1:100)) for _ in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
 
+        @test gradtest((W, ψ) -> PostImputingMatrix(W, ψ) * B, W, ψ)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * B), W)
-
-        @test dψ === gradient(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ) |> only
         @test isnothing(dψ)
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ)
-
-        @test dB === gradient(B -> sum(PostImputingMatrix(W, ψ) * B), B) |> only
         @test isnothing(dB)
     end
 end
@@ -369,19 +317,11 @@ end
         A = PostImputingMatrix(W, ψ)
         b = MaybeHotVector(missing, n)
 
+        @test gradtest((W, ψ) -> PostImputingMatrix(W, ψ) * b, W, ψ)
+
         (dW, dψ), db = gradient(sum ∘ *, A, b)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * b), W, ψ)
-
-        @test dW === gradient(W -> sum(PostImputingMatrix(W, ψ) * b), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * b), W)
         @test isnothing(dW)
-
-        @test dψ ≈ gradient(ψ -> sum(PostImputingMatrix(W, ψ) * b), ψ) |> only
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * b), ψ)
         @test all(dψ .== 1)
-
-        @test db === gradient(b -> sum(PostImputingMatrix(W, ψ) * b), b) |> only
         @test isnothing(db)
     end
 end
@@ -393,19 +333,11 @@ end
         A = PostImputingMatrix(W, ψ)
         B = MaybeHotMatrix(fill(missing, k), n)
 
+        @test gradtest((W, ψ) -> PostImputingMatrix(W, ψ) * B, W, ψ)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW === gradient(W -> sum(PostImputingMatrix(W, ψ) * B), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * B), W)
         @test isnothing(dW)
-
-        @test dψ ≈ gradient(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ) |> only
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ)
         @test all(dψ .== k)
-
-        @test dB === gradient(B -> sum(PostImputingMatrix(W, ψ) * B), B) |> only
         @test isnothing(dB)
     end
 end
@@ -418,19 +350,11 @@ end
         S = fill(missing, k)
         B = NGramMatrix(S, 3, 256, n)
 
+        @test gradtest((W, ψ) -> PostImputingMatrix(W, ψ) * B, W, ψ)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW === gradient(W -> sum(PostImputingMatrix(W, ψ) * B), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * B), W)
         @test isnothing(dW)
-
-        @test dψ ≈ gradient(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ) |> only
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ)
         @test all(dψ .== k)
-
-        @test dB === gradient(B -> sum(PostImputingMatrix(W, ψ) * B), B) |> only
         @test isnothing(dB)
     end
 end
@@ -443,22 +367,14 @@ end
         I = [isodd(i) ? missing : rand(1:n) for i in 1:k]
         B = MaybeHotMatrix(I, n)
 
+        @test gradtest((W, ψ) -> PostImputingMatrix(W, ψ) * B, W, ψ)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * B), W) |> only
         Bskip = MaybeHotMatrix(skipmissing(I) |> collect, n)
         @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * Bskip), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * B), W)
-
-        @test dψ ≈ gradient(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ) |> only
         Bmiss = MaybeHotMatrix(filter(ismissing, I) |> collect, n)
         @test dψ ≈ gradient(ψ -> sum(PostImputingMatrix(W, ψ) * Bmiss), ψ) |> only
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ)
         @test all(dψ .== count(ismissing, I))
-
-        @test dB === gradient(B -> sum(PostImputingMatrix(W, ψ) * B), B) |> only
         @test isnothing(dB)
     end
 end
@@ -468,25 +384,17 @@ end
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
-        S = [isodd(i) ? missing : randstring(rand(1:1000)) for i in 1:k] |> PooledArray
+        S = [isodd(i) ? missing : randstring(rand(1:100)) for i in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
 
+        @test gradtest((W, ψ) -> PostImputingMatrix(W, ψ) * B, W, ψ)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PostImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * B), W) |> only
         Bskip = NGramMatrix(skipmissing(S) |> collect, 3, 256, n)
         @test dW ≈ gradient(W -> sum(PostImputingMatrix(W, ψ) * Bskip), W) |> only
-        @test gradtest(W -> sum(PostImputingMatrix(W, ψ) * B), W)
-
-        @test dψ ≈ gradient(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ) |> only
         Bmiss = NGramMatrix(filter(ismissing, S) |> collect, 3, 256, n)
         @test dψ ≈ gradient(ψ -> sum(PostImputingMatrix(W, ψ) * Bmiss), ψ) |> only
-        @test gradtest(ψ -> sum(PostImputingMatrix(W, ψ) * B), ψ)
         @test all(dψ .== count(ismissing, S))
-
-        @test dB === gradient(B -> sum(PostImputingMatrix(W, ψ) * B), B) |> only
         @test isnothing(dB)
     end
 end
@@ -497,19 +405,12 @@ end
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
         b = fill(missing, n)
+
+        @test gradtest((W, ψ) -> PreImputingMatrix(W, ψ) * b, W, ψ)
+
         (dW, dψ), db = gradient(sum ∘ *, A, b)
-
-        @test gradtest((W, ψ) -> sum(PreImputingMatrix(W, ψ) * b), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PreImputingMatrix(W, ψ) * b), W) |> only
         @test dW ≈ gradient(W -> sum(W * ψ), W) |> only
-        @test gradtest(W -> sum(PreImputingMatrix(W, ψ) * b), W)
-
-        @test dψ ≈ gradient(ψ -> sum(PreImputingMatrix(W, ψ) * b), ψ) |> only
         @test dψ ≈ gradient(ψ -> sum(W * ψ), ψ) |> only
-        @test gradtest(ψ -> sum(PreImputingMatrix(W, ψ) * b), ψ)
-
-        @test db === gradient(b -> sum(PreImputingMatrix(W, ψ) * b), b) |> only
         @test isnothing(db)
     end
 end
@@ -520,19 +421,12 @@ end
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
         B = fill(missing, n, k)
+
+        @test gradtest((W, ψ) -> PreImputingMatrix(W, ψ) * B, W, ψ)
+
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
-
-        @test gradtest((W, ψ) -> sum(PreImputingMatrix(W, ψ) * B), W, ψ)
-
-        @test dW ≈ gradient(W -> sum(PreImputingMatrix(W, ψ) * B), W) |> only
         @test dW ≈ gradient(W -> sum(W * repeat(ψ, 1, k)), W) |> only
-        @test gradtest(W -> sum(PreImputingMatrix(W, ψ) * B), W)
-
-        @test dψ ≈ gradient(ψ -> sum(PreImputingMatrix(W, ψ) * B), ψ) |> only
         @test dψ ≈ gradient(ψ -> sum(W * repeat(ψ, 1, k)), ψ) |> only
-        @test gradtest(ψ -> sum(PreImputingMatrix(W, ψ) * B), ψ)
-
-        @test dB === gradient(B -> sum(PreImputingMatrix(W, ψ) * B), B) |> only
         @test isnothing(dB)
     end
 end
@@ -544,10 +438,7 @@ end
         b = Vector{Union{Float64, Missing}}(randn(n))
         b[rand(eachindex(b), rand(1:n))] .= missing
 
-        @test gradtest(W -> PreImputingMatrix(W, ψ) * b, W)
-        @test gradtest(ψ -> PreImputingMatrix(W, ψ) * b, ψ)
-        @test gradtest(b -> PreImputingMatrix(W, ψ) * b, b)
-        @test gradtest((W, ψ, b) -> PreImputingMatrix(W, ψ) * b, W, ψ, b)
+        @test gradtest((W, ψ) -> PreImputingMatrix(W, ψ) * b, W, ψ)
     end
 end
 
@@ -558,10 +449,7 @@ end
         B = Matrix{Union{Float64, Missing}}(randn(n, k))
         B[rand(eachindex(B), rand(1:n*k))] .= missing
 
-        @test gradtest(W -> PreImputingMatrix(W, ψ) * B, W)
-        @test gradtest(ψ -> PreImputingMatrix(W, ψ) * B, ψ)
-        @test gradtest(B -> PreImputingMatrix(W, ψ) * B, B)
-        @test gradtest((W, ψ, B) -> PreImputingMatrix(W, ψ) * B, W, ψ, B)
+        @test gradtest((W, ψ) -> PreImputingMatrix(W, ψ) * B, W, ψ)
     end
 end
 
@@ -600,7 +488,7 @@ end
 
         d = postimputing_dense(n, m)
 
-        S = [randstring(rand(1:1000)) for _ in 1:k]
+        S = [randstring(rand(1:100)) for _ in 1:k]
         X = NGramMatrix(S, 3, 256, n)
         check(d, X, true, false)
         if k > 1

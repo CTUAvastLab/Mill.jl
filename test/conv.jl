@@ -55,10 +55,6 @@ end
         @test convsum(bags, x, y) == [21  10  2100  21000  10000]
         @test convsum(bags, x, y, z) == [42  21  4200  42100  21000]
 
-        @test ngradient(x -> sum(convsum(bags,x, y, z)), x)[1] == ∇convsum(Δ, bags, 3)[1]
-        @test ngradient(y -> sum(convsum(bags,x, y, z)), y)[1] == ∇convsum(Δ, bags, 3)[2]
-        @test ngradient(z -> sum(convsum(bags,x, y, z)), z)[1] == ∇convsum(Δ, bags, 3)[3]
-
         @test gradtest((a, b, c) -> convsum(bags, a, b, c), x, y, z)
     end
 end
@@ -71,9 +67,6 @@ end
     for bags in [AlignedBags([1:1, 2:3, 4:6, 7:15]), ScatteredBags(collect.([1:1, 2:3, 4:6, 7:15]))]
         @test bagconv(x, bags, fs...) ≈ legacy_bagconv(x, bags, filters)
         @test bagconv(x, bags, fs...) ≈ bagconv(xs, bags, fs...)
-        @test isapprox(ngradient(f -> sum(bagconv(x, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), x, bags, fs...)[1], rtol = 1e-6)
-        @test isapprox(ngradient(f -> sum(bagconv(xs, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), xs, bags, fs...)[1], rtol = 1e-6)
-        @test isapprox(ngradient(x -> sum(bagconv(x, bags, fs...)), x)[1],  ∇xbagconv(ones(4, 15), x, bags, fs...), rtol = 1e-5)
         @test gradtest((a, b, c) -> bagconv(x, bags, a, b, c), fs...)
         @test gradtest((a, b, c) -> bagconv(xs, bags, a, b, c), fs...)
         @test gradtest(x -> bagconv(x, bags, fs...), x)
@@ -100,9 +93,6 @@ end
     end
 
     @testset "Test that gradient of scattered convolution is correct" begin
-        @test isapprox(ngradient(f -> sum(bagconv(xp, bagsp, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), xp, bagsp, fs...)[1], rtol = 1e-6)
-        @test isapprox(ngradient(f -> sum(bagconv(x, bags, f, fs[2], fs[3])), fs[1])[1],  ∇wbagconv(ones(4, 15), xp, bagsp, fs...)[1], rtol = 1e-6)
-        @test isapprox(ngradient(x -> sum(bagconv(x, bagsp, fs...)), xp)[1],  ∇xbagconv(ones(4, 15), xp, bagsp, fs...), rtol = 1e-5)
         @test gradtest((a, b, c) -> bagconv(x, bags, a, b, c), fs...)
         @test gradtest(x -> bagconv(x, bagsp, fs...), xp)
         @test gradtest((x, a, b , c) -> bagconv(x, bagsp, a, b, c), xp, fs...)

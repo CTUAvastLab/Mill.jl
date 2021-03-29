@@ -281,95 +281,16 @@ end
     test_count(meanmaxpnormlse_aggregation(2))
 end
 
-# we use Float64 to compute precise gradients
 @testset "aggregation grad check w.r.t. input" begin
     for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
-
-        # generate all combinations of aggregations
-        anames = ["Sum", "Mean", "Max", "PNorm", "LSE"]
-        for idxs in powerset(collect(1:length(anames)))
-            1 ≤ length(idxs) ≤ 2 || continue
-
-            s = Symbol(lowercase.(anames[idxs])..., "_aggregation")
-            a = @eval $s($d) |> f64
-            @test gradtest(x) do x
-                a(x, bags)
-            end
-            @test gradtest(x) do x
-                a(x, bags, w)
-            end
-            @test gradtest(x) do x
-                a(x, bags, w_mat)
-            end
-        end
-    end
-end
-
-@testset "aggregation grad check w.r.t. params" begin
-
-    fs = [:SegmentedSum, :SegmentedMean, :SegmentedMax, :SegmentedPNorm, :SegmentedLSE]
-    params = [(:ψ1,), (:ψ2,), (:ψ3,), (:ψ4, :ρ1, :c), (:ψ5, :ρ2)]
-
-    for idxs in powerset(collect(1:length(fs)))
-        1 ≤ length(idxs) <= 2 || continue
-
-        d = rand(1:20)
-        x = randn(d, 0)
-        as = []; cs = []; rs = []
-        for (f, ps) in zip(fs[idxs], params[idxs])
-            push!(rs, fill(:(randn($d)), length(ps))...)
-            push!(as, ps...)
-            push!(cs, Expr(:call, f, ps...))
-        end
-        @eval begin
-            @test gradtest($(map(eval, rs)...)) do $(as...)
-                a = Aggregation($(cs...))
-                a(missing, ScatteredBags([Int[], Int[]]))
-            end
-            @test gradtest($(map(eval, rs)...)) do $(as...)
-                a = Aggregation($(cs...))
-                a(missing, AlignedBags([0:-1]), nothing)
-            end
-            @test gradtest($(map(eval, rs)...)) do $(as...)
-                a = Aggregation($(cs...))
-                a($x, ScatteredBags([Int[]]))
-            end
-            @test gradtest($(map(eval, rs)...)) do $(as...)
-                a = Aggregation($(cs...))
-                a($x, AlignedBags([0:-1, 0:-1]), nothing)
-            end
-        end
-
-        for bags in BAGS2
-            d = rand(1:20)
-            x = randn(d, 10)
-            w = abs.(randn(size(x, 2))) .+ 0.1
-            w_mat = abs.(randn(size(x))) .+ 0.1
-            as = []; cs = []; rs = []
-            for (f, ps) in zip(fs[idxs], params[idxs])
-                push!(rs, fill(:(randn($d)), length(ps))...)
-                push!(as, ps...)
-                push!(cs, Expr(:call, f, ps...))
-            end
-            @eval begin
-                @test gradtest($(map(eval, rs)...)) do $(as...)
-                    a = Aggregation($(cs...))
-                    a($x, $bags)
-                end
-                @test gradtest($(map(eval, rs)...)) do $(as...)
-                    a = Aggregation($(cs...))
-                    a($x, $bags, $w)
-                end
-                @test gradtest($(map(eval, rs)...)) do $(as...)
-                    a = Aggregation($(cs...))
-                    a($x, $bags, $w_mat)
-                end
-            end
-        end
+        a = Aggregation((nonparam_aggregations(d), param_aggregations(d)))
+        @test gradtest(x -> a(x, bags), x)
+        @test gradtest(x -> a(x, bags, w), x)
+        @test gradtest(x -> a(x, bags, w_mat), x)
     end
 end
 
@@ -380,39 +301,54 @@ end
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
 
-        a1 = SegmentedSum(d) |> f64
-        a2 = SegmentedMean(d) |> f64
-        a3 = SegmentedMax(d) |> f64
-        a4 = SegmentedPNorm(d) |> f64
-        a5 = SegmentedLSE(d) |> f64
-        for g in [
-                  w -> a1(x, bags, w),
-                  w -> a2(x, bags, w),
-                  w -> a3(x, bags, w),
-                  w -> a5(x, bags, w)
+        for a in [
+                  sum_aggregation(Float64, d),
+                  mean_aggregation(Float64, d),
+                  max_aggregation(Float64, d),
+                  lse_aggregation(Float64, d),
+                  summeanmaxlse_aggregation(Float64, d),
+                  SegmentedSum(randn(d)) |> Aggregation,
+                  SegmentedMean(randn(d)) |> Aggregation,
+                  SegmentedMax(randn(d)) |> Aggregation,
+                  SegmentedLSE(randn(d), randn(d)) |> Aggregation,
                  ]
-            @test gradtest(g, w)
+            @test gradtest(w -> a(x, bags, w), w)
+            @test gradtest(w -> a(x, bags, w), w_mat)
         end
-        for g in [
-                  w_mat -> a1(x, bags, w_mat),
-                  w_mat -> a2(x, bags, w_mat),
-                  w_mat -> a3(x, bags, w_mat),
-                  w_mat -> a5(x, bags, w_mat)
-                 ]
-            @test gradtest(g, w_mat)
-        end
-        # for g in [
-        #           w -> a4(x, bags, w_mat)
-        #          ]
-        #     # NOT IMPLEMENTED YET
-        #     @test_throws Exception gradtest(g, w_mat)
-        # end
-        # for g in [
-        #           w -> a4(x, bags, w_mat)
-        #          ]
-        #     # NOT IMPLEMENTED YET
-        #     @test_throws Exception gradtest(g, w_mat)
-        # end
+
+        # a = pnorm_aggregation(Float64, d)
+        # @test_throws ErrorException gradtest(w -> a(x, bags, w), w)
+        # @test_throws ErrorException gradtest(w -> a(x, bags, w), w_mat)
+    end
+end
+
+@testset "aggregation grad check w.r.t. params" begin
+    d = 5
+    x = randn(d, 0)
+    a1 = nonparam_aggregations(d)
+    a2 = param_aggregations(d)
+    @test gradtest(() -> a1(missing, ScatteredBags([Int[], Int[]])), Flux.params(a1))
+    @test gradtest(() -> a1(missing, AlignedBags([0:-1]), nothing), Flux.params(a1))
+    @test gradtest(() -> a1(x, ScatteredBags([Int[]])), Flux.params(a1))
+    @test gradtest(() -> a1(x, AlignedBags([0:-1, 0:-1]), nothing), Flux.params(a1))
+    @test gradtest(() -> a2(missing, ScatteredBags([Int[], Int[]])), Flux.params(a2))
+    @test gradtest(() -> a2(missing, AlignedBags([0:-1]), nothing), Flux.params(a2))
+    @test gradtest(() -> a2(x, ScatteredBags([Int[]])), Flux.params(a2))
+    @test gradtest(() -> a2(x, AlignedBags([0:-1, 0:-1]), nothing), Flux.params(a2))
+
+    for bags in BAGS2
+        d = rand(1:20)
+        x = randn(d, 10)
+        a1 = nonparam_aggregations(d)
+        a2 = param_aggregations(d)
+        w = abs.(randn(size(x, 2))) .+ 0.1
+        w_mat = abs.(randn(size(x))) .+ 0.1
+        @test gradtest(() -> a1(x, bags), Flux.params(a1))
+        @test gradtest(() -> a1(x, bags, w), Flux.params(a1))
+        @test gradtest(() -> a1(x, bags, w_mat), Flux.params(a1))
+        @test gradtest(() -> a2(x, bags), Flux.params(a2); atol=1e-3)
+        @test gradtest(() -> a2(x, bags, w), Flux.params(a2); atol=1e-3)
+        @test gradtest(() -> a2(x, bags, w_mat), Flux.params(a2); atol=1e-3)
     end
 end
 

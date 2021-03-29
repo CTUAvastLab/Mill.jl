@@ -31,7 +31,7 @@ end
     @test m.ms[:b] isa ArrayModel
 
     x = ProductNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
-                  BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
+                     BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 2)
     @test m isa ProductModel
@@ -249,288 +249,110 @@ end
 #     end
 # end
 
-# we use Float64 to compute precise gradients
-
 @testset "model aggregation grad check w.r.t. inputs" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS))
+        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
 
-        n = ArrayNode(x)
-        m = reflectinmodel(n, layerbuilder) |> f64
-        @test gradtest(x) do x
-            n = ArrayNode(x)
-            m(n).data
-        end
+        ds = x -> ArrayNode(x)
+        m = reflectinmodel(ds(x), layerbuilder, all_aggregations)
+        @test gradtest(x -> m(ds(x)).data, x)
 
-        bn = BagNode(ArrayNode(x), bags1)
-        abuilder = d -> pnormlse_aggregation(d)
-        m = reflectinmodel(bn, layerbuilder) |> f64
-        @test gradtest(x) do x
-            bn = BagNode(ArrayNode(x), bags1)
-            m(bn).data
-        end
+        ds = x -> BagNode(ArrayNode(x), bags1)
+        m = reflectinmodel(ds(x), layerbuilder, all_aggregations)
+        @test gradtest(x -> m(ds(x)).data, x)
 
-        tn = ProductNode((ArrayNode(x), ArrayNode(y)))
-        m = reflectinmodel(tn, layerbuilder) |> f64
-        @test gradtest(x, y) do x, y
-            tn = ProductNode((ArrayNode(x), ArrayNode(y)))
-            m(tn).data
-        end
+        ds = (x, y) -> ProductNode((ArrayNode(x), ArrayNode(y)))
+        m = reflectinmodel(ds(x, y), layerbuilder, all_aggregations)
+        @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
 
-        tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
-        abuilder = d -> meanmax_aggregation(d)
-        m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
-        @test gradtest(x, y) do x, y
-            tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
-            m(tn).data
-        end
+        ds = (x, y) -> ProductNode((BagNode(ArrayNode(x), bags1), BagNode(ArrayNode(y), bags2))) 
+        m = reflectinmodel(ds(x, y), layerbuilder, all_aggregations)
+        @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
 
-        bn = BagNode(ArrayNode(z), bags3)
-        bnn = BagNode(bn, bags1)
-        abuilder = d -> summaxpnormlse_aggregation(d)
-        m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
-        @test gradtest(z) do z
-            bn = BagNode(ArrayNode(z), bags3)
-            bnn = BagNode(bn, bags1)
-            m(bnn).data
-        end
+        ds = z -> BagNode(BagNode(ArrayNode(z), bags3), bags1)
+        m = reflectinmodel(ds(z), layerbuilder, all_aggregations)
+        @test gradtest(z -> m(ds(z)).data, z)
     end
 end
 
 @testset "model aggregation grad check w.r.t. inputs weighted" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS))
+        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
-        w = abs.(randn(4)) .+ 0.1
+        w1 = abs.(randn(4)) .+ 0.1
         w2 = abs.(randn(4)) .+ 0.1
         w3 = abs.(randn(8)) .+ 0.1
 
-        bn = BagNode(ArrayNode(x), bags1, w)
-        abuilder = d -> pnormlse_aggregation(d)
-        m = reflectinmodel(bn, layerbuilder) |> f64
-        @test gradtest(x) do x
-            bn = BagNode(ArrayNode(x), bags1, w)
-            m(bn).data
-        end
+        ds = x -> WeightedBagNode(ArrayNode(x), bags1, w1)
+        m = reflectinmodel(ds(x), layerbuilder, all_aggregations)
+        @test gradtest(x -> m(ds(x)).data, x)
 
-        tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
-        abuilder = d -> meanmax_aggregation(d)
-        m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
-        @test gradtest(x, y) do x, y
-            tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
-            m(tn).data
-        end
+        ds = (x, y) -> ProductNode((WeightedBagNode(ArrayNode(x), bags1, w1),
+                                    WeightedBagNode(ArrayNode(y), bags2, w2))) 
+        m = reflectinmodel(ds(x, y), layerbuilder, all_aggregations)
+        @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
 
-        bn = BagNode(ArrayNode(z), bags3, w3)
-        bnn = BagNode(bn, bags1)
-        abuilder = d -> summaxpnormlse_aggregation(d)
-        m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
-        @test gradtest(z) do z
-            bn = BagNode(ArrayNode(z), bags3, w3)
-            bnn = BagNode(bn, bags1, w)
-            m(bnn).data
-        end
+        ds = z -> WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
+        m = reflectinmodel(ds(z), layerbuilder, all_aggregations)
+        @test gradtest(z -> m(ds(z)).data, z)
     end
 end
 
 @testset "model aggregation grad check w.r.t. params" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2)
+        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
 
-        n = ArrayNode(x)
-        m = reflectinmodel(n, layerbuilder) |> f64
-        a = rand(ACTIVATIONS)
-        @test gradtest(params(m)...) do W, b
-            m = ArrayModel(Dense(W, b, a))
-            m(n).data
-        end
-
-        bn = BagNode(ArrayNode(x), bags1)
-        abuilder = d -> pnormlse_aggregation(d)
-        m = reflectinmodel(bn, layerbuilder, abuilder) |> f64
-        a1, a2 = rand(ACTIVATIONS, 2)
-        @test gradtest(params(m)...) do W1, b1, ψ1, ρ1, c, ψ2, ρ2, W2, b2
-            m = BagModel(Dense(W1, b1, a1),
-                         Aggregation(
-                                     SegmentedPNorm(ψ1, ρ1, c),
-                                     SegmentedLSE(ψ2, ρ2)
-                                    ),
-                         Dense(W2, b2, a2))
-            m(bn).data
-        end
-
-        tn = ProductNode((ArrayNode(x), ArrayNode(y)))
-        m = reflectinmodel(tn, layerbuilder) |> f64
-        a1, a2, a3 = rand(ACTIVATIONS, 3)
-        @test gradtest(params(m)...) do W1, b1, W2, b2, W3, b3
-            m = ProductModel(ArrayModel.((
-                                          Dense(W1, b1, a1),
-                                          Dense(W2, b2, a2)
-                                         )), Dense(W3, b3, a3)) 
-            m(tn).data
-        end
-
-        tn = ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2)))
-        abuilder = d -> summaxpnormlse_aggregation(d)
-        m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
-        a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
-        @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, ψ13, ρ11, c1, ψ14, ρ12,
-            W2, b2, W3, b3, ψ21, ψ22, ψ23, ρ21, c2, ψ24, ρ22, W4, b4, W5, b5
-            m = ProductModel((
-                              BagModel(
-                                       Dense(W1, b1, a1),
-                                       Aggregation(
-                                                   SegmentedSum(ψ11),
-                                                   SegmentedMax(ψ12),
-                                                   SegmentedPNorm(ψ13, ρ11, c1),
-                                                   SegmentedLSE(ψ14, ρ12)
-                                                  ),
-                                       Dense(W2, b2, a2)
-                                      ),
-                              BagModel(
-                                       Dense(W3, b3, a3),
-                                       Aggregation(
-                                                   SegmentedSum(ψ21),
-                                                   SegmentedMax(ψ22),
-                                                   SegmentedPNorm(ψ23, ρ21, c2),
-                                                   SegmentedLSE(ψ24, ρ22)
-                                                  ),
-                                       Dense(W4, b4, a4)
-                                      ),
-                             ), Dense(W5, b5, a5)) 
-            m(tn).data
-        end
-
-        bn = BagNode(ArrayNode(z), bags3)
-        bnn = BagNode(bn, bags1)
-        abuilder = d -> meanmax_aggregation(d)
-        m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
-        a1, a2, a3 = rand(ACTIVATIONS, 3)
-        @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, W2, b2, ψ21, ψ22, W3, b3
-            m = BagModel(
-                         BagModel(
-                                  Dense(W1, b1, a1),
-                                  Aggregation(
-                                              SegmentedMean(ψ11),
-                                              SegmentedMax(ψ12)
-                                             ),
-                                  Dense(W2, b2, a2)
-                                 ),
-                         Aggregation(
-                                     SegmentedMean(ψ21),
-                                     SegmentedMax(ψ22)
-                                    ),
-                         Dense(W3, b3, a3)
-                        )
-            m(bnn).data
+        for ds in [
+                   ArrayNode(x),
+                   BagNode(ArrayNode(x), bags1),
+                   ProductNode((ArrayNode(x), ArrayNode(y))),
+                   ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2))),
+                   BagNode(BagNode(ArrayNode(z), bags3), bags1)
+                  ]
+            m = reflectinmodel(ds, layerbuilder, all_aggregations)
+            @test gradtest(() -> m(ds).data, Flux.params(m))
         end
     end
 end
 
 @testset "model aggregation grad check w.r.t. params weighted" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2)
+        layerbuilder(k) = Dense(k, 2) |> f64
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
-        w = abs.(randn(4)) .+ 0.1
+        w1 = abs.(randn(4)) .+ 0.1
         w2 = abs.(randn(4)) .+ 0.1
         w3 = abs.(randn(8)) .+ 0.1
 
-        bn = BagNode(ArrayNode(x), bags1, w)
-        abuilder = d -> pnormlse_aggregation(d)
-        m = reflectinmodel(bn, layerbuilder, abuilder) |> f64
-        a1, a2 = rand(ACTIVATIONS, 2)
-        @test gradtest(params(m)...) do W1, b1, ψ1, ρ1, c, ψ2, ρ2, W2, b2
-            m = BagModel(Dense(W1, b1, a1),
-                         Aggregation(
-                                     SegmentedPNorm(ψ1, ρ1, c),
-                                     SegmentedLSE(ψ2, ρ2)
-                                    ),
-                         Dense(W2, b2, a2))
-            m(bn).data
-        end
-
-        tn = ProductNode((BagNode(ArrayNode(y), bags1, w), BagNode(ArrayNode(x), bags2, w2)))
-        abuilder = d -> summaxpnormlse_aggregation(d)
-        m = reflectinmodel(tn, layerbuilder, abuilder) |> f64
-        a1, a2, a3, a4, a5 = rand(ACTIVATIONS, 5)
-        @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, ψ13, ρ11, c1, ψ14, ρ12,
-            W2, b2, W3, b3, ψ21, ψ22, ψ23, ρ21, c2, ψ24, ρ22, W4, b4, W5, b5
-            m = ProductModel((
-                              BagModel(
-                                       Dense(W1, b1, a1),
-                                       Aggregation(
-                                                   SegmentedSum(ψ11),
-                                                   SegmentedMax(ψ12),
-                                                   SegmentedPNorm(ψ13, ρ11, c1),
-                                                   SegmentedLSE(ψ14, ρ12),
-                                                  ),
-                                       Dense(W2, b2, a2)
-                                      ),
-                              BagModel(
-                                       Dense(W3, b3, a3),
-                                       Aggregation(
-                                                   SegmentedSum(ψ21),
-                                                   SegmentedMax(ψ22),
-                                                   SegmentedPNorm(ψ23, ρ21, c2),
-                                                   SegmentedLSE(ψ24, ρ22)
-                                                  ),
-                                       Dense(W4, b4, a4)
-                                      ),
-                             ), Dense(W5, b5, a5)) 
-            m(tn).data
-        end
-
-        bn = BagNode(ArrayNode(z), bags3, w3)
-        bnn = BagNode(bn, bags1, w)
-        abuilder = d -> meanmax_aggregation(d)
-        m = reflectinmodel(bnn, layerbuilder, abuilder) |> f64
-        a1, a2, a3 = rand(ACTIVATIONS, 3)
-        @test gradtest(params(m)...) do W1, b1, ψ11, ψ12, W2, b2, ψ21, ψ22, W3, b3
-            m = BagModel(
-                         BagModel(
-                                  Dense(W1, b1, a1),
-                                  Aggregation(
-                                              SegmentedMean(ψ11),
-                                              SegmentedMax(ψ12)
-                                             ),
-                                  Dense(W2, b2, a2)
-                                 ),
-                         Aggregation(
-                                     SegmentedMean(ψ21),
-                                     SegmentedMax(ψ22)
-                                    ),
-                         Dense(W3, b3, a3)
-                        )
-            m(bnn).data
+        for ds in [
+                   WeightedBagNode(ArrayNode(x), bags1, w1),
+                   ProductNode((WeightedBagNode(ArrayNode(x), bags1, w1),
+                                WeightedBagNode(ArrayNode(y), bags2, w2))) ,
+                   WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
+                  ]
+            m = reflectinmodel(ds, layerbuilder, all_aggregations)
+            @test gradtest(() -> m(ds).data, Flux.params(m))
         end
     end
+end
 
-    @testset "A gradient of ProductNode with a NamedTuple " begin
-        a1, a2, a3 = rand(ACTIVATIONS, 3)
-        x = ProductNode((
-                         a = ArrayNode(randn(2, 4)),
-        b = ArrayNode(randn(3, 4))
-       ))
-        m = ProductModel((
-                          a = ArrayModel(Dense(2, 2, a1)),
-                          b = ArrayModel(Dense(3, 1, a2))
-                         ), Dense(3, 2, a3)) |> f64
-        @test gradtest(params(m)...) do W1, b1, W2, b2, W3, b3 
-            m = ProductModel((
-                              a = ArrayModel(Dense(W1, b1, a1)),
-            b = ArrayModel(Dense(W2, b2, a2))
-           ), Dense(W3, b3, a3))
-            sum(m(x).data)
-        end
-    end
+@testset "A gradient of ProductNode with a NamedTuple " begin
+    ds = ProductNode((
+                     a = ArrayNode(randn(2, 4)),
+                     b = ArrayNode(randn(3, 4))
+                    ))
+    m = ProductModel((
+                      a = ArrayModel(Dense(2, 2, rand(ACTIVATIONS))),
+                      b = ArrayModel(Dense(3, 1, rand(ACTIVATIONS)))
+                     ), Dense(3, 2, rand(ACTIVATIONS))) |> f64
+    @test gradtest(() -> m(ds).data, Flux.params(m))
 end

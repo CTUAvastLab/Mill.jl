@@ -198,12 +198,10 @@ end
         A = randn(m, n)
         b = MaybeHotVector(i, n)
 
-        dA, db = gradient(sum ∘ *, A, b)
-        @test dA ≈ gradient(A -> sum(A * b), A) |> only
-        @test dA ≈ gradient(A -> sum(A * onehot(b)), A) |> only
-        @test gradtest(A -> sum(A * b), A)
+        @test gradtest(A -> A * b, A)
 
-        @test db === gradient(b -> sum(A * b), b) |> only
+        dA, db = gradient(sum ∘ *, A, b)
+        @test dA ≈ gradient(A -> sum(A * onehot(b)), A) |> only
         @test isnothing(db)
     end
 end
@@ -214,12 +212,10 @@ end
         A = randn(m, n)
         B = MaybeHotMatrix(I, n)
 
-        dA, dB = gradient(sum ∘ *, A, B)
-        @test dA ≈ gradient(A -> sum(A * B), A) |> only
-        @test dA ≈ gradient(A -> sum(A * onehotbatch(B)), A) |> only
-        @test gradtest(A -> sum(A * B), A)
+        @test gradtest(A -> A * B, A)
 
-        @test dB === gradient(B -> sum(A * B), B) |> only
+        dA, dB = gradient(sum ∘ *, A, B)
+        @test dA ≈ gradient(A -> sum(A * onehotbatch(B)), A) |> only
         @test isnothing(dB)
     end
 end
