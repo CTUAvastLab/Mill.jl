@@ -3,6 +3,7 @@ module Mill
 using ChainRulesCore
 using Combinatorics
 using DataFrames
+using FiniteDifferences
 using Flux
 using HierarchicalUtils
 using LearnBase
@@ -80,6 +81,8 @@ export MillString, @mill_str
 include("util.jl")
 export sparsify, pred_lens, list_lens, find_lens, findnonempty_lens
 export replacein, code2lens, lens2code, model_lens, data_lens
+
+include("gradients.jl")
 
 Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::MillStruct)) =
     HierarchicalUtils.printtree(io, n; htrunc=3, vtrunc=3)
