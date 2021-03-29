@@ -5,7 +5,7 @@ Replace `AbstractMatrix` `x` with `SparseMatrixCSC` if at most `nnzrate` fractio
 
 ```jldoctest
 julia> n = ArrayNode([0 0; 0 0])
-2×2 ArrayNode{Array{Int64,2},Nothing}:
+2×2 ArrayNode{Matrix{Int64},Nothing}:
  0  0
  0  0
 
@@ -49,7 +49,7 @@ ProductNode with 2 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> pred_lens(x -> x isa ArrayNode, n)
-1-element Array{Union{Setfield.ComposedLens{_A,_B} where _B where _A, Setfield.PropertyLens{_A} where _A},1}:
+1-element Vector{Union{Setfield.ComposedLens{_A,_B} where _B where _A, Setfield.PropertyLens{_A} where _A}}:
  (@lens _.data[2])
 ```
 
@@ -71,7 +71,7 @@ ProductNode with 2 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> list_lens(n)
-9-element Array{Lens,1}:
+9-element Vector{Lens}:
  (@lens _)
  (@lens _.data[1])
  (@lens _.data[1].data)
@@ -101,7 +101,7 @@ ProductNode with 2 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> findnonempty_lens(n)
-3-element Array{Lens,1}:
+3-element Vector{Lens}:
  (@lens _)
  (@lens _.data[1])
  (@lens _.data[2])
@@ -126,7 +126,7 @@ ProductNode with 2 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> find_lens(n, n.data[1])
-1-element Array{Union{Setfield.ComposedLens{_A,_B} where _B where _A, Setfield.PropertyLens{_A} where _A},1}:
+1-element Vector{Union{Setfield.ComposedLens{_A,_B} where _B where _A, Setfield.PropertyLens{_A} where _A}}:
  (@lens _.data[1])
 ```
 

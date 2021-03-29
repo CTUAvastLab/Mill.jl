@@ -27,12 +27,12 @@ Return data stored in node `n`.
 # Examples
 ```jldoctest
 julia> Mill.data(ArrayNode([1 2; 3 4], "metadata"))
-2×2 Array{Int64,2}:
+2×2 Matrix{Int64}:
  1  2
  3  4
 
 julia> Mill.data(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"))
-2×2 ArrayNode{Array{Int64,2},Nothing}:
+2×2 ArrayNode{Matrix{Int64},Nothing}:
  1  2
  3  4
 ```
@@ -72,7 +72,7 @@ to save compilation time.
 # Examples
 ```jldoctest
 julia> catobs(ArrayNode(zeros(2, 2)), ArrayNode([1 2; 3 4]))
-2×4 ArrayNode{Array{Float64,2},Nothing}:
+2×4 ArrayNode{Matrix{Float64},Nothing}:
  0.0  0.0  1.0  2.0
  0.0  0.0  3.0  4.0
 
@@ -103,7 +103,7 @@ Similar to `Base.getindex` or `MLDataPattern.getobs` but defined for all `Mill.j
 # Examples
 ```jldoctest
 julia> Mill.subset(ArrayNode(NGramMatrix(["Hello", "world"])), 2)
-2053×1 ArrayNode{NGramMatrix{String,Array{String,1},Int64},Nothing}:
+2053×1 ArrayNode{NGramMatrix{String,Vector{String},Int64},Nothing}:
  "world"
 
 julia> Mill.subset(BagNode(ArrayNode(randn(2, 8)), [1:2, 3:3, 4:7, 8:8]), 1:3)
@@ -131,7 +131,7 @@ BagNode with 3 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> b2.data
-2×2 ArrayNode{Array{Int64,2},Nothing}:
+2×2 ArrayNode{Matrix{Int64},Nothing}:
  2  3
  5  6
 
@@ -149,12 +149,12 @@ Drop metadata stored in data node `n`.
 # Examples
 ```jldoctest
 julia> n1 = ArrayNode(NGramMatrix(["foo", "bar"]), ["metafoo", "metabar"])
-2053×2 ArrayNode{NGramMatrix{String,Array{String,1},Int64},Array{String,1}}:
+2053×2 ArrayNode{NGramMatrix{String,Vector{String},Int64},Vector{String}}:
  "foo"
  "bar"
 
 julia> n2 = dropmeta(n1)
-2053×2 ArrayNode{NGramMatrix{String,Array{String,1},Int64},Nothing}:
+2053×2 ArrayNode{NGramMatrix{String,Vector{String},Int64},Nothing}:
  "foo"
  "bar"
 
@@ -184,12 +184,12 @@ ProductNode with 2 obs
   └── b: ArrayNode(2×2 Array with Float64 elements) with 2 obs
 
 julia> Mill.data(n2).a
-2×2 ArrayNode{Array{Float64,2},Nothing}:
+2×2 ArrayNode{Matrix{Float64},Nothing}:
  1.0  1.0
  1.0  1.0
 
 julia> Mill.data(n2).b
-2×2 ArrayNode{Array{Float64,2},Nothing}:
+2×2 ArrayNode{Matrix{Float64},Nothing}:
  2.0  2.0
  2.0  2.0
 ```

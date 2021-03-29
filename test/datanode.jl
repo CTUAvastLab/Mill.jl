@@ -48,9 +48,9 @@ end
     @test hcat(e, e).data == hcat(e.data, e.data)
     @test vcat(e, e).data == vcat(e.data, e.data)
     x = ArrayNode(randn(2,3), rand(2, 3))
-    @test catobs(x, x[0:-1]) isa ArrayNode{Array{Float64,2},Array{Float64,2}}
+    @test catobs(x, x[0:-1]) isa ArrayNode{Matrix{Float64}, Matrix{Float64}}
     @inferred catobs(x, x[0:-1])
-    @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Array{Float64,2},Array{Float64,2}}
+    @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Matrix{Float64}, Matrix{Float64}}
     @inferred reduce(catobs, [x, x[0:-1]])
     @test cat(e, e, dims = ndims(e)).data == hcat(e.data, e.data)
 end

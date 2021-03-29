@@ -29,7 +29,7 @@ to integers with `Base.codeunits`.
 # Examples
 ```jldoctest
 julia> NGramIterator("deadbeef", 3, 256, 17) |> collect
-10-element Array{Int64,1}:
+10-element Vector{Int64}:
   2
  16
   9
@@ -42,7 +42,7 @@ julia> NGramIterator("deadbeef", 3, 256, 17) |> collect
   6
 
 julia> NGramIterator(collect(1:9), 3, 10, 1009) |> collect
-11-element Array{Int64,1}:
+11-element Vector{Int64}:
  221
  212
  123
@@ -111,7 +111,7 @@ Store codes of `n` grams of `x` using base `b` to `o`.
 # Examples
 ```jldoctest
 julia> o = zeros(Int, 5)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  0
  0
  0
@@ -119,7 +119,7 @@ julia> o = zeros(Int, 5)
  0
 
 julia> ngrams!(o, "foo", 3, 256)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
   131686
   157295
  6713199
@@ -145,7 +145,7 @@ Return codes of `n` grams of `x` using base `b`.
 # Examples
 ```jldoctest
 julia> ngrams("foo", 3, 256)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
   131686
   157295
  6713199
@@ -166,7 +166,7 @@ Count the number of of `n` grams of `x` using base `b` and modulo `m` and store 
 # Examples
 ```jldoctest
 julia> o = zeros(Int, 5)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  0
  0
  0
@@ -174,7 +174,7 @@ julia> o = zeros(Int, 5)
  0
 
 julia> countngrams!(o, "foo", 3, 256)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  2
  1
  1
@@ -202,7 +202,7 @@ in case `x` is a single sequence or into a matrix with `m` rows if `x` is an ite
 # Examples
 ```jldoctest
 julia> countngrams("foo", 3, 256, 5)
-5-element Array{Int64,1}:
+5-element Vector{Int64}:
  2
  1
  1
@@ -210,7 +210,7 @@ julia> countngrams("foo", 3, 256, 5)
  1
 
 julia> countngrams(["foo", "bar"], 3, 256, 5)
-5×2 Array{Int64,2}:
+5×2 Matrix{Int64}:
  2  1
  1  0
  1  2
@@ -272,11 +272,11 @@ Construct an [`NGramMatrix`](@ref). `s` can either be a single sequence or any `
 # Examples
 ```jldoctest
 julia> NGramMatrix([1,2,3])
-2053×1 NGramMatrix{Array{Int64,1},Array{Array{Int64,1},1},Int64}:
+2053×1 NGramMatrix{Vector{Int64},Vector{Vector{Int64}},Int64}:
  [1, 2, 3]
 
 julia> NGramMatrix(["a", missing, "c"], 2, 128)
-2053×3 NGramMatrix{Union{Missing, String},Array{Union{Missing, String},1},Union{Missing, Int64}}:
+2053×3 NGramMatrix{Union{Missing, String},Vector{Union{Missing, String}},Union{Missing, Int64}}:
  "a"
  missing
  "c"

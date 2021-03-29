@@ -102,10 +102,10 @@ julia> d = preimputing_dense(2, 3)
 [pre_imputing]Dense(2, 3)
 
 julia> typeof(d.W)
-PreImputingMatrix{Float32,Array{Float32,2},Array{Float32,1}}
+PreImputingMatrix{Float32,Matrix{Float32},Vector{Float32}}
 
 julia> typeof(d.b)
-Array{Float32,1}
+Vector{Float32}
 ```
 
 See also: [`PreImputingMatrix`](@ref), [`postimputing_dense`](@ref), [`PostImputingMatrix`](@ref).
@@ -124,10 +124,10 @@ julia> d = postimputing_dense(2, 3)
 [post_imputing]Dense(2, 3)
 
 julia> typeof(d.W)
-PostImputingMatrix{Float32,Array{Float32,2},Array{Float32,1}}
+PostImputingMatrix{Float32,Matrix{Float32},Vector{Float32}}
 
 julia> typeof(d.b)
-Array{Float32,1}
+Vector{Float32}
 ```
 
 See also: [`PostImputingMatrix`](@ref), [`preimputing_dense`](@ref), [`PreImputingMatrix`](@ref).
