@@ -49,7 +49,6 @@ function (m::SegmentedPNorm{T})(x::Missing, bags::AbstractBags,
 end
 function (m::SegmentedPNorm{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
                                 w::Optional{AbstractVecOrMat{T}}=nothing) where T
-
     z = x .- m.c |> typeof(x)
     segmented_pnorm_forw(z, m.ψ, p_map(m.ρ), bags, w)
 end

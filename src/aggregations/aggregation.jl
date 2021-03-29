@@ -41,7 +41,7 @@ Aggregation{Int64}:
  SegmentedMean(ψ = [0, 0, 0, 0])
  SegmentedMax(ψ = [0, 0, 0, 0])
 
-julia> Aggregation(SegmentedMean(4), SegmentedMax(4))
+julia> Aggregation(mean_aggregation(4), max_aggregation(4))
 Aggregation{Float32}:
  SegmentedMean(ψ = Float32[0.0, 0.0, 0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0, 0.0, 0.0])
