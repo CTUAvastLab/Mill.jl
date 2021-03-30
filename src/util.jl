@@ -49,7 +49,7 @@ ProductNode with 2 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> pred_lens(x -> x isa ArrayNode, n)
-1-element Vector{Union{Setfield.ComposedLens{_A,_B} where _B where _A, Setfield.PropertyLens{_A} where _A}}:
+1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
  (@lens _.data[2])
 ```
 
@@ -126,7 +126,7 @@ ProductNode with 2 obs
   └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
 
 julia> find_lens(n, n.data[1])
-1-element Vector{Union{Setfield.ComposedLens{_A,_B} where _B where _A, Setfield.PropertyLens{_A} where _A}}:
+1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
  (@lens _.data[1])
 ```
 
@@ -136,12 +136,13 @@ find_lens(n, x) = pred_lens(t -> t === x, n)
 
 _pred_lens(p::Function, n) = p(n) ? [IdentityLens()] : Lens[]
 function _pred_lens(p::Function, n::T) where T <: MillStruct
-    res = vcat([map(l -> PropertyLens{k}() ∘ l, _pred_lens(p, getproperty(n, k)))
-                for k in fieldnames(T)]...)
+    res = [map(l -> PropertyLens{k}() ∘ l, _pred_lens(p, getproperty(n, k))) for k in fieldnames(T)]
+    res = vcat(filter(!isempty, res)...)
     p(n) ? [IdentityLens(); res] : res
 end
 function _pred_lens(p::Function, n::Union{Tuple, NamedTuple})
-    vcat([map(l -> IndexLens(tuple(i)) ∘ l, _pred_lens(p, n[i])) for i in eachindex(n)]...)
+    res = [map(l -> IndexLens(tuple(i)) ∘ l, _pred_lens(p, n[i])) for i in eachindex(n)]
+    vcat(filter(!isempty, res)...)
 end
 
 """
