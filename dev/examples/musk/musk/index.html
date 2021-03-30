@@ -3,7 +3,7 @@
 using Flux: throttle, @epochs
 using Mill: reflectinmodel
 using Base.Iterators: repeated</code></pre><p>and then load the dataset and transform it into a <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> structure. The <code>musk.jld2</code> file contains:</p><ul><li>a matrix with features <code>fMat</code>:</li></ul><pre><code class="language-julia-repl">julia&gt; fMat = load(&quot;musk.jld2&quot;, &quot;fMat&quot;)          # matrix with instances, each column is one sample
-166×476 Array{Float32,2}:
+166×476 Matrix{Float32}:
    42.0    42.0    42.0    42.0    42.0  …    38.0    43.0    39.0    52.0
  -198.0  -191.0  -191.0  -198.0  -198.0     -123.0  -102.0   -58.0  -121.0
  -109.0  -142.0  -142.0  -110.0  -102.0     -139.0   -20.0    27.0   -24.0
@@ -24,7 +24,7 @@ using Base.Iterators: repeated</code></pre><p>and then load the dataset and tran
   -37.0   -37.0   -37.0   -37.0   -30.0      -28.0   -37.0   -28.0   -14.0
     6.0     5.0     5.0     6.0    14.0        4.0   -19.0     3.0    12.0
    30.0    30.0    31.0    30.0    26.0  …    74.0   -36.0    74.0    96.0</code></pre><ul><li>the id of sample (<em>bag</em> in MIL terminology) specifying to which each instance (column in <code>fMat</code>) belongs to:</li></ul><pre><code class="language-julia-repl">julia&gt; bagids = load(&quot;musk.jld2&quot;, &quot;bagids&quot;)      # ties instances to bags
-476-element Array{Int64,1}:
+476-element Vector{Int64}:
   1
   1
   1
@@ -47,7 +47,7 @@ using Base.Iterators: repeated</code></pre><p>and then load the dataset and tran
  92</code></pre><p>The resulting <a href="../../../api/data_nodes/#Mill.BagNode"><code>BagNode</code></a> is a structure which holds (i) feature matrix and (ii) ranges identifying which columns in the feature matrix each bag spans. This representation ensures that feed-forward networks do not need to deal with bag boundaries and always process full continuous matrices:</p><pre><code class="language-julia-repl">julia&gt; ds = BagNode(ArrayNode(fMat), bagids)     # create a BagNode dataset
 BagNode with 92 obs
   └── ArrayNode(166×476 Array with Float32 elements) with 476 obs</code></pre><ul><li>the label of each instance in <code>y</code>.  The label of a bag is a maximum of labels of its instances, i.e. one positive instance in a bag makes it positive:</li></ul><pre><code class="language-julia-repl">julia&gt; y = load(&quot;musk.jld2&quot;, &quot;y&quot;)                # load labels
-476-element Array{Int64,1}:
+476-element Vector{Int64}:
  1
  1
  1
@@ -70,7 +70,7 @@ BagNode with 92 obs
  0
 
 julia&gt; y = map(i -&gt; maximum(y[i]) + 1, ds.bags)  # create labels on bags
-92-element Array{Int64,1}:
+92-element Vector{Int64}:
  2
  2
  2
@@ -93,7 +93,7 @@ julia&gt; y = map(i -&gt; maximum(y[i]) + 1, ds.bags)  # create labels on bags
  1
 
 julia&gt; y_oh = Flux.onehotbatch(y, 1:2)           # one-hot encoding
-2×92 Flux.OneHotMatrix{Array{Flux.OneHotVector,1}}:
+2×92 Flux.OneHotMatrix{Vector{Flux.OneHotVector}}:
  0  0  0  0  0  0  0  0  0  0  0  0  0  …  1  1  1  1  1  1  1  1  1  1  1  1
  1  1  1  1  1  1  1  1  1  1  1  1  1     0  0  0  0  0  0  0  0  0  0  0  0</code></pre><p>Once the data are in <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> internal format, we will manually create a model. <a href="../../../api/model_nodes/#Mill.BagModel"><code>BagModel</code></a> is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:</p><pre><code class="language-julia-repl">julia&gt; model = BagModel(
            ArrayModel(Dense(166, 10, Flux.relu)),                      # model on the level of Flows
@@ -101,34 +101,34 @@ julia&gt; y_oh = Flux.onehotbatch(y, 1:2)           # one-hot encoding
            ArrayModel(Chain(Dense(21, 10, Flux.relu), Dense(10, 2))))  # model on the level of bags
 BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Chain(Dense(21, 10, relu), Dense(10, 2)))
   └── ArrayModel(Dense(166, 10, relu))</code></pre><p>Instances are first passed through a single layer with 10 neurons (input dimension is 166) with <code>relu</code> non-linearity, then we use <code>mean</code> and <code>max</code> aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and <code>relu</code> nonlinearity followed by linear layer with 2 neurons (output dimension).</p><p>Let&#39;s check that forward pass works:</p><pre><code class="language-julia-repl">julia&gt; model(ds)
-2×92 ArrayNode{Array{Float32,2},Nothing}:
- -53.442574  -0.2558828  83.72547  …   76.199455   13.771168   93.648926
-  74.2793    61.853767   80.78974     127.780235  184.7922    186.74655</code></pre><p>Since <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>cross-entropy</code> loss function:</p><pre><code class="language-julia-repl">julia&gt; loss(ds, y_oh) = Flux.logitcrossentropy(model(ds) |&gt; Mill.data, y_oh)
+2×92 ArrayNode{Matrix{Float32}, Nothing}:
+ -97.71729  -89.72752  -80.56655  …  -101.969955  -215.7243   -233.84448
+ 237.62582  228.96323  192.46385      148.09227    416.06223   395.114</code></pre><p>Since <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>cross-entropy</code> loss function:</p><pre><code class="language-julia-repl">julia&gt; loss(ds, y_oh) = Flux.logitcrossentropy(model(ds) |&gt; Mill.data, y_oh)
 loss (generic function with 1 method)</code></pre><p>and run simple training procedure using its tooling:</p><pre><code class="language-julia-repl">julia&gt; opt = Flux.ADAM()
-ADAM(0.001, (0.9, 0.999), IdDict{Any,Any}())
+ADAM(0.001, (0.9, 0.999), IdDict{Any, Any}())
 
 julia&gt; @epochs 10 begin
            Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt)
            println(loss(ds, y_oh))
        end
 [ Info: Epoch 1
-0.0007252074
+0.014095226
 [ Info: Epoch 2
-0.00022879441
+0.0015744194
 [ Info: Epoch 3
-9.66057e-5
+0.00055659795
 [ Info: Epoch 4
-4.966718e-5
+0.0002582194
 [ Info: Epoch 5
-2.6961425e-5
+0.00013262009
 [ Info: Epoch 6
-1.5254793e-5
+7.051444e-5
 [ Info: Epoch 7
-8.907822e-6
+3.6943024e-5
 [ Info: Epoch 8
-5.2269056e-6
+2.0438329e-5
 [ Info: Epoch 9
-3.0825424e-6
+1.1551351e-5
 [ Info: Epoch 10
-1.8580911e-6</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
-0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 24 February 2021 08:42">Wednesday 24 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+6.5603026e-6</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
+0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 30 March 2021 09:35">Tuesday 30 March 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
