@@ -225,7 +225,7 @@ end
          \"b\"
          \"c\""""
 
-     X = NGramMatrix([missing, "b", missing] |> PooledArray)
+    X = NGramMatrix([missing, "b", missing] |> PooledArray)
     @test repr(X) == "NGramMatrix(s = Union{Missing, String}[missing, \"b\", missing], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053×3 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
