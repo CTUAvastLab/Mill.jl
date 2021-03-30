@@ -81,9 +81,6 @@ param_aggregations(d, t::Type{<:Real}=Float64) = Aggregation(
 
 all_aggregations(d) = Aggregation((nonparam_aggregations(d), param_aggregations(d)))
 
-n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-@show list_lens(n)
-
 @testset "Doctests" begin
     DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
         using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils

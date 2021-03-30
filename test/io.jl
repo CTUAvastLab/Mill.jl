@@ -225,18 +225,18 @@ end
          \"b\"
          \"c\""""
 
-    X = NGramMatrix([missing, "b", missing] |> PooledArray)
+     X = NGramMatrix([missing, "b", missing] |> PooledArray)
     @test repr(X) == "NGramMatrix(s = Union{Missing, String}[missing, \"b\", missing], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053×3 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
-        2053×3 NGramMatrix{Union{Missing, String}, PooledArray{Union{Missing, String}, UInt32, 1, Vector{UInt32}}, Union{Missing, Int64}}:
+        2053×3 NGramMatrix{Union{Missing, String}, PooledVector{Union{Missing, String}, UInt32, Vector{UInt32}}, Union{Missing, Int64}}:
          missing
          \"b\"
          missing"""
 
     X = NGramMatrix([codeunits("hello"), codeunits("world")])
-    @test repr(X) == "NGramMatrix(s = CodeUnits{UInt8,String}" *
+    @test repr(X) == "NGramMatrix(s = CodeUnits{UInt8, String}" *
         "[[0x68, 0x65, 0x6c, 0x6c, 0x6f], [0x77, 0x6f, 0x72, 0x6c, 0x64]], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053×2 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
