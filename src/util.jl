@@ -5,14 +5,14 @@ Replace `AbstractMatrix` `x` with `SparseMatrixCSC` if at most `nnzrate` fractio
 
 ```jldoctest
 julia> n = ArrayNode([0 0; 0 0])
-2×2 ArrayNode{Matrix{Int64},Nothing}:
+2×2 ArrayNode{Matrix{Int64}, Nothing}:
  0  0
  0  0
 
 julia> Mill.mapdata(i -> sparsify(i, 0.05), n)
-2×2 ArrayNode{SparseMatrixCSC{Int64,Int64},Nothing}:
- 0  0
- 0  0
+2×2 ArrayNode{SparseMatrixCSC{Int64, Int64}, Nothing}:
+ ⋅  ⋅
+ ⋅  ⋅
 ```
 
 See also: [`Mill.mapdata`](@ref).
