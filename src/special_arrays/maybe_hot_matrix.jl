@@ -90,13 +90,13 @@ containing `1` at its first occurence in `labels` with all other elements set to
 # Examples
 ```jldoctest
 julia> maybehotbatch([:c, :a], [:a, :b, :c])
-3×2 MaybeHotMatrix{Int64,Int64,Bool}:
+3×2 MaybeHotMatrix{Int64, Int64, Bool}:
  0  1
  0  0
  1  0
 
 julia> maybehotbatch([missing, 2], 1:3)
-3×2 MaybeHotMatrix{Union{Missing, Int64},Int64,Union{Missing, Bool}}:
+3×2 MaybeHotMatrix{Union{Missing, Int64}, Int64, Union{Missing, Bool}}:
  missing  false
  missing   true
  missing  false

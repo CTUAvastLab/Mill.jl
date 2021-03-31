@@ -9,7 +9,7 @@ the [`ArrayNode`](@ref).
 julia> Random.seed!(0);
 
 julia> n = ArrayNode(randn(Float32, 2, 2))
-2×2 ArrayNode{Array{Float32,2},Nothing}:
+2×2 ArrayNode{Matrix{Float32}, Nothing}:
  0.6791074  -0.3530074
  0.8284135  -0.13485387
 
@@ -17,7 +17,7 @@ julia> m = ArrayModel(Dense(2, 2))
 ArrayModel(Dense(2, 2))
 
 julia> m(n)
-2×2 ArrayNode{Array{Float32,2},Nothing}:
+2×2 ArrayNode{Matrix{Float32}, Nothing}:
  0.660979    -0.18795347
  0.10059327   0.27500954
 ```
@@ -70,7 +70,7 @@ end
 
 fold(f, m::ArrayModel, x) = f(m, x)
 
-Flux.activations(::typeof(identity), x::Array{Float32,2}) = (x,)
+Flux.activations(::typeof(identity), x::Matrix{Float32}) = (x,)
 
 # Base.hash(m::ArrayModel{T}, h::UInt) where {T} = hash((T, m.m), h)
 # (m1::ArrayModel{T} == m2::ArrayModel{T}) where {T} = m1.m == m2.m

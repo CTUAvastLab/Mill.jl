@@ -82,8 +82,9 @@ param_aggregations(d, t::Type{<:Real}=Float64) = Aggregation(
 all_aggregations(d) = Aggregation((nonparam_aggregations(d), param_aggregations(d)))
 
 @testset "Doctests" begin
-    DocMeta.setdocmeta!(Mill, :DocTestSetup,
-                        :(using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils); recursive=true)
+    DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
+        using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
+    end; recursive=true)
     doctest(Mill)
 end
 

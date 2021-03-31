@@ -55,25 +55,21 @@ Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
 Base.keys(x::ProductNode) = keys(x.data)
 
 _length_error() = ArgumentError("Trying to `catobs` `ProductNode`s with different subtrees") |> throw
-function _check_length(as::Vector{<:Tuple})
+function _check_idxs(as::Vector{<:Tuple})
     if any(length.(as) .!= length(as[1]))
         _length_error()
     end
+    1:length(as[1])
 end
-function _check_length(as::Vector{<:NamedTuple{K}}) where K end
-_check_length(as) = _length_error()
+_check_idxs(as::Vector{<:NamedTuple{K}}) where K = keys(as[1])
+_check_idxs(as) = _length_error()
 
-_cattrees(as::Vector{T}) where T <: Tuple = convert(T, tuple(reduce.(catobs, zip(as...))...))
-function _cattrees(as::Vector{T}) where {K, T <: NamedTuple{K}}
-    convert(T, (; [k => reduce(catobs, getindex.(as, k)) for k in K]...))
-end
+_cattrees(as::Vector{T}) where T = T(reduce(catobs, getindex.(as, i)) for i in _check_idxs(as))
 
 function reduce(::typeof(catobs), as::Vector{<:ProductNode})
-    d = data.(as)
-    _check_length(d)
-    d = _cattrees(d)
-    md = reduce(catobs, metadata.(as))
-    ProductNode(d, md)
+    ds = data.(as)
+    idxs = _check_idxs(ds)
+    ProductNode(_cattrees(ds), reduce(catobs, metadata.(as)))
 end
 
 Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(x.data, i), subset(x.metadata, i))

@@ -7,7 +7,7 @@ element is encountered during multiplication.
 # Examples
 ```jldoctest
 julia> A = PreImputingMatrix(ones(2, 2), -ones(2))
-2×2 PreImputingMatrix{Float64,Array{Float64,2},Array{Float64,1}}:
+2×2 PreImputingMatrix{Float64, Matrix{Float64}, Vector{Float64}}:
 W:
  1.0  1.0
  1.0  1.0
@@ -16,7 +16,7 @@ W:
  -1.0  -1.0
 
 julia> A * [0 1; missing -1]
-2×2 Array{Float64,2}:
+2×2 Matrix{Float64}:
  -1.0  0.0
  -1.0  0.0
 ```
@@ -38,7 +38,7 @@ Construct a [`PreImputingMatrix`](@ref) with multiplication parameters `W` and d
 # Examples
 ```jldoctest
 julia> PreImputingMatrix([1 2; 3 4])
-2×2 PreImputingMatrix{Int64,Array{Int64,2},Array{Int64,1}}:
+2×2 PreImputingMatrix{Int64, Matrix{Int64}, Vector{Int64}}:
 W:
  1  2
  3  4

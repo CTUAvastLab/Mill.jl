@@ -19,7 +19,7 @@ ProductModel … ↦ ArrayModel(identity)
   └── b: ArrayModel(Dense(2, 2))
 
 julia> m1(n)
-4×2 ArrayNode{Array{Float32,2},Nothing}:
+4×2 ArrayNode{Matrix{Float32}, Nothing}:
  -1.2838157  -1.25368
   1.8022565   3.7105856
  -4.036125   -5.012517
@@ -31,7 +31,7 @@ ProductModel … ↦ ArrayModel(identity)
   └── b: ArrayModel(identity)
 
 julia> m2(n)
-4×2 ArrayNode{Array{Int64,2},Nothing}:
+4×2 ArrayNode{Matrix{Int64}, Nothing}:
  0  1
  2  3
  4  5

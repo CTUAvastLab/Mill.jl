@@ -26,7 +26,7 @@ LazyModel{Sentence}
         └── ArrayModel(Dense(2053, 3))
 
 julia> m(n)
-4×2 ArrayNode{Array{Float32,2},Nothing}:
+4×2 ArrayNode{Matrix{Float32}, Nothing}:
  -0.006524003  -0.02167379
   0.033673763   0.05508352
  -0.06166087    0.07056637

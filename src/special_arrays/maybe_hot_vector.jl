@@ -75,13 +75,13 @@ and all other elements are set to `0`.
 # Examples
 ```jldoctest
 julia> maybehot(:b, [:a, :b, :c])
-3-element MaybeHotVector{Int64,Int64,Bool}:
+3-element MaybeHotVector{Int64, Int64, Bool}:
  0
  1
  0
 
 julia> maybehot(missing, 1:3)
-3-element MaybeHotVector{Missing,Int64,Missing}:
+3-element MaybeHotVector{Missing, Int64, Missing}:
  missing
  missing
  missing

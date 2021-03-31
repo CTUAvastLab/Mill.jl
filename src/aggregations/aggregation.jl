@@ -47,7 +47,7 @@ Aggregation{Float32}:
  SegmentedMax(ψ = Float32[0.0, 0.0, 0.0, 0.0])
 
 julia> mean_aggregation(5)(Float32[0 1 2; 3 4 5], bags([1:1, 2:3]))
-3×2 Array{Float32,2}:
+3×2 Matrix{Float32}:
  0.0       1.5
  3.0       4.5
  0.693147  1.09861

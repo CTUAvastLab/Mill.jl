@@ -18,12 +18,12 @@ BagModel … ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5,
   └── ArrayModel(Dense(2, 2))
 
 julia> m(n)
-2×2 ArrayNode{Array{Float32,2},Nothing}:
+2×2 ArrayNode{Matrix{Float32}, Nothing}:
  0.0  -1.1958722
  0.0   0.62269455
 
 julia> m.bm(m.a(m.im(n.data), n.bags))
-2×2 ArrayNode{Array{Float32,2},Nothing}:
+2×2 ArrayNode{Matrix{Float32}, Nothing}:
  0.0  -1.1958722
  0.0   0.62269455
 ```

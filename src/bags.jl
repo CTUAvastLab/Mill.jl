@@ -125,7 +125,7 @@ Construct a new [`ScatteredBags`](@ref) struct containing no bags.
 # Examples
 ```jldoctest
 julia> ScatteredBags()
-ScatteredBags{Int64}(Array{Int64,1}[])
+ScatteredBags{Int64}(Vector{Int64}[])
 ```
 """
 ScatteredBags() = ScatteredBags(Vector{Vector{Int}}())
@@ -173,7 +173,7 @@ julia> bags([1:3, 4:5])
 AlignedBags{Int64}(UnitRange{Int64}[1:3, 4:5])
 
 julia> bags(ScatteredBags())
-ScatteredBags{Int64}(Array{Int64,1}[])
+ScatteredBags{Int64}(Vector{Int64}[])
 ```
 
 See also: [`AlignedBags`](@ref), [`ScatteredBags`](@ref).

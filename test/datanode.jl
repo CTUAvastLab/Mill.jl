@@ -30,6 +30,7 @@ i = ProductNode((
 k = ProductNode((a = wb, b = b), md2)
 l = ProductNode((a = wc, b = c), md3)
 m = ProductNode((a = wc, c = c), md3)
+n = ProductNode((a = c, c = wc), md3)
 
 @testset "testing nobs" begin
     @test nobs(a) == nobs(wa) == 1
@@ -48,9 +49,9 @@ end
     @test hcat(e, e).data == hcat(e.data, e.data)
     @test vcat(e, e).data == vcat(e.data, e.data)
     x = ArrayNode(randn(2,3), rand(2, 3))
-    @test catobs(x, x[0:-1]) isa ArrayNode{Array{Float64,2},Array{Float64,2}}
+    @test catobs(x, x[0:-1]) isa ArrayNode{Matrix{Float64}, Matrix{Float64}}
     @inferred catobs(x, x[0:-1])
-    @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Array{Float64,2},Array{Float64,2}}
+    @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Matrix{Float64}, Matrix{Float64}}
     @inferred reduce(catobs, [x, x[0:-1]])
     @test cat(e, e, dims = ndims(e)).data == hcat(e.data, e.data)
 end
@@ -137,17 +138,20 @@ end
     @test catobs(k, l).data[2].data.data == hcat(b.data.data, c.data.data)
     @test nobs(catobs(k,l)) == nobs(k) + nobs(l)
 
-    # different tuple length or keys or content
+    # correct length/keyset but different subtrees
+    @test_throws MethodError catobs(f, i)
+    @test_throws MethodError reduce(catobs, [f, i])
+    @test_throws MethodError catobs(m, n)
+    @test_throws MethodError reduce(catobs, [m, n])
+    # different tuple length or keyset
     @test_throws ArgumentError catobs(g, i)
     @test_throws ArgumentError reduce(catobs, [g, i])
+    @test_throws ArgumentError catobs(f, g)
+    @test_throws ArgumentError reduce(catobs, [f, g])
     @test_throws ArgumentError catobs(k, m)
     @test_throws ArgumentError reduce(catobs, [k, m])
     @test_throws ArgumentError catobs(l, m)
     @test_throws ArgumentError reduce(catobs, [l, m])
-    @test_throws ArgumentError catobs(f, g)
-    @test_throws ArgumentError reduce(catobs, [f, g])
-    @test_throws MethodError catobs(f, i)
-    @test_throws MethodError reduce(catobs, [f, i])
 end
 
 @testset "testing BagNode indexing" begin
