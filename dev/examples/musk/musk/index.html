@@ -112,23 +112,23 @@ julia&gt; @epochs 10 begin
            println(loss(ds, y_oh))
        end
 [ Info: Epoch 1
-0.014095226
+0.014092965
 [ Info: Epoch 2
-0.0015744194
+0.0015744678
 [ Info: Epoch 3
-0.00055659795
+0.00055663154
 [ Info: Epoch 4
-0.0002582194
+0.00025823494
 [ Info: Epoch 5
-0.00013262009
+0.00013263694
 [ Info: Epoch 6
-7.051444e-5
+7.050537e-5
 [ Info: Epoch 7
-3.6943024e-5
+3.6945614e-5
 [ Info: Epoch 8
-2.0438329e-5
+2.0437032e-5
 [ Info: Epoch 9
-1.1551351e-5
+1.1551352e-5
 [ Info: Epoch 10
 6.5603026e-6</code></pre><p>We can also calculate training error, which should be not so surprisingly low:</p><pre><code class="language-julia-repl">julia&gt; mean(mapslices(argmax, model(ds).data, dims=1)&#39; .!= y)
-0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 31 March 2021 12:35">Wednesday 31 March 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../graphs/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 31 March 2021 12:38">Wednesday 31 March 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
