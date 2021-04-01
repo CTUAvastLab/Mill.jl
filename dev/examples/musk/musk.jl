@@ -19,7 +19,7 @@ model = BagModel(
     ArrayModel(Chain(Dense(21, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
 
 # check forward pass
-model(ds)
+model(ds).data
 
 # define loss function
 loss(ds, y_oh) = Flux.logitcrossentropy(Mill.data(model(ds)), y_oh)

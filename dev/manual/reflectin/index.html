@@ -19,30 +19,47 @@ BagNode with 3 obs
         │           └── ArrayNode(2×30 Array with Float64 elements) with 30 obs
         └── ArrayNode(2×5 Array with Float64 elements) with 5 obs
 julia&gt; m = reflectinmodel(ds);
-ERROR: MethodError: no method matching (::SegmentedMean{Float32, Vector{Float32}})(::Matrix{Float64}, ::AlignedBags{Int64})
-Closest candidates are:
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::AbstractMatrix{var&quot;#s42&quot;} where var&quot;#s42&quot;&lt;:Union{Missing, T}, ::AbstractBags, !Matched::Union{Nothing, AbstractVector{T}, AbstractMatrix{T}}, !Matched::AbstractVector{T}) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:40
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::Union{Missing, AbstractMatrix{var&quot;#s42&quot;} where var&quot;#s42&quot;&lt;:Union{Missing, T}}, ::AbstractBags) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:36
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::Union{Missing, AbstractMatrix{var&quot;#s41&quot;} where var&quot;#s41&quot;&lt;:Union{Missing, T}}, ::AbstractBags, !Matched::Union{Nothing, AbstractVector{T}, AbstractMatrix{T}}) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:36
-  ...
 
 julia&gt; printtree(m)
-ERROR: UndefVarError: m not defined
-
+BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+  └── ProductModel … ↦ ArrayModel(Dense(40, 10))
+        ├── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+        │     └── ArrayModel(Dense(4, 10))
+        ├── ArrayModel(Dense(3, 10))
+        ├── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+        │     └── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+        │           └── ArrayModel(Dense(2, 10))
+        └── ArrayModel(Dense(2, 10))
 julia&gt; m(ds)
-ERROR: UndefVarError: m not defined</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h3 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h3><p>To have better control over the topology, <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <a href="../../api/model_nodes/#Mill.BagModel"><code>BagModel</code></a> nodes (defaults to <code>d -&gt; mean_aggregation(d)</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia">using Flux</code></pre><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; max_aggregation(d));
-ERROR: MethodError: no method matching (::SegmentedMax{Float32, Vector{Float32}})(::Matrix{Float64}, ::AlignedBags{Int64})
-Closest candidates are:
-  (::SegmentedMax{T, V} where V&lt;:AbstractVector{T})(::AbstractMatrix{var&quot;#s42&quot;} where var&quot;#s42&quot;&lt;:Union{Missing, T}, ::AbstractBags, !Matched::Union{Nothing, AbstractVector{T}, AbstractMatrix{T}}, !Matched::AbstractVector{T}) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_max.jl:40
-  (::SegmentedMax{T, V} where V&lt;:AbstractVector{T})(::Union{Missing, AbstractMatrix{var&quot;#s42&quot;} where var&quot;#s42&quot;&lt;:Union{Missing, T}}, ::AbstractBags) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_max.jl:36
-  (::SegmentedMax{T, V} where V&lt;:AbstractVector{T})(::Union{Missing, AbstractMatrix{var&quot;#s41&quot;} where var&quot;#s41&quot;&lt;:Union{Missing, T}}, ::AbstractBags, !Matched::Union{Nothing, AbstractVector{T}, AbstractMatrix{T}}) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_max.jl:36
-  ...
+10×3 ArrayNode{Matrix{Float64}, Nothing}:
+ -0.038918073137103604  -1.0269540280158547   -1.0193029662713247
+  1.1405791009032942     0.4443742734845384   -0.22033635466825696
+ -0.4186303178425272    -2.1211420476650833   -0.9783314350169234
+  0.35558687644781883    0.2583033746423632   -0.9468037764794335
+  0.03485985580979459   -0.5033560116639362   -0.03598211635791382
+ -0.8076151709121582    -0.35997794426260704   0.39803452572255227
+ -0.6087156470016943     0.06487253437361515   1.0217443302976426
+ -1.7817955502786889    -0.02918862806600076   1.4289896170873988
+ -0.7325435163581548     2.845310522760467    -1.00760387527059
+ -0.48766964589281414   -0.9546175525258719    1.338318901248967</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h3 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h3><p>To have better control over the topology, <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <a href="../../api/model_nodes/#Mill.BagModel"><code>BagModel</code></a> nodes (defaults to <code>d -&gt; mean_aggregation(d)</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia">using Flux</code></pre><pre><code class="language-julia-repl">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; max_aggregation(d));
 
 julia&gt; printtree(m)
-ERROR: UndefVarError: m not defined
-
+BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
+  └── ProductModel … ↦ ArrayModel(Dense(20, 5, relu))
+        ├── BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
+        │     └── ArrayModel(Dense(4, 5, relu))
+        ├── ArrayModel(Dense(3, 5, relu))
+        ├── BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
+        │     └── BagModel … ↦ ⟨SegmentedMax(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
+        │           └── ArrayModel(Dense(2, 5, relu))
+        └── ArrayModel(Dense(2, 5, relu))
 julia&gt; m(ds)
-ERROR: UndefVarError: m not defined</code></pre><h3 id="Keyword-arguments"><a class="docs-heading-anchor" href="#Keyword-arguments">Keyword arguments</a><a id="Keyword-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Keyword-arguments" title="Permalink"></a></h3><p>The <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> allows even further customization. To index into the sample (or model), we can use <code>printtree(ds; trav=true)</code> from <a href="../../tools/hierarchical/#HierarchicalUtils.jl">HierarchicalUtils.jl</a> that prints the sample together with identifiers of individual nodes:</p><pre><code class="language-julia">using HierarchicalUtils</code></pre><pre><code class="language-julia-repl">julia&gt; printtree(ds; trav=true)
+5×3 ArrayNode{Matrix{Float64}, Nothing}:
+ 0.2626823673986649   0.051359273969510705  0.0
+ 0.0                  0.0                   0.0
+ 0.4416317647088155   0.926692292580886     0.43105622252087555
+ 0.08718505233124807  0.0                   0.0
+ 0.0                  0.0                   0.0</code></pre><h3 id="Keyword-arguments"><a class="docs-heading-anchor" href="#Keyword-arguments">Keyword arguments</a><a id="Keyword-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Keyword-arguments" title="Permalink"></a></h3><p>The <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> allows even further customization. To index into the sample (or model), we can use <code>printtree(ds; trav=true)</code> from <a href="../../tools/hierarchical/#HierarchicalUtils.jl">HierarchicalUtils.jl</a> that prints the sample together with identifiers of individual nodes:</p><pre><code class="language-julia">using HierarchicalUtils</code></pre><pre><code class="language-julia-repl">julia&gt; printtree(ds; trav=true)
 BagNode with 3 obs [&quot;&quot;]
   └── ProductNode with 5 obs [&quot;U&quot;]
         ├── BagNode with 5 obs [&quot;Y&quot;]
@@ -53,17 +70,23 @@ BagNode with 3 obs [&quot;&quot;]
         │           └── ArrayNode(2×30 Array with Float64 elements) with 30 obs [&quot;j&quot;]
         └── ArrayNode(2×5 Array with Float64 elements) with 5 obs [&quot;k&quot;]</code></pre><p>These identifiers can be used to override the default construction functions. Note that the output, i.e. the last feed-forward network of the whole model is always tagged with an empty string <code>&quot;&quot;</code>, which simplifies putting linear layer with an appropriate output dimension on the end. Dictionaries with these overrides can be passed in as keyword arguments:</p><ul><li><code>fsm</code> overrides constructions of feed-forward models</li><li><code>fsa</code> overrides construction of aggregation functions.</li></ul><p>For example to specify just the last feed forward neural network:</p><pre><code class="language-julia-repl">julia&gt; reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; meanmax_aggregation(d);
            fsm = Dict(&quot;&quot; =&gt; d -&gt; Chain(Dense(d, 20, relu), Dense(20, 12)))) |&gt; printtree
-ERROR: MethodError: no method matching (::SegmentedMean{Float32, Vector{Float32}})(::Matrix{Float64}, ::AlignedBags{Int64})
-Closest candidates are:
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::AbstractMatrix{var&quot;#s42&quot;} where var&quot;#s42&quot;&lt;:Union{Missing, T}, ::AbstractBags, !Matched::Union{Nothing, AbstractVector{T}, AbstractMatrix{T}}, !Matched::AbstractVector{T}) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:40
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::Union{Missing, AbstractMatrix{var&quot;#s42&quot;} where var&quot;#s42&quot;&lt;:Union{Missing, T}}, ::AbstractBags) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:36
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::Union{Missing, AbstractMatrix{var&quot;#s41&quot;} where var&quot;#s41&quot;&lt;:Union{Missing, T}}, ::AbstractBags, !Matched::Union{Nothing, AbstractVector{T}, AbstractMatrix{T}}) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:36
-  ...</code></pre><p>Both keyword arguments in action:</p><pre><code class="language-julia-repl">julia&gt; reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; meanmax_aggregation(d);
+BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Chain(Dense(11, 20, relu), Dense(20, 12)))
+  └── ProductModel … ↦ ArrayModel(Dense(20, 5, relu))
+        ├── BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(11, 5, relu))
+        │     └── ArrayModel(Dense(4, 5, relu))
+        ├── ArrayModel(Dense(3, 5, relu))
+        ├── BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(11, 5, relu))
+        │     └── BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(11, 5, relu))
+        │           └── ArrayModel(Dense(2, 5, relu))
+        └── ArrayModel(Dense(2, 5, relu))</code></pre><p>Both keyword arguments in action:</p><pre><code class="language-julia-repl">julia&gt; reflectinmodel(ds, d -&gt; Dense(d, 5, relu), d -&gt; meanmax_aggregation(d);
            fsm = Dict(&quot;&quot; =&gt; d -&gt; Chain(Dense(d, 20, relu), Dense(20, 12))),
            fsa = Dict(&quot;Y&quot; =&gt; d -&gt; mean_aggregation(d), &quot;g&quot; =&gt; d -&gt; pnorm_aggregation(d))) |&gt; printtree
-ERROR: MethodError: no method matching (::SegmentedMean{Float32, Vector{Float32}})(::Matrix{Float64}, ::AlignedBags{Int64})
-Closest candidates are:
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::AbstractMatrix{var&quot;#s42&quot;} where var&quot;#s42&quot;&lt;:Union{Missing, T}, ::AbstractBags, !Matched::Union{Nothing, AbstractVector{T}, AbstractMatrix{T}}, !Matched::AbstractVector{T}) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:40
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::Union{Missing, AbstractMatrix{var&quot;#s42&quot;} where var&quot;#s42&quot;&lt;:Union{Missing, T}}, ::AbstractBags) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:36
-  (::SegmentedMean{T, V} where V&lt;:AbstractVector{T})(::Union{Missing, AbstractMatrix{var&quot;#s41&quot;} where var&quot;#s41&quot;&lt;:Union{Missing, T}}, ::AbstractBags, !Matched::Union{Nothing, AbstractVector{T}, AbstractMatrix{T}}) where T at /home/runner/work/Mill.jl/Mill.jl/src/aggregations/segmented_mean.jl:36
-  ...</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 31 March 2021 12:38">Wednesday 31 March 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Chain(Dense(11, 20, relu), Dense(20, 12)))
+  └── ProductModel … ↦ ArrayModel(Dense(20, 5, relu))
+        ├── BagModel … ↦ ⟨SegmentedMean(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
+        │     └── ArrayModel(Dense(4, 5, relu))
+        ├── ArrayModel(Dense(3, 5, relu))
+        ├── BagModel … ↦ ⟨SegmentedPNorm(5)⟩ ↦ ArrayModel(Dense(6, 5, relu))
+        │     └── BagModel … ↦ ⟨SegmentedMean(5), SegmentedMax(5)⟩ ↦ ArrayModel(Dense(11, 5, relu))
+        │           └── ArrayModel(Dense(2, 5, relu))
+        └── ArrayModel(Dense(2, 5, relu))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 1 April 2021 15:36">Thursday 1 April 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
