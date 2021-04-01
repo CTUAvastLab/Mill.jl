@@ -24,6 +24,9 @@ and then load the dataset and transform it into a [`Mill.jl`](https://github.com
 * a matrix with features `fMat`:
 
 ```@repl musk
+Pkg.status()
+```
+```@repl musk
 fMat = load("musk.jld2", "fMat")          # matrix with instances, each column is one sample
 ```
 
@@ -51,12 +54,12 @@ Once the data are in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) interna
 
 ```@repl musk
 model = BagModel(
-    ArrayModel(Dense(166, 10, Flux.relu)),                      # model on the level of Flows
+    ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
     meanmax_aggregation(10),                                    # aggregation
-    ArrayModel(Chain(Dense(21, 10, Flux.relu), Dense(10, 2))))  # model on the level of bags
+    ArrayModel(Chain(Dense(21, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
 ```
 
-Instances are first passed through a single layer with 10 neurons (input dimension is 166) with `relu` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `relu` nonlinearity followed by linear layer with 2 neurons (output dimension).
+Instances are first passed through a single layer with 10 neurons (input dimension is 166) with `tanh` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `tanh` nonlinearity followed by linear layer with 2 neurons (output dimension).
 
 Let's check that forward pass works:
 
