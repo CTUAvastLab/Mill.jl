@@ -459,8 +459,8 @@ end
             for it in 1:3
                 dc = deepcopy(d)
                 Flux.train!(X -> sum(dc(X)), Flux.params(dc), [(X,)], opt)
-                @test any(dc.W.W .!= d.W.W) == pW
-                @test any(dc.W.ψ .!= d.W.ψ) == pψ
+                @test any(dc.weight.W .!= d.weight.W) == pW
+                @test any(dc.weight.ψ .!= d.weight.ψ) == pψ
             end
         end
     end
@@ -552,14 +552,14 @@ end
 
 @testset "imputing Dense construction" begin
     A = preimputing_dense(2, 3)
-    @test size(A.W) == (3, 2)
-    @test A.W isa PreImputingMatrix
+    @test size(A.weight) == (3, 2)
+    @test A.weight isa PreImputingMatrix
 
     A = postimputing_dense(2, 3)
-    @test size(A.W) == (3, 2)
-    @test A.W isa PostImputingMatrix
+    @test size(A.weight) == (3, 2)
+    @test A.weight isa PostImputingMatrix
 
     d = Dense(4, 5)
-    @test preimputing_dense(d).W |> size == d.W |> size
-    @test postimputing_dense(d).W |> size == d.W |> size
+    @test preimputing_dense(d).weight |> size == d.weight |> size
+    @test postimputing_dense(d).weight |> size == d.weight |> size
 end
