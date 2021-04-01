@@ -101,16 +101,16 @@ Like `Flux.Dense`, but use a [`PreImputingMatrix`](@ref) instead of a standard m
 julia> d = preimputing_dense(2, 3)
 [pre_imputing]Dense(2, 3)
 
-julia> typeof(d.W)
+julia> typeof(d.weight)
 PreImputingMatrix{Float32, Matrix{Float32}, Vector{Float32}}
 
-julia> typeof(d.b)
+julia> typeof(d.bias)
 Vector{Float32} (alias for Array{Float32, 1})
 ```
 
 See also: [`PreImputingMatrix`](@ref), [`postimputing_dense`](@ref), [`PostImputingMatrix`](@ref).
 """
-preimputing_dense(d::Dense) = Dense(PreImputingMatrix(d.W), d.b, d.σ)
+preimputing_dense(d::Dense) = Dense(PreImputingMatrix(d.weight), d.bias, d.σ)
 preimputing_dense(args...) = preimputing_dense(Dense(args...))
 
 """
@@ -123,22 +123,22 @@ Like `Flux.Dense`, but use a [`PostImputingMatrix`](@ref) instead of a standard 
 julia> d = postimputing_dense(2, 3)
 [post_imputing]Dense(2, 3)
 
-julia> typeof(d.W)
+julia> typeof(d.weight)
 PostImputingMatrix{Float32, Matrix{Float32}, Vector{Float32}}
 
-julia> typeof(d.b)
+julia> typeof(d.bias)
 Vector{Float32} (alias for Array{Float32, 1})
 ```
 
 See also: [`PostImputingMatrix`](@ref), [`preimputing_dense`](@ref), [`PreImputingMatrix`](@ref).
 """
-postimputing_dense(d::Dense) = Dense(PostImputingMatrix(d.W), d.b, d.σ)
+postimputing_dense(d::Dense) = Dense(PostImputingMatrix(d.weight), d.bias, d.σ)
 postimputing_dense(args...) = postimputing_dense(Dense(args...))
 
 _name(::PreImputingMatrix) = "[pre_imputing]"
 _name(::PostImputingMatrix) = "[post_imputing]"
 function Base.show(io::IO, l::Dense{F, <:ImputingMatrix}) where F
-    print(io, "$(_name(l.W))Dense(", size(l.W, 2), ", ", size(l.W, 1))
+    print(io, "$(_name(l.weight))Dense(", size(l.weight, 2), ", ", size(l.weight, 1))
     l.σ == identity || print(io, ", ", l.σ)
     print(io, ")")
 end

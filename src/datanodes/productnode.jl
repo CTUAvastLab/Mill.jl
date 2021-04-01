@@ -26,7 +26,7 @@ Construct a new [`ProductNode`](@ref) with data `ds`, and metadata `m`. `ds` sho
 julia> ProductNode((ArrayNode(zeros(2, 2)), ArrayNode(Flux.onehotbatch([1, 2], 1:2))))
 ProductNode with 2 obs
   ├── ArrayNode(2×2 Array with Float64 elements) with 2 obs
-  └── ArrayNode(2×2 OneHotMatrix with Bool elements) with 2 obs
+  └── ArrayNode(2×2 OneHotArray with Bool elements) with 2 obs
 
 julia> ProductNode((x1 = ArrayNode(NGramMatrix(["Hello", "world"])),
                     x2 = BagNode(ArrayNode([1 2; 3 4]), [1:3, 4:4])))

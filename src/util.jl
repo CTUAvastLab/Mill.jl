@@ -21,15 +21,14 @@ sparsify(x, nnzrate) = x
 sparsify(x::Matrix, nnzrate) = (mean(x .!= 0) < nnzrate) ? sparse(x) : x
 
 # can be removed when https://github.com/FluxML/Flux.jl/pull/1357 is merged
-function Base.:*(A::AbstractMatrix, B::Adjoint{Bool,<: Flux.OneHotMatrix})
+function Base.:*(A::AbstractMatrix, B::Adjoint{Bool,<: Flux.OneHotArray})
     m = size(A,1)
     Y = similar(A, m, size(B,2))
     Y .= 0
     BT = B'
-    for (j,ohv) in enumerate(BT.data)
-        ix = ohv.ix
+    for (j, ix) in enumerate(BT.indices)
         for i in 1:m
-            @inbounds Y[i,ix] += A[i,j]
+            @inbounds Y[i, ix] += A[i, j]
         end
     end
     Y
