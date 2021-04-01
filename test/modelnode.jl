@@ -252,28 +252,29 @@ end
 @testset "model aggregation grad check w.r.t. inputs" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
+        abuilder(d) = all_aggregations(Float64, d)
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
 
         ds = x -> ArrayNode(x)
-        m = reflectinmodel(ds(x), layerbuilder, all_aggregations)
+        m = reflectinmodel(ds(x), layerbuilder, abuilder)
         @test gradtest(x -> m(ds(x)).data, x)
 
         ds = x -> BagNode(ArrayNode(x), bags1)
-        m = reflectinmodel(ds(x), layerbuilder, all_aggregations)
+        m = reflectinmodel(ds(x), layerbuilder, abuilder)
         @test gradtest(x -> m(ds(x)).data, x)
 
         ds = (x, y) -> ProductNode((ArrayNode(x), ArrayNode(y)))
-        m = reflectinmodel(ds(x, y), layerbuilder, all_aggregations)
+        m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
         @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
 
         ds = (x, y) -> ProductNode((BagNode(ArrayNode(x), bags1), BagNode(ArrayNode(y), bags2))) 
-        m = reflectinmodel(ds(x, y), layerbuilder, all_aggregations)
+        m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
         @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
 
         ds = z -> BagNode(BagNode(ArrayNode(z), bags3), bags1)
-        m = reflectinmodel(ds(z), layerbuilder, all_aggregations)
+        m = reflectinmodel(ds(z), layerbuilder, abuilder)
         @test gradtest(z -> m(ds(z)).data, z)
     end
 end
@@ -281,6 +282,7 @@ end
 @testset "model aggregation grad check w.r.t. inputs weighted" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
+        abuilder(d) = all_aggregations(Float64, d)
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -289,16 +291,16 @@ end
         w3 = abs.(randn(8)) .+ 0.1
 
         ds = x -> WeightedBagNode(ArrayNode(x), bags1, w1)
-        m = reflectinmodel(ds(x), layerbuilder, all_aggregations)
+        m = reflectinmodel(ds(x), layerbuilder, abuilder)
         @test gradtest(x -> m(ds(x)).data, x)
 
         ds = (x, y) -> ProductNode((WeightedBagNode(ArrayNode(x), bags1, w1),
                                     WeightedBagNode(ArrayNode(y), bags2, w2))) 
-        m = reflectinmodel(ds(x, y), layerbuilder, all_aggregations)
+        m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
         @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
 
         ds = z -> WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
-        m = reflectinmodel(ds(z), layerbuilder, all_aggregations)
+        m = reflectinmodel(ds(z), layerbuilder, abuilder)
         @test gradtest(z -> m(ds(z)).data, z)
     end
 end
@@ -306,6 +308,7 @@ end
 @testset "model aggregation grad check w.r.t. params" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
+        abuilder(d) = all_aggregations(Float64, d)
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -317,7 +320,7 @@ end
                    ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2))),
                    BagNode(BagNode(ArrayNode(z), bags3), bags1)
                   ]
-            m = reflectinmodel(ds, layerbuilder, all_aggregations)
+            m = reflectinmodel(ds, layerbuilder, abuilder)
             @test gradtest(() -> m(ds).data, Flux.params(m))
         end
     end
@@ -326,6 +329,7 @@ end
 @testset "model aggregation grad check w.r.t. params weighted" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2) |> f64
+        abuilder(d) = all_aggregations(Float64, d)
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -339,7 +343,7 @@ end
                                 WeightedBagNode(ArrayNode(y), bags2, w2))) ,
                    WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
                   ]
-            m = reflectinmodel(ds, layerbuilder, all_aggregations)
+            m = reflectinmodel(ds, layerbuilder, abuilder)
             @test gradtest(() -> m(ds).data, Flux.params(m))
         end
     end

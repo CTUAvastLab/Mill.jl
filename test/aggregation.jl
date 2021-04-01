@@ -196,7 +196,7 @@ end
     end
 end
 
-@testset "type stability of the output" begin
+@testset "type stability of the output w.r.t. missing" begin
     X1 = [1.0 2.0; 3.0 4.0] |> f32
     X2 = [1.0 missing; 3.0 4.0] |> Matrix{Maybe{Float32}}
     X3 = [1.0 2.0; 3.0 4.0] |> Matrix{Maybe{Float32}}
@@ -205,27 +205,52 @@ end
     b1 = bags([1:2])
     b2 = bags([0:-1])
 
-    for a in [SegmentedMax(2), SegmentedSum(2), SegmentedMean(2),
-              SegmentedLSE(2), SegmentedPNorm(2),
-              max_aggregation(2), sum_aggregation(2), mean_aggregation(2),
-              lse_aggregation(2), pnormlse_aggregation(2),
-              summeanmaxpnormlse_aggregation(2)]
-        @test eltype(a(X1, b1)) === Float32
-        @test eltype(a(X2, b1)) === Maybe{Float32}
-        @test eltype(a(X3, b1)) === Maybe{Float32}
-        @test eltype(a(X4, b2)) === Float32
+    a = all_aggregations(Float32, 2)
+    @test eltype(a(X1, b1)) === Float32
+    @test eltype(a(X2, b1)) === Maybe{Float32}
+    @test eltype(a(X3, b1)) === Maybe{Float32}
+    @test eltype(a(X4, b2)) === Float32
 
-        @test_throws MethodError a(randn(2, 2), b1)
-    end
-
+    a = all_aggregations(Float32, 10)
     for b in BAGS2
-        o = meanmaxpnormlse_aggregation(10)
         X = rand(Float32, 10, 100)
         w = abs.(randn(Float32, size(X, 2))) .+ 0.1
         w_mat = abs.(randn(Float32, size(X))) .+ 0.1
-        @inferred o(X, b)
-        @inferred o(X, b, w |> f32)
-        @inferred o(X, b, w_mat |> f32)
+        @inferred a(X, b)
+        @inferred a(X, b, w |> f32)
+        @inferred a(X, b, w_mat |> f32)
+     end
+end
+
+@testset "type stability of the output w.r.t. precision" begin
+    X32 = [1.0 2.0; 3.0 4.0] |> f32
+    X64 = [1.0 2.0; 3.0 4.0]
+
+    b = bags([1:2])
+
+    a32 = all_aggregations(Float32, 2)
+    a64 = all_aggregations(Float64, 2)
+    @test eltype(a32(X32, b)) === Float32
+    @test eltype(a64(X64, b)) === Float64
+    @test eltype(a32(X64, b)) === Float64
+    @test eltype(a64(X32, b)) === Float64
+
+    a32 = all_aggregations(Float32, 10)
+    a64 = all_aggregations(Float64, 10)
+    for b in BAGS2
+        X32 = rand(Float32, 10, 100)
+        X64 = rand(10, 100)
+        w32 = abs.(randn(Float32, size(X32, 2))) .+ 0.1f0
+        w64 = abs.(randn(Float64, size(X64, 2))) .+ 0.1
+        w_mat32 = abs.(randn(Float32, size(X32))) .+ 0.1f0
+        w_mat64 = abs.(randn(Float64, size(X64))) .+ 0.1
+        for a in [a32, a64]
+            for (X, w, w_mat) in [(X32, w32, w_mat32), (X64, w64, w_mat64)]
+                @inferred a(X, b)
+                @inferred a(X, b, w)
+                @inferred a(X, b, w_mat)
+            end
+        end
      end
 end
 
@@ -287,7 +312,7 @@ end
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
-        a = Aggregation((nonparam_aggregations(d), param_aggregations(d)))
+        a = all_aggregations(Float64, d)
         @test gradtest(x -> a(x, bags), x)
         @test gradtest(x -> a(x, bags, w), x)
         @test gradtest(x -> a(x, bags, w_mat), x)
@@ -325,8 +350,8 @@ end
 @testset "aggregation grad check w.r.t. params" begin
     d = 5
     x = randn(d, 0)
-    a1 = nonparam_aggregations(d)
-    a2 = param_aggregations(d)
+    a1 = nonparam_aggregations(Float64, d)
+    a2 = param_aggregations(Float64, d)
     @test gradtest(() -> a1(missing, ScatteredBags([Int[], Int[]])), Flux.params(a1))
     @test gradtest(() -> a1(missing, AlignedBags([0:-1]), nothing), Flux.params(a1))
     @test gradtest(() -> a1(x, ScatteredBags([Int[]])), Flux.params(a1))
@@ -339,8 +364,8 @@ end
     for bags in BAGS2
         d = rand(1:20)
         x = randn(d, 10)
-        a1 = nonparam_aggregations(d)
-        a2 = param_aggregations(d)
+        a1 = nonparam_aggregations(Float64, d)
+        a2 = param_aggregations(Float64, d)
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
         @test gradtest(() -> a1(x, bags), Flux.params(a1))

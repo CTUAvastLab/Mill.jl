@@ -70,7 +70,7 @@ end
 
 fold(f, m::ArrayModel, x) = f(m, x)
 
-Flux.activations(::typeof(identity), x::Matrix{Float32}) = (x,)
+Flux.activations(::typeof(identity), x::Matrix) = (x,)
 
 # Base.hash(m::ArrayModel{T}, h::UInt) where {T} = hash((T, m.m), h)
 # (m1::ArrayModel{T} == m2::ArrayModel{T}) where {T} = m1.m == m2.m

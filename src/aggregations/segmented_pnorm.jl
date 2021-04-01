@@ -43,20 +43,18 @@ p_map(ρ::AbstractArray) = p_map.(ρ)
 inv_p_map(p::T) where T = relu(p - one(T)) + log1p(-exp(-abs(p - one(T))))
 inv_p_map(ρ::AbstractArray) = inv_p_map.(ρ)
 
-function (m::SegmentedPNorm{T})(x::Missing, bags::AbstractBags,
-                                w::Optional{AbstractVecOrMat{T}}=nothing) where T
+function (m::SegmentedPNorm)(x::Missing, bags::AbstractBags,
+                                w::Optional{AbstractVecOrMat}=nothing)
     segmented_pnorm_forw(x, m.ψ, nothing, bags, w)
 end
-function (m::SegmentedPNorm{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+function (m::SegmentedPNorm)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
                                 w::Optional{AbstractVecOrMat{T}}=nothing) where T
-    z = x .- m.c |> typeof(x)
-    segmented_pnorm_forw(z, m.ψ, p_map(m.ρ), bags, w)
+    segmented_pnorm_forw(x .- m.c, m.ψ, p_map(m.ρ), bags, w)
 end
 
-function (m::SegmentedPNorm{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
-                                w::Optional{AbstractVecOrMat}, mask::AbstractVector{T}) where T
-    z = (x.-m.c) .* mask' |> typeof(x)
-    segmented_pnorm_forw(z, m.ψ, p_map(m.ρ), bags, w)
+function (m::SegmentedPNorm)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                                w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
+    segmented_pnorm_forw((x .- m.c) .* mask', m.ψ, p_map(m.ρ), bags, w)
 end
 
 function _pnorm_precomp(x::AbstractMatrix, bags)
@@ -76,7 +74,8 @@ end
 function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::AbstractVector,
                                bags::AbstractBags, w, M)
     isnothing(w) || @assert all(w .> 0)
-    y = zeros(eltype(a), size(a, 1), length(bags))
+    t = promote_type(eltype(a), eltype(ψ))
+    y = zeros(t, size(a, 1), length(bags))
     M = _pnorm_precomp(a, bags)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
@@ -87,11 +86,11 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
             ws = _bagnorm(w, b)
             for j in b
                 for i in 1:size(a, 1)
-                    y[i, bi] += _weight(w, i, j, eltype(a)) * abs(a[i, j]/M[i, bi])^p[i]
+                    y[i, bi] += _weight(w, i, j, t) * abs(a[i, j]/M[i, bi])^p[i]
                 end
             end
             for i in 1:size(a, 1)
-                y[i, bi] = M[i, bi] * (y[i, bi] / _weightsum(ws, i)) ^ (one(eltype(a))/p[i])
+                y[i, bi] = M[i, bi] * (y[i, bi] / _weightsum(ws, i)) ^ (one(t)/p[i])
             end
         end
     end

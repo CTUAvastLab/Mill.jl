@@ -3,7 +3,7 @@
     an1 = ArrayNode(rand(3,4))
     b = BagNode(an1, [1:4, 0:-1], metadata)
     an2 = ArrayNode(randn(5, 4))
-    wb = WeightedBagNode(an2, [1:2,3:4], Vector{Float32}(rand(1:4, 4)), metadata)
+    wb = WeightedBagNode(an2, [1:2,3:4], rand(4), metadata)
     pn = ProductNode((b=b,wb=wb))
     an3 = ArrayNode(rand(10, 2))
     ds = ProductNode((pn, an3))

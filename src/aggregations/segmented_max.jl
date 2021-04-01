@@ -33,18 +33,19 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedMax})
     SegmentedMax(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedMax{T})(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
+function (m::SegmentedMax)(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_max_forw(x, m.ψ, bags)
 end
-function (m::SegmentedMax{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
-                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{T}) where T
-    segmented_max_forw(x .+ _typemin(T) * mask', m.ψ, bags)
+function (m::SegmentedMax)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{U}) where {T, U}
+    segmented_max_forw(x .+ _typemin(U) * mask', m.ψ, bags)
 end
 
 segmented_max_forw(::Missing, ψ::AbstractVector, bags::AbstractBags) = repeat(ψ, 1, length(bags))
 function segmented_max_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags) 
-    y = fill(_typemin(eltype(x)), size(x, 1), length(bags)) |> typeof(x)
+    t = promote_type(eltype(x), eltype(ψ))
+    y = fill(_typemin(t), size(x, 1), length(bags)) |> typeof(x)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)

@@ -29,7 +29,7 @@
         BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
           └── ArrayModel(Dense(2, 10))"""
 
-    wbn = WeightedBagNode(an, bags([1:2, 3:5]), rand(5) |> f32)
+    wbn = WeightedBagNode(an, bags([1:2, 3:5]), rand(5))
     @test repr(wbn) == "WeightedBagNode with 2 obs"
     @test repr(wbn; context=:compact => true) == "WeightedBagNode"
     @test repr(MIME("text/plain"), wbn) == 

@@ -33,18 +33,19 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedMean})
     SegmentedMean(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedMean{T})(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
+function (m::SegmentedMean)(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
                                w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_mean_forw(x, m.ψ, bags, w)
 end
-function (m::SegmentedMean{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
-                               w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{T}) where T
+function (m::SegmentedMean)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                               w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
     segmented_mean_forw(x .* mask', m.ψ, bags, w)
 end
 
 segmented_mean_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
 function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::Optional{AbstractVecOrMat}) 
-    y = zeros(eltype(x), size(x, 1), length(bags))
+    t = promote_type(eltype(x), eltype(ψ))
+    y = zeros(t, size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)
@@ -53,7 +54,7 @@ function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstra
         else
             for j in b
                 for i in 1:size(x, 1)
-                    y[i, bi] += _weight(w, i, j, eltype(x)) * x[i, j]
+                    y[i, bi] += _weight(w, i, j, t) * x[i, j]
                 end
             end
             @views y[:, bi] ./= _bagnorm(w, b)

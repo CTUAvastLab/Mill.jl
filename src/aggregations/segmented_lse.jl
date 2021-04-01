@@ -39,14 +39,13 @@ end
 r_map(ρ) = @. softplus(ρ)
 inv_r_map(r) = @. relu(r) + log1p(-exp(-abs(r)))
 
-function (m::SegmentedLSE{T})(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
+function (m::SegmentedLSE)(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
 end
-function (m::SegmentedLSE{T})(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
-                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{T}) where T
-    z = _typemin(T) * mask' |> typeof(x)
-    segmented_lse_forw(x .+ z, m.ψ, r_map(m.ρ), bags)
+function (m::SegmentedLSE)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+                           w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{U}) where {T, U}
+    segmented_lse_forw(x .+ _typemin(U) * mask', m.ψ, r_map(m.ρ), bags)
 end
 
 function _lse_precomp(x::AbstractMatrix, r, bags)
@@ -67,7 +66,8 @@ function _lse_precomp(x::AbstractMatrix, r, bags)
 end
 
 function _segmented_lse_norm(x::AbstractMatrix, ψ, r, bags::AbstractBags, M)
-    y = zeros(eltype(x), length(r), length(bags))
+    t = promote_type(eltype(x), eltype(ψ))
+    y = zeros(t, length(r), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)

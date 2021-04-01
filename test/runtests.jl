@@ -68,18 +68,18 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
     BagNode(ArrayNode(x), Mill.length2bags(length.(s)))
 end
 
-nonparam_aggregations(d, t::Type{<:Real}=Float64) = Aggregation(
+nonparam_aggregations(t::Type,d ) = Aggregation(
         SegmentedSum(randn(t, d)),
         SegmentedMean(randn(t, d)),
         SegmentedMax(randn(t, d)),
         meanmax_aggregation(t, d))
 
-param_aggregations(d, t::Type{<:Real}=Float64) = Aggregation(
+param_aggregations(t::Type, d) = Aggregation(
         SegmentedPNorm(randn(t, d), randn(t, d), randn(t, d)),
         SegmentedLSE(randn(t, d), randn(t, d)),
         summeanmaxpnormlse_aggregation(t, d))
 
-all_aggregations(d) = Aggregation((nonparam_aggregations(d), param_aggregations(d)))
+all_aggregations(t::Type, d) = Aggregation((nonparam_aggregations(t, d), param_aggregations(t, d)))
 
 @testset "Doctests" begin
     DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
