@@ -188,6 +188,6 @@ function _make_imputing(x::NGramMatrix{Maybe{T}}, ::typeof(identity)) where T <:
 end
 
 function _reflectinmodel(ds::LazyNode{Name}, fm, fa, fsm, fsa, s, ski, ssi) where Name
-    pm, d = Mill._reflectinmodel(unpack2mill(ds), fm, fa, fsm, fsa, s * encode(1, 1), ski, ssi)
+    pm, d = _reflectinmodel(unpack2mill(ds), fm, fa, fsm, fsa, s * encode(1, 1), ski, ssi)
     LazyModel{Name}(pm), d
 end
