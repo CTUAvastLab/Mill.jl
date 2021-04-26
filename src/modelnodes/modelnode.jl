@@ -163,6 +163,11 @@ function _reflectinmodel(x::ArrayNode, fm, fa, fsm, fsa, s, ski, ssi)
     m, size(m(x).data, 1)
 end
 
+function _reflectinmodel(ds::LazyNode{Name}, fm, fa, fsm, fsa, s, ski, ssi) where Name
+    pm, d = _reflectinmodel(unpack2mill(ds), fm, fa, fsm, fsa, s * encode(1, 1), ski, ssi)
+    LazyModel{Name}(pm), d
+end
+
 _make_imputing(x, t) = t
 _make_imputing(x, t::ArrayModel) = _make_imputing(x, t.m) |> ArrayModel
 _make_imputing(x, t::Chain) = Chain(_make_imputing(x, t[1]), t[2:end]...)
@@ -185,9 +190,4 @@ function _make_imputing(x::MaybeHotMatrix{Maybe{T}}, ::typeof(identity)) where T
 end
 function _make_imputing(x::NGramMatrix{Maybe{T}}, ::typeof(identity)) where T <: Sequence
     postimputing_dense(identity_dense(x))
-end
-
-function _reflectinmodel(ds::LazyNode{Name}, fm, fa, fsm, fsa, s, ski, ssi) where Name
-    pm, d = Mill._reflectinmodel(unpack2mill(ds), fm, fa, fsm, fsa, s * Mill.encode(1, 1), ski, ssi)
-    LazyModel{Name}(pm), d
 end
