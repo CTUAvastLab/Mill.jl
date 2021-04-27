@@ -202,8 +202,8 @@ Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractNode = x[findall(i)]
 Base.getindex(x::AbstractNode, i::Int) = x[i:i]
 Base.lastindex(ds::AbstractNode) = nobs(ds)
 MLDataPattern.getobs(x::AbstractNode, i) = x[i]
-MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Undefined) = x[i]
-MLDataPattern.getobs(x::AbstractNode, i, ::LearnBase.ObsDim.Last) = x[i]
+MLDataPattern.getobs(x::AbstractNode, i, ::ObsDim.Undefined) = x[i]
+MLDataPattern.getobs(x::AbstractNode, i, ::ObsDim.Last) = x[i]
 
 subset(x::AbstractMatrix, i) = x[:, i]
 subset(x::AbstractVector, i) = x[i]

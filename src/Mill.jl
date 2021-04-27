@@ -17,6 +17,8 @@ using Zygote
 
 using Base: CodeUnits, nameof
 using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
+using LearnBase: ObsDim
+using HierarchicalUtils: encode, stringify
 
 import Base, Flux, ChainRulesCore
 import Base: *, ==, reduce

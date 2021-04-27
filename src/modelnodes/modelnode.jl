@@ -39,11 +39,11 @@ Build a `Mill.jl` model capable of processing `x`.
 All inner `Dense` layers are constructed using `fm`, a function accepting input dimension `d` and
 returning suitable model. All aggregation operators are constructed using `fa` in a similar manner.
 
-More fine-grained control can be achieved with `fsm` and `fsa` keyword arguments, which should be 
+More fine-grained control can be achieved with `fsm` and `fsa` keyword arguments, which should be
 `Dict`s of `c => f` pairs, where `c` is a `String` traversal code from [HierarchicalUtils.jl](@ref) and
 `f` is a function. These definitions override `fm` and `fa`.
 
-If a [`ProductNode`](@ref) with only a single child (subtree) is encountered, its final `m` model 
+If a [`ProductNode`](@ref) with only a single child (subtree) is encountered, its final `m` model
 is instantiated as `identity` instead of using `fm` and `fsm`. This can be controlled with `single_key_identity`.
 
 Similarly, if an [`ArrayNode`](@ref) contains data `X` where `size(X, 1)` is `1`, the corresponding
