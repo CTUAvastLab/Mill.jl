@@ -85,7 +85,7 @@ export replacein, code2lens, lens2code, model_lens, data_lens
 include("gradients.jl")
 
 Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::MillStruct)) =
-    HierarchicalUtils.printtree(io, n; htrunc=3, vtrunc=3)
+    HierarchicalUtils.printtree(io, n; htrunc=3, vtrunc=3, breakline=false)
 
 _show(io, x) = _show_fields(io, x)
 
