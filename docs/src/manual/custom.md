@@ -18,7 +18,7 @@ using Flux
 Let's define one custom node type for representing pathnames in Unix and one custom model type for processing it. We'll start by defining the structure holding pathnames:
 
 ```@example custom
-struct PathNode{S <: AbstractString, C} <: AbstractNode
+struct PathNode{S <: AbstractString, C} <: AbstractMillNode
     data::Vector{S}
     metadata::C
 end

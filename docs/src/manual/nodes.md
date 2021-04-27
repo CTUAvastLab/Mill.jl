@@ -9,8 +9,8 @@ using Mill
 
 [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) enables representation of arbitrarily complex tree-like hierarchies and appropriate models for these hierarchies. It defines two core abstract types:
 
-1. [`AbstractNode`](@ref) which stores data on any level of abstraction and its subtypes can be further nested
-2. [`AbstractMillModel`](@ref) which helps to define a corresponding model. For each specific implementation of [`AbstractNode`](@ref) we have one or more specific [`AbstractMillModel`](@ref)s for processing it.
+1. [`AbstractMillNode`](@ref) which stores data on any level of abstraction and its subtypes can be further nested
+2. [`AbstractMillModel`](@ref) which helps to define a corresponding model. For each specific implementation of [`AbstractMillNode`](@ref) we have one or more specific [`AbstractMillModel`](@ref)s for processing it.
 
 Below we will go through implementation of [`ArrayNode`](@ref), [`BagNode`](@ref) and [`ProductNode`](@ref) together with their corresponding models. It is possible to define data and model nodes for more complex behaviors (see [Adding custom nodes](@ref)), however, these three core types are already sufficient for a lot of tasks, for instance, representing any `JSON` document and using appropriate models to convert it to a vector represention or classify it (see [Processing JSONs](@ref)).
 
@@ -23,7 +23,7 @@ X = Float32.([1 2 3 4; 5 6 7 8])
 AN = ArrayNode(X)
 ```
 
-Data carried by any [`AbstractNode`](@ref) can be accessed with the [`Mill.data`](@ref) function as follows:
+Data carried by any [`AbstractMillNode`](@ref) can be accessed with the [`Mill.data`](@ref) function as follows:
 
 ```@repl nodes
 Mill.data(AN)
@@ -50,7 +50,7 @@ f(X) == AM(AN) |> Mill.data
 !!! ukn "Model outputs"
     A convenient property of all [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) models is that after applying them to a corresponding data node we **always** obtain an [`ArrayNode`](@ref) as output regardless of the type and complexity of the model. This becomes important later.
 
-The most common interpretation of the data inside [`ArrayNode`](@ref)s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, [`ArrayNode`](@ref)s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any [`AbstractNode`](@ref) with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
+The most common interpretation of the data inside [`ArrayNode`](@ref)s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, [`ArrayNode`](@ref)s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any [`AbstractMillNode`](@ref) with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
 
 ```@example nodes
 using StatsBase: nobs
@@ -75,7 +75,7 @@ Mill.data(BN)
 BN.bags
 ```
 
-Here, `data` can be an arbitrary [`AbstractNode`](@ref) storing representation of instances ([`ArrayNode`](@ref) in this case) and `bags` field contains information, which instances belong to which bag. In this specific case `bn` stores three bags (samples). The first one consists of a single instance `{[1.0, 5.0]}` (first column of `AN`), the second one of two instances `{[2.0, 6.0], [3.0, 7.0]}`, and the last one of a single instance `{[4.0, 8.0]}`. We can see that we deal with three top-level samples (bags):
+Here, `data` can be an arbitrary [`AbstractMillNode`](@ref) storing representation of instances ([`ArrayNode`](@ref) in this case) and `bags` field contains information, which instances belong to which bag. In this specific case `bn` stores three bags (samples). The first one consists of a single instance `{[1.0, 5.0]}` (first column of `AN`), the second one of two instances `{[2.0, 6.0], [3.0, 7.0]}`, and the last one of a single instance `{[4.0, 8.0]}`. We can see that we deal with three top-level samples (bags):
 
 ```@repl nodes
 nobs(BN)

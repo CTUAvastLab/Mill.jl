@@ -7,7 +7,7 @@ Pages = ["data_nodes.md"]
 
 ## API
 ```@docs
-AbstractNode
+AbstractMillNode
 AbstractProductNode
 AbstractBagNode
 
@@ -23,10 +23,10 @@ ArrayNode
 ArrayNode(::AbstractArray)
 
 BagNode
-BagNode(::AbstractNode, ::AbstractVector, m)
+BagNode(::AbstractMillNode, ::AbstractVector, m)
 
 WeightedBagNode
-WeightedBagNode(::AbstractNode, ::AbstractVector, ::Vector, m)
+WeightedBagNode(::AbstractMillNode, ::AbstractVector, ::Vector, m)
 
 ProductNode
 ProductNode(::Any)

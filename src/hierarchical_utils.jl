@@ -1,7 +1,7 @@
 import HierarchicalUtils: NodeType, LeafNode, InnerNode, noderepr, children
 
 NodeType(::Type{<:Union{Missing, ArrayNode, ArrayModel, LazyNode}}) = LeafNode()
-NodeType(::Type{<:AbstractNode}) = InnerNode()
+NodeType(::Type{<:AbstractMillNode}) = InnerNode()
 NodeType(::Type{<:AbstractMillModel}) = InnerNode()
 NodeType(::Type{<:LazyModel}) = InnerNode()
 

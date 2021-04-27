@@ -31,7 +31,7 @@ _show_submodels(io, m::LazyModel{Name}) where {Name} = print(io, "{", Name, "}")
 _show_submodels(io, _) = print(io)
 
 """
-    reflectinmodel(x::AbstractNode, fm=d -> Dense(d, 10), fa=d -> meanmax_aggregation(d);
+    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=d -> meanmax_aggregation(d);
         fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true)
 
 Build a `Mill.jl` model capable of processing `x`.
@@ -111,7 +111,7 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
               └── ArrayModel(Chain(Dense(2, 2), Dense(2, 2)))
 ```
 
-See also: [`AbstractNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`ArrayNode`](@ref).
+See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`ArrayNode`](@ref).
 """
 function reflectinmodel(x, fm=d -> Dense(d, 10), fa=d -> meanmax_aggregation(d); fsm=Dict(), fsa=Dict(),
                single_key_identity=true, single_scalar_identity=true)

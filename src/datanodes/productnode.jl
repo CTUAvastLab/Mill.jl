@@ -3,7 +3,7 @@
 
 Data node representing a Cartesian product of several spaces each represented by subtree stored in iterable of type `T`. May store metadata of type `C`.
 
-See also: [`AbstractProductNode`](@ref), [`AbstractNode`](@ref), [`ProductModel`](@ref).
+See also: [`AbstractProductNode`](@ref), [`AbstractMillNode`](@ref), [`ProductModel`](@ref).
 """
 struct ProductNode{T, C} <: AbstractProductNode
     data::T
@@ -40,7 +40,7 @@ ERROR: AssertionError: All subtrees must have an equal amount of instances!
 [...]
 ```
 
-See also: [`AbstractProductNode`](@ref), [`AbstractNode`](@ref), [`ProductModel`](@ref).
+See also: [`AbstractProductNode`](@ref), [`AbstractMillNode`](@ref), [`ProductModel`](@ref).
 """
 ProductNode(ds::T) where {T} = ProductNode{T, Nothing}(ds, nothing)
 ProductNode(ds::T, m::C) where {T, C} = ProductNode{T, C}(ds, m)

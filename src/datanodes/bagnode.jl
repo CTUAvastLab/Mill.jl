@@ -1,27 +1,27 @@
 """
-    BagNode{T <: Union{AbstractNode, Missing}, B <: AbstractBags, C} <: AbstractBagNode
+    BagNode{T <: Union{AbstractMillNode, Missing}, B <: AbstractBags, C} <: AbstractBagNode
 
 Data node that represents a multi-instance learning problem.
 Contains instances stored in a subtree of type `T`,
 bag indices of type `B` and optional metadata of type `C`.
 
 See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref),
-    [`AbstractNode`](@ref), [`BagModel`](@ref).
+    [`AbstractMillNode`](@ref), [`BagModel`](@ref).
 """
-struct BagNode{T <: Maybe{AbstractNode}, B <: AbstractBags, C} <: AbstractBagNode
+struct BagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, C} <: AbstractBagNode
     data::T
     bags::B
     metadata::C
 
-    function BagNode(d::T, b::B, m::C=nothing) where {T <: Maybe{AbstractNode}, B <: AbstractBags, C}
+    function BagNode(d::T, b::B, m::C=nothing) where {T <: Maybe{AbstractMillNode}, B <: AbstractBags, C}
         ismissing(d) && any(length.(b) .> 0) && error("BagNode with `missing` in data cannot have a non-empty bag")
         new{T, B, C}(d, b, m)
     end
 end
 
 """
-    BagNode(d::Union{AbstractNode, Missing}, b::AbstractBags, m=nothing)
-    BagNode(d::Union{AbstractNode, Missing}, b::AbstractVector, m=nothing)
+    BagNode(d::Union{AbstractMillNode, Missing}, b::AbstractBags, m=nothing)
+    BagNode(d::Union{AbstractMillNode, Missing}, b::AbstractVector, m=nothing)
 
 Construct a new [`BagNode`](@ref) with data `d`, bags `b`, and metadata `m`.
 If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
@@ -38,9 +38,9 @@ BagNode with 2 obs
 ```
 
 See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref),
-    [`AbstractNode`](@ref), [`BagModel`](@ref).
+    [`AbstractMillNode`](@ref), [`BagModel`](@ref).
 """
-BagNode(d::Maybe{AbstractNode}, b::AbstractVector, m=nothing) = BagNode(d, bags(b), m)
+BagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, m=nothing) = BagNode(d, bags(b), m)
 
 Flux.@functor BagNode
 

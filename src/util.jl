@@ -108,7 +108,7 @@ julia> findnonempty_lens(n)
 
 See also: [`pred_lens`](@ref), [`list_lens`](@ref), [`find_lens`](@ref).
 """
-findnonempty_lens(n) = pred_lens(t -> t isa AbstractNode && nobs(t) > 0, n)
+findnonempty_lens(n) = pred_lens(t -> t isa AbstractMillNode && nobs(t) > 0, n)
 
 """
     find_lens(n, x)
@@ -261,7 +261,7 @@ data_lens(::ArrayNode, ::PropertyLens{:m}) = @lens _.data
 data_lens(::AbstractBagNode, ::PropertyLens{:im}) = @lens _.data
 data_lens(::AbstractProductNode, ::PropertyLens{:ms}) = @lens _.data
 data_lens(::Union{NamedTuple, Tuple}, lens::IndexLens) = lens
-data_lens(::Union{AbstractNode, NamedTuple, Tuple}, lens::IdentityLens) = lens
+data_lens(::Union{AbstractMillNode, NamedTuple, Tuple}, lens::IdentityLens) = lens
 
 """
     replacein(n, old, new)

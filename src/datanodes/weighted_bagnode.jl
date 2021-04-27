@@ -1,25 +1,25 @@
 """
-    WeightedBagNode{T <: Union{AbstractNode, Missing}, B <: AbstractBags, W, C} <: AbstractBagNode
+    WeightedBagNode{T <: Union{AbstractMillNode, Missing}, B <: AbstractBags, W, C} <: AbstractBagNode
 
 Structure like [`BagNode`](@ref) but allows to specify weights of type `W` of each instance.
 
-See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractNode`](@ref), [`BagModel`](@ref).
+See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@ref), [`BagModel`](@ref).
 """
-struct WeightedBagNode{T <: Maybe{AbstractNode}, B <: AbstractBags, W, C} <: AbstractBagNode
+struct WeightedBagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C} <: AbstractBagNode
     data::T
     bags::B
     weights::Vector{W}
     metadata::C
 
-    function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C=nothing) where {T <: Maybe{AbstractNode}, B <: AbstractBags, W, C}
+    function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C=nothing) where {T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C}
         ismissing(d) && any(length.(b.bags) .!= 0) && error("WeightedBagNode with nothing in data cannot have a non-empty bag")
         new{T, B, W, C}(d, b, w, m)
     end
 end
 
 """
-    WeightedBagNode(d::Union{AbstractNode, Missing}, b::AbstractBags, w::Vector, m=nothing)
-    WeightedBagNode(d::Union{AbstractNode, Missing}, b::AbstractVector, w::Vector, m=nothing)
+    WeightedBagNode(d::Union{AbstractMillNode, Missing}, b::AbstractBags, w::Vector, m=nothing)
+    WeightedBagNode(d::Union{AbstractMillNode, Missing}, b::AbstractVector, w::Vector, m=nothing)
 
 Construct a new [`WeightedBagNode`](@ref) with data `d`, bags `b`, weights `w` and metadata `m`. If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
 
@@ -34,9 +34,9 @@ BagNode with 2 obs
   └── ArrayNode(2×2 Array with Float64 elements) with 2 obs
 ```
 
-See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractNode`](@ref), [`BagModel`](@ref).
+See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@ref), [`BagModel`](@ref).
 """
-WeightedBagNode(d::Maybe{AbstractNode}, b::AbstractVector, weights::Vector, metadata=nothing) =
+WeightedBagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, weights::Vector, metadata=nothing) =
     WeightedBagNode(d, bags(b), weights, metadata)
 
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)

@@ -134,7 +134,7 @@ end
 end
 
 @testset "TypeIterator" begin
-    @test Set(TypeIterator(AbstractNode, n2)) == Set(NodeIterator(n2))
+    @test Set(TypeIterator(AbstractMillNode, n2)) == Set(NodeIterator(n2))
     @test Set(TypeIterator(AbstractBagNode, n2)) == Set([b, wb])
     @test Set(TypeIterator(AbstractProductNode, n2)) == Set([n1, n2])
 

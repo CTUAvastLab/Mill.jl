@@ -1,13 +1,13 @@
 """
-    LazyNode{Name, D, C} <: AbstractNode
+    LazyNode{Name, D, C} <: AbstractMillNode
 
 Data node storing data of type `D` in a lazy manner and optional metadata of type `C`.
 
 Source of data or its type is specified in `Name`.
 
-See also: [`AbstractNode`](@ref), [`LazyModel`](@ref), [`Mill.unpack2mill`](@ref).
+See also: [`AbstractMillNode`](@ref), [`LazyModel`](@ref), [`Mill.unpack2mill`](@ref).
 """
-struct LazyNode{Name, D, C} <: AbstractNode
+struct LazyNode{Name, D, C} <: AbstractMillNode
     data::D
     metadata::C
 end
@@ -24,7 +24,7 @@ julia> LazyNode(:Codons, ["GGGCGGCGA", "CCTCGCGGG"])
 LazyNode{Codons} with 2 obs
 ```
 
-See also: [`AbstractNode`](@ref), [`LazyModel`](@ref), [`Mill.unpack2mill`](@ref).
+See also: [`AbstractMillNode`](@ref), [`LazyModel`](@ref), [`Mill.unpack2mill`](@ref).
 """
 LazyNode(Name::Symbol, d::T, m::C=nothing) where {T, C} = LazyNode{Name, T, C}(d, m)
 LazyNode{Name}(d::T, m::C=nothing) where {Name, T, C} = LazyNode{Name, T, C}(d, m)

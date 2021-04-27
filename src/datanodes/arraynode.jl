@@ -1,11 +1,11 @@
 """
-    ArrayNode{A <: AbstractArray, C} <: AbstractNode
+    ArrayNode{A <: AbstractArray, C} <: AbstractMillNode
 
 Data node for storing array-like data of type `A` and metadata of type `C`. The convention is that samples are stored along the last axis, e.g. in columns of a matrix.
 
-See also: [`AbstractNode`](@ref), [`ArrayModel`](@ref).
+See also: [`AbstractMillNode`](@ref), [`ArrayModel`](@ref).
 """
-struct ArrayNode{A <: AbstractArray, C} <: AbstractNode
+struct ArrayNode{A <: AbstractArray, C} <: AbstractMillNode
     data::A
     metadata::C
 end
@@ -24,7 +24,7 @@ julia> a = ArrayNode([1 2; 3 4; 5 6])
  5  6
 ```
 
-See also: [`AbstractNode`](@ref), [`ArrayModel`](@ref).
+See also: [`AbstractMillNode`](@ref), [`ArrayModel`](@ref).
 """
 ArrayNode(d::AbstractArray) = ArrayNode(d, nothing)
 

@@ -39,7 +39,7 @@ include("bags.jl")
 export AbstractBags, AlignedBags, ScatteredBags, length2bags, remapbags, bags, adjustbags
 
 include("datanodes/datanode.jl")
-export AbstractNode, AbstractProductNode, AbstractBagNode
+export AbstractMillNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export catobs, removeinstances, dropmeta
 
@@ -63,7 +63,7 @@ export IdentityModel, identity_model
 export HiddenLayerModel
 export mapactivations, reflectinmodel
 
-const MillStruct = Union{AbstractMillModel, AbstractNode}
+const MillStruct = Union{AbstractMillModel, AbstractMillNode}
 
 include("conv.jl")
 export bagconv, BagConv

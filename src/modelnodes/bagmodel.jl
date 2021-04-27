@@ -67,9 +67,9 @@ function BagModel(im::Union{MillFunction, AbstractMillModel}, a::Aggregation,
     BagModel(_make_array_model(im), a, _make_array_model(bm))
 end
 
-(m::BagModel)(x::BagNode{<:AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags))
+(m::BagModel)(x::BagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(x.data), x.bags))
 (m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags)))
-(m::BagModel)(x::WeightedBagNode{<:AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
+(m::BagModel)(x::WeightedBagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
 (m::BagModel)(x::WeightedBagNode{Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags, x.weights)))
 
 function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
@@ -80,7 +80,7 @@ function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
     BagModel(im, a, bm), o
 end
 
-function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<:AbstractNode,B,C}
+function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<:AbstractMillNode,B,C}
     hmi, mi = mapactivations(hm.im, x.data, m.im)
     ai = m.a(mi, x.bags)
     hai = hm.a(hmi, x.bags)

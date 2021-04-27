@@ -1,26 +1,26 @@
 """
-    AbstractNode
+    AbstractMillNode
 
 Supertype for any structure representing a data node.
 """
-abstract type AbstractNode end
+abstract type AbstractMillNode end
 
 """
-    AbstractProductNode <: AbstractNode
+    AbstractProductNode <: AbstractMillNode
 
 Supertype for any structure representing a data node implementing a Cartesian product of data in subtrees.
 """
-abstract type AbstractProductNode <: AbstractNode end
+abstract type AbstractProductNode <: AbstractMillNode end
 
 """
-    AbstractBagNode <: AbstractNode
+    AbstractBagNode <: AbstractMillNode
 
 Supertype for any data node structure representing a multi-instance learning problem.
 """
-abstract type AbstractBagNode <: AbstractNode end
+abstract type AbstractBagNode <: AbstractMillNode end
 
 """
-    Mill.data(n::AbstractNode)
+    Mill.data(n::AbstractMillNode)
 
 Return data stored in node `n`.
 
@@ -39,10 +39,10 @@ julia> Mill.data(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"))
 
 See also: [`Mill.metadata`](@ref)
 """
-data(n::AbstractNode) = n.data
+data(n::AbstractMillNode) = n.data
 
 """
-    Mill.metadata(n::AbstractNode)
+    Mill.metadata(n::AbstractMillNode)
 
 Return metadata stored in node `n`.
 
@@ -57,7 +57,7 @@ julia> Mill.metadata(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"
 
 See also: [`Mill.data`](@ref)
 """
-metadata(x::AbstractNode) = x.metadata
+metadata(x::AbstractMillNode) = x.metadata
 
 """
     catobs(ns...)
@@ -142,7 +142,7 @@ AlignedBags{Int64}(UnitRange{Int64}[1:1, 0:-1, 2:2])
 function removeinstances end
 
 """
-    dropmeta(n:AbstractNode)
+    dropmeta(n:AbstractMillNode)
 
 Drop metadata stored in data node `n`.
 
@@ -197,17 +197,17 @@ julia> Mill.data(n2).b
 mapdata(f, x) = f(x)
 
 # functions to make datanodes compatible with getindex and with MLDataPattern
-Base.getindex(x::T, i::BitArray{1}) where T <: AbstractNode = x[findall(i)]
-Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractNode = x[findall(i)]
-Base.getindex(x::AbstractNode, i::Int) = x[i:i]
-Base.lastindex(ds::AbstractNode) = nobs(ds)
-MLDataPattern.getobs(x::AbstractNode, i) = x[i]
-MLDataPattern.getobs(x::AbstractNode, i, ::ObsDim.Undefined) = x[i]
-MLDataPattern.getobs(x::AbstractNode, i, ::ObsDim.Last) = x[i]
+Base.getindex(x::T, i::BitArray{1}) where T <: AbstractMillNode = x[findall(i)]
+Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractMillNode = x[findall(i)]
+Base.getindex(x::AbstractMillNode, i::Int) = x[i:i]
+Base.lastindex(ds::AbstractMillNode) = nobs(ds)
+MLDataPattern.getobs(x::AbstractMillNode, i) = x[i]
+MLDataPattern.getobs(x::AbstractMillNode, i, ::ObsDim.Undefined) = x[i]
+MLDataPattern.getobs(x::AbstractMillNode, i, ::ObsDim.Last) = x[i]
 
 subset(x::AbstractMatrix, i) = x[:, i]
 subset(x::AbstractVector, i) = x[i]
-subset(x::AbstractNode, i) = x[i]
+subset(x::AbstractMillNode, i) = x[i]
 subset(x::DataFrame, i) = x[i, :]
 subset(::Missing, i) = missing
 subset(::Nothing, i) = nothing
@@ -238,7 +238,7 @@ catobs(as::Maybe{WeightedBagNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{ProductNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{LazyNode}...) = reduce(catobs, collect(as))
 
-Base.cat(as::AbstractNode...; dims=:) = catobs(as...)
+Base.cat(as::AbstractMillNode...; dims=:) = catobs(as...)
 
 # reduction of common datatypes the way we like it
 Base.reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
@@ -248,11 +248,11 @@ Base.reduce(::typeof(catobs), as::Vector{Missing}) = missing
 Base.reduce(::typeof(catobs), as::Vector{Nothing}) = nothing
 Base.reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
 
-function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractNode
+function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractMillNode
     reduce(catobs, skipmissing(as) |> collect)
 end
 
-function Base.show(io::IO, @nospecialize(n::AbstractNode))
+function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
     print(io, nameof(typeof(n)))
     if !get(io, :compact, false)
         _show_data(io, n)

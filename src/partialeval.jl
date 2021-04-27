@@ -8,7 +8,7 @@ function partialeval(m::ArrayModel, ds::ArrayNode, skipnode)
     (identity_model(), m(ds), false)
 end
 
-# (m::BagModel)(x::WeightedBagNode{<: AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
+# (m::BagModel)(x::WeightedBagNode{<: AbstractMillNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
 
 function partialeval(m::BagModel, ds::BagNode, skipnode)
     ds === skipnode && return(m, skipnode, true)
