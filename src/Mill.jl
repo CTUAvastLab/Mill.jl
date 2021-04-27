@@ -63,7 +63,7 @@ export IdentityModel, identity_model
 export HiddenLayerModel
 export mapactivations, reflectinmodel
 
-const MillStruct = Union{AbstractMillModel, AbstractMillNode}
+const AbstractMillStruct = Union{AbstractMillModel, AbstractMillNode}
 
 include("conv.jl")
 export bagconv, BagConv
@@ -86,7 +86,7 @@ export replacein, code2lens, lens2code, model_lens, data_lens
 
 include("gradients.jl")
 
-Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::MillStruct)) =
+Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillStruct)) =
     HierarchicalUtils.printtree(io, n; htrunc=3, vtrunc=3, breakline=false)
 
 _show(io, x) = _show_fields(io, x)
@@ -95,6 +95,6 @@ function _show_fields(io, x::T; context=:compact=>true) where T
     print(io, nameof(T), "(", join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)],", "), ")")
 end
 
-Base.getindex(n::MillStruct, i::AbstractString) = HierarchicalUtils.walk(n, i)
+Base.getindex(n::AbstractMillStruct, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 end

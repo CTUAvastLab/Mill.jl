@@ -134,7 +134,7 @@ See also: [`pred_lens`](@ref), [`list_lens`](@ref), [`findnonempty_lens`](@ref).
 find_lens(n, x) = pred_lens(t -> t === x, n)
 
 _pred_lens(p::Function, n) = p(n) ? [IdentityLens()] : Lens[]
-function _pred_lens(p::Function, n::T) where T <: MillStruct
+function _pred_lens(p::Function, n::T) where T <: AbstractMillStruct
     res = [map(l -> PropertyLens{k}() ∘ l, _pred_lens(p, getproperty(n, k))) for k in fieldnames(T)]
     res = vcat(filter(!isempty, res)...)
     p(n) ? [IdentityLens(); res] : res
@@ -166,7 +166,7 @@ julia> code2lens(n, "U")
 
 See also: [`lens2code`](@ref).
 """
-code2lens(n::MillStruct, c::AbstractString) = find_lens(n, n[c]) |> only
+code2lens(n::AbstractMillStruct, c::AbstractString) = find_lens(n, n[c]) |> only
 
 """
     lens2code(n, l)
@@ -191,7 +191,7 @@ julia> lens2code(n, (@lens _.data[2]))
 
 See also: [`code2lens`](@ref).
 """
-lens2code(n::MillStruct, l::Lens) = HierarchicalUtils.find_traversal(n, get(n, l)) |> only
+lens2code(n::AbstractMillStruct, l::Lens) = HierarchicalUtils.find_traversal(n, get(n, l)) |> only
 
 """
     model_lens(m, l)
@@ -288,7 +288,7 @@ replacein(x, oldnode, newnode) = x
 replacein(x::Tuple, oldnode, newnode) = tuple([replacein(m, oldnode, newnode) for m in x]...)
 replacein(x::NamedTuple, oldnode, newnode) = (; [k => replacein(x[k], oldnode, newnode) for k in keys(x)]...)
 
-function replacein(x::T, oldnode, newnode) where T <: MillStruct
+function replacein(x::T, oldnode, newnode) where T <: AbstractMillStruct
     x === oldnode && return(newnode)
     fields = map(f -> replacein(getproperty(x, f), oldnode, newnode), fieldnames(T))
     n = nameof(T)
