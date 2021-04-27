@@ -156,7 +156,8 @@ end
           │     │         └── ArrayNode(3×4 Array with Float32 elements) with 4 obs ["K"]
           │     └── wb: WeightedBagNode with 2 obs ["M"]
           │               └── ArrayNode(17×4 NGramMatrix with Int64 elements) with 4 obs ["O"]
-          └── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) with 2 obs ["U"]"""
+          └── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) with 2 obs ["U"]
+        """
 
     @test buf_printtree(n2m, trav=true) ==
         """
@@ -166,7 +167,8 @@ end
           │     │         └── ArrayModel(Dense(3, 10)) ["K"]
           │     └── wb: BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10)) ["M"]
           │               └── ArrayModel(Dense(17, 10)) ["O"]
-          └── ArrayModel(Dense(10, 10)) ["U"]"""
+          └── ArrayModel(Dense(10, 10)) ["U"]
+        """
 end
 
 @testset "LazyNode" begin
@@ -182,11 +184,13 @@ end
                 ├── "GGGCGGCGA" ["Y"]
                 ├── "CCTCGCGGG" ["c"]
                 ├── "TTTTCGCTATTTATGAAAATT" ["g"]
-                └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]"""
+                └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]
+        """
 
     @test buf_printtree(m, trav=true) ==
         """
         LazyModel{Codons} [""]
           └── BagModel … ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5, 2)) ["U"]
-                └── ArrayModel(Dense(64, 2)) ["k"]"""
+                └── ArrayModel(Dense(64, 2)) ["k"]
+        """
 end
