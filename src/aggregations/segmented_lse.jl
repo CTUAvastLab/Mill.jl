@@ -1,7 +1,7 @@
 """
-    SegmentedLSE{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+    SegmentedLSE{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
 
-[`AggregationOperator`](@ref) implementing segmented log-sum-exp (LSE) aggregation:
+[`AbstractAggregation`](@ref) implementing segmented log-sum-exp (LSE) aggregation:
 
 ``
 f(\\{x_1, \\ldots, x_k\\}; r) = \\frac{1}{r}\\log \\left(\\frac{1}{k} \\sum_{i = 1}^{k} \\exp({r\\cdot x_i})\\right)
@@ -10,22 +10,19 @@ f(\\{x_1, \\ldots, x_k\\}; r) = \\frac{1}{r}\\log \\left(\\frac{1}{k} \\sum_{i =
 Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered,
 and a vector of parameters `r` used during computation.
 
-!!! warn "Construction"
-    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
-    get this operator with [`lse_aggregation`](@ref) instead of calling the [`SegmentedLSE`](@ref) constructor directly.
-
-See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`lse_aggregation`](@ref),
+See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`lse_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref).
 """
-struct SegmentedLSE{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+struct SegmentedLSE{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
     ρ::V
 end
 
 Flux.@functor SegmentedLSE
 
-SegmentedLSE(d::Int) = SegmentedLSE{Float32}(d)
 SegmentedLSE{T}(d::Int) where T = SegmentedLSE(zeros(T, d), randn(T, d))
+SegmentedLSE(T::Type{<:Real}, d::Int) = SegmentedLSE{T}(d)
+SegmentedLSE(d::Int) = SegmentedLSE(Float32, d)
 
 Flux.@forward SegmentedLSE.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

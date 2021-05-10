@@ -1,7 +1,7 @@
 """
-    SegmentedMean{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+    SegmentedMean{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
 
-[`AggregationOperator`](@ref) implementing segmented mean aggregation:
+[`AbstractAggregation`](@ref) implementing segmented mean aggregation:
 
 ``
 f(\\{x_1, \\ldots, x_k\\}) = \\frac{1}{k} \\sum_{i = 1}^{k} x_i
@@ -9,21 +9,18 @@ f(\\{x_1, \\ldots, x_k\\}) = \\frac{1}{k} \\sum_{i = 1}^{k} x_i
 
 Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered.
 
-!!! warn "Construction"
-    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
-    get this operator with [`mean_aggregation`](@ref) instead of calling the [`SegmentedMean`](@ref) constructor directly.
-
-See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`mean_aggregation`](@ref),
+See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`mean_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedMean{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+struct SegmentedMean{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
 end
 
 Flux.@functor SegmentedMean
 
 SegmentedMean{T}(d::Int) where T = SegmentedMean(zeros(T, d))
-SegmentedMean(d::Int) = SegmentedMean{Float32}(d)
+SegmentedMean(T::Type{<:Real}, d::Int) = SegmentedMean{T}(d)
+SegmentedMean(d::Int) = SegmentedMean(Float32, d)
 
 Flux.@forward SegmentedMean.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

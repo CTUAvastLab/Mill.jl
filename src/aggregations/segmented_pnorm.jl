@@ -1,7 +1,7 @@
 """
-    SegmentedPNorm{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+    SegmentedPNorm{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
 
-[`AggregationOperator`](@ref) implementing segmented p-norm aggregation:
+[`AbstractAggregation`](@ref) implementing segmented p-norm aggregation:
 
 ``
 f(\\{x_1, \\ldots, x_k\\}; p, c) = \\left(\\frac{1}{k} \\sum_{i = 1}^{k} \\vert x_i - c \\vert ^ {p} \\right)^{\\frac{1}{p}}
@@ -10,14 +10,10 @@ f(\\{x_1, \\ldots, x_k\\}; p, c) = \\left(\\frac{1}{k} \\sum_{i = 1}^{k} \\vert 
 Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered,
 and vectors of parameters `p` and `c` used during computation.
 
-!!! warn "Construction"
-    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
-    get this operator with [`pnorm_aggregation`](@ref) instead of calling the [`SegmentedPNorm`](@ref) constructor directly.
-
-See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`pnorm_aggregation`](@ref),
+See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`pnorm_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedPNorm{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+struct SegmentedPNorm{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
     ρ::V
     c::V
@@ -25,8 +21,9 @@ end
 
 Flux.@functor SegmentedPNorm
 
-SegmentedPNorm(d::Int) = SegmentedPNorm{Float32}(d)
 SegmentedPNorm{T}(d::Int) where T = SegmentedPNorm(zeros(T, d), randn(T, d), randn(T, d))
+SegmentedPNorm(T::Type{<:Real}, d::Int) = SegmentedPNorm{T}(d)
+SegmentedPNorm(d::Int) = SegmentedPNorm(Float32, d)
 
 Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

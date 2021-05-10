@@ -1,7 +1,7 @@
 """
-    SegmentedSum{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+    SegmentedSum{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
 
-[`AggregationOperator`](@ref) implementing segmented sum aggregation:
+[`AbstractAggregation`](@ref) implementing segmented sum aggregation:
 
 ``
 f(\\{x_1, \\ldots, x_k\\}) = \\sum_{i = 1}^{k} x_i
@@ -9,21 +9,18 @@ f(\\{x_1, \\ldots, x_k\\}) = \\sum_{i = 1}^{k} x_i
 
 Stores a vector of parameters `ψ` that are filled into the resulting matrix in case an empty bag is encountered.
 
-!!! warn "Construction"
-    The direct use of the operator is discouraged, use [`Aggregation`](@ref) wrapper instead. In other words,
-    get this operator with [`sum_aggregation`](@ref) instead of calling the [`SegmentedSum`](@ref) constructor directly.
-
-See also: [`AggregationOperator`](@ref), [`Aggregation`](@ref), [`sum_aggregation`](@ref),
+See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`sum_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedSum{T, V <: AbstractVector{T}} <: AggregationOperator{T}
+struct SegmentedSum{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
 end
 
 Flux.@functor SegmentedSum
 
 SegmentedSum{T}(d::Int) where T = SegmentedSum(zeros(T, d))
-SegmentedSum(d::Int) = SegmentedSum{Float32}(d)
+SegmentedSum(T::Type{<:Real}, d::Int) = SegmentedSum{T}(d)
+SegmentedSum(d::Int) = SegmentedSum(Float32, d)
 
 Flux.@forward SegmentedSum.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

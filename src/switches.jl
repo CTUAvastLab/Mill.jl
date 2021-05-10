@@ -18,28 +18,6 @@ See also: [`Mill.emptyismissing`](@ref).
 """
 emptyismissing!(a) = _emptyismissing[] = a
 
-
-const _bagcount = Ref(true)
-
-"""
-    Mill.bagcount()
-
-Get the current value of the `bagcount` parameter.
-
-See also: [`Mill.bagcount!`](@ref).
-"""
-bagcount() = _bagcount[]
-
-"""
-    Mill.bagcount!(Bool)
-
-Set the new value to the `bagcount` parameter.
-
-See also: [`Mill.bagcount`](@ref).
-"""
-bagcount!(a) = _bagcount[] = a
-
-
 const _string_start_code = Ref(0x02) # STX in ascii
 
 """
