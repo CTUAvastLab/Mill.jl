@@ -101,7 +101,7 @@ function length2bags(ls::Vector{T}) where T <: Integer
     AlignedBags(bags)
 end
 
-Zygote.@nograd length2bags
+ChainRulesCore.@non_differentiable length2bags(ls)
 
 """
     ScatteredBags{T <: Integer} <: AbstractBags{T}

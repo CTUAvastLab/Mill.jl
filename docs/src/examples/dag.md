@@ -16,7 +16,7 @@ draw(SVG("dag.svg"), gp)
 # DAGs
 
 ```@example dag
-using Flux, Zygote, LightGraphs
+using Flux, Zygote, ChainRulesCore, LightGraphs
 ```
 Imagine a data/knowledge base represented in a form of a directed acyclic graph (DAG), where a vertex would be modelled based on its parents (and their parents), but not on its descendants. We will make one assumption (common in graphical models) that two children are independent given their parent or, in other words, once we have access to the data or inferred values of the parent, we do not have to inspect its other children.
 
@@ -54,7 +54,7 @@ In the course of calculating the value of vertex `e`, it may happen that for som
 
 ```@example dag
 initcache(g, k) = [Zygote.Buffer(zeros(Float32, k, 1)) for _ in 1:nv(g)]
-Zygote.@nograd initcache
+ChainRulesCore.@non_differentiable initcache(g, k)
 nothing # hide
 ```
 
@@ -109,8 +109,7 @@ function millneighbors!(cache, g::DagGraph, model::DagModel, ii::Vector{Int})
 end
 
 millneighbors!(cache, g::DagGraph, model::DagModel, i::Int) = millneighbors!(cache, g, model, inneighbors(g.g, i))
-
-Zygote.@nograd LightGraphs.inneighbors
+ChainRulesCore.@non_differentiable inneighbors(g, i)
 nothing # hide
 ```
 
