@@ -20,6 +20,7 @@ end
 
 gradcheck(ag, ng; atol=1e-5, rtol=1e-5) = isnothing(ag) ? isapprox.(ng, 0; atol) : isapprox.(ng, ag; atol, rtol)
 gradcheck(ag, ngs::Tuple; atol=1e-5, rtol=1e-5) = all(.|(map(ng -> gradcheck(ag, ng; atol, rtol), ngs)...))
+gradcheck(ag::NotImplemented, ngs::Tuple; atol=1e-5, rtol=1e-5) = throw(NotImplementedException(ag))
 
 function gradf(f, xs...)
     A = rand(size(f(xs...))...)

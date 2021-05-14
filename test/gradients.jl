@@ -55,3 +55,13 @@ end
     df2 = gradf(f2, Flux.params(m2))
     @test df1() ≠ df2()
 end
+
+@testset "not implemented" begin
+    f(x, y) = x + y
+    function ChainRulesCore.rrule(::typeof(f), x, y)
+        x+y, Δ -> (NO_FIELDS, Δ * 1, @not_implemented("Not implemented"))
+    end
+    @test_throws NotImplementedException gradtest(f, 1.0, 1.0)
+    @test_throws NotImplementedException gradtest(y -> f(1, y), 1.0)
+    @test gradtest(x -> f(x, 1), 1.0)
+end
