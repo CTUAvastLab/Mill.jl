@@ -57,4 +57,3 @@ function (bc::BagCount{<: AbstractAggregation{T}})(x::Union{AbstractArray, Missi
     o2 = Zygote.@ignore permutedims(log.(one(T) .+ length.(bags)))
     vcat(o1, o2)
 end
-

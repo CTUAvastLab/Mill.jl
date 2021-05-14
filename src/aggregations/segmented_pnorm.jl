@@ -13,7 +13,7 @@ and vectors of parameters `p` and `c` used during computation.
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`pnorm_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedPNorm{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedPNorm{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
     ρ::V
     c::V
@@ -22,7 +22,7 @@ end
 Flux.@functor SegmentedPNorm
 
 SegmentedPNorm{T}(d::Int) where T = SegmentedPNorm(zeros(T, d), randn(T, d), randn(T, d))
-SegmentedPNorm(T::Type{<:Real}, d::Int) = SegmentedPNorm{T}(d)
+SegmentedPNorm(T::Type, d::Int) = SegmentedPNorm{T}(d)
 SegmentedPNorm(d::Int) = SegmentedPNorm(Float32, d)
 
 Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
@@ -44,14 +44,9 @@ function (m::SegmentedPNorm)(x::Missing, bags::AbstractBags,
                                 w::Optional{AbstractVecOrMat}=nothing)
     segmented_pnorm_forw(x, m.ψ, nothing, bags, w)
 end
-function (m::SegmentedPNorm)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+function (m::SegmentedPNorm)(x::AbstractMatrix{T}, bags::AbstractBags,
                                 w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_pnorm_forw(x .- m.c, m.ψ, p_map(m.ρ), bags, w)
-end
-
-function (m::SegmentedPNorm)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
-                                w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
-    segmented_pnorm_forw((x .- m.c) .* mask', m.ψ, p_map(m.ρ), bags, w)
 end
 
 function _pnorm_precomp(x::AbstractMatrix, bags)
@@ -97,7 +92,7 @@ end
 segmented_pnorm_forw(::Missing, ψ::AbstractVector, p, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
 function segmented_pnorm_forw(a::Maybe{AbstractMatrix}, ψ::AbstractVector, p::AbstractVector, bags::AbstractBags, w) 
     M = _pnorm_precomp(a, bags)
-    _segmented_pnorm_norm(a, ψ, p, bags, w, M)
+   _segmented_pnorm_norm(a, ψ, p, bags, w, M)
 end
 
 function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
@@ -133,7 +128,7 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
             end
         end
     end
-    da, dψ, dp, DoesNotExist(), dw
+    da, dψ, dp, DoesNotExist(), @not_implemented("Not implemented yet!")
 end
 
 function segmented_pnorm_back(Δ, y, ψ, bags) 
@@ -143,12 +138,12 @@ function segmented_pnorm_back(Δ, y, ψ, bags)
             dψ[i] += Δ[i, bi]
         end
     end
-    Zero(), dψ, Zero(), DoesNotExist(), Zero()
+    Zero(), dψ, Zero(), DoesNotExist(), @not_implemented("Not implemented yet!")
 end
 
-∇dw_segmented_pnorm!(dw::Zero, Δ, a, y, w::Nothing, ws, i, j, bi) = error("Not implemented yet!")
-∇dw_segmented_pnorm!(dw::AbstractVector, Δ, a, y, w::AbstractVector, ws, i, j, bi) = error("Not implemented yet!")
-∇dw_segmented_pnorm!(dw::AbstractMatrix, Δ, a, y, w::AbstractMatrix, ws, i, j, bi) = error("Not implemented yet!")
+∇dw_segmented_pnorm!(dw::Zero, Δ, a, y, w::Nothing, i, j, bi) = error("Not implemented yet!")
+∇dw_segmented_pnorm!(dw::AbstractVector, Δ, a, y, w::AbstractVector, i, j, bi) = error("Not implemented yet!")
+∇dw_segmented_pnorm!(dw::AbstractMatrix, Δ, a, y, w::AbstractMatrix, i, j, bi) = error("Not implemented yet!")
 
 function ChainRulesCore.rrule(::typeof(segmented_pnorm_forw), a::AbstractMatrix, ψ, p, bags, w)
     M = _pnorm_precomp(a, bags)

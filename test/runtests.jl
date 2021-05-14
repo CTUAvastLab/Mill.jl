@@ -1,12 +1,14 @@
 using Test
+
 using Mill
 using Mill: nobs, mapdata
 using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, ∇xbagconv, ∇convsum
 using Mill: ngrams, countngrams
 using Mill: p_map, inv_p_map, r_map, inv_r_map, _bagnorm
 using Mill: Maybe
-
 using Mill: gradtest, gradf
+
+using ChainRulesCore: NotImplementedException
 
 using Base.Iterators: partition, product
 using Base: CodeUnits
@@ -68,18 +70,20 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
     BagNode(ArrayNode(x), Mill.length2bags(length.(s)))
 end
 
-nonparam_aggregations(t::Type,d ) = Aggregation(
-        SegmentedSum(randn(t, d)),
-        SegmentedMean(randn(t, d)),
-        SegmentedMax(randn(t, d)),
-        meanmax_aggregation(t, d))
+_init_agg(t::Type{<:Number}, d) = randn(t, d)
+_init_agg(t::Type{<:Integer}, d) = rand(t, d)
 
-param_aggregations(t::Type, d) = Aggregation(
-        SegmentedPNorm(randn(t, d), randn(t, d), randn(t, d)),
-        SegmentedLSE(randn(t, d), randn(t, d)),
-        summeanmaxpnormlse_aggregation(t, d))
+# initialize to randn to test a lot of values even though we then initialize to zero
+nonparam_aggregations(t::Type, d) = vcat(
+                                 SegmentedSum(_init_agg(t, d)),
+                                 SegmentedMean(_init_agg(t, d)),
+                                 SegmentedMax(_init_agg(t, d)))
 
-all_aggregations(t::Type, d) = Aggregation((nonparam_aggregations(t, d), param_aggregations(t, d)))
+param_aggregations(t::Type, d) = vcat(
+                                      SegmentedPNorm(_init_agg(t, d), _init_agg(t, d), _init_agg(t, d)),
+                                      SegmentedLSE(_init_agg(t, d), _init_agg(t, d)))
+
+all_aggregations(t::Type, d) = vcat(nonparam_aggregations(t, d), param_aggregations(t, d))
 
 @testset "Doctests" begin
     DocMeta.setdocmeta!(Mill, :DocTestSetup, quote

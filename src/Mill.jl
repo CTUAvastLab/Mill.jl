@@ -16,6 +16,7 @@ using StatsBase
 using Zygote
 
 using Base: CodeUnits, nameof
+using ChainRulesCore: NotImplemented, NotImplementedException
 using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 using LearnBase: ObsDim
 using HierarchicalUtils: encode, stringify
@@ -52,9 +53,10 @@ export preimputing_dense, postimputing_dense, identity_dense
 
 (::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
 
-include("aggregations/aggregation.jl")
-# agg. types exported in aggregation.jl
-export AggregationOperator, Aggregation
+include("aggregations/aggregations.jl")
+export AbstractAggregation, AggregationStack
+export BagCount
+# combined agg. types exported in aggregations.jl
 export SegmentedMean, SegmentedMax, SegmentedSum, SegmentedLSE, SegmentedPNorm
 
 include("modelnodes/modelnode.jl")

@@ -1,5 +1,5 @@
 """
-    BagModel{T <: AbstractMillModel, A <: Aggregation, U <: ArrayModel} <: AbstractMillModel
+    BagModel{T <: AbstractMillModel, A <: AbstractAggregation, U <: ArrayModel} <: AbstractMillModel
 
 A model node for processing [`AbstractBagNode`](@ref)s. It first applies its \"instance (sub)model\" `im`
 on every instance, then performs elementwise segmented aggregation `a` and finally applies the final
@@ -28,10 +28,10 @@ julia> m.bm(m.a(m.im(n.data), n.bags))
  0.0   0.62269455
 ```
 
-See also: [`AbstractMillModel`](@ref), [`Aggregation`](@ref), [`AbstractBagNode`](@ref),
+See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`AbstractBagNode`](@ref),
     [`BagNode`](@ref), [`WeightedBagNode`](@ref).
 """
-struct BagModel{T <: AbstractMillModel, A <: Aggregation, U <: ArrayModel} <: AbstractMillModel
+struct BagModel{T <: AbstractMillModel, A <: AbstractAggregation, U <: ArrayModel} <: AbstractMillModel
     im::T
     a::A
     bm::U
@@ -43,7 +43,7 @@ Flux.@functor BagModel
     BagModel(im, a, bm=identity_model())
 
 Construct a [`BagModel`](@ref) from the arguments. `im` should [`AbstractMillModel`](@ref),
-`a` [`Aggregation`](@ref), and `bm` [`ArrayModel`](@ref).
+`a` [`AbstractAggregation`](@ref), and `bm` [`ArrayModel`](@ref).
 
 It is also possible to pass any function (`Flux.Dense`, `Flux.Chain`, `identity`...) as `im` or `bm`.
 In that case, they are wrapped into an [`ArrayNode`](@ref).
@@ -59,10 +59,10 @@ BagModel … ↦ ⟨SegmentedMean(2)⟩ ↦ ArrayModel(identity)
   └── ArrayModel(Dense(2, 3))
 ```
 
-See also: [`AbstractMillModel`](@ref), [`Aggregation`](@ref), [`AbstractBagNode`](@ref),
+See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`AbstractBagNode`](@ref),
     [`BagNode`](@ref), [`WeightedBagNode`](@ref).
 """
-function BagModel(im::Union{MillFunction, AbstractMillModel}, a::Aggregation,
+function BagModel(im::Union{MillFunction, AbstractMillModel}, a::AbstractAggregation,
         bm::Union{MillFunction, ArrayModel}=identity_model())
     BagModel(_make_array_model(im), a, _make_array_model(bm))
 end

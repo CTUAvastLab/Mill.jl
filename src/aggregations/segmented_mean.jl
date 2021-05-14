@@ -12,14 +12,14 @@ Stores a vector of parameters `ψ` that are filled into the resulting matrix in 
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`mean_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedMean{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedMean{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
 end
 
 Flux.@functor SegmentedMean
 
 SegmentedMean{T}(d::Int) where T = SegmentedMean(zeros(T, d))
-SegmentedMean(T::Type{<:Real}, d::Int) = SegmentedMean{T}(d)
+SegmentedMean(T::Type, d::Int) = SegmentedMean{T}(d)
 SegmentedMean(d::Int) = SegmentedMean(Float32, d)
 
 Flux.@forward SegmentedMean.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
@@ -30,13 +30,9 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedMean})
     SegmentedMean(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedMean)(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
+function (m::SegmentedMean)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                                w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_mean_forw(x, m.ψ, bags, w)
-end
-function (m::SegmentedMean)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
-                               w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
-    segmented_mean_forw(x .* mask', m.ψ, bags, w)
 end
 
 segmented_mean_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))

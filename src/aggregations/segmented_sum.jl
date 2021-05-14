@@ -12,14 +12,14 @@ Stores a vector of parameters `ψ` that are filled into the resulting matrix in 
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`sum_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedSum{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedSum{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
 end
 
 Flux.@functor SegmentedSum
 
 SegmentedSum{T}(d::Int) where T = SegmentedSum(zeros(T, d))
-SegmentedSum(T::Type{<:Real}, d::Int) = SegmentedSum{T}(d)
+SegmentedSum(T::Type, d::Int) = SegmentedSum{T}(d)
 SegmentedSum(d::Int) = SegmentedSum(Float32, d)
 
 Flux.@forward SegmentedSum.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
@@ -30,13 +30,9 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedSum})
     SegmentedSum(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedSum)(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
+function (m::SegmentedSum)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_sum_forw(x, m.ψ, bags, w)
-end
-function (m::SegmentedSum)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
-                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector) where T
-    segmented_sum_forw(x .* mask', m.ψ, bags, w)
 end
 
 segmented_sum_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))

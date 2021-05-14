@@ -12,14 +12,14 @@ Stores a vector of parameters `ψ` that are filled into the resulting matrix in 
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`max_aggregation`](@ref),
     [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedMax{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedMax{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
 end
 
 Flux.@functor SegmentedMax
 
 SegmentedMax{T}(d::Int) where T = SegmentedMax(zeros(T, d))
-SegmentedMax(T::Type{<:Real}, d::Int) = SegmentedMax{T}(d)
+SegmentedMax(T::Type, d::Int) = SegmentedMax{T}(d)
 SegmentedMax(d::Int) = SegmentedMax(Float32, d)
 
 Flux.@forward SegmentedMax.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
@@ -30,19 +30,19 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedMax})
     SegmentedMax(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedMax)(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
+function (m::SegmentedMax)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_max_forw(x, m.ψ, bags)
 end
-function (m::SegmentedMax)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
+function (m::SegmentedMax)(x::AbstractMatrix{T}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{U}) where {T, U}
-    segmented_max_forw(x .+ _typemin(U) * mask', m.ψ, bags)
+    segmented_max_forw(x .+ _typemin(promote_type(T, U)) * mask', m.ψ, bags)
 end
 
 segmented_max_forw(::Missing, ψ::AbstractVector, bags::AbstractBags) = repeat(ψ, 1, length(bags))
 function segmented_max_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags) 
-    t = promote_type(eltype(x), eltype(ψ))
-    y = fill(_typemin(t), size(x, 1), length(bags)) |> typeof(x)
+    T = promote_type(eltype(x), eltype(ψ))
+    y = Matrix{T}(fill(_typemin(T), size(x, 1), length(bags)))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)

@@ -15,6 +15,9 @@ Intended to be used as a functor:
 where `x` is either `Missing`, `AbstractMatrix` or [`ArrayNode`](@ref),
 `bags` is [`AbstractBags`](@ref) structure and optionally `w` is an `AbstractVector` of weights.
 
+TODO mention that it can be constructed by vcatting operators as well.
+mention flattening
+
 # Examples
 ```jldoctest
 julia> a = mean_aggregation(5)
@@ -43,9 +46,14 @@ See also: [`AbstractAggregation`](@ref), [`SegmentedSum`](@ref), [`SegmentedMax`
 struct AggregationStack{T, U <: Tuple{Vararg{AbstractAggregation{T}}}} <: AbstractAggregation{T}
     fs::U
     function AggregationStack(fs::Tuple{Vararg{AbstractAggregation{T}}}) where T
-        new{T, typeof(fs)}(fs)
+        ffs = _flatten_agg(fs)
+        new{T, typeof(ffs)}(ffs)
     end
 end
+
+_flatten_agg(t) = tuple(vcat(map(_flatten_agg, t)...)...)
+_flatten_agg(a::AggregationStack) = vcat(map(_flatten_agg, a.fs)...)
+_flatten_agg(a::AbstractAggregation) = [a]
 
 AggregationStack(fs::AbstractAggregation{T}...) where T = AggregationStack(fs)
 
@@ -63,9 +71,10 @@ Base.size(a::AggregationStack) = tuple(sum(only, size.(a.fs)))
 
 function Base.show(io::IO, a::AggregationStack)
     if get(io, :compact, false)
+        # TODO print the only length once implemented length checking
         print(io, "AggregationStack(", join(length.(a.fs), ", "), ")")
     else
-        print(io, "⟨" * join(repr(f; context=:compact => true) for f in a.fs ", ") * "⟩")
+        print(io, "[" * join(repr.(a.fs; context=:compact => true), "; ") * "]")
     end
 end
 

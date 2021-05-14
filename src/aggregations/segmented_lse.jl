@@ -13,7 +13,7 @@ and a vector of parameters `r` used during computation.
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`lse_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref).
 """
-struct SegmentedLSE{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedLSE{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
     ψ::V
     ρ::V
 end
@@ -21,7 +21,7 @@ end
 Flux.@functor SegmentedLSE
 
 SegmentedLSE{T}(d::Int) where T = SegmentedLSE(zeros(T, d), randn(T, d))
-SegmentedLSE(T::Type{<:Real}, d::Int) = SegmentedLSE{T}(d)
+SegmentedLSE(T::Type, d::Int) = SegmentedLSE{T}(d)
 SegmentedLSE(d::Int) = SegmentedLSE(Float32, d)
 
 Flux.@forward SegmentedLSE.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
@@ -36,17 +36,14 @@ end
 r_map(ρ) = @. softplus(ρ)
 inv_r_map(r) = @. relu(r) + log1p(-exp(-abs(r)))
 
-function (m::SegmentedLSE)(x::Maybe{AbstractMatrix{<:Maybe{T}}}, bags::AbstractBags,
+function (m::SegmentedLSE)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
     segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
 end
-function (m::SegmentedLSE)(x::AbstractMatrix{<:Maybe{T}}, bags::AbstractBags,
-                           w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{U}) where {T, U}
-    segmented_lse_forw(x .+ _typemin(U) * mask', m.ψ, r_map(m.ρ), bags)
-end
 
 function _lse_precomp(x::AbstractMatrix, r, bags)
-    M = zeros(eltype(x), length(r), length(bags))
+    T = promote_type(eltype(x), eltype(r))
+    M = zeros(T, length(r), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if !isempty(b)
             for i in eachindex(r)
