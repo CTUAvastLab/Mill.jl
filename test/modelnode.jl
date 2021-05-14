@@ -9,6 +9,7 @@ const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, l
     @test size(m(x).data) == (2, 5)
     @test m isa ArrayModel
     @test eltype(m(x).data) == Float32
+    @inferred m(x)
 end
 
 @testset "testing simple aggregation model" begin
@@ -18,6 +19,7 @@ end
     @test size(m(x).data) == (2, 2)
     @test m isa BagModel
     @test eltype(m(x).data) == Float32
+    @inferred m(x)
 end
 
 @testset "testing simple tuple models" begin
@@ -41,6 +43,7 @@ end
     @test m.ms[2] isa BagModel
     @test m.ms[2].im isa ArrayModel
     @test m.ms[2].bm isa ArrayModel
+    @inferred m(x)
 end
 
 @testset "testing nested bag model" begin
@@ -54,6 +57,7 @@ end
     @test m.im.bm isa ArrayModel
     @test m.bm isa ArrayModel
     @test eltype(m(x).data) == Float32
+    @inferred m(x)
 
     a = BagNode(BagNode(ArrayNode(randn(2,2)),[1:2]),[1:1])
     b = BagNode(missing,[0:-1])
@@ -144,6 +148,7 @@ end
     for m in [m1, m1_ski, m1_ski_fsm]
         @test eltype(m(x1).data) == Float32
         @test size(m(x1).data) == (2, 4)
+        @inferred m(x1)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
     end
@@ -151,6 +156,7 @@ end
     for m in [m2, m2_ski, m2_ski_fsm]
         @test eltype(m(x2).data) == Float32
         @test size(m(x2).data) == (2, 4)
+        @inferred m(x2)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
     end
@@ -158,6 +164,7 @@ end
     for m in [m3, m3_ski, m3_ski_fsm]
         @test eltype(m(x3).data) == Float32
         @test size(m(x3).data) == (2, 4)
+        @inferred m(x3)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
         @test m.ms[2] isa ArrayModel
@@ -195,6 +202,7 @@ end
     @test size(m1_sci(x1).data) == (1, 3)
     @test eltype(m1_sci(x1).data) == Float32
     @test m1_sci isa ArrayModel
+    @inferred m1(x1)
 
     @test size(m2(x2).data) == (2, 2)
     @test eltype(m2(x2).data) == Float32
@@ -204,6 +212,7 @@ end
     @test eltype(m2_sci(x2).data) == Float32
     @test m2_sci isa BagModel
     @test m2_sci.im isa IdentityModel
+    @inferred m2(x2)
 
     @test size(m3(x3).data) == (2, 4)
     @test eltype(m3(x3).data) == Float32
@@ -215,6 +224,7 @@ end
     @test m3_sci isa ProductModel
     @test m3_sci.ms[1] isa IdentityModel
     @test m3_sci.ms[2] isa ArrayModel{<:Dense}
+    @inferred m3(x3)
 end
 
 # Defining this is a bad idea - in Flux all models do not implement hash
