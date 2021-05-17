@@ -21,7 +21,7 @@
         BagNode with 2 obs
           └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
 
-    bnm = reflectinmodel(bn)
+    bnm = reflectinmodel(bn; fa = d -> SegmentedMean(d))
     @test repr(bnm) == "BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))"
     @test repr(bnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), bnm) == 
@@ -56,7 +56,7 @@
           └── wbn: WeightedBagNode with 2 obs
                      └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
 
-    pnm = reflectinmodel(pn)
+    pnm = reflectinmodel(pn, fa = d -> SegmentedMax(d))
     @test repr(pnm) == "ProductModel … ↦ ArrayModel(Dense(20, 10))"
     @test repr(pnm; context=:compact => true) == "ProductModel"
     @test repr(MIME("text/plain"), pnm) ==
@@ -111,6 +111,23 @@ end
     @test repr(a) == "SegmentedMean(ψ = Float32[0.0, 0.0])"
     @test repr(a; context=:compact => true) == "SegmentedMean(2)"
     @test repr(a) == repr(MIME("text/plain"), a)
+end
+
+@testset "bag count io" begin
+    bc = BagCount(SegmentedMeanMax(3))
+    @test repr(bc) == "BagCount(AggregationStack([SegmentedMean(3); SegmentedMax(3)]))"
+    @test repr(bc; context=:compact => true) == "BagCount([SegmentedMean(3); SegmentedMax(3)])"
+    @test repr(MIME("text/plain"), bc) ==
+        """
+        BagCount(AggregationStack{Float32}:
+         SegmentedMean(ψ = Float32[0.0, 0.0, 0.0])
+         SegmentedMax(ψ = Float32[0.0, 0.0, 0.0])
+        )"""
+
+    bc = BagCount(SegmentedMean(3))
+    @test repr(bc) == "BagCount(SegmentedMean(ψ = Float32[0.0, 0.0, 0.0]))"
+    @test repr(bc; context=:compact => true) == "BagCount(SegmentedMean(3))"
+    @test repr(MIME("text/plain"), bc) == repr(bc)
 end
 
 @testset "maybe hot vector io" begin

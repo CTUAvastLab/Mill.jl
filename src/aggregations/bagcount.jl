@@ -57,3 +57,9 @@ function (bc::BagCount{<: AbstractAggregation{T}})(x::Union{AbstractArray, Missi
     o2 = Zygote.@ignore permutedims(log.(one(T) .+ length.(bags)))
     vcat(o1, o2)
 end
+
+function Base.show(io::IO, m::MIME"text/plain", @nospecialize(bc::BagCount{<:AggregationStack}))
+    print(io, "BagCount(", repr(m, bc.a), "\n)")
+end
+Base.show(io::IO, @nospecialize(bc::BagCount)) = print(io, "BagCount(", bc.a, ")")
+
