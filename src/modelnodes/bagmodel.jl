@@ -1,5 +1,6 @@
 """
-    BagModel{T <: AbstractMillModel, A <: AbstractAggregation, U <: ArrayModel} <: AbstractMillModel
+    BagModel{T <: AbstractMillModel, A <: Union{AbstractAggregation, BagCount}, U <: ArrayModel}
+        <: AbstractMillModel
 
 A model node for processing [`AbstractBagNode`](@ref)s. It first applies its \"instance (sub)model\" `im`
 on every instance, then performs elementwise segmented aggregation `a` and finally applies the final
@@ -13,7 +14,7 @@ julia> n = BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 1:2]))
 BagNode with 2 obs
   └── ArrayNode(2×2 Array with Float64 elements) with 2 obs
 
-julia> m = BagModel(ArrayModel(Dense(2, 2)), meanmax_aggregation(2), ArrayModel(Dense(5, 2)))
+julia> m = BagModel(ArrayModel(Dense(2, 2)), SegmentedMeanMax(2), ArrayModel(Dense(5, 2)))
 BagModel … ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5, 2))
   └── ArrayModel(Dense(2, 2))
 
@@ -31,7 +32,8 @@ julia> m.bm(m.a(m.im(n.data), n.bags))
 See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`AbstractBagNode`](@ref),
     [`BagNode`](@ref), [`WeightedBagNode`](@ref).
 """
-struct BagModel{T <: AbstractMillModel, A <: AbstractAggregation, U <: ArrayModel} <: AbstractMillModel
+struct BagModel{T <: AbstractMillModel, A <: Union{AbstractAggregation, BagCount},
+                U <: ArrayModel} <: AbstractMillModel
     im::T
     a::A
     bm::U
@@ -42,27 +44,27 @@ Flux.@functor BagModel
 """
     BagModel(im, a, bm=identity_model())
 
-Construct a [`BagModel`](@ref) from the arguments. `im` should [`AbstractMillModel`](@ref),
-`a` [`AbstractAggregation`](@ref), and `bm` [`ArrayModel`](@ref).
+Construct a [`BagModel`](@ref) from the arguments. `im` should be [`AbstractMillModel`](@ref),
+`a` [`AbstractAggregation`](@ref) or [`BagCount`](@ref), and `bm` [`ArrayModel`](@ref).
 
 It is also possible to pass any function (`Flux.Dense`, `Flux.Chain`, `identity`...) as `im` or `bm`.
 In that case, they are wrapped into an [`ArrayNode`](@ref).
 
 # Examples
 ```jldoctest
-julia> m = BagModel(ArrayModel(Dense(2, 3)), max_aggregation(2), ArrayModel(Dense(3, 2)))
-BagModel … ↦ ⟨SegmentedMax(2)⟩ ↦ ArrayModel(Dense(3, 2))
+julia> m = BagModel(ArrayModel(Dense(2, 3)), SegmentedMeanMax(2), ArrayModel(Dense(3, 2)))
+BagModel … ↦ ⟨SegmentedMeanMax(2)⟩ ↦ ArrayModel(Dense(3, 2))
   └── ArrayModel(Dense(2, 3))
 
-julia> m = BagModel(Dense(2, 3), mean_aggregation(2))
+julia> m = BagModel(Dense(2, 3), BagCount(SegmentedMean(2)))
 BagModel … ↦ ⟨SegmentedMean(2)⟩ ↦ ArrayModel(identity)
   └── ArrayModel(Dense(2, 3))
 ```
 
-See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`AbstractBagNode`](@ref),
-    [`BagNode`](@ref), [`WeightedBagNode`](@ref).
+See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`BagCount`](@ref),
+    [`AbstractBagNode`](@ref), [`BagNode`](@ref), [`WeightedBagNode`](@ref).
 """
-function BagModel(im::Union{MillFunction, AbstractMillModel}, a::AbstractAggregation,
+function BagModel(im::Union{MillFunction, AbstractMillModel}, a::Union{AbstractAggregation, BagCount},
         bm::Union{MillFunction, ArrayModel}=identity_model())
     BagModel(_make_array_model(im), a, _make_array_model(bm))
 end

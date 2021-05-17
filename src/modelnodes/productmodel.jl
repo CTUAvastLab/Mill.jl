@@ -66,7 +66,7 @@ ProductModel … ↦ ArrayModel(identity)
   ├── a: ArrayModel(Dense(2, 2))
   └── b: ArrayModel(identity)
 
-julia> ProductModel((identity_model(), BagModel(ArrayModel(Dense(2, 2)), mean_aggregation(2), identity)))
+julia> ProductModel((identity_model(), BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
 ProductModel … ↦ ArrayModel(identity)
   ├── ArrayModel(identity)
   └── BagModel … ↦ ⟨SegmentedMean(2)⟩ ↦ ArrayModel(identity)

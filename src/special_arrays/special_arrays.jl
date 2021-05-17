@@ -87,7 +87,7 @@ function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix
             print(io, join(size(X), "×"), " ", nameof(T))
         end
     else
-        _show(io, X)
+        _show_fields(io, X)
     end
 end
 

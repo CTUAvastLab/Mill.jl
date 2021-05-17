@@ -255,7 +255,7 @@ end
 function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
     print(io, nameof(typeof(n)))
     if !get(io, :compact, false)
-        _show_data(io, n)
+        _show_data(IOContext(io, :compact => true), n)
         print(io, " with ", nobs(n), " obs")
     end
 end

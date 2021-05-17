@@ -20,24 +20,33 @@ mention flattening
 
 # Examples
 ```jldoctest
-julia> a = mean_aggregation(5)
+julia> a = AggregationStack(SegmentedMean(2), SegmentedMax(2))
 Aggregation{Float32}:
- SegmentedMean(ψ = Float32[0.0, 0.0, 0.0, 0.0, 0.0])
+ SegmentedMean(ψ = Float32[0.0, 0.0])
+ SegmentedMax(ψ = Float32[0.0, 0.0])
 
-julia> a = SegmentedMean(Int64, 4)
-Aggregation{Int64}:
- SegmentedMean(ψ = [0, 0, 0, 0])
- SegmentedMax(ψ = [0, 0, 0, 0])
+julia> a(Float32[0 1 2; 3 4 5], bags([1:1, 2:3]))
+4×2 Matrix{Float32}:
+ 0.0  1.5
+ 3.0  4.5
+ 0.0  2.0
+ 3.0  5.0
 
-julia> Aggregation(SegmentedMean(4), Aggregation(SegmentedMax(4)))
+julia> a = AggregationStack(SegmentedMean(2), AggregationStack(SegmentedMax(2)))
 Aggregation{Float32}:
+ SegmentedMean(ψ = Float32[0.0, 0.0])
+ SegmentedMax(ψ = Float32[0.0, 0.0])
+
+julia> a = SegmentedMeanMax(Float32, 2)
+AggregationStack{Float32}:
+ SegmentedMean(ψ = Float32[0.0, 0.0])
+ SegmentedMax(ψ = Float32[0.0, 0.0])
+
+julia> vcat(SegmentedMean(2), SegmentedMax(2))
+AggregationStack{Float32}:
  SegmentedMean(ψ = Float32[0.0, 0.0, 0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0, 0.0, 0.0])
 
-julia> mean_aggregation(2)(Float32[0 1 2; 3 4 5], bags([1:1, 2:3]))
-3×2 Matrix{Float32}:
- 0.0       1.5
- 3.0       4.5
 ```
 
 See also: [`AbstractAggregation`](@ref), [`SegmentedSum`](@ref), [`SegmentedMax`](@ref),
@@ -69,16 +78,16 @@ Flux.@forward AggregationStack.fs Base.getindex, Base.firstindex, Base.lastindex
 Base.length(a::AggregationStack) = sum(length.(a.fs))
 Base.size(a::AggregationStack) = tuple(sum(only, size.(a.fs)))
 
-function Base.show(io::IO, a::AggregationStack)
-    if get(io, :compact, false)
-        # TODO print the only length once implemented length checking
-        print(io, "AggregationStack(", join(length.(a.fs), ", "), ")")
-    else
-        print(io, "[" * join(repr.(a.fs; context=:compact => true), "; ") * "]")
-    end
-end
-
 function Base.show(io::IO, ::MIME"text/plain", a::AggregationStack{T}) where T
     print(io, "AggregationStack{$T}:\n")
     Base.print_array(io, a.fs |> collect)
+end
+
+function Base.show(io::IO, a::AggregationStack)
+    if get(io, :compact, false)
+        print(io, "AggregationStack")
+    else
+        s = join(repr.(a.fs; context=io), "; ")
+        print(io, "[", s, "]")
+    end
 end

@@ -1,5 +1,5 @@
 """
-    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=d -> meanmax_aggregation(d);
+    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=d -> SegmentedMeanMax(d);
         fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true)
 
 Build a `Mill.jl` model capable of processing `x`.
@@ -56,7 +56,7 @@ ProductModel … ↦ ArrayModel(Dense(20, 10))
         └── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
               └── ArrayModel(Dense(2, 10))
 
-julia> reflectinmodel(n, d -> Dense(d, 3), d -> mean_aggregation(d)) |> printtree
+julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d)) |> printtree
 ProductModel … ↦ ArrayModel(Dense(6, 3))
   ├── ProductModel … ↦ ArrayModel(identity)
   │     └── a: ArrayModel(Dense(2053, 3))
@@ -65,9 +65,9 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
         └── BagModel … ↦ ⟨SegmentedMean(3)⟩ ↦ ArrayModel(Dense(4, 3))
               └── ArrayModel(Dense(2, 3))
 
-julia> reflectinmodel(n, d -> Dense(d, 3), d -> mean_aggregation(d);
+julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d);
                         fsm=Dict("e" => d -> Chain(Dense(d, 2), Dense(2, 2))),
-                        fsa=Dict("c" => d -> lse_aggregation(d)),
+                        fsa=Dict("c" => d -> SegmentedLSE(d)),
                         single_key_identity=false,
                         single_scalar_identity=false) |> printtree
 ProductModel … ↦ ArrayModel(Dense(6, 3))
@@ -81,7 +81,7 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
 
 See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`ArrayNode`](@ref).
 """
-function reflectinmodel(x, fm=d -> Dense(d, 10), fa=d -> meanmax_aggregation(d); fsm=Dict(), fsa=Dict(),
+function reflectinmodel(x, fm=d -> Dense(d, 10), fa=d -> SegmentedMeanMax(d); fsm=Dict(), fsa=Dict(),
                single_key_identity=true, single_scalar_identity=true)
     _reflectinmodel(x, fm, fa, fsm, fsa, "", single_key_identity, single_scalar_identity)[1]
 end

@@ -58,8 +58,15 @@ function (bc::BagCount{<: AbstractAggregation{T}})(x::Union{AbstractArray, Missi
     vcat(o1, o2)
 end
 
-function Base.show(io::IO, m::MIME"text/plain", @nospecialize(bc::BagCount{<:AggregationStack}))
-    print(io, "BagCount(", repr(m, bc.a), "\n)")
+function Base.show(io::IO, m::MIME"text/plain", @nospecialize(bc::BagCount{T})) where T
+    print(io, "BagCount(", repr(m, bc.a))
+    print(io, T <: AggregationStack ? "\n)" : ")")
 end
-Base.show(io::IO, @nospecialize(bc::BagCount)) = print(io, "BagCount(", bc.a, ")")
+
+function Base.show(io::IO, @nospecialize(bc::BagCount))
+    print(io, "BagCount")
+    if !get(io, :compact, false)
+        print(io, "(", bc.a, ")")
+    end
+end
 

@@ -37,12 +37,13 @@ include("segmented_lse.jl")
 # include("transformer.jl")
 
 function Base.show(io::IO, a::T) where T <: AbstractAggregation
-    if get(io, :compact, false)
-        print(io, nameof(T), "(", length(a), ")")
-    else
-        _show(io, a)
+    print(io, nameof(T))
+    if !get(io, :compact, false)
+        print(io, "(", length(a), ")")
     end
 end
+
+Base.show(io::IO, ::MIME"text/plain", a::AbstractAggregation) = _show_fields(io, a)
 
 include("aggregation_stack.jl")
 
@@ -75,8 +76,8 @@ for p in filter(p -> length(p) > 1, collect(powerset(collect(1:length(names)))))
             AggregationStack{Float32}:
             $(join(" Segmented" .* names[p] .* "(ψ = Float32[0.0, 0.0, 0.0, 0.0])", "\n"))
 
-            julia> $(s)(Int64, 2)
-            AggregationStack{Int64}:
+            julia> $(s)(Float16, 2)
+            AggregationStack{Float16}:
             $(join(" Segmented" .* names[p] .* "(ψ = [0, 0])", "\n"))
             ```
             """ : ""

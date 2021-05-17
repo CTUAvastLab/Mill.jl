@@ -20,7 +20,7 @@ julia> Random.seed!(0);
 julia> n = LazyNode{:Sentence}(["foo bar", "baz"])
 LazyNode{Sentence} with 2 obs
 
-julia> m = LazyModel{:Sentence}(BagModel(Dense(2053, 3), mean_aggregation(3), identity))
+julia> m = LazyModel{:Sentence}(BagModel(Dense(2053, 3), SegmentedMean(3), identity))
 LazyModel{Sentence}
   └── BagModel … ↦ ⟨SegmentedMean(3)⟩ ↦ ArrayModel(identity)
         └── ArrayModel(Dense(2053, 3))
@@ -30,7 +30,6 @@ julia> m(n)
  -0.006524003  -0.02167379
   0.033673763   0.05508352
  -0.06166087    0.07056637
-  1.0986123     0.6931472
 ```
 
 See also: [`AbstractMillModel`](@ref), [`LazyNode`](@ref), [`Mill.unpack2mill`](@ref).

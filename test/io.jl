@@ -21,12 +21,12 @@
         BagNode with 2 obs
           └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
 
-    bnm = reflectinmodel(bn; fa = d -> SegmentedMean(d))
-    @test repr(bnm) == "BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))"
+    bnm = reflectinmodel(bn, d -> Dense(d, 10), d -> SegmentedMean(d))
+    @test repr(bnm) == "BagModel … ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))"
     @test repr(bnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), bnm) == 
         """
-        BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+        BagModel … ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))
           └── ArrayModel(Dense(2, 10))"""
 
     wbn = WeightedBagNode(an, bags([1:2, 3:5]), rand(5))
@@ -38,14 +38,14 @@
           └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
 
     wbnm = reflectinmodel(wbn)
-    @test repr(wbnm) == "BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))"
+    @test repr(wbnm) == "BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))"
     @test repr(wbnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), wbnm) == 
         """
-        BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+        BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))
           └── ArrayModel(Dense(2, 10))"""
 
-    pn = ProductNode((;bn, wbn))
+    pn = ProductNode((; bn, wbn))
     @test repr(pn) == "ProductNode with 2 obs"
     @test repr(pn; context=:compact => true) == "ProductNode"
     @test repr(MIME("text/plain"), pn) ==
@@ -56,15 +56,15 @@
           └── wbn: WeightedBagNode with 2 obs
                      └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
 
-    pnm = reflectinmodel(pn, fa = d -> SegmentedMax(d))
+    pnm = reflectinmodel(pn, d -> Dense(d, 10), d -> SegmentedMean(d) |> BagCount)
     @test repr(pnm) == "ProductModel … ↦ ArrayModel(Dense(20, 10))"
     @test repr(pnm; context=:compact => true) == "ProductModel"
     @test repr(MIME("text/plain"), pnm) ==
         """
         ProductModel … ↦ ArrayModel(Dense(20, 10))
-          ├─── bn: BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+          ├─── bn: BagModel … ↦ BagCount(SegmentedMean(10)) ↦ ArrayModel(Dense(11, 10))
           │          └── ArrayModel(Dense(2, 10))
-          └── wbn: BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+          └── wbn: BagModel … ↦ BagCount(SegmentedMean(10)) ↦ ArrayModel(Dense(11, 10))
                      └── ArrayModel(Dense(2, 10))"""
 
     ln = LazyNode{:Sentence}(["a", "b", "c", "d"])
@@ -78,56 +78,46 @@
     @test repr(MIME("text/plain"), lnm) == 
         """
         LazyModel{Sentence}
-          └── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+          └── BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))
                 └── ArrayModel(Dense(2053, 10))"""
 end
 
 @testset "aggregation io" begin
-    a = max_aggregation(3)
-    @test repr(a) == "⟨SegmentedMax(3)⟩"
-    @test repr(a; context=:compact => true) == "Aggregation(3)"
-    @test repr(MIME("text/plain"), a) ==
-        """
-        Aggregation{Float32}:
-         SegmentedMax(ψ = Float32[0.0, 0.0, 0.0])"""
+    a = SegmentedMax(3)
+    @test repr(a) == "SegmentedMax(3)"
+    @test repr(a; context=:compact => true) == "SegmentedMax"
+    @test repr(MIME("text/plain"), a) == "SegmentedMax(ψ = Float32[0.0, 0.0, 0.0])"
 
-    a = Aggregation(
+    a = AggregationStack(
                     SegmentedMean(2),
                     SegmentedMax(2),
-                    Aggregation(SegmentedPNorm(zeros(2) |> f32, ones(2) |> f32, -ones(2) |> f32)),
-                    Aggregation(SegmentedLSE(zeros(2) |> f32, ones(2) |> f32))
+                    AggregationStack(SegmentedPNorm(zeros(2) |> f32, ones(2) |> f32, -ones(2) |> f32)),
+                    AggregationStack(SegmentedLSE(zeros(2) |> f32, ones(2) |> f32))
                    )
-    @test repr(a) == "⟨SegmentedMean(2), SegmentedMax(2), SegmentedPNorm(2), SegmentedLSE(2)⟩"
-    @test repr(a; context=:compact => true) == "Aggregation(2, 2, 2, 2)"
+    @test repr(a) == "[SegmentedMean(2); SegmentedMax(2); SegmentedPNorm(2); SegmentedLSE(2)]"
+    @test repr(a; context=:compact => true) == "AggregationStack"
     @test repr(MIME("text/plain"), a) == 
         """
-        Aggregation{Float32}:
+        AggregationStack{Float32}:
          SegmentedMean(ψ = Float32[0.0, 0.0])
          SegmentedMax(ψ = Float32[0.0, 0.0])
          SegmentedPNorm(ψ = Float32[0.0, 0.0], ρ = Float32[1.0, 1.0], c = Float32[-1.0, -1.0])
          SegmentedLSE(ψ = Float32[0.0, 0.0], ρ = Float32[1.0, 1.0])"""
 
-    a = SegmentedMean(2)
-    @test repr(a) == "SegmentedMean(ψ = Float32[0.0, 0.0])"
-    @test repr(a; context=:compact => true) == "SegmentedMean(2)"
-    @test repr(a) == repr(MIME("text/plain"), a)
-end
+    bc = BagCount(SegmentedMean(3))
+    @test repr(bc) == "BagCount(SegmentedMean(3))"
+    @test repr(bc; context=:compact => true) == "BagCount"
+    @test repr(MIME("text/plain"), bc) == "BagCount(SegmentedMean(ψ = Float32[0.0, 0.0, 0.0]))"
 
-@testset "bag count io" begin
     bc = BagCount(SegmentedMeanMax(3))
-    @test repr(bc) == "BagCount(AggregationStack([SegmentedMean(3); SegmentedMax(3)]))"
-    @test repr(bc; context=:compact => true) == "BagCount([SegmentedMean(3); SegmentedMax(3)])"
+    @test repr(bc) == "BagCount([SegmentedMean(3); SegmentedMax(3)])"
+    @test repr(bc; context=:compact => true) == "BagCount"
     @test repr(MIME("text/plain"), bc) ==
         """
         BagCount(AggregationStack{Float32}:
          SegmentedMean(ψ = Float32[0.0, 0.0, 0.0])
          SegmentedMax(ψ = Float32[0.0, 0.0, 0.0])
         )"""
-
-    bc = BagCount(SegmentedMean(3))
-    @test repr(bc) == "BagCount(SegmentedMean(ψ = Float32[0.0, 0.0, 0.0]))"
-    @test repr(bc; context=:compact => true) == "BagCount(SegmentedMean(3))"
-    @test repr(MIME("text/plain"), bc) == repr(bc)
 end
 
 @testset "maybe hot vector io" begin
