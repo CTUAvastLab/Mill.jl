@@ -30,9 +30,10 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedMean})
     SegmentedMean(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedMean)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+function (a::SegmentedMean)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                                w::Optional{AbstractVecOrMat{T}}=nothing) where T
-    segmented_mean_forw(x, m.ψ, bags, w)
+    _check_agg(a, x)
+    segmented_mean_forw(x, a.ψ, bags, w)
 end
 
 segmented_mean_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))

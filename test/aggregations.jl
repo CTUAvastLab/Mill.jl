@@ -66,6 +66,14 @@ end
     @test all(isa.(getindex.(as, 2), SegmentedMax))
 end
 
+@testset "size checking" begin
+    b = bags([1:2])
+    for a in all_aggregations(Float64, 3).fs, x in [zeros(2, 2), zeros(4, 2)]
+        @test_throws DimensionMismatch a(x, b)
+        @test_throws DimensionMismatch BagCount(a)(x, b)
+    end
+end
+
 @testset "basic aggregation functionality" begin
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24] |> f32
     X = reshape(1:12, 2, 6) |> f32

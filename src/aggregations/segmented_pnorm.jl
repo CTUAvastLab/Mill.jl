@@ -40,13 +40,15 @@ p_map(ρ::AbstractArray) = p_map.(ρ)
 inv_p_map(p::T) where T = relu(p - one(T)) + log1p(-exp(-abs(p - one(T))))
 inv_p_map(ρ::AbstractArray) = inv_p_map.(ρ)
 
-function (m::SegmentedPNorm)(x::Missing, bags::AbstractBags,
+function (a::SegmentedPNorm)(x::Missing, bags::AbstractBags,
                                 w::Optional{AbstractVecOrMat}=nothing)
-    segmented_pnorm_forw(x, m.ψ, nothing, bags, w)
+    _check_agg(a, x)
+    segmented_pnorm_forw(x, a.ψ, nothing, bags, w)
 end
-function (m::SegmentedPNorm)(x::AbstractMatrix{T}, bags::AbstractBags,
+function (a::SegmentedPNorm)(x::AbstractMatrix{T}, bags::AbstractBags,
                                 w::Optional{AbstractVecOrMat{T}}=nothing) where T
-    segmented_pnorm_forw(x .- m.c, m.ψ, p_map(m.ρ), bags, w)
+    _check_agg(a, x)
+    segmented_pnorm_forw(x .- a.c, a.ψ, p_map(a.ρ), bags, w)
 end
 
 function _pnorm_precomp(x::AbstractMatrix, bags)

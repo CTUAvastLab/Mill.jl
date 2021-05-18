@@ -30,9 +30,10 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedSum})
     SegmentedSum(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedSum)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+function (a::SegmentedSum)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
-    segmented_sum_forw(x, m.ψ, bags, w)
+    _check_agg(a, x)
+    segmented_sum_forw(x, a.ψ, bags, w)
 end
 
 segmented_sum_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))

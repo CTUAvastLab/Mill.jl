@@ -29,6 +29,15 @@ _typemin(t::Type) = typemin(t)
 _typemin(::Type{Missing}) = missing
 _typemin(::Type{Maybe{T}}) where T = typemin(T)
 
+function _check_agg(a::AbstractAggregation, X::Missing) end
+function _check_agg(a::AbstractAggregation, X::AbstractMatrix)
+    if size(X, 1) != length(a.ψ)
+        DimensionMismatch(
+            "Different number of rows in input ($(size(X, 2))) and aggregation ($(length(a.ψ)))"
+        ) |> throw
+    end
+end
+
 include("segmented_sum.jl")
 include("segmented_mean.jl")
 include("segmented_max.jl")

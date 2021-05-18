@@ -36,9 +36,10 @@ end
 r_map(ρ) = @. softplus(ρ)
 inv_r_map(r) = @. relu(r) + log1p(-exp(-abs(r)))
 
-function (m::SegmentedLSE)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+function (a::SegmentedLSE)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
-    segmented_lse_forw(x, m.ψ, r_map(m.ρ), bags)
+    _check_agg(a, x)
+    segmented_lse_forw(x, a.ψ, r_map(a.ρ), bags)
 end
 
 function _lse_precomp(x::AbstractMatrix, r, bags)

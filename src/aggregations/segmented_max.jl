@@ -30,13 +30,10 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedMax})
     SegmentedMax(reduce(vcat, [a.ψ for a in as]))
 end
 
-function (m::SegmentedMax)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
+function (a::SegmentedMax)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
-    segmented_max_forw(x, m.ψ, bags)
-end
-function (m::SegmentedMax)(x::AbstractMatrix{T}, bags::AbstractBags,
-                              w::Optional{AbstractVecOrMat{T}}, mask::AbstractVector{U}) where {T, U}
-    segmented_max_forw(x .+ _typemin(promote_type(T, U)) * mask', m.ψ, bags)
+    _check_agg(a, x)
+    segmented_max_forw(x, a.ψ, bags)
 end
 
 segmented_max_forw(::Missing, ψ::AbstractVector, bags::AbstractBags) = repeat(ψ, 1, length(bags))
