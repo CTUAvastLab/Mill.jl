@@ -103,11 +103,11 @@ function _reflectinmodel(x::AbstractProductNode, fm, fa, fsm, fsa, s, ski, ssi)
     c = stringify(s)
     n = length(x.data)
     ks = keys(x.data)
-    ms, ds = zip([_reflectinmodel(x.data[k], fm, fa, fsm, fsa, s * encode(i, n), ski, ssi)
+    ms, d = zip([_reflectinmodel(x.data[k], fm, fa, fsm, fsa, s * encode(i, n), ski, ssi)
                   for (i, k) in enumerate(ks)]...) |> collect
     ms = _remap(x.data, ms)
     m = if haskey(fsm, c)
-        ArrayModel(fsm[c](sum(ds)))
+        ArrayModel(fsm[c](sum(d)))
     elseif ski && n == 1
         identity_model()
     else
