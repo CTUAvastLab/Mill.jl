@@ -208,7 +208,7 @@ ProductNode with 2 obs
 
 julia> m = reflectinmodel(n)
 ProductModel … ↦ ArrayModel(Dense(20, 10))
-  ├── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+  ├── BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))
   │     └── ArrayModel(Dense(2, 10))
   └── ArrayModel(Dense(2, 10))
 
@@ -243,7 +243,7 @@ ProductNode with 2 obs
 
 julia> m = reflectinmodel(n)
 ProductModel … ↦ ArrayModel(Dense(20, 10))
-  ├── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+  ├── BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))
   │     └── ArrayModel(Dense(2, 10))
   └── ArrayModel(Dense(2, 10))
 

@@ -1,5 +1,5 @@
 """
-    Aggregation{T, U <: Tuple{Vararg{AbstractAggregation{T}}}} <: AbstractAggregation{T}
+    AggregationStack{T, U <: Tuple{Vararg{AbstractAggregation{T}}}} <: AbstractAggregation{T}
 
 A container that implements a concatenation of one or more `AbstractAggregation`s.
 
@@ -10,7 +10,7 @@ further specified. It is also possible to call the constructor directly, see Exa
 
 Intended to be used as a functor:
 
-    (a::Aggregation)(x, bags[, w])
+    (a::AggregationStack)(x, bags[, w])
 
 where `x` is either `Missing`, `AbstractMatrix` or [`ArrayNode`](@ref),
 `bags` is [`AbstractBags`](@ref) structure and optionally `w` is an `AbstractVector` of weights.
@@ -21,7 +21,7 @@ mention flattening
 # Examples
 ```jldoctest
 julia> a = AggregationStack(SegmentedMean(2), SegmentedMax(2))
-Aggregation{Float32}:
+AggregationStack{Float32}:
  SegmentedMean(ψ = Float32[0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0])
 
@@ -33,7 +33,7 @@ julia> a(Float32[0 1 2; 3 4 5], bags([1:1, 2:3]))
  3.0  5.0
 
 julia> a = AggregationStack(SegmentedMean(2), AggregationStack(SegmentedMax(2)))
-Aggregation{Float32}:
+AggregationStack{Float32}:
  SegmentedMean(ψ = Float32[0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0])
 
@@ -44,8 +44,8 @@ AggregationStack{Float32}:
 
 julia> vcat(SegmentedMean(2), SegmentedMax(2))
 AggregationStack{Float32}:
- SegmentedMean(ψ = Float32[0.0, 0.0, 0.0, 0.0])
- SegmentedMax(ψ = Float32[0.0, 0.0, 0.0, 0.0])
+ SegmentedMean(ψ = Float32[0.0, 0.0])
+ SegmentedMax(ψ = Float32[0.0, 0.0])
 
 ```
 

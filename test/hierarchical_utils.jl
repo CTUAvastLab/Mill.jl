@@ -163,9 +163,9 @@ end
         """
         ProductModel … ↦ ArrayModel(Dense(20, 10)) [""]
           ├── ProductModel … ↦ ArrayModel(Dense(20, 10)) ["E"]
-          │     ├─── b: BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10)) ["I"]
+          │     ├─── b: BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10)) ["I"]
           │     │         └── ArrayModel(Dense(3, 10)) ["K"]
-          │     └── wb: BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10)) ["M"]
+          │     └── wb: BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10)) ["M"]
           │               └── ArrayModel(Dense(17, 10)) ["O"]
           └── ArrayModel(Dense(10, 10)) ["U"]
         """
@@ -173,7 +173,7 @@ end
 
 @testset "LazyNode" begin
 	ds = LazyNode{:Codons}(ss)
-	m = Mill.reflectinmodel(ds, d -> Dense(d,2), s -> meanmax_aggregation(s))
+	m = Mill.reflectinmodel(ds)
 	@test nchildren(ds) == 1
 	@test nleafs(ds) == 4
 
@@ -190,7 +190,7 @@ end
     @test buf_printtree(m, trav=true) ==
         """
         LazyModel{Codons} [""]
-          └── BagModel … ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5, 2)) ["U"]
-                └── ArrayModel(Dense(64, 2)) ["k"]
+          └── BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10)) ["U"]
+                └── ArrayModel(Dense(64, 10)) ["k"]
         """
 end

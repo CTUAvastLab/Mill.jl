@@ -7,26 +7,26 @@ on every instance, then performs elementwise segmented aggregation `a` and final
 model `bm` on the aggregated representation of every bag in the data node.
 
 # Examples
-```jldoctest; filter=r"-?[0-9]+\\.[0-9]+"
+```jldoctest; filter=r"-?[0-9]+\\.[0-9]+[\\.]*"
 julia> Random.seed!(0);
 
-julia> n = BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 1:2]))
+julia> n = BagNode(ArrayNode(randn(3, 2)), bags([0:-1, 1:2]))
 BagNode with 2 obs
-  └── ArrayNode(2×2 Array with Float64 elements) with 2 obs
+  └── ArrayNode(3×2 Array with Float64 elements) with 2 obs
 
-julia> m = BagModel(ArrayModel(Dense(2, 2)), SegmentedMeanMax(2), ArrayModel(Dense(5, 2)))
-BagModel … ↦ ⟨SegmentedMean(2), SegmentedMax(2)⟩ ↦ ArrayModel(Dense(5, 2))
-  └── ArrayModel(Dense(2, 2))
+julia> m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMeanMax(2), ArrayModel(Dense(4, 2)))
+BagModel … ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ ArrayModel(Dense(4, 2))
+  └── ArrayModel(Dense(3, 2))
 
 julia> m(n)
 2×2 ArrayNode{Matrix{Float64}, Nothing}:
- 0.0  -1.1958722
- 0.0   0.62269455
+ 0.0  -2.049...
+ 0.0  -0.906...
 
 julia> m.bm(m.a(m.im(n.data), n.bags))
 2×2 ArrayNode{Matrix{Float64}, Nothing}:
- 0.0  -1.1958722
- 0.0   0.62269455
+ 0.0  -2.049...
+ 0.0  -0.906...
 ```
 
 See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`AbstractBagNode`](@ref),
@@ -52,13 +52,13 @@ In that case, they are wrapped into an [`ArrayNode`](@ref).
 
 # Examples
 ```jldoctest
-julia> m = BagModel(ArrayModel(Dense(2, 3)), SegmentedMeanMax(2), ArrayModel(Dense(3, 2)))
-BagModel … ↦ ⟨SegmentedMeanMax(2)⟩ ↦ ArrayModel(Dense(3, 2))
-  └── ArrayModel(Dense(2, 3))
+julia> m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMeanMax(2), ArrayModel(Dense(4, 2)))
+BagModel … ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ ArrayModel(Dense(4, 2))
+  └── ArrayModel(Dense(3, 2))
 
-julia> m = BagModel(Dense(2, 3), BagCount(SegmentedMean(2)))
-BagModel … ↦ ⟨SegmentedMean(2)⟩ ↦ ArrayModel(identity)
-  └── ArrayModel(Dense(2, 3))
+julia> m = BagModel(Dense(4, 3), BagCount(SegmentedMean(3)))
+BagModel … ↦ BagCount(SegmentedMean(3)) ↦ ArrayModel(identity)
+  └── ArrayModel(Dense(4, 3))
 ```
 
 See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`BagCount`](@ref),
@@ -76,13 +76,13 @@ end
 
 function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
     im, o = HiddenLayerModel(m.im, x.data, k)
-    a = max_aggregation(k)
+    a = SegmentedMax(k)
     b = m.a(o, x.bags)
-    bm, o = HiddenLayerModel(m.bm, b, k+1)
+    bm, o = HiddenLayerModel(m.bm, b, k)
     BagModel(im, a, bm), o
 end
 
-function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<:AbstractMillNode,B,C}
+function mapactivations(hm::BagModel, x::BagNode{<:AbstractMillNode}, m::BagModel)
     hmi, mi = mapactivations(hm.im, x.data, m.im)
     ai = m.a(mi, x.bags)
     hai = hm.a(hmi, x.bags)
@@ -90,7 +90,7 @@ function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<:
     (ArrayNode(hbo.data + hai.data), bo)
 end
 
-function mapactivations(hm::BagModel, x::BagNode{M,B,C}, m::BagModel) where {M<:Missing,B,C}
+function mapactivations(hm::BagModel, x::BagNode{<:Missing}, m::BagModel)
     ai = m.a(missing, x.bags)
     hai = hm.a(missing, x.bags)
     hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)

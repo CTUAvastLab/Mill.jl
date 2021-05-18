@@ -31,6 +31,7 @@ end
     @test m isa ProductModel
     @test m.ms[:a] isa ArrayModel
     @test m.ms[:b] isa ArrayModel
+    @inferred m(x)
 
     x = ProductNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
@@ -62,7 +63,7 @@ end
     a = BagNode(BagNode(ArrayNode(randn(2,2)),[1:2]),[1:1])
     b = BagNode(missing,[0:-1])
     c = BagNode(a.data[1:0], [0:-1])
-    m = reflectinmodel(a, d -> Dense(d,2), d -> meanmax_aggregation(d))
+    m = reflectinmodel(a)
     abc = catobs(a, b, c)
     bca = catobs(b, c, a)
     ma = m(a).data
@@ -77,53 +78,63 @@ end
     @test mbca[:,1] ≈ mb
     @test mbca[:,2] ≈ mc
     @test mbca[:,3] ≈ ma
+    @inferred m(a)
+    @inferred m(b)
+    @inferred m(c)
 end
 
 @testset "reflectinmodel for missing" begin
-    f1 = x -> reflectinmodel(ArrayNode(x)).m
-    f2 = x -> reflectinmodel(ArrayNode(x),
-                             d->Flux.Chain(Dense(d, 10), Dense(10, 10))).m
+    f1 = x -> reflectinmodel(x)
+    f2 = x -> reflectinmodel(x, d -> Flux.Chain(Dense(d, 10), Dense(10, 10)))
 
-    x1 = maybehot(2, 1:3)
-    x2 = maybehot(missing, 1:3)
+    x1 = maybehot(2, 1:3) |> ArrayNode
+    x2 = maybehot(missing, 1:3) |> ArrayNode
+    @test f1(x1).m isa Flux.Dense
+    @test f1(x2).m isa PostImputingDense
+    @test f2(x1).m isa Flux.Chain
+    @test f2(x2).m[1] isa PostImputingDense
+    for f in [f1, f2], x in [x1, x2]
+        @inferred f(x)(x)
+    end
 
-    @test f1(x1) isa Flux.Dense
-    @test f1(x2) isa PostImputingDense
-    @test f2(x1) isa Flux.Chain
-    @test f2(x2)[1] isa PostImputingDense
+    x1 = maybehotbatch([1, 2, 3], 1:3) |> ArrayNode
+    x2 = maybehotbatch([1, 2, missing], 1:3) |> ArrayNode
+    x3 = maybehotbatch(fill(missing, 3), 1:3) |> ArrayNode
+    @test f1(x1).m isa Flux.Dense
+    @test f1(x2).m isa PostImputingDense
+    @test f1(x3).m isa PostImputingDense
+    @test f2(x1).m isa Flux.Chain
+    @test f2(x2).m[1] isa PostImputingDense
+    @test f2(x3).m[1] isa PostImputingDense
+    for f in [f1, f2], x in [x1, x2, x3]
+        @inferred f(x)(x)
+    end
 
-    x1 = maybehotbatch([1, 2, 3], 1:3)
-    x2 = maybehotbatch([1, 2, missing], 1:3)
-    x3 = maybehotbatch(fill(missing, 3), 1:3)
+    x1 = NGramMatrix(["a", "b", "c"]) |> ArrayNode
+    x2 = NGramMatrix(["a", missing, "c"]) |> ArrayNode
+    x3 = NGramMatrix(fill(missing, 3)) |> ArrayNode
+    @test f1(x1).m isa Flux.Dense
+    @test f1(x2).m isa PostImputingDense
+    @test f1(x3).m isa PostImputingDense
+    @test f2(x1).m isa Flux.Chain
+    @test f2(x2).m[1] isa PostImputingDense
+    @test f2(x3).m[1] isa PostImputingDense
+    for f in [f1, f2], x in [x1, x2, x3]
+        @inferred f(x)(x)
+    end
 
-    @test f1(x1) isa Flux.Dense
-    @test f1(x2) isa PostImputingDense
-    @test f1(x3) isa PostImputingDense
-    @test f2(x1) isa Flux.Chain
-    @test f2(x2)[1] isa PostImputingDense
-    @test f2(x3)[1] isa PostImputingDense
-
-    x1 = NGramMatrix(["a", "b", "c"])
-    x2 = NGramMatrix(["a", missing, "c"])
-    x3 = NGramMatrix(fill(missing, 3))
-
-    @test f1(x1) isa Flux.Dense
-    @test f1(x2) isa PostImputingDense
-    @test f1(x3) isa PostImputingDense
-    @test f2(x1) isa Flux.Chain
-    @test f2(x2)[1] isa PostImputingDense
-    @test f2(x3)[1] isa PostImputingDense
-
-    x1 = rand([1, 2], 3, 3)
-    x2 = rand([1, 2, missing], 3, 3)
-    x3 = fill(missing, 3, 3)
-
-    @test f1(x1) isa Flux.Dense
-    @test f1(x2) isa PreImputingDense
-    @test f1(x3) isa PreImputingDense
-    @test f2(x1) isa Flux.Chain
-    @test f2(x2)[1] isa PreImputingDense
-    @test f2(x3)[1] isa PreImputingDense
+    x1 = rand([1, 2], 3, 3) |> ArrayNode
+    x2 = rand([1, 2, missing], 3, 3) |> ArrayNode
+    x3 = fill(missing, 3, 3) |> ArrayNode
+    @test f1(x1).m isa Flux.Dense
+    @test f1(x2).m isa PreImputingDense
+    @test f1(x3).m isa PreImputingDense
+    @test f2(x1).m isa Flux.Chain
+    @test f2(x2).m[1] isa PreImputingDense
+    @test f2(x3).m[1] isa PreImputingDense
+    for f in [f1, f2], x in [x1, x2, x3]
+        @inferred f(x)(x)
+    end
 end
 
 # pn.m should be identity for any product node pn with a single key
@@ -227,64 +238,31 @@ end
     @inferred m3(x3)
 end
 
-# Defining this is a bad idea - in Flux all models do not implement hash
-# and == requires hash
-# it may break AD
-# @testset "testing equals and hash" begin
-#     @eval layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-#     @eval x1 = ArrayNode(randn(Float32, 3, 4)) 
-#     @eval x2 = ArrayNode(randn(Float32, 4, 4)) 
-#     @eval x3 = BagNode(x1, [1:2, 3:4])
-#     @eval x4 = BagNode(x2, [1:1, 2:4])
-#     @eval x5 = ProductNode((x3, x4))
-
-#     var(i, pref, suf="") = Symbol(pref * string(i) * suf)
-
-#     for i in 1:5
-#         @eval $(var(i, "m")) = reflectinmodel($(var(i, "x")), layerbuilder)
-#         @eval $(var(i, "m", "c")) = deepcopy($(var(i, "m")))
-#     end
-
-#     for i in 1:5, j in 1:5
-#         @show i,j
-#         res1 = i == j
-#         res2 = @eval $(var(i, "m")) == $(var(j, "m", "c"))
-#         @test res1 == res2
-#     end
-
-#     for i in 1:5, j in 1:5
-#         res1 = i == j
-#         res2 = @eval hash($(var(i, "m"))) == hash($(var(j, "m", "c")))
-#         @test res1 == res2
-#     end
-# end
-
 @testset "model aggregation grad check w.r.t. inputs" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
-        abuilder(d) = all_aggregations(Float64, d)
+        abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
 
-        ds = x -> ArrayNode(x)
-        m = reflectinmodel(ds(x), layerbuilder, abuilder)
-        @test gradtest(x -> m(ds(x)).data, x)
+        for ds in [x -> ArrayNode(x),
+                   x -> BagNode(ArrayNode(x), bags1)]
+            m = reflectinmodel(ds(x), layerbuilder, abuilder)
+            @inferred m(ds(x))
+            @test gradtest(x -> m(ds(x)).data, x)
+        end
 
-        ds = x -> BagNode(ArrayNode(x), bags1)
-        m = reflectinmodel(ds(x), layerbuilder, abuilder)
-        @test gradtest(x -> m(ds(x)).data, x)
-
-        ds = (x, y) -> ProductNode((ArrayNode(x), ArrayNode(y)))
-        m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
-        @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
-
-        ds = (x, y) -> ProductNode((BagNode(ArrayNode(x), bags1), BagNode(ArrayNode(y), bags2))) 
-        m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
-        @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
+        for ds in [(x, y) -> ProductNode((ArrayNode(x), ArrayNode(y))),
+                   (x, y) -> ProductNode((a=BagNode(ArrayNode(x), bags1), b=BagNode(ArrayNode(y), bags2)))]
+            m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
+            @inferred m(ds(x, y))
+            @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
+        end
 
         ds = z -> BagNode(BagNode(ArrayNode(z), bags3), bags1)
         m = reflectinmodel(ds(z), layerbuilder, abuilder)
+        @inferred m(ds(z))
         @test gradtest(z -> m(ds(z)).data, z)
     end
 end
@@ -292,7 +270,7 @@ end
 @testset "model aggregation grad check w.r.t. inputs weighted" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
-        abuilder(d) = all_aggregations(Float64, d)
+        abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -302,15 +280,18 @@ end
 
         ds = x -> WeightedBagNode(ArrayNode(x), bags1, w1)
         m = reflectinmodel(ds(x), layerbuilder, abuilder)
+        @inferred m(ds(x))
         @test gradtest(x -> m(ds(x)).data, x)
 
         ds = (x, y) -> ProductNode((WeightedBagNode(ArrayNode(x), bags1, w1),
                                     WeightedBagNode(ArrayNode(y), bags2, w2))) 
         m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
+        @inferred m(ds(x, y))
         @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
 
         ds = z -> WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
         m = reflectinmodel(ds(z), layerbuilder, abuilder)
+        @inferred m(ds(z))
         @test gradtest(z -> m(ds(z)).data, z)
     end
 end
@@ -318,7 +299,7 @@ end
 @testset "model aggregation grad check w.r.t. params" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
-        abuilder(d) = all_aggregations(Float64, d)
+        abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -327,10 +308,11 @@ end
                    ArrayNode(x),
                    BagNode(ArrayNode(x), bags1),
                    ProductNode((ArrayNode(x), ArrayNode(y))),
-                   ProductNode((BagNode(ArrayNode(y), bags1), BagNode(ArrayNode(x), bags2))),
+                   ProductNode((a=BagNode(ArrayNode(y), bags1), b=BagNode(ArrayNode(x), bags2))),
                    BagNode(BagNode(ArrayNode(z), bags3), bags1)
                   ]
             m = reflectinmodel(ds, layerbuilder, abuilder)
+            @inferred m(ds)
             @test gradtest(() -> m(ds).data, Flux.params(m))
         end
     end
@@ -339,7 +321,7 @@ end
 @testset "model aggregation grad check w.r.t. params weighted" begin
     for (bags1, bags2, bags3) in BAGS3
         layerbuilder(k) = Dense(k, 2) |> f64
-        abuilder(d) = all_aggregations(Float64, d)
+        abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -354,19 +336,8 @@ end
                    WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
                   ]
             m = reflectinmodel(ds, layerbuilder, abuilder)
+            @inferred m(ds)
             @test gradtest(() -> m(ds).data, Flux.params(m))
         end
     end
-end
-
-@testset "A gradient of ProductNode with a NamedTuple " begin
-    ds = ProductNode((
-                     a = ArrayNode(randn(2, 4)),
-                     b = ArrayNode(randn(3, 4))
-                    ))
-    m = ProductModel((
-                      a = ArrayModel(Dense(2, 2, rand(ACTIVATIONS))),
-                      b = ArrayModel(Dense(3, 1, rand(ACTIVATIONS)))
-                     ), Dense(3, 2, rand(ACTIVATIONS))) |> f64
-    @test gradtest(() -> m(ds).data, Flux.params(m))
 end

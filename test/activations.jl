@@ -15,19 +15,19 @@ end
     x = BagNode(ArrayNode(randn(2, 4)), [1:2,3:4])
     m = BagModel(
         ArrayModel(Chain(Dense(2,2,leakyrelu), Dense(2,2))),
-        meanmax_aggregation(2),
-        ArrayModel(Chain(Dense(5,2,leakyrelu), Dense(2,2))))
+        SegmentedMeanMax(2),
+        ArrayModel(Chain(Dense(4,2,leakyrelu), Dense(2,2))))
 
     hm, o = HiddenLayerModel(m, x, 3)
     hx, mx = mapactivations(hm, x, m)
 
-    @test size(hx.data) == (4,2)
+    @test size(hx.data) == (3, 2)
     @test mx.data ≈ m(x).data
 
 
     x = BagNode(missing, [0:-1, 0:-1])
     hx, mx = mapactivations(hm, x, m)
-    @test size(hx.data) == (4,2)
+    @test size(hx.data) == (3, 2)
     @test mx.data ≈ m(x).data
 end
 

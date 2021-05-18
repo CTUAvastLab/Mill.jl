@@ -13,6 +13,6 @@
     @test reduce(catobs, [LazyNode{:Sentence}(ss)[i] for i in [1,2,3,4]]).data == ss
 
     ds = LazyNode{:Sentence}(ss)
-    m = Mill.reflectinmodel(ds, d -> Dense(d,2), s -> meanmax_aggregation(s))
+    m = Mill.reflectinmodel(ds)
     @test m(ds).data ≈ m.m(Mill.unpack2mill(ds)).data
 end

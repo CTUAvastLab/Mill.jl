@@ -54,6 +54,7 @@ Flux.@functor BagCount
 function (bc::BagCount{<: AbstractAggregation{T}})(x::Union{AbstractArray, Missing},
                                                  bags::AbstractBags, args...) where T
     o1 = bc.a(x, bags, args...)
+    #TODO rewrite with ChainRules non_differentiable
     o2 = Zygote.@ignore permutedims(log.(one(T) .+ length.(bags)))
     vcat(o1, o2)
 end

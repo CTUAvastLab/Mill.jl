@@ -8,20 +8,19 @@ using Mill: p_map, inv_p_map, r_map, inv_r_map, _bagnorm
 using Mill: Maybe
 using Mill: gradtest, gradf
 
-using ChainRulesCore: NotImplementedException
-
 using Base.Iterators: partition, product
 using Base: CodeUnits
-
+using ChainRulesCore
+using ChainRulesCore: NotImplementedException
+using Combinatorics
+using DataFrames
 using Documenter
 using Flux
 using Flux: onehot, onehotbatch
-using Random
-using Combinatorics
-using SparseArrays
-using PooledArrays
-using DataFrames
 using HierarchicalUtils
+using PooledArrays
+using Random
+using SparseArrays
 
 using BenchmarkTools: @btime
 
@@ -94,5 +93,7 @@ end
 
 for test_f in readdir(".")
     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
-    include(test_f)
+    @testset verbose = true "$test_f" begin
+        include(test_f)
+    end
 end

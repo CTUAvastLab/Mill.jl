@@ -76,9 +76,9 @@ for p in filter(p -> length(p) > 1, collect(powerset(collect(1:length(names)))))
             AggregationStack{Float32}:
             $(join(" Segmented" .* names[p] .* "(ψ = Float32[0.0, 0.0, 0.0, 0.0])", "\n"))
 
-            julia> $(s)(Float16, 2)
-            AggregationStack{Float16}:
-            $(join(" Segmented" .* names[p] .* "(ψ = [0, 0])", "\n"))
+            julia> $(s)(Float64, 2)
+            AggregationStack{Float64}:
+            $(join(" Segmented" .* names[p] .* "(ψ = [0.0, 0.0])", "\n"))
             ```
             """ : ""
         ))

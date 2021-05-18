@@ -5,21 +5,21 @@ A model node for processing [`ArrayNode`](@ref)s. It applies a (sub)model `m` st
 the [`ArrayNode`](@ref).
 
 # Examples
-```jldoctest; filter=r"-?[0-9]+\\.[0-9]+"
+```jldoctest; filter=r"-?[0-9]+\\.[0-9]+[\\.]*"
 julia> Random.seed!(0);
 
 julia> n = ArrayNode(randn(Float32, 2, 2))
 2×2 ArrayNode{Matrix{Float32}, Nothing}:
- 0.6791074  -0.3530074
- 0.8284135  -0.13485387
+ 0.679...  -0.353...
+ 0.828...  -0.135...
 
 julia> m = ArrayModel(Dense(2, 2))
 ArrayModel(Dense(2, 2))
 
 julia> m(n)
 2×2 ArrayNode{Matrix{Float32}, Nothing}:
- 0.660979    -0.18795347
- 0.10059327   0.27500954
+ 0.661...  -0.188...
+ 0.101...   0.275...
 ```
 
 See also: [`AbstractMillModel`](@ref), [`IdentityModel`](@ref), [`identity_model`](@ref), [`ArrayNode`](@ref).

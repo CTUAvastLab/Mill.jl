@@ -5,7 +5,7 @@ A model node for processing [`ProductNode`](@ref)s. For each subtree of the data
 (sub)model from `ms` and then applies `m` on the concatenation of results.
 
 # Examples
-```jldoctest; filter=r"-?[0-9]+\\.[0-9]+"
+```jldoctest; filter=r"-?[0-9]+\\.[0-9]+[\\.]*"
 julia> Random.seed!(0);
 
 julia> n = ProductNode((a=ArrayNode([0 1; 2 3]), b=ArrayNode([4 5; 6 7])))
@@ -20,10 +20,10 @@ ProductModel … ↦ ArrayModel(identity)
 
 julia> m1(n)
 4×2 ArrayNode{Matrix{Float32}, Nothing}:
- -1.2838157  -1.25368
-  1.8022565   3.7105856
- -4.036125   -5.012517
-  0.5873234   0.37193537
+ -1.284...  -1.254...
+  1.802...   3.711...
+ -4.036...  -5.013...
+  0.587...   0.372...
 
 julia> m2 = ProductModel((a=identity, b=identity))
 ProductModel … ↦ ArrayModel(identity)
@@ -69,7 +69,7 @@ ProductModel … ↦ ArrayModel(identity)
 julia> ProductModel((identity_model(), BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
 ProductModel … ↦ ArrayModel(identity)
   ├── ArrayModel(identity)
-  └── BagModel … ↦ ⟨SegmentedMean(2)⟩ ↦ ArrayModel(identity)
+  └── BagModel … ↦ SegmentedMean(2) ↦ ArrayModel(identity)
         └── ArrayModel(Dense(2, 2))
 
 julia> ProductModel(identity)
@@ -90,13 +90,10 @@ Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 
 function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
-    xx = ArrayNode(vcat([m.ms[i](x.data[i]) |> data for i in 1:length(m.ms)]...))
-    m.m(xx)
+    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
 end
-
 function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-    xx = ArrayNode(vcat([m.ms[k](x.data[k]) |> data for k in keys(m.ms)]...))
-    m.m(xx)
+    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
 end
 
 function HiddenLayerModel(m::ProductModel, x::ProductNode, k::Int)
@@ -112,7 +109,7 @@ end
 function mapactivations(hm::ProductModel, x::ProductNode, m::ProductModel)
     ks = keys(m.ms)
     _xxs = [mapactivations(hm.ms[i], x.data[i], m.ms[i]) for i in keys(m.ms)]
-    hxs = foldl( +, [_xxs[i][1].data for i in 1:length(ks)])
+    hxs = foldl(+, [_xxs[i][1].data for i in 1:length(ks)])
     xxs = reduce(vcat, [_xxs[i][2] for i in 1:length(ks)])
 
     ho, o = mapactivations(hm.m, xxs, m.m)

@@ -53,7 +53,7 @@ ProductModel … ↦ ArrayModel(Dense(20, 10))
   │     └── a: ArrayModel(Dense(2053, 10))
   └── ProductModel … ↦ ArrayModel(Dense(11, 10))
         ├── ArrayModel(identity)
-        └── BagModel … ↦ ⟨SegmentedMean(10), SegmentedMax(10)⟩ ↦ ArrayModel(Dense(21, 10))
+        └── BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))
               └── ArrayModel(Dense(2, 10))
 
 julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d)) |> printtree
@@ -62,7 +62,7 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
   │     └── a: ArrayModel(Dense(2053, 3))
   └── ProductModel … ↦ ArrayModel(Dense(4, 3))
         ├── ArrayModel(identity)
-        └── BagModel … ↦ ⟨SegmentedMean(3)⟩ ↦ ArrayModel(Dense(4, 3))
+        └── BagModel … ↦ SegmentedMean(3) ↦ ArrayModel(Dense(3, 3))
               └── ArrayModel(Dense(2, 3))
 
 julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d);
@@ -75,7 +75,7 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
   │     └── a: ArrayModel(Dense(2053, 3))
   └── ProductModel … ↦ ArrayModel(Dense(6, 3))
         ├── ArrayModel(Dense(1, 3))
-        └── BagModel … ↦ ⟨SegmentedLSE(2)⟩ ↦ ArrayModel(Dense(3, 3))
+        └── BagModel … ↦ SegmentedLSE(2) ↦ ArrayModel(Dense(2, 3))
               └── ArrayModel(Chain(Dense(2, 2), Dense(2, 2)))
 ```
 
