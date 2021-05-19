@@ -1,5 +1,5 @@
 """
-    SegmentedLSE{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+    SegmentedLSE{V <: AbstractVector{<:AbstractFloat}} <: AbstractAggregation
 
 [`AbstractAggregation`](@ref) implementing segmented log-sum-exp (LSE) aggregation:
 
@@ -13,15 +13,14 @@ and a vector of parameters `r` used during computation.
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`lse_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref).
 """
-struct SegmentedLSE{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedLSE{V <: AbstractVector{<:AbstractFloat}} <: AbstractAggregation
     ψ::V
     ρ::V
 end
 
 Flux.@functor SegmentedLSE
 
-SegmentedLSE{T}(d::Int) where T = SegmentedLSE(zeros(T, d), randn(T, d))
-SegmentedLSE(T::Type, d::Int) = SegmentedLSE{T}(d)
+SegmentedLSE(T::Type, d::Int) = SegmentedLSE(zeros(T, d), randn(T, d))
 SegmentedLSE(d::Int) = SegmentedLSE(Float32, d)
 
 Flux.@forward SegmentedLSE.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,

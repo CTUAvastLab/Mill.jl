@@ -1,5 +1,5 @@
 """
-    SegmentedMean{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+    SegmentedMean{V <: AbstractVector{<:Number}}} <: AbstractAggregation
 
 [`AbstractAggregation`](@ref) implementing segmented mean aggregation:
 
@@ -12,14 +12,13 @@ Stores a vector of parameters `ψ` that are filled into the resulting matrix in 
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`mean_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedMean{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedMean{V <: AbstractVector{<:Number}} <: AbstractAggregation
     ψ::V
 end
 
 Flux.@functor SegmentedMean
 
-SegmentedMean{T}(d::Int) where T = SegmentedMean(zeros(T, d))
-SegmentedMean(T::Type, d::Int) = SegmentedMean{T}(d)
+SegmentedMean(T::Type, d::Int) = SegmentedMean(zeros(T, d))
 SegmentedMean(d::Int) = SegmentedMean(Float32, d)
 
 Flux.@forward SegmentedMean.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,

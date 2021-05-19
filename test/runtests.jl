@@ -84,12 +84,12 @@ param_aggregations(t::Type, d) = vcat(
 
 all_aggregations(t::Type, d) = vcat(nonparam_aggregations(t, d), param_aggregations(t, d))
 
-@testset "Doctests" begin
-    DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
-        using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
-    end; recursive=true)
-    doctest(Mill)
-end
+# @testset "Doctests" begin
+#     DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
+#         using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
+#     end; recursive=true)
+#     doctest(Mill)
+# end
 
 for test_f in readdir(".")
     (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue

@@ -1,5 +1,5 @@
 """
-    AggregationStack{T, U <: Tuple{Vararg{AbstractAggregation{T}}}} <: AbstractAggregation{T}
+    AggregationStack{T <: Tuple{Vararg{AbstractAggregation}}} <: AbstractAggregation
 
 A container that implements a concatenation of one or more `AbstractAggregation`s.
 
@@ -21,7 +21,7 @@ mention flattening
 # Examples
 ```jldoctest
 julia> a = AggregationStack(SegmentedMean(2), SegmentedMax(2))
-AggregationStack{Float32}:
+AggregationStack:
  SegmentedMean(ψ = Float32[0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0])
 
@@ -33,17 +33,17 @@ julia> a(Float32[0 1 2; 3 4 5], bags([1:1, 2:3]))
  3.0  5.0
 
 julia> a = AggregationStack(SegmentedMean(2), AggregationStack(SegmentedMax(2)))
-AggregationStack{Float32}:
+AggregationStack:
  SegmentedMean(ψ = Float32[0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0])
 
 julia> a = SegmentedMeanMax(Float32, 2)
-AggregationStack{Float32}:
+AggregationStack:
  SegmentedMean(ψ = Float32[0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0])
 
 julia> vcat(SegmentedMean(2), SegmentedMax(2))
-AggregationStack{Float32}:
+AggregationStack:
  SegmentedMean(ψ = Float32[0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0])
 
@@ -52,11 +52,11 @@ AggregationStack{Float32}:
 See also: [`AbstractAggregation`](@ref), [`SegmentedSum`](@ref), [`SegmentedMax`](@ref),
     [`SegmentedMean`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct AggregationStack{T, U <: Tuple{Vararg{AbstractAggregation{T}}}} <: AbstractAggregation{T}
-    fs::U
-    function AggregationStack(fs::Tuple{Vararg{AbstractAggregation{T}}}) where T
+struct AggregationStack{T <: Tuple{Vararg{AbstractAggregation}}} <: AbstractAggregation
+    fs::T
+    function AggregationStack(fs::Tuple{Vararg{AbstractAggregation}})
         ffs = _flatten_agg(fs)
-        new{T, typeof(ffs)}(ffs)
+        new{typeof(ffs)}(ffs)
     end
 end
 
@@ -64,7 +64,7 @@ _flatten_agg(t) = tuple(vcat(map(_flatten_agg, t)...)...)
 _flatten_agg(a::AggregationStack) = vcat(map(_flatten_agg, a.fs)...)
 _flatten_agg(a::AbstractAggregation) = [a]
 
-AggregationStack(fs::AbstractAggregation{T}...) where T = AggregationStack(fs)
+AggregationStack(fs::AbstractAggregation...) = AggregationStack(fs)
 
 Flux.@functor AggregationStack
 
@@ -78,8 +78,8 @@ Flux.@forward AggregationStack.fs Base.getindex, Base.firstindex, Base.lastindex
 Base.length(a::AggregationStack) = sum(length.(a.fs))
 Base.size(a::AggregationStack) = tuple(sum(only, size.(a.fs)))
 
-function Base.show(io::IO, ::MIME"text/plain", a::AggregationStack{T}) where T
-    print(io, "AggregationStack{$T}:\n")
+function Base.show(io::IO, ::MIME"text/plain", a::AggregationStack)
+    print(io, "AggregationStack:\n")
     Base.print_array(io, a.fs |> collect)
 end
 

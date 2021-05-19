@@ -1,5 +1,5 @@
 """
-    SegmentedMax{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+    SegmentedMax{V <: AbstractVector{<:Number}} <: AbstractAggregation
 
 [`AbstractAggregation`](@ref) implementing segmented max aggregation:
 
@@ -12,14 +12,13 @@ Stores a vector of parameters `ψ` that are filled into the resulting matrix in 
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`max_aggregation`](@ref),
     [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedMax{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedMax{V <: AbstractVector{<:Number}} <: AbstractAggregation
     ψ::V
 end
 
 Flux.@functor SegmentedMax
 
-SegmentedMax{T}(d::Int) where T = SegmentedMax(zeros(T, d))
-SegmentedMax(T::Type, d::Int) = SegmentedMax{T}(d)
+SegmentedMax(T::Type, d::Int) = SegmentedMax(zeros(T, d))
 SegmentedMax(d::Int) = SegmentedMax(Float32, d)
 
 Flux.@forward SegmentedMax.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,

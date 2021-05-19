@@ -231,7 +231,7 @@ function countngrams(x::AbstractVector{<:Sequence}, n, b, m)
 end
 
 """
-    NGramMatrix{T, U} <: AbstractMatrix{U}
+    NGramMatrix{T, U, V} <: AbstractMatrix{U}
 
 A matrix-like structure for lazily representing sequences like strings as ngrams of
 cardinality `n` using `b` as a base for calculations and `m` as the modulo. Therefore, the matrix

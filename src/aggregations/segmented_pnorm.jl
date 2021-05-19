@@ -1,5 +1,5 @@
 """
-    SegmentedPNorm{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+    SegmentedPNorm{V <: AbstractVector{<:AbstractFloat}} <: AbstractAggregation
 
 [`AbstractAggregation`](@ref) implementing segmented p-norm aggregation:
 
@@ -13,7 +13,7 @@ and vectors of parameters `p` and `c` used during computation.
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`pnorm_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedSum`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedPNorm{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedPNorm{V <: AbstractVector{<:AbstractFloat}} <: AbstractAggregation
     ψ::V
     ρ::V
     c::V
@@ -21,8 +21,7 @@ end
 
 Flux.@functor SegmentedPNorm
 
-SegmentedPNorm{T}(d::Int) where T = SegmentedPNorm(zeros(T, d), randn(T, d), randn(T, d))
-SegmentedPNorm(T::Type, d::Int) = SegmentedPNorm{T}(d)
+SegmentedPNorm(T::Type, d::Int) = SegmentedPNorm(zeros(T, d), randn(T, d), randn(T, d))
 SegmentedPNorm(d::Int) = SegmentedPNorm(Float32, d)
 
 Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,

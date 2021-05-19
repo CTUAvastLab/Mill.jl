@@ -1,5 +1,5 @@
 """
-    SegmentedSum{T, V <: AbstractVector{T}} <: AbstractAggregation{T}
+    SegmentedSum{V <: AbstractVector{<:Number}} <: AbstractAggregation
 
 [`AbstractAggregation`](@ref) implementing segmented sum aggregation:
 
@@ -12,14 +12,13 @@ Stores a vector of parameters `ψ` that are filled into the resulting matrix in 
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`sum_aggregation`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct SegmentedSum{T <: AbstractFloat, V <: AbstractVector{T}} <: AbstractAggregation{T}
+struct SegmentedSum{V <: AbstractVector{<:Number}} <: AbstractAggregation
     ψ::V
 end
 
 Flux.@functor SegmentedSum
 
-SegmentedSum{T}(d::Int) where T = SegmentedSum(zeros(T, d))
-SegmentedSum(T::Type, d::Int) = SegmentedSum{T}(d)
+SegmentedSum(T::Type, d::Int) = SegmentedSum(zeros(T, d))
 SegmentedSum(d::Int) = SegmentedSum(Float32, d)
 
 Flux.@forward SegmentedSum.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,

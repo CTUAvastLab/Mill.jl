@@ -98,7 +98,7 @@ end
     @test repr(a; context=:compact => true) == "AggregationStack"
     @test repr(MIME("text/plain"), a) == 
         """
-        AggregationStack{Float32}:
+        AggregationStack:
          SegmentedMean(ψ = Float32[0.0, 0.0])
          SegmentedMax(ψ = Float32[0.0, 0.0])
          SegmentedPNorm(ψ = Float32[0.0, 0.0], ρ = Float32[1.0, 1.0], c = Float32[-1.0, -1.0])
@@ -114,7 +114,7 @@ end
     @test repr(bc; context=:compact => true) == "BagCount"
     @test repr(MIME("text/plain"), bc) ==
         """
-        BagCount(AggregationStack{Float32}:
+        BagCount(AggregationStack:
          SegmentedMean(ψ = Float32[0.0, 0.0, 0.0])
          SegmentedMax(ψ = Float32[0.0, 0.0, 0.0])
         )"""

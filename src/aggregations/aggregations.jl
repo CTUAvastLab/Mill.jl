@@ -1,14 +1,14 @@
 # We document types/constructors/functors in one docstring until
 # https://github.com/JuliaDocs/Documenter.jl/issues/558 is resolved
 """
-    AbstractAggregation{T <: Number}
+    AbstractAggregation
 
-Supertype for any aggregation operator. `T` is the type of parameters of the operator.
+Supertype for any aggregation operator.
 
 See also: [`AggregationStack`](@ref), [`SegmentedSum`](@ref), [`SegmentedMax`](@ref),
     [`SegmentedMean`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-abstract type AbstractAggregation{T <: Number} end
+abstract type AbstractAggregation end
 
 @inline _bagnorm(w::Nothing, b) = length(b)
 @inline _bagnorm(w::AbstractVector, b) = @views sum(w[b])
@@ -56,8 +56,8 @@ Base.show(io::IO, ::MIME"text/plain", a::AbstractAggregation) = _show_fields(io,
 
 include("aggregation_stack.jl")
 
-Base.vcat(as::AbstractAggregation{T}...) where T = reduce(vcat, as |> collect)
-function Base.reduce(::typeof(vcat), as::Vector{<:AbstractAggregation{T}}) where T
+Base.vcat(as::AbstractAggregation...) = reduce(vcat, as |> collect)
+function Base.reduce(::typeof(vcat), as::Vector{<:AbstractAggregation})
     AggregationStack(tuple(as...))
 end
 
@@ -82,11 +82,11 @@ for p in filter(p -> length(p) > 1, collect(powerset(collect(1:length(names)))))
             # Examples
             ```jldoctest
             julia> $(s)(4)
-            AggregationStack{Float32}:
+            AggregationStack:
             $(join(" Segmented" .* names[p] .* "(ψ = Float32[0.0, 0.0, 0.0, 0.0])", "\n"))
 
             julia> $(s)(Float64, 2)
-            AggregationStack{Float64}:
+            AggregationStack:
             $(join(" Segmented" .* names[p] .* "(ψ = [0.0, 0.0])", "\n"))
             ```
             """ : ""
