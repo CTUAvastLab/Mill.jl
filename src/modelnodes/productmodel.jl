@@ -5,7 +5,7 @@ A model node for processing [`ProductNode`](@ref)s. For each subtree of the data
 (sub)model from `ms` and then applies `m` on the concatenation of results.
 
 # Examples
-```jldoctest; filter=r"-?[0-9]+\\.[0-9]+[\\.]*"
+```jldoctest product_model
 julia> Random.seed!(0);
 
 julia> n = ProductNode((a=ArrayNode([0 1; 2 3]), b=ArrayNode([4 5; 6 7])))
@@ -17,14 +17,18 @@ julia> m1 = ProductModel((a=ArrayModel(Dense(2, 2)), b=ArrayModel(Dense(2, 2))))
 ProductModel … ↦ ArrayModel(identity)
   ├── a: ArrayModel(Dense(2, 2))
   └── b: ArrayModel(Dense(2, 2))
+```
 
+```jldoctest product_model; filter=$(DOCTEST_FILTER)
 julia> m1(n)
 4×2 ArrayNode{Matrix{Float32}, Nothing}:
  -1.284...  -1.254...
   1.802...   3.711...
  -4.036...  -5.013...
   0.587...   0.372...
+```
 
+```jldoctest product_model
 julia> m2 = ProductModel((a=identity, b=identity))
 ProductModel … ↦ ArrayModel(identity)
   ├── a: ArrayModel(identity)

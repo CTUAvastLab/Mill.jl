@@ -31,6 +31,8 @@ using Base: AbstractVecOrMat, AbstractVecOrTuple
 const Maybe{T} = Union{T, Missing}
 const Optional{T} = Union{T, Nothing}
 
+const DOCTEST_FILTER = r"\s*-?[0-9]+\.[0-9]+[\.]*\s*"
+
 _promote_types(x) = typeof(x)
 _promote_types(x, y...) = promote_type(typeof(x), _promote_types(y...))
 

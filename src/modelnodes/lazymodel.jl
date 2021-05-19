@@ -12,9 +12,9 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
     BagNode(ArrayNode(x), Mill.length2bags(length.(s)))
 end
 # output
-
 ```
-```jldoctest unpack2mill; filter=r"-?[0-9]+\\.[0-9]+[\\.]*"
+
+```jldoctest unpack2mill
 julia> Random.seed!(0);
 
 julia> n = LazyNode{:Sentence}(["foo bar", "baz"])
@@ -24,11 +24,13 @@ julia> m = LazyModel{:Sentence}(BagModel(Dense(2053, 3), SegmentedMean(3), ident
 LazyModel{Sentence}
   └── BagModel … ↦ SegmentedMean(3) ↦ ArrayModel(identity)
         └── ArrayModel(Dense(2053, 3))
+```
 
+```jldoctest unpack2mill; filter=$(DOCTEST_FILTER)
 julia> m(n)
 3×2 ArrayNode{Matrix{Float32}, Nothing}:
  -0.006...  -0.022...
-  0.034...   0.055..
+  0.034...   0.055...
  -0.062...   0.071...
 ```
 

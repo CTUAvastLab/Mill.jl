@@ -5,17 +5,23 @@ A model node for processing [`ArrayNode`](@ref)s. It applies a (sub)model `m` st
 the [`ArrayNode`](@ref).
 
 # Examples
-```jldoctest; filter=r"-?[0-9]+\\.[0-9]+[\\.]*"
+```jldoctest array_model
 julia> Random.seed!(0);
+```
 
+```jldoctest array_model; filter=$(DOCTEST_FILTER)
 julia> n = ArrayNode(randn(Float32, 2, 2))
 2×2 ArrayNode{Matrix{Float32}, Nothing}:
  0.679...  -0.353...
  0.828...  -0.135...
+```
 
+```jldoctest array_model
 julia> m = ArrayModel(Dense(2, 2))
 ArrayModel(Dense(2, 2))
+```
 
+```jldoctest array_model; filter=$(DOCTEST_FILTER)
 julia> m(n)
 2×2 ArrayNode{Matrix{Float32}, Nothing}:
  0.661...  -0.188...
