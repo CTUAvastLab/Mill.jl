@@ -42,7 +42,7 @@ For citing, please use the following entry for the [original paper](https://arxi
 }
 ```
 
-and the following for this implementation:
+and the following for this implementation (fill in the used `version`):
 ```
 @software{mill2018,
   author = {Tomas Pevny and Simon Mandlik},
