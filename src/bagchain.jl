@@ -1,4 +1,4 @@
-struct BagChain{T <: Tuple}
+struct BagChain{T <: Tuple} <: AbstractAggregation
     layers::T
     BagChain(xs...) = new{typeof(xs)}(xs)
 end
