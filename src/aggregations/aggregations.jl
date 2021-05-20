@@ -100,7 +100,7 @@ for p in filter(p -> length(p) > 1, collect(powerset(collect(1:length(names)))))
         end
     end
     @eval function $s(::Type{T}, d::Int) where T
-        AggregationStack($((Expr(:call, Expr(:curly, Symbol("Segmented", n), :T), :d) for n in names[p])...))
+        AggregationStack($((Expr(:call, Symbol("Segmented", n), :T, :d) for n in names[p])...))
     end
     @eval export $s
 end
