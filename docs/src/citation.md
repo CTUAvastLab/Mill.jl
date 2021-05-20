@@ -12,12 +12,12 @@ For citing, please use the following entry for the [original paper](https://arxi
 }
 ```
 
-and the following for this implementation:
+and the following for the implementation (fill in the used `version`):
 ```
-@misc{Mill2018,
-    author = {Tomáš Pevný and Šimon Mandlík},
-    title = {{Mill.jl framework: a flexible library for (hierarchical) multi-instance learning}},
-    year = 2018,
-    howpublished = "\url{https://github.com/CTUAvastLab/Mill.jl}"
+@software{mill2018,
+  author = {Tomas Pevny and Simon Mandlik},
+  title = {Mill.jl framework: a flexible library for (hierarchical) multi-instance learning},
+  url = {https://github.com/CTUAvastLab/Mill.jl},
+  version = {...},
 }
 ```

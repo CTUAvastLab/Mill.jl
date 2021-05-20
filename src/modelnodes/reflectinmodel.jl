@@ -1,5 +1,5 @@
 """
-    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=d -> SegmentedMeanMax(d);
+    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=d -> BagCount(SegmentedMeanMax(d));
         fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true)
 
 Build a `Mill.jl` model capable of processing `x`.
@@ -53,7 +53,7 @@ ProductModel … ↦ ArrayModel(Dense(20, 10))
   │     └── a: ArrayModel(Dense(2053, 10))
   └── ProductModel … ↦ ArrayModel(Dense(11, 10))
         ├── ArrayModel(identity)
-        └── BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))
+        └── BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(20, 10))
               └── ArrayModel(Dense(2, 10))
 
 julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d)) |> printtree
@@ -81,8 +81,8 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
 
 See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`ArrayNode`](@ref).
 """
-function reflectinmodel(x, fm=d -> Dense(d, 10), fa=d -> SegmentedMeanMax(d); fsm=Dict(), fsa=Dict(),
-               single_key_identity=true, single_scalar_identity=true)
+function reflectinmodel(x, fm=d -> Dense(d, 10), fa=d -> BagCount(SegmentedMeanMax(d));
+        fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true)
     _reflectinmodel(x, fm, fa, fsm, fsa, "", single_key_identity, single_scalar_identity)[1]
 end
 
