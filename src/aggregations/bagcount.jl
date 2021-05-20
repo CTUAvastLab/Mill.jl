@@ -22,7 +22,7 @@ julia> b = bags([1:1, 2:3])
 AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:3])
 
 julia> a = vcat(SegmentedMean(2), SegmentedMax(2))
-AggregationStack{Float32}:
+AggregationStack:
  SegmentedMean(ψ = Float32[0.0, 0.0])
  SegmentedMax(ψ = Float32[0.0, 0.0])
 

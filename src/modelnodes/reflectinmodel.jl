@@ -53,7 +53,7 @@ ProductModel … ↦ ArrayModel(Dense(20, 10))
   │     └── a: ArrayModel(Dense(2053, 10))
   └── ProductModel … ↦ ArrayModel(Dense(11, 10))
         ├── ArrayModel(identity)
-        └── BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(20, 10))
+        └── BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))
               └── ArrayModel(Dense(2, 10))
 
 julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d)) |> printtree

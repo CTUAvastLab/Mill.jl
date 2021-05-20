@@ -38,11 +38,11 @@
           └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
 
     wbnm = reflectinmodel(wbn)
-    @test repr(wbnm) == "BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))"
+    @test repr(wbnm) == "BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))"
     @test repr(wbnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), wbnm) == 
         """
-        BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))
+        BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))
           └── ArrayModel(Dense(2, 10))"""
 
     pn = ProductNode((; bn, wbn))
@@ -78,7 +78,7 @@
     @test repr(MIME("text/plain"), lnm) == 
         """
         LazyModel{Sentence}
-          └── BagModel … ↦ [SegmentedMean(10); SegmentedMax(10)] ↦ ArrayModel(Dense(20, 10))
+          └── BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))
                 └── ArrayModel(Dense(2053, 10))"""
 end
 
