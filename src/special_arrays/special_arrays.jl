@@ -23,6 +23,8 @@ include("ngram_matrix.jl")
 include("pre_imputing_matrix.jl")
 include("post_imputing_matrix.jl")
 
+const MaybeHotArray{T} = Union{MaybeHotVector{T}, MaybeHotMatrix{T}}
+
 const ImputingMatrix{T, U} = Union{PreImputingMatrix{T, U}, PostImputingMatrix{T, U}}
 const PreImputingDense = Dense{T, <: PreImputingMatrix} where T
 const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
@@ -79,7 +81,7 @@ function Flux.update!(x::ImputingMatrix, x̄)
     end
 end
 
-function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotMatrix, MaybeHotVector, NGramMatrix}
+function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotArray, NGramMatrix}
     if get(io, :compact, false)
         if ndims(X) == 1
             print(io, length(X), "-element ", nameof(T))

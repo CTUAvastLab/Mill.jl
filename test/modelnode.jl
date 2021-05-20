@@ -89,9 +89,9 @@ end
 
     x1 = maybehot(2, 1:3) |> ArrayNode
     x2 = maybehot(missing, 1:3) |> ArrayNode
-    @test f1(x1).m isa Flux.Dense
+    @test f1(x1).m isa PostImputingDense
     @test f1(x2).m isa PostImputingDense
-    @test f2(x1).m isa Flux.Chain
+    @test f2(x1).m[1] isa PostImputingDense
     @test f2(x2).m[1] isa PostImputingDense
     for f in [f1, f2], x in [x1, x2]
         @inferred f(x)(x)
@@ -100,10 +100,10 @@ end
     x1 = maybehotbatch([1, 2, 3], 1:3) |> ArrayNode
     x2 = maybehotbatch([1, 2, missing], 1:3) |> ArrayNode
     x3 = maybehotbatch(fill(missing, 3), 1:3) |> ArrayNode
-    @test f1(x1).m isa Flux.Dense
+    @test f1(x1).m isa PostImputingDense
     @test f1(x2).m isa PostImputingDense
     @test f1(x3).m isa PostImputingDense
-    @test f2(x1).m isa Flux.Chain
+    @test f2(x1).m[1] isa PostImputingDense
     @test f2(x2).m[1] isa PostImputingDense
     @test f2(x3).m[1] isa PostImputingDense
     for f in [f1, f2], x in [x1, x2, x3]
@@ -116,7 +116,7 @@ end
     @test f1(x1).m isa Flux.Dense
     @test f1(x2).m isa PostImputingDense
     @test f1(x3).m isa PostImputingDense
-    @test f2(x1).m isa Flux.Chain
+    @test f2(x1).m[1] isa Flux.Dense
     @test f2(x2).m[1] isa PostImputingDense
     @test f2(x3).m[1] isa PostImputingDense
     for f in [f1, f2], x in [x1, x2, x3]
@@ -129,7 +129,7 @@ end
     @test f1(x1).m isa Flux.Dense
     @test f1(x2).m isa PreImputingDense
     @test f1(x3).m isa PreImputingDense
-    @test f2(x1).m isa Flux.Chain
+    @test f2(x1).m[1] isa Flux.Dense
     @test f2(x2).m[1] isa PreImputingDense
     @test f2(x3).m[1] isa PreImputingDense
     for f in [f1, f2], x in [x1, x2, x3]

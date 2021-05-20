@@ -140,8 +140,7 @@ _make_imputing(x, t) = t
 _make_imputing(x, t::ArrayModel) = _make_imputing(x, t.m) |> ArrayModel
 _make_imputing(x, t::Chain) = Chain(_make_imputing(x, t[1]), t[2:end]...)
 _make_imputing(x::AbstractArray{Maybe{T}}, t::Dense) where T <: Number = preimputing_dense(t)
-_make_imputing(x::MaybeHotVector{Missing}, t::Dense) = postimputing_dense(t)
-_make_imputing(x::MaybeHotMatrix{Maybe{T}}, t::Dense) where T <: Integer = postimputing_dense(t)
+_make_imputing(x::MaybeHotArray, t::Dense) = postimputing_dense(t)
 _make_imputing(x::NGramMatrix{Maybe{T}}, t::Dense) where T <: Sequence = postimputing_dense(t)
 
 identity_dense(x) = Dense(Matrix{Float32}(I, size(x, 1), size(x, 1)), zeros(Float32, size(x, 1)))
@@ -150,12 +149,7 @@ _make_imputing(x, t::typeof(identity)) = t
 function _make_imputing(x::AbstractArray{Maybe{T}}, ::typeof(identity)) where T <: Number
     preimputing_dense(identity_dense(x))
 end
-function _make_imputing(x::MaybeHotVector{Missing}, ::typeof(identity))
-    postimputing_dense(identity_dense(x))
-end
-function _make_imputing(x::MaybeHotMatrix{Maybe{T}}, ::typeof(identity)) where T <: Integer
-    postimputing_dense(identity_dense(x))
-end
+_make_imputing(x::MaybeHotArray, ::typeof(identity)) = postimputing_dense(identity_dense(x))
 function _make_imputing(x::NGramMatrix{Maybe{T}}, ::typeof(identity)) where T <: Sequence
     postimputing_dense(identity_dense(x))
 end
