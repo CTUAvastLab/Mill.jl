@@ -51,10 +51,12 @@ end
 
 Flux.@functor BagCount
 
+_bagcount(T, bags) = permutedims(log.(one(T) .+ length.(bags)))
+ChainRulesCore.@non_differentiable _bagcount(T, bags)
+
 function (bc::BagCount)(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...)
     o1 = bc.a(x, bags, args...)
-    #TODO rewrite with ChainRules non_differentiable
-    o2 = Zygote.@ignore permutedims(log.(one(eltype(o1)) .+ length.(bags)))
+    o2 = _bagcount(eltype(o1), bags)
     vcat(o1, o2)
 end
 
