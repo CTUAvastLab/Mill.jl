@@ -225,19 +225,19 @@ end
 @testset "type stability of the output" begin
     types = [Float16, Float32, Float64]
     for t1 in types, t2 in types, b in BAGS2
-        a = all_aggregations(t1, 3)
         x = rand(t2, 3, 10)
         w = abs.(randn(t2, size(x, 2))) .+ t2(0.1)
         w_mat = abs.(randn(t2, size(x))) .+ t2(0.1)
-        @inferred a(x, b)
-        @test eltype(a(x, b)) === promote_type(t1, t2)
-        @test eltype(BagCount(a)(x, b)) === promote_type(t1, t2)
-        @inferred a(x, b, w)
-        @test eltype(a(x, b, w)) === promote_type(t1, t2)
-        @test eltype(BagCount(a)(x, b, w)) === promote_type(t1, t2)
-        @inferred a(x, b, w_mat)
-        @test eltype(a(x, b, w_mat)) === promote_type(t1, t2)
-        @test eltype(BagCount(a)(x, b, w_mat)) === promote_type(t1, t2)
+        agg = all_aggregations(t1, 3)
+        for a in [agg, BagCount(agg)]
+            @inferred a(x, b)
+            @inferred a(x, b, w)
+            @inferred a(x, b, w_mat)
+            @test eltype(a(x, b)) ===
+                    eltype(a(x, b, w)) ===
+                    eltype(a(x, b, w_mat)) ===
+                    promote_type(t1, t2)
+        end
     end
 end
 
