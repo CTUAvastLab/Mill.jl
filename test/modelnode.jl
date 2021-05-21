@@ -83,57 +83,54 @@ end
     @inferred m(c)
 end
 
-@testset "reflectinmodel for missing" begin
+@testset "reflectinmodel for missing + all_imputing" begin
     f1 = x -> reflectinmodel(x)
     f2 = x -> reflectinmodel(x, d -> Flux.Chain(Dense(d, 10), Dense(10, 10)))
+    f3 = x -> reflectinmodel(x; all_imputing=true)
+    _get_first(x::ArrayModel{<:Flux.Chain}) = x.m[1]
+    _get_first(x) = x.m
 
     x1 = maybehot(2, 1:3) |> ArrayNode
     x2 = maybehot(missing, 1:3) |> ArrayNode
-    @test f1(x1).m isa PostImputingDense
-    @test f1(x2).m isa PostImputingDense
-    @test f2(x1).m[1] isa PostImputingDense
-    @test f2(x2).m[1] isa PostImputingDense
-    for f in [f1, f2], x in [x1, x2]
+    for f in [f1, f2, f3], x in [x1, x2]
+        @test _get_first(f(x)) isa PostImputingDense
         @inferred f(x)(x)
     end
 
     x1 = maybehotbatch([1, 2, 3], 1:3) |> ArrayNode
     x2 = maybehotbatch([1, 2, missing], 1:3) |> ArrayNode
     x3 = maybehotbatch(fill(missing, 3), 1:3) |> ArrayNode
-    @test f1(x1).m isa PostImputingDense
-    @test f1(x2).m isa PostImputingDense
-    @test f1(x3).m isa PostImputingDense
-    @test f2(x1).m[1] isa PostImputingDense
-    @test f2(x2).m[1] isa PostImputingDense
-    @test f2(x3).m[1] isa PostImputingDense
-    for f in [f1, f2], x in [x1, x2, x3]
+    for f in [f1, f2, f3], x in [x1, x2, x3]
+        @test _get_first(f(x)) isa PostImputingDense
         @inferred f(x)(x)
     end
 
     x1 = NGramMatrix(["a", "b", "c"]) |> ArrayNode
     x2 = NGramMatrix(["a", missing, "c"]) |> ArrayNode
     x3 = NGramMatrix(fill(missing, 3)) |> ArrayNode
-    @test f1(x1).m isa Flux.Dense
-    @test f1(x2).m isa PostImputingDense
-    @test f1(x3).m isa PostImputingDense
-    @test f2(x1).m[1] isa Flux.Dense
-    @test f2(x2).m[1] isa PostImputingDense
-    @test f2(x3).m[1] isa PostImputingDense
-    for f in [f1, f2], x in [x1, x2, x3]
-        @inferred f(x)(x)
+    for f in [f1, f2]
+        @test _get_first(f(x1)) isa Flux.Dense
+        @test _get_first(f(x2)) isa PostImputingDense
+        @test _get_first(f(x3)) isa PostImputingDense
+        for x in [x1, x2, x3] @inferred f(x)(x) end
+    end
+    for x in [x1, x2, x3]
+        @test _get_first(f3(x)) isa PostImputingDense
+        @inferred f3(x)(x)
     end
 
     x1 = rand([1, 2], 3, 3) |> ArrayNode
     x2 = rand([1, 2, missing], 3, 3) |> ArrayNode
     x3 = fill(missing, 3, 3) |> ArrayNode
-    @test f1(x1).m isa Flux.Dense
-    @test f1(x2).m isa PreImputingDense
-    @test f1(x3).m isa PreImputingDense
-    @test f2(x1).m[1] isa Flux.Dense
-    @test f2(x2).m[1] isa PreImputingDense
-    @test f2(x3).m[1] isa PreImputingDense
-    for f in [f1, f2], x in [x1, x2, x3]
-        @inferred f(x)(x)
+    for f in [f1, f2]
+        @test _get_first(f(x1)) isa Flux.Dense
+        @test _get_first(f(x2)) isa PreImputingDense
+        @test _get_first(f(x3)) isa PreImputingDense
+        for x in [x1, x2, x3] @inferred f(x)(x) end
+    end
+    for x in [x1, x2, x3]
+        @test _get_first(f3(x)) isa PreImputingDense
+        @inferred f3(x)(x)
     end
 end
 
