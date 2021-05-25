@@ -100,7 +100,7 @@ function ChainRulesCore.rrule(::typeof(_mul_maybe_hot), W, ψ, I)
         end
         dW
     end
-    C, Δ -> (NO_FIELDS, @thunk(∇W(Δ)), @thunk(vec(sum(view(Δ, :, m), dims=2))), DoesNotExist())
+    C, Δ -> (NO_FIELDS, @thunk(∇W(Δ)), @thunk(vec(sum(view(Δ, :, m), dims=2))), NoTangent())
 end
 function _impute_maybe_hot(W, ψ, I)
     m = trues(length(I))
@@ -130,7 +130,7 @@ function ChainRulesCore.rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
     end
     _impute_ngram(W, ψ, S, n, b, m), Δ -> (NO_FIELDS, @thunk(∇W(Δ)),
                                            @thunk(vec(sum(view(Δ, :, ismissing.(S)), dims=2))),
-                                  fill(DoesNotExist(), 4)...)
+                                  fill(NoTangent(), 4)...)
 end
 
 function _impute_ngram(W, ψ, S, n, b, m)

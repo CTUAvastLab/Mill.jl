@@ -120,7 +120,7 @@ function segmented_lse_back(Δ, y, x, ψ, r, bags, M)
             end
         end
     end
-    dx, dψ, dr, DoesNotExist(), Zero()
+    dx, dψ, dr, NoTangent(), ZeroTangent()
 end
 
 function segmented_lse_back(Δ, ::Missing, ψ, bags)
@@ -130,7 +130,7 @@ function segmented_lse_back(Δ, ::Missing, ψ, bags)
             dψ[i] += Δ[i, bi]
         end
     end
-    Zero(), dψ, Zero(), DoesNotExist(), Zero()
+    ZeroTangent(), dψ, ZeroTangent(), NoTangent(), ZeroTangent()
 end
 
 function ChainRulesCore.rrule(::typeof(segmented_lse_forw),

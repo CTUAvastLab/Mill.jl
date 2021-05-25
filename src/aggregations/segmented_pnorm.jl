@@ -129,7 +129,7 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
             end
         end
     end
-    da, dψ, dp, DoesNotExist(), @not_implemented("Not implemented yet!")
+    da, dψ, dp, NoTangent(), @not_implemented("Not implemented yet!")
 end
 
 function segmented_pnorm_back(Δ, y, ψ, bags) 
@@ -139,10 +139,10 @@ function segmented_pnorm_back(Δ, y, ψ, bags)
             dψ[i] += Δ[i, bi]
         end
     end
-    Zero(), dψ, Zero(), DoesNotExist(), @not_implemented("Not implemented yet!")
+    ZeroTangent(), dψ, ZeroTangent(), NoTangent(), @not_implemented("Not implemented yet!")
 end
 
-∇dw_segmented_pnorm!(dw::Zero, Δ, a, y, w::Nothing, i, j, bi) = error("Not implemented yet!")
+∇dw_segmented_pnorm!(dw::ZeroTangent, Δ, a, y, w::Nothing, i, j, bi) = error("Not implemented yet!")
 ∇dw_segmented_pnorm!(dw::AbstractVector, Δ, a, y, w::AbstractVector, i, j, bi) = error("Not implemented yet!")
 ∇dw_segmented_pnorm!(dw::AbstractMatrix, Δ, a, y, w::AbstractMatrix, i, j, bi) = error("Not implemented yet!")
 
