@@ -211,8 +211,7 @@ subset(x::AbstractMillNode, i) = x[i]
 subset(x::DataFrame, i) = x[i, :]
 subset(::Missing, i) = missing
 subset(::Nothing, i) = nothing
-subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
-subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
+subset(xs::Union{Tuple, NamedTuple}, i) = map(x -> x[i], xs)
 
 include("arraynode.jl")
 
