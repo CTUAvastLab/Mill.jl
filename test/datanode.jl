@@ -111,28 +111,22 @@ end
     @test reduce(catobs, [wd]).bags.bags == vcat(wd.bags).bags
 end
 
-@testset "testing catobs with missing values" begin
-    @test catobs(a, b, c).data.data == catobs(a, b, missing, c).data.data
-    @test catobs(a, b, c).bags.bags == catobs(a, b, missing, c).bags.bags
-    @test catobs(wa, wb, wc).data.data == catobs(wa, wb, missing, wc).data.data
-    @test catobs(wa, wb, wc).bags.bags == catobs(wa, wb, missing, wc).bags.bags
-    @test catobs(wa, wb, wc).weights == catobs(wa, wb, missing, wc).weights
-end
+@testset "testing hierarchical catobs on ProductNodes" begin
+    @test catobs(f, h).data[1].data.data == reduce(catobs, [f, h]).data[1].data.data ==
+        hcat(wb.data.data, wc.data.data)
+    @test catobs(f, h).data[2].data.data == reduce(catobs, [f, h]).data[2].data.data ==
+        hcat(b.data.data, c.data.data)
+    @test catobs(f, h, f).data[1].data.data == reduce(catobs, [f, h, f]).data[1].data.data ==
+        hcat(wb.data.data, wc.data.data, wb.data.data)
+    @test nobs(catobs(f,h)) == nobs(f) + nobs(h)
 
-@testset "testing catobs stability" begin
-    for n in [a, b, c, d, e, f, h, k, l, wa, wb, wc, wd]
-        @inferred catobs(n, n)
-        @inferred reduce(catobs, [n, n])
-    end
-end
-
-@testset "testing hierarchical catobs on product nodes" begin
-    @test catobs(f, h).data[1].data.data == hcat(wb.data.data, wc.data.data)
-    @test reduce(catobs, [f, h]).data[1].data.data == hcat(wb.data.data, wc.data.data)
-    @test catobs(f, h).data[2].data.data == hcat(b.data.data, c.data.data)
-    @test reduce(catobs, [f, h]).data[2].data.data == hcat(b.data.data, c.data.data)
-    @test catobs(f, h, f).data[1].data.data == hcat(wb.data.data, wc.data.data, wb.data.data)
-    @test reduce(catobs, [f, h, f]).data[1].data.data == hcat(wb.data.data, wc.data.data, wb.data.data)
+    @test catobs(g, g).data[1].data.data == reduce(catobs, [g, g]).data[1].data.data ==
+        hcat(c.data.data, c.data.data)
+    @test catobs(g, g).data[2].data.data == reduce(catobs, [g, g]).data[2].data.data ==
+        hcat(wc.data.data, wc.data.data)
+    @test catobs(g, g, g).data[1].data.data == reduce(catobs, [g, g, g]).data[1].data.data ==
+        hcat(c.data.data, c.data.data, c.data.data)
+    @test nobs(catobs(g, g)) == 2nobs(g)
 
     @test catobs(k, l).data[1].data.data == hcat(wb.data.data, wc.data.data)
     @test catobs(k, l).data[2].data.data == hcat(b.data.data, c.data.data)
@@ -152,6 +146,21 @@ end
     @test_throws ArgumentError reduce(catobs, [k, m])
     @test_throws ArgumentError catobs(l, m)
     @test_throws ArgumentError reduce(catobs, [l, m])
+end
+
+@testset "testing catobs with missing values" begin
+    @test catobs(a, b, c).data.data == catobs(a, b, missing, c).data.data
+    @test catobs(a, b, c).bags.bags == catobs(a, b, missing, c).bags.bags
+    @test catobs(wa, wb, wc).data.data == catobs(wa, wb, missing, wc).data.data
+    @test catobs(wa, wb, wc).bags.bags == catobs(wa, wb, missing, wc).bags.bags
+    @test catobs(wa, wb, wc).weights == catobs(wa, wb, missing, wc).weights
+end
+
+@testset "testing catobs stability" begin
+    for n in [a, b, c, d, e, f, h, k, l, wa, wb, wc, wd]
+        @inferred catobs(n, n)
+        @inferred reduce(catobs, [n, n])
+    end
 end
 
 @testset "testing BagNode indexing" begin
@@ -202,6 +211,21 @@ end
     @test wd[2].bags.bags == [0:-1]
 end
 
+@testset "testing ProductNode indexing" begin
+    @test h[1].data[1].data.data ==  wc[1].data.data
+    @test h[[3,2]].data[1].data.data ==  wc[[3,2]].data.data
+    @test h[1:2].data[2].data.data ==  c[1:2].data.data
+    @test h[end].data[2].data.data ==  c[end].data.data
+    @test g[1].data[1].data.data ==  c[1].data.data
+    @test g[[3,2]].data[1].data.data ==  c[[3,2]].data.data
+    @test g[1:2].data[2].data.data ==  wc[1:2].data.data
+    @test g[end].data[2].data.data ==  wc[end].data.data
+    @test l[1].data[:a].data.data ==  wc[1].data.data
+    @test l[[3,2]].data[:a].data.data ==  wc[[3,2]].data.data
+    @test l[1:2].data[:b].data.data ==  c[1:2].data.data
+    @test l[end].data[:b].data.data ==  c[end].data.data
+end
+
 @testset "testing nested ragged array" begin
     x = BagNode(ArrayNode(rand(3,10)),[1:2,3:3,0:-1,4:5,6:6,7:10])
     y = BagNode(x,[1:2,3:3,4:5,6:6])
@@ -213,22 +237,6 @@ end
     @test y[2:3].data.bags.bags == [0:-1,1:2,3:3]
 end
 
-
-@testset "testing ProductNode" begin
-    x = ProductNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
-    y = ProductNode((ArrayNode(rand(3,2)),ArrayNode(rand(3,2)),ArrayNode(randn(3,2))))
-    @test catobs(x,y).data[1].data == hcat(x.data[1].data,y.data[1].data)
-    @test reduce(catobs, [x,y]).data[1].data == hcat(x.data[1].data,y.data[1].data)
-    @test catobs(x,y).data[2].data == hcat(x.data[2].data,y.data[2].data)
-    @test reduce(catobs, [x,y]).data[2].data == hcat(x.data[2].data,y.data[2].data)
-    @test catobs(x,y).data[3].data == hcat(x.data[3].data,y.data[3].data)
-    @test reduce(catobs, [x,y]).data[3].data == hcat(x.data[3].data,y.data[3].data)
-    @test cat(x,y, dims = ndims(x)).data[3].data == hcat(x.data[3].data,y.data[3].data)
-
-    @test k[1].data[1].data.data ==  wb[1].data.data
-    @test k[2].data[1].data.data ==  wb[2].data.data
-    @test l[2:3].data[1].data.data ==  wc[2:3].data.data
-end
 
 @testset "testing sparsify" begin
     @test sparsify(zeros(10, 10), 0.05) isa SparseMatrixCSC

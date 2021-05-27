@@ -55,7 +55,7 @@ Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
 Base.keys(x::ProductNode) = keys(x.data)
 
 _length_error() = ArgumentError("Trying to `catobs` `ProductNode`s with different subtrees") |> throw
-function _check_idxs(as::Vector{<:Tuple})
+function _check_idxs(as::Vector{T}) where T <: Union{Vector, Tuple}
     if any(length.(as) .!= length(as[1]))
         _length_error()
     end
@@ -65,6 +65,7 @@ _check_idxs(as::Vector{<:NamedTuple{K}}) where K = keys(as[1])
 _check_idxs(as) = _length_error()
 
 _cattrees(as::Vector{T}) where T = T(reduce(catobs, getindex.(as, i)) for i in _check_idxs(as))
+_cattrees(as::Vector{<:Vector}) = [reduce(catobs, getindex.(as, i)) for i in _check_idxs(as)]
 
 function reduce(::typeof(catobs), as::Vector{<:ProductNode})
     ds = data.(as)
@@ -72,7 +73,8 @@ function reduce(::typeof(catobs), as::Vector{<:ProductNode})
     ProductNode(_cattrees(ds), reduce(catobs, metadata.(as)))
 end
 
-Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(x.data, i), subset(x.metadata, i))
+Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(data(x), i), subset(metadata(x), i))
+Base.getindex(x::ProductNode{<:Vector}, i::VecOrRange{<:Int}) = ProductNode(map(x -> getindex(x, i), data(x)), subset(metadata(x), i))
 
 Base.hash(e::ProductNode, h::UInt) = hash((e.data, e.metadata), h)
 (e1::ProductNode == e2::ProductNode) = e1.data == e2.data && e1.metadata == e2.metadata
