@@ -37,7 +37,7 @@ end
 
 function _check_l(xs::AbstractVecOrTuple{MaybeHotVector})
     l = xs[1].l
-    if any(!isequal(l), getfield.(xs, :l))
+    if any(!isequal(l), (x.l for x in xs))
         DimensionMismatch(
             "Number of rows of `MaybeHotMatrix`s to hcat must correspond"
         ) |> throw
@@ -48,12 +48,12 @@ end
 Base.hcat(xs::T...) where T <: MaybeHotVector = _typed_hcat(T, xs)
 Base.hcat(xs::MaybeHotVector...) = _typed_hcat(_promote_types(xs...), xs)
 function _typed_hcat(::Type{MaybeHotVector{T, U, V}}, xs::Tuple{Vararg{MaybeHotVector}}) where {T, U, V}
-    MaybeHotMatrix{T, U, V}([getfield.(xs, :i)...], _check_l(xs))
+    MaybeHotMatrix{T, U, V}([x.i for x in xs], _check_l(xs))
 end
 
 Base.reduce(::typeof(hcat), xs::Vector{<:MaybeHotVector}) = _typed_hcat(mapreduce(typeof, promote_type, xs), xs)
 function _typed_hcat(::Type{MaybeHotVector{T, U, V}}, xs::AbstractVector{<:MaybeHotVector}) where {T, U, V}
-    MaybeHotMatrix{T, U, V}(collect(getfield.(xs, :i)), _check_l(xs))
+    MaybeHotMatrix{T, U, V}([x.i for x in xs], _check_l(xs))
 end
 
 reduce(::typeof(catobs), as::Vector{<:MaybeHotVector}) = reduce(hcat, as)

@@ -330,12 +330,12 @@ end
 Base.hcat(As::T...) where T <: NGramMatrix = _typed_hcat(T, As)
 Base.hcat(As::NGramMatrix...) = _typed_hcat(_promote_types(As...), As)
 function _typed_hcat(::Type{T}, As::Tuple{Vararg{NGramMatrix}}) where T <: NGramMatrix
-    T(vcat(getfield.(As, :s)...), _check_nbm(As)...)
+    T(vcat([A.s for A in As]...), _check_nbm(As)...)
 end
 
 Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix}) = _typed_hcat(mapreduce(typeof, promote_type, As), As)
 function _typed_hcat(::Type{T}, As::AbstractVector{<:NGramMatrix}) where T <: NGramMatrix
-    T(reduce(vcat, getfield.(As, :s)), _check_nbm(As)...)
+    T(reduce(vcat, [A.s for A in As]), _check_nbm(As)...)
 end
 
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Int64, UInt}(x)
