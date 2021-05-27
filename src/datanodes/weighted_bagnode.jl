@@ -52,7 +52,7 @@ end
 function reduce(::typeof(catobs), as::Vector{<:WeightedBagNode})
     d = filter(!ismissing, data.(as))
     md = filter(!isnothing, metadata.(as))
-    bags = reduce(vcat, [a.bags for a in as])
+    bags = _catbags([n.bags for n in as])
     WeightedBagNode(reduce(catobs, d), bags, reduce(vcat, [a.weights for a in as]), reduce(catobs, md))
 end
 
