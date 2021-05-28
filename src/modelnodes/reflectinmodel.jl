@@ -1,5 +1,5 @@
 """
-    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=d -> BagCount(SegmentedMeanMax(d));
+    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=BagCount ∘ SegmentedMeanMax;
         fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true)
 
 Build a `Mill.jl` model capable of processing `x`.
@@ -56,7 +56,7 @@ ProductModel … ↦ ArrayModel(Dense(20, 10))
         └── BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))
               └── ArrayModel(Dense(2, 10))
 
-julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d)) |> printtree
+julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean) |> printtree
 ProductModel … ↦ ArrayModel(Dense(6, 3))
   ├── ProductModel … ↦ ArrayModel(identity)
   │     └── a: ArrayModel(Dense(2053, 3))
@@ -65,9 +65,9 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
         └── BagModel … ↦ SegmentedMean(3) ↦ ArrayModel(Dense(3, 3))
               └── ArrayModel(Dense(2, 3))
 
-julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d);
+julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean;
                         fsm=Dict("e" => d -> Chain(Dense(d, 2), Dense(2, 2))),
-                        fsa=Dict("c" => d -> SegmentedLSE(d)),
+                        fsa=Dict("c" => SegmentedLSE),
                         single_key_identity=false,
                         single_scalar_identity=false) |> printtree
 ProductModel … ↦ ArrayModel(Dense(6, 3))
@@ -81,7 +81,7 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
 
 See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`ArrayNode`](@ref).
 """
-function reflectinmodel(x, fm=d -> Dense(d, 10), fa=d -> BagCount(SegmentedMeanMax(d)); fsm=Dict(),
+function reflectinmodel(x, fm=d -> Dense(d, 10), fa=BagCount ∘ SegmentedMeanMax; fsm=Dict(),
         fsa=Dict(), single_key_identity=true, single_scalar_identity=true, all_imputing=false)
     _reflectinmodel(x, fm, fa, fsm, fsa, "", single_key_identity, single_scalar_identity, all_imputing)[1]
 end
