@@ -75,7 +75,7 @@ and all other elements are set to `0`.
 # Examples
 ```jldoctest
 julia> maybehot(:b, [:a, :b, :c])
-3-element MaybeHotVector{Int64, Int64, Bool}:
+3-element MaybeHotVector{UInt32, Int64, Bool}:
  0
  1
  0
@@ -93,7 +93,7 @@ maybehot(::Missing, labels) = MaybeHotVector(missing, length(labels))
 function maybehot(l, labels)
     i = findfirst(isequal(l), labels)
     isnothing(i) && ArgumentError("Value $l not in labels $labels") |> throw
-    MaybeHotVector(i, length(labels))
+    MaybeHotVector(UInt32(i), length(labels))
 end
 
 Base.hash(x::MaybeHotVector, h::UInt) = hash((x.i, x.l), h)
