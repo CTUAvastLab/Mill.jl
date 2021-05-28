@@ -1,6 +1,6 @@
 @testset "data and model node io" begin
     an = ArrayNode(ones(2,5))
-    @test repr(an) == "ArrayNode(2×5 Array with Float64 elements) with 5 obs"
+    @test repr(an) == "ArrayNode(2×5 Array with Float64 elements)"
     @test repr(an; context=:compact => true) == "ArrayNode"
     @test repr(MIME("text/plain"), an) == 
         """
@@ -19,7 +19,7 @@
     @test repr(MIME("text/plain"), bn) == 
         """
         BagNode with 2 obs
-          └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
+          └── ArrayNode(2×5 Array with Float64 elements)"""
 
     bnm = reflectinmodel(bn, d -> Dense(d, 10), SegmentedMean)
     @test repr(bnm) == "BagModel … ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))"
@@ -35,7 +35,7 @@
     @test repr(MIME("text/plain"), wbn) == 
         """
         WeightedBagNode with 2 obs
-          └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
+          └── ArrayNode(2×5 Array with Float64 elements)"""
 
     wbnm = reflectinmodel(wbn)
     @test repr(wbnm) == "BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))"
@@ -52,9 +52,9 @@
         """
         ProductNode with 2 obs
           ├─── bn: BagNode with 2 obs
-          │          └── ArrayNode(2×5 Array with Float64 elements) with 5 obs
+          │          └── ArrayNode(2×5 Array with Float64 elements)
           └── wbn: WeightedBagNode with 2 obs
-                     └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
+                     └── ArrayNode(2×5 Array with Float64 elements)"""
 
     pnm = reflectinmodel(pn, d -> Dense(d, 10), BagCount ∘ SegmentedMean)
     @test repr(pnm) == "ProductModel … ↦ ArrayModel(Dense(20, 10))"

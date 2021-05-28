@@ -30,11 +30,11 @@ If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
 ```jldoctest
 julia> BagNode(ArrayNode(maybehotbatch([1, missing, 2], 1:2)), AlignedBags([1:1, 2:3]))
 BagNode with 2 obs
-  └── ArrayNode(2×3 MaybeHotMatrix with Union{Missing, Bool} elements) with 3 obs
+  └── ArrayNode(2×3 MaybeHotMatrix with Union{Missing, Bool} elements)
 
 julia> BagNode(ArrayNode(randn(2, 5)), [1, 2, 2, 1, 1])
 BagNode with 2 obs
-  └── ArrayNode(2×5 Array with Float64 elements) with 5 obs
+  └── ArrayNode(2×5 Array with Float64 elements)
 ```
 
 See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref),

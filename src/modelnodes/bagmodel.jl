@@ -12,7 +12,7 @@ julia> Random.seed!(0);
 
 julia> n = BagNode(ArrayNode(randn(3, 2)), bags([0:-1, 1:2]))
 BagNode with 2 obs
-  └── ArrayNode(3×2 Array with Float64 elements) with 2 obs
+  └── ArrayNode(3×2 Array with Float64 elements)
 
 julia> m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMeanMax(2), ArrayModel(Dense(4, 2)))
 BagModel … ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ ArrayModel(Dense(4, 2))

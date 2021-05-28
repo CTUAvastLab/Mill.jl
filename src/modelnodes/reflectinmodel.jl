@@ -21,31 +21,31 @@ model is instantiated as `identity` unless `single_scalar_identity` is `false`.
 ```jldoctest
 julia> n1 = ProductNode((; a=ArrayNode(NGramMatrix(["a", "b"]))))
 ProductNode with 2 obs
-  └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+  └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements)
 
 julia> n2 = ProductNode((ArrayNode([0 1]), BagNode(ArrayNode([0 1; 2 3]), bags([1:1, 2:2]))))
 ProductNode with 2 obs
-  ├── ArrayNode(1×2 Array with Int64 elements) with 2 obs
+  ├── ArrayNode(1×2 Array with Int64 elements)
   └── BagNode with 2 obs
-        └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+        └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> n = ProductNode((n1, n2))
 ProductNode with 2 obs
   ├── ProductNode with 2 obs
-  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements)
   └── ProductNode with 2 obs
-        ├── ArrayNode(1×2 Array with Int64 elements) with 2 obs
+        ├── ArrayNode(1×2 Array with Int64 elements)
         └── BagNode with 2 obs
               ⋮
 
 julia> printtree(n; trav=true)
 ProductNode with 2 obs [""]
   ├── ProductNode with 2 obs ["E"]
-  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs ["M"]
+  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) ["M"]
   └── ProductNode with 2 obs ["U"]
-        ├── ArrayNode(1×2 Array with Int64 elements) with 2 obs ["Y"]
+        ├── ArrayNode(1×2 Array with Int64 elements) ["Y"]
         └── BagNode with 2 obs ["c"]
-              └── ArrayNode(2×2 Array with Int64 elements) with 2 obs ["e"]
+              └── ArrayNode(2×2 Array with Int64 elements) ["e"]
 
 julia> reflectinmodel(n) |> printtree
 ProductModel … ↦ ArrayModel(Dense(20, 10))

@@ -25,15 +25,15 @@ Construct a new [`ProductNode`](@ref) with data `ds`, and metadata `m`. `ds` sho
 ```jldoctest
 julia> ProductNode((ArrayNode(zeros(2, 2)), ArrayNode(Flux.onehotbatch([1, 2], 1:2))))
 ProductNode with 2 obs
-  ├── ArrayNode(2×2 Array with Float64 elements) with 2 obs
-  └── ArrayNode(2×2 OneHotArray with Bool elements) with 2 obs
+  ├── ArrayNode(2×2 Array with Float64 elements)
+  └── ArrayNode(2×2 OneHotArray with Bool elements)
 
 julia> ProductNode((x1 = ArrayNode(NGramMatrix(["Hello", "world"])),
                     x2 = BagNode(ArrayNode([1 2; 3 4]), [1:3, 4:4])))
 ProductNode with 2 obs
-  ├── x1: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+  ├── x1: ArrayNode(2053×2 NGramMatrix with Int64 elements)
   └── x2: BagNode with 2 obs
-            └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+            └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> ProductNode((ArrayNode([1 2; 3 4]), ArrayNode([1; 3])))
 ERROR: AssertionError: All subtrees must have an equal amount of instances!

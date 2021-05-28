@@ -153,10 +153,10 @@ end
         ProductNode with 2 obs [""]
           ├── ProductNode with 2 obs ["E"]
           │     ├─── b: BagNode with 2 obs ["I"]
-          │     │         └── ArrayNode(3×4 Array with Float32 elements) with 4 obs ["K"]
+          │     │         └── ArrayNode(3×4 Array with Float32 elements) ["K"]
           │     └── wb: WeightedBagNode with 2 obs ["M"]
-          │               └── ArrayNode(17×4 NGramMatrix with Int64 elements) with 4 obs ["O"]
-          └── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) with 2 obs ["U"]
+          │               └── ArrayNode(17×4 NGramMatrix with Int64 elements) ["O"]
+          └── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) ["U"]
         """
 
     @test buf_printtree(n2m, trav=true) ==

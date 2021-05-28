@@ -27,11 +27,11 @@ Construct a new [`WeightedBagNode`](@ref) with data `d`, bags `b`, weights `w` a
 ```jldoctest
 julia> BagNode(ArrayNode(NGramMatrix(["s1", "s2"])), bags([1:2, 0:-1]), [0.2, 0.8])
 BagNode with 2 obs
-  └── ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+  └── ArrayNode(2053×2 NGramMatrix with Int64 elements)
 
 julia> BagNode(ArrayNode(zeros(2, 2)), [1, 2], [1, 2])
 BagNode with 2 obs
-  └── ArrayNode(2×2 Array with Float64 elements) with 2 obs
+  └── ArrayNode(2×2 Array with Float64 elements)
 ```
 
 See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@ref), [`BagModel`](@ref).
