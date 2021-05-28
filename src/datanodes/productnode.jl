@@ -59,6 +59,7 @@ _check_idxs(as) = false
 
 _cattrees(as::Vector{<:Vector}) = [reduce(catobs, [a[i] for a in as]) for i in eachindex(as[1])]
 _cattrees(as::Vector{T}) where T <: Tuple = T(reduce(catobs, [a[i] for a in as]) for i in eachindex(as[1]))
+_cattrees(as::Vector{T}) where T <: NamedTuple = T(reduce(catobs, [a[i] for a in as]) for i in keys(as[1]))
 @generated function _cattrees(xs::Vector{NamedTuple{K, T}}) where {K, T}
     es = map(K, T.parameters) do k, t
         quote $k = reduce(catobs, $t[x.$k for x in xs]) end
