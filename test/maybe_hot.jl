@@ -226,7 +226,7 @@ end
     @test_throws ArgumentError maybehot("a", [1, 2])
 
     @test ismissing(maybehot(missing, 1:3).i)
-    @test maybehot(2, 1:3).i == 0x2
+    @test maybehot(2, 1:3).i == 2
 
     @test maybehot(missing, 1:3) isa AbstractVector{Missing}
     @test maybehot(2, 1:3) isa AbstractVector{Bool}
@@ -248,13 +248,13 @@ end
 
     mhm = maybehotbatch([3, 1], 1:3)
 
-    @test mhm.I == [0x3, 0x1]
+    @test mhm.I == [3, 1]
     @test mhm isa AbstractMatrix{Bool}
     @test mhm isa MaybeHotMatrix{UInt32}
 
     mhm = maybehotbatch([1, missing], 1:3)
 
-    @test all(isequal.(mhm.I, [0x1, missing]))
+    @test all(isequal.(mhm.I, [1, missing]))
     @test mhm isa AbstractMatrix{Union{Bool, Missing}}
     @test mhm isa MaybeHotMatrix{Union{UInt32, Missing}}
 end
