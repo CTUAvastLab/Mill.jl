@@ -78,7 +78,6 @@ function _next_ngram(z, i, s::Code, n, b)
     z *= b
     z += i ≤ length(s) ? s[i] : string_end_code()
     z -= b^n * (i > n ? s[i - n] : string_start_code())
-    z
 end
 
 Base.iterate(it::NGramIterator{Missing}) = nothing
@@ -90,11 +89,11 @@ function Base.iterate(it::NGramIterator, (z, i) = (_init_z(it), 1))
 end
 
 _init_z(it) = _init_z(it.n, it.b)
-function _init_z(n, b)
-    z = 0
+function _init_z(n::T, b::T) where T
+    z = zero(T)
     for _ in 1:n
         z *= b
-        z += 1
+        z += one(T)
     end
     string_start_code() * z
 end
@@ -400,10 +399,11 @@ end
 
 _mul_vec!(C, k, A, z, s::AbstractString, args...) = _mul_vec!(C, k, A, z, codeunits(s), args...)
 function _mul_vec!(C, k, A, z, s, n, b, m, ψ=nothing)
-    @inbounds for l in 1:_len(s, n)
+    for l in 1:_len(s, n)
         z = _next_ngram(z, l, s, n, b)
-        @inbounds for i in 1:size(C, 1)
-            C[i, k] += A[i, z % m + 1]
+        zm = z%m + 1
+        for i in 1:size(C, 1)
+            @inbounds C[i, k] += A[i, zm]
         end
     end
 end
@@ -411,10 +411,11 @@ _mul_vec!(C, k, A, z, s::Missing, n, b, m, ψ=missing) = @inbounds C[:, k] .= ψ
 
 _∇A_mul_vec!(Δ, k, ∇A, z, s::AbstractString, args...) = _∇A_mul_vec!(Δ, k, ∇A, z, codeunits(s), args...)
 function _∇A_mul_vec!(Δ, k, ∇A, z, s, n, b, m)
-    @inbounds for l in 1:_len(s, n)
+    for l in 1:_len(s, n)
         z = _next_ngram(z, l, s, n, b)
-        @inbounds for i in 1:size(∇A, 1)
-            ∇A[i, z % m + 1] += Δ[i, k]
+        zm = z%m + 1
+        for i in 1:size(∇A, 1)
+            @inbounds ∇A[i, zm] += Δ[i, k]
         end
     end
 end
