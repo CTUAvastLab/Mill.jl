@@ -84,7 +84,7 @@ _mul(A::PostImputingMatrix, B::MaybeHotMatrix{Maybe{T}}) where {T <: Integer} =
 _mul(A::PostImputingMatrix, B::NGramMatrix{<:Sequence}) = A.W * B
 _mul(A::PostImputingMatrix, B::NGramMatrix{Missing}) = repeat(A.ψ, 1, size(B, 2))
 _mul(A::PostImputingMatrix, B::NGramMatrix{Maybe{T}}) where {T <: Sequence} =
-    _mul_ngram(A.W, A.ψ, B.s, B.n, B.b, B.m)
+    _mul_ngram(A.W, A.ψ, B.S, B.n, B.b, B.m)
 
 _mul_maybe_hot(W, ψ, I) = _impute_maybe_hot(W, ψ, I)[1]
 function ChainRulesCore.rrule(::typeof(_mul_maybe_hot), W, ψ, I)

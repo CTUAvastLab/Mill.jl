@@ -62,7 +62,7 @@ function Base.print_array(io::IO, A::ImputingMatrix)
     _print_params(io, A)
 end
 
-Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.s)
+Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.S)
 
 function Flux.update!(opt, x::ImputingMatrix, x̄)
     if !isnothing(x̄.W)
