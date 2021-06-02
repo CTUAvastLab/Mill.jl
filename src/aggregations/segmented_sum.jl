@@ -96,6 +96,6 @@ end
 
 function ChainRulesCore.rrule(::typeof(segmented_sum_forw), args...)
     y = segmented_sum_forw(args...)
-    grad = Δ -> (NO_FIELDS, segmented_sum_back(Δ, y, args...)...)
+    grad = Δ -> (NoTangent(), segmented_sum_back(Δ, y, args...)...)
     y, grad
 end

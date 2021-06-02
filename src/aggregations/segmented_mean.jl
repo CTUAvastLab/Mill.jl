@@ -98,6 +98,6 @@ end
 
 function ChainRulesCore.rrule(::typeof(segmented_mean_forw), args...)
     y = segmented_mean_forw(args...)
-    grad = Δ -> (NO_FIELDS, segmented_mean_back(Δ, y, args...)...)
+    grad = Δ -> (NoTangent(), segmented_mean_back(Δ, y, args...)...)
     y, grad
 end

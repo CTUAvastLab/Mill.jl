@@ -97,6 +97,6 @@ end
 
 function ChainRulesCore.rrule(::typeof(segmented_max_forw), args...)
     y = segmented_max_forw(args...)
-    grad = Δ -> (NO_FIELDS, segmented_max_back(Δ, y, args...)...)
+    grad = Δ -> (NoTangent(), segmented_max_back(Δ, y, args...)...)
     y, grad
 end

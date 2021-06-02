@@ -149,12 +149,12 @@ end
 function ChainRulesCore.rrule(::typeof(segmented_pnorm_forw), a::AbstractMatrix, ψ, p, bags, w)
     M = _pnorm_precomp(a, bags)
     y = _segmented_pnorm_norm(a, ψ, p, bags, w, M)
-    grad = Δ -> (NO_FIELDS, segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)...)
+    grad = Δ -> (NoTangent(), segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)...)
     y, grad
 end
 
 function ChainRulesCore.rrule(::typeof(segmented_pnorm_forw), a::Missing, ψ, p, bags, w)
     y = segmented_pnorm_forw(a, ψ, p, bags, w)
-    grad = Δ -> (NO_FIELDS, segmented_pnorm_back(Δ, y, ψ, bags)...)
+    grad = Δ -> (NoTangent(), segmented_pnorm_back(Δ, y, ψ, bags)...)
     y, grad
 end

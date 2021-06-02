@@ -388,7 +388,7 @@ end
 function ChainRulesCore.rrule(::typeof(_mul_∇A), Δ, A, S, n, b, m)
     y = _mul_∇A(Δ, A, S, n, b, m)
     function _mul_∇A_pullback(Δ₂)
-        return (NO_FIELDS, _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)...)
+        return (NoTangent(), _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)...)
     end
     y, _mul_∇A_pullback
 end
