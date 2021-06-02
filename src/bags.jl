@@ -236,31 +236,38 @@ AlignedBags{Int64}(UnitRange{Int64}[0:-1, 0:-1, 1:2])
 adjustbags(b::AlignedBags, mask::AbstractVector{Bool}) = length2bags(map(b -> sum(@view mask[b]), b))
 
 Base.vcat(bs::AbstractBags{T}...) where T = _catbags(collect(bs))
+Base.reduce(::typeof(vcat), bs::Vector{T}) where T <: AbstractBags = _catbags(bs)
 
 function _catbags(bs::Vector{AlignedBags{T}}) where T <: Integer
-    nbs = AlignedBags(UnitRange{T}[])
-    offset = zero(T)
-    for b in bs
-        !isempty(b) || continue
-        append!(nbs.bags, [bb .+ (isempty(bb) ? zero(T) : offset) for bb in b])
-        offset += max(zero(T), mapreduce(i -> isempty(i) ? zero(T) : maximum(i), max, b))
+    nbs = Vector{UnitRange{T}}(undef, sum(length.(bs)))
+    o, no, i = zero(T), zero(T), 1
+    @inbounds for b in bs
+        for bb in b
+            if isempty(bb)
+                nbs[i] = bb
+            else
+                nbs[i] = bb .+ o
+                no = max(no, last(nbs[i]))
+            end
+            i += 1
+        end
+        o = no
     end
-    mask = length.(nbs.bags) .== 0
-    if sum(mask) > 0
-        nbs[mask] = fill(_empty_range(T), sum(mask))
-    end
-    nbs
+    AlignedBags(nbs)
 end
 
 function _catbags(bs::Vector{ScatteredBags{T}}) where T <: Integer
-    nbs = ScatteredBags(Vector{T}[])
-    offset = zero(T)
+    nbs = Vector{Vector{T}}(undef, sum(length.(bs)))
+    o, no, i = zero(T), zero(T), 1
     for b in bs
-        !isempty(b) || continue
-        append!(nbs.bags, [bb .+ offset for bb in b])
-        offset += max(zero(T), mapreduce(i -> isempty(i) ? zero(T) : maximum(i), max, b))
+        for bb in b
+            nbs[i] = bb .+ o
+            no = max(no, maximum(nbs[i]; init=0))
+            i += 1
+        end
+        o = no
     end
-    nbs
+    ScatteredBags(nbs)
 end
 
 Base.hash(e::AlignedBags, h::UInt) where {A,C} = hash(e.bags, h)
