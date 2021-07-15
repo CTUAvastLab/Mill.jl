@@ -10,8 +10,8 @@ julia> Random.seed!(0);
 
 julia> n = ProductNode((a=ArrayNode([0 1; 2 3]), b=ArrayNode([4 5; 6 7])))
 ProductNode with 2 obs
-  ├── a: ArrayNode(2×2 Array with Int64 elements) with 2 obs
-  └── b: ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  ├── a: ArrayNode(2×2 Array with Int64 elements)
+  └── b: ArrayNode(2×2 Array with Int64 elements)
 
 julia> m1 = ProductModel((a=ArrayModel(Dense(2, 2)), b=ArrayModel(Dense(2, 2))))
 ProductModel … ↦ ArrayModel(identity)

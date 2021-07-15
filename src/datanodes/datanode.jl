@@ -78,15 +78,15 @@ julia> catobs(ArrayNode(zeros(2, 2)), ArrayNode([1 2; 3 4]))
 
 julia> n = ProductNode((t1=ArrayNode(randn(2, 3)), t2=BagNode(ArrayNode(randn(3, 8)), bags([1:3, 4:5, 6:8]))))
 ProductNode with 3 obs
-  ├── t1: ArrayNode(2×3 Array with Float64 elements) with 3 obs
+  ├── t1: ArrayNode(2×3 Array with Float64 elements)
   └── t2: BagNode with 3 obs
-            └── ArrayNode(3×8 Array with Float64 elements) with 8 obs
+            └── ArrayNode(3×8 Array with Float64 elements)
 
 julia> catobs(n[1], n[3])
 ProductNode with 2 obs
-  ├── t1: ArrayNode(2×2 Array with Float64 elements) with 2 obs
+  ├── t1: ArrayNode(2×2 Array with Float64 elements)
   └── t2: BagNode with 2 obs
-            └── ArrayNode(3×6 Array with Float64 elements) with 6 obs
+            └── ArrayNode(3×6 Array with Float64 elements)
 ```
 
 See also: [`Mill.subset`](@ref).
@@ -108,7 +108,7 @@ julia> Mill.subset(ArrayNode(NGramMatrix(["Hello", "world"])), 2)
 
 julia> Mill.subset(BagNode(ArrayNode(randn(2, 8)), [1:2, 3:3, 4:7, 8:8]), 1:3)
 BagNode with 3 obs
-  └── ArrayNode(2×7 Array with Float64 elements) with 7 obs
+  └── ArrayNode(2×7 Array with Float64 elements)
 ```
 
 See also: [`catobs`](@ref).
@@ -124,11 +124,11 @@ Remove instances from `n` using `mask` and remap bag indices accordingly.
 ```jldoctest
 julia> b1 = BagNode(ArrayNode([1 2 3; 4 5 6]), bags([1:2, 0:-1, 3:3]))
 BagNode with 3 obs
-  └── ArrayNode(2×3 Array with Int64 elements) with 3 obs
+  └── ArrayNode(2×3 Array with Int64 elements)
 
 julia> b2 = removeinstances(b1, [false, true, true])
 BagNode with 3 obs
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> b2.data
 2×2 ArrayNode{Matrix{Int64}, Nothing}:
@@ -175,13 +175,13 @@ Recursively apply `f` to data in all leaves of `x`.
 ```jldoctest
 julia> n1 = ProductNode((a=ArrayNode(zeros(2,2)), b=ArrayNode(ones(2,2))))
 ProductNode with 2 obs
-  ├── a: ArrayNode(2×2 Array with Float64 elements) with 2 obs
-  └── b: ArrayNode(2×2 Array with Float64 elements) with 2 obs
+  ├── a: ArrayNode(2×2 Array with Float64 elements)
+  └── b: ArrayNode(2×2 Array with Float64 elements)
 
 julia> n2 = Mill.mapdata(x -> x .+ 1, n1)
 ProductNode with 2 obs
-  ├── a: ArrayNode(2×2 Array with Float64 elements) with 2 obs
-  └── b: ArrayNode(2×2 Array with Float64 elements) with 2 obs
+  ├── a: ArrayNode(2×2 Array with Float64 elements)
+  └── b: ArrayNode(2×2 Array with Float64 elements)
 
 julia> Mill.data(n2).a
 2×2 ArrayNode{Matrix{Float64}, Nothing}:
@@ -211,8 +211,7 @@ subset(x::AbstractMillNode, i) = x[i]
 subset(x::DataFrame, i) = x[i, :]
 subset(::Missing, i) = missing
 subset(::Nothing, i) = nothing
-subset(xs::Tuple, i) = tuple(map(x -> x[i], xs)...)
-subset(xs::NamedTuple, i) = (; [k => xs[k][i] for k in keys(xs)]...)
+subset(xs::Union{Tuple, NamedTuple}, i) = map(x -> x[i], xs)
 
 include("arraynode.jl")
 
@@ -256,7 +255,9 @@ function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
     print(io, nameof(typeof(n)))
     if !get(io, :compact, false)
         _show_data(IOContext(io, :compact => true), n)
-        print(io, " with ", nobs(n), " obs")
+        if !(n isa ArrayNode)
+            print(io, " with ", nobs(n), " obs")
+        end
     end
 end
 

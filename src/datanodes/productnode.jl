@@ -25,15 +25,15 @@ Construct a new [`ProductNode`](@ref) with data `ds`, and metadata `m`. `ds` sho
 ```jldoctest
 julia> ProductNode((ArrayNode(zeros(2, 2)), ArrayNode(Flux.onehotbatch([1, 2], 1:2))))
 ProductNode with 2 obs
-  ├── ArrayNode(2×2 Array with Float64 elements) with 2 obs
-  └── ArrayNode(2×2 OneHotArray with Bool elements) with 2 obs
+  ├── ArrayNode(2×2 Array with Float64 elements)
+  └── ArrayNode(2×2 OneHotArray with Bool elements)
 
 julia> ProductNode((x1 = ArrayNode(NGramMatrix(["Hello", "world"])),
                     x2 = BagNode(ArrayNode([1 2; 3 4]), [1:3, 4:4])))
 ProductNode with 2 obs
-  ├── x1: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+  ├── x1: ArrayNode(2053×2 NGramMatrix with Int64 elements)
   └── x2: BagNode with 2 obs
-            └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+            └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> ProductNode((ArrayNode([1 2; 3 4]), ArrayNode([1; 3])))
 ERROR: AssertionError: All subtrees must have an equal amount of instances!
@@ -46,7 +46,6 @@ ProductNode(ds::T) where {T} = ProductNode{T, Nothing}(ds, nothing)
 ProductNode(ds::T, m::C) where {T, C} = ProductNode{T, C}(ds, m)
 
 Flux.@functor ProductNode
-
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
 dropmeta(x::ProductNode) = ProductNode(x.data)
@@ -54,25 +53,33 @@ dropmeta(x::ProductNode) = ProductNode(x.data)
 Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
 Base.keys(x::ProductNode) = keys(x.data)
 
-_length_error() = ArgumentError("Trying to `catobs` `ProductNode`s with different subtrees") |> throw
-function _check_idxs(as::Vector{<:Tuple})
-    if any(length.(as) .!= length(as[1]))
-        _length_error()
-    end
-    1:length(as[1])
-end
-_check_idxs(as::Vector{<:NamedTuple{K}}) where K = keys(as[1])
-_check_idxs(as) = _length_error()
+_check_idxs(as::Vector{<:Union{Vector, Tuple}}) = all(isequal(length(as[1])), (length(a) for a in as))
+_check_idxs(as::Vector{<:NamedTuple{K}}) where K = true
+_check_idxs(as) = false
 
-_cattrees(as::Vector{T}) where T = T(reduce(catobs, getindex.(as, i)) for i in _check_idxs(as))
+_cattrees(as::Vector{<:Vector}) = [reduce(catobs, [a[i] for a in as]) for i in eachindex(as[1])]
+_cattrees(as::Vector{T}) where T <: Tuple = T(reduce(catobs, [a[i] for a in as]) for i in eachindex(as[1]))
+_cattrees(as::Vector{T}) where T <: NamedTuple = T(reduce(catobs, [a[i] for a in as]) for i in keys(as[1]))
+@generated function _cattrees(xs::Vector{NamedTuple{K, T}}) where {K, T}
+    es = map(K, T.parameters) do k, t
+        quote $k = reduce(catobs, $t[x.$k for x in xs]) end
+    end
+    quote
+        $(es...)
+        return NamedTuple{$K}(tuple($(K...)))
+    end
+end
 
 function reduce(::typeof(catobs), as::Vector{<:ProductNode})
     ds = data.(as)
-    idxs = _check_idxs(ds)
+    if !_check_idxs(ds)
+        ArgumentError("Trying to `catobs` `ProductNode`s with different subtrees") |> throw
+    end
     ProductNode(_cattrees(ds), reduce(catobs, metadata.(as)))
 end
 
-Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(x.data, i), subset(x.metadata, i))
+Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(data(x), i), subset(metadata(x), i))
+Base.getindex(x::ProductNode{<:Vector}, i::VecOrRange{<:Int}) = ProductNode(map(x -> getindex(x, i), data(x)), subset(metadata(x), i))
 
 Base.hash(e::ProductNode, h::UInt) = hash((e.data, e.metadata), h)
 (e1::ProductNode == e2::ProductNode) = e1.data == e2.data && e1.metadata == e2.metadata

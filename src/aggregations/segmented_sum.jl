@@ -58,7 +58,7 @@ end
 function segmented_sum_back(Δ, y, x, ψ, bags, w) 
     dx = similar(x)
     dψ = zero(ψ)
-    dw = isnothing(w) ? Zero() : zero(w)
+    dw = isnothing(w) ? ZeroTangent() : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)
@@ -73,7 +73,7 @@ function segmented_sum_back(Δ, y, x, ψ, bags, w)
             end
         end
     end
-    dx, dψ, DoesNotExist(), dw
+    dx, dψ, NoTangent(), dw
 end
 
 function segmented_sum_back(Δ, y, x::Missing, ψ, bags, w::Nothing) 
@@ -83,10 +83,10 @@ function segmented_sum_back(Δ, y, x::Missing, ψ, bags, w::Nothing)
             dψ[i] += Δ[i, bi]
         end
     end
-    Zero(), dψ, DoesNotExist(), Zero()
+    ZeroTangent(), dψ, NoTangent(), ZeroTangent()
 end
 
-∇dw_segmented_sum!(dw::Zero, Δ, x, y, w::Nothing, i, j, bi) = nothing
+∇dw_segmented_sum!(dw::ZeroTangent, Δ, x, y, w::Nothing, i, j, bi) = nothing
 function ∇dw_segmented_sum!(dw::AbstractVector, Δ, x, y, w::AbstractVector, i, j, bi) 
     dw[j] += Δ[i, bi] * (x[i, j])
 end
@@ -96,6 +96,6 @@ end
 
 function ChainRulesCore.rrule(::typeof(segmented_sum_forw), args...)
     y = segmented_sum_forw(args...)
-    grad = Δ -> (NO_FIELDS, segmented_sum_back(Δ, y, args...)...)
+    grad = Δ -> (NoTangent(), segmented_sum_back(Δ, y, args...)...)
     y, grad
 end

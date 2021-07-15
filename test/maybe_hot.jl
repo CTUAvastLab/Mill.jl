@@ -232,7 +232,7 @@ end
     @test maybehot(2, 1:3) isa AbstractVector{Bool}
 
     @test maybehot(missing, 1:3) isa MaybeHotVector{Missing}
-    @test maybehot(2, 1:3) isa MaybeHotVector{Int}
+    @test maybehot(2, 1:3) isa MaybeHotVector{UInt32}
 end
 
 @testset "maybehotbatch" begin
@@ -250,11 +250,11 @@ end
 
     @test mhm.I == [3, 1]
     @test mhm isa AbstractMatrix{Bool}
-    @test mhm isa MaybeHotMatrix{Int}
+    @test mhm isa MaybeHotMatrix{UInt32}
 
     mhm = maybehotbatch([1, missing], 1:3)
 
     @test all(isequal.(mhm.I, [1, missing]))
     @test mhm isa AbstractMatrix{Union{Bool, Missing}}
-    @test mhm isa MaybeHotMatrix{Union{Int, Missing}}
+    @test mhm isa MaybeHotMatrix{Union{UInt32, Missing}}
 end

@@ -1,4 +1,4 @@
-# TODO replace all @adjoints in matrices by rrules once Composite gradients become available
+# TODO replace all @adjoints in matrices by rrules once Tangent gradients become available
 # https://github.com/FluxML/Zygote.jl/issues/603
 
 function _check_mul(A::AbstractMatrix, b::AbstractVector)
@@ -62,7 +62,7 @@ function Base.print_array(io::IO, A::ImputingMatrix)
     _print_params(io, A)
 end
 
-Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.s)
+Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.S)
 
 function Flux.update!(opt, x::ImputingMatrix, x̄)
     if !isnothing(x̄.W)

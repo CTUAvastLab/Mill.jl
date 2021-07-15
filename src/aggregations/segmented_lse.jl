@@ -120,7 +120,7 @@ function segmented_lse_back(Δ, y, x, ψ, r, bags, M)
             end
         end
     end
-    dx, dψ, dr, DoesNotExist(), Zero()
+    dx, dψ, dr, NoTangent(), ZeroTangent()
 end
 
 function segmented_lse_back(Δ, ::Missing, ψ, bags)
@@ -130,19 +130,19 @@ function segmented_lse_back(Δ, ::Missing, ψ, bags)
             dψ[i] += Δ[i, bi]
         end
     end
-    Zero(), dψ, Zero(), DoesNotExist(), Zero()
+    ZeroTangent(), dψ, ZeroTangent(), NoTangent(), ZeroTangent()
 end
 
 function ChainRulesCore.rrule(::typeof(segmented_lse_forw),
         x::AbstractMatrix, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
     M = _lse_precomp(x, r, bags)
     y = _segmented_lse_norm(x, ψ, r, bags, M)
-    grad = Δ -> (NO_FIELDS, segmented_lse_back(Δ, y, x, ψ, r, bags, M)...)
+    grad = Δ -> (NoTangent(), segmented_lse_back(Δ, y, x, ψ, r, bags, M)...)
     y, grad
 end
 
 function segmented_lse_forw(::typeof(segmented_lse_forw), x::Missing, ψ::AbstractVector, r::AbstractVector, bags::AbstractBags)
     y = segmented_lse_forw(x, ψ, r, bags)
-    grad = Δ -> (NO_FIELDS, segmented_lse_back(Δ, x, ψ, bags)...)
+    grad = Δ -> (NoTangent(), segmented_lse_back(Δ, x, ψ, bags)...)
     y, grad
 end

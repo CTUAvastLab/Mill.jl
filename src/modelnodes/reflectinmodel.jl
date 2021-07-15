@@ -1,5 +1,5 @@
 """
-    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=d -> BagCount(SegmentedMeanMax(d));
+    reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=BagCount ∘ SegmentedMeanMax;
         fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true)
 
 Build a `Mill.jl` model capable of processing `x`.
@@ -21,31 +21,31 @@ model is instantiated as `identity` unless `single_scalar_identity` is `false`.
 ```jldoctest
 julia> n1 = ProductNode((; a=ArrayNode(NGramMatrix(["a", "b"]))))
 ProductNode with 2 obs
-  └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+  └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements)
 
 julia> n2 = ProductNode((ArrayNode([0 1]), BagNode(ArrayNode([0 1; 2 3]), bags([1:1, 2:2]))))
 ProductNode with 2 obs
-  ├── ArrayNode(1×2 Array with Int64 elements) with 2 obs
+  ├── ArrayNode(1×2 Array with Int64 elements)
   └── BagNode with 2 obs
-        └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+        └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> n = ProductNode((n1, n2))
 ProductNode with 2 obs
   ├── ProductNode with 2 obs
-  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs
+  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements)
   └── ProductNode with 2 obs
-        ├── ArrayNode(1×2 Array with Int64 elements) with 2 obs
+        ├── ArrayNode(1×2 Array with Int64 elements)
         └── BagNode with 2 obs
               ⋮
 
 julia> printtree(n; trav=true)
 ProductNode with 2 obs [""]
   ├── ProductNode with 2 obs ["E"]
-  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) with 2 obs ["M"]
+  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) ["M"]
   └── ProductNode with 2 obs ["U"]
-        ├── ArrayNode(1×2 Array with Int64 elements) with 2 obs ["Y"]
+        ├── ArrayNode(1×2 Array with Int64 elements) ["Y"]
         └── BagNode with 2 obs ["c"]
-              └── ArrayNode(2×2 Array with Int64 elements) with 2 obs ["e"]
+              └── ArrayNode(2×2 Array with Int64 elements) ["e"]
 
 julia> reflectinmodel(n) |> printtree
 ProductModel … ↦ ArrayModel(Dense(20, 10))
@@ -56,7 +56,7 @@ ProductModel … ↦ ArrayModel(Dense(20, 10))
         └── BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))
               └── ArrayModel(Dense(2, 10))
 
-julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d)) |> printtree
+julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean) |> printtree
 ProductModel … ↦ ArrayModel(Dense(6, 3))
   ├── ProductModel … ↦ ArrayModel(identity)
   │     └── a: ArrayModel(Dense(2053, 3))
@@ -65,9 +65,9 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
         └── BagModel … ↦ SegmentedMean(3) ↦ ArrayModel(Dense(3, 3))
               └── ArrayModel(Dense(2, 3))
 
-julia> reflectinmodel(n, d -> Dense(d, 3), d -> SegmentedMean(d);
+julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean;
                         fsm=Dict("e" => d -> Chain(Dense(d, 2), Dense(2, 2))),
-                        fsa=Dict("c" => d -> SegmentedLSE(d)),
+                        fsa=Dict("c" => SegmentedLSE),
                         single_key_identity=false,
                         single_scalar_identity=false) |> printtree
 ProductModel … ↦ ArrayModel(Dense(6, 3))
@@ -81,7 +81,7 @@ ProductModel … ↦ ArrayModel(Dense(6, 3))
 
 See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`ArrayNode`](@ref).
 """
-function reflectinmodel(x, fm=d -> Dense(d, 10), fa=d -> BagCount(SegmentedMeanMax(d)); fsm=Dict(),
+function reflectinmodel(x, fm=d -> Dense(d, 10), fa=BagCount ∘ SegmentedMeanMax; fsm=Dict(),
         fsa=Dict(), single_key_identity=true, single_scalar_identity=true, all_imputing=false)
     _reflectinmodel(x, fm, fa, fsm, fsa, "", single_key_identity, single_scalar_identity, all_imputing)[1]
 end

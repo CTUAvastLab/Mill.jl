@@ -168,16 +168,16 @@ end
 @testset "NGramMatrix to SparseMatrix" begin
     for (n, m) in product([2,3,5], [10, 100, 1000])
         b = 256
-        s = ["hello", "world", "!!!"]
-        si = map(codeunits, s)
-        sc = map(i -> Int.(i), si)
-        B = NGramMatrix(s, n, b, m)
-        Bi = NGramMatrix(si, n, b, m)
-        Bc = NGramMatrix(sc, n, b, m)
+        S = ["hello", "world", "!!!"]
+        Si = map(codeunits, S)
+        Sc = map(i -> Int.(i), Si)
+        B = NGramMatrix(S, n, b, m)
+        Bi = NGramMatrix(Si, n, b, m)
+        Bc = NGramMatrix(Sc, n, b, m)
         @test SparseMatrixCSC(B) == SparseMatrixCSC(Bi) == SparseMatrixCSC(Bc)
-        @test SparseMatrixCSC(countngrams(s, n, b, m)) == SparseMatrixCSC(B)
-        @test SparseMatrixCSC(countngrams(si, n, b, m)) == SparseMatrixCSC(Bi)
-        @test SparseMatrixCSC(countngrams(sc, n, b, m)) == SparseMatrixCSC(Bc)
+        @test SparseMatrixCSC(countngrams(S, n, b, m)) == SparseMatrixCSC(B)
+        @test SparseMatrixCSC(countngrams(Si, n, b, m)) == SparseMatrixCSC(Bi)
+        @test SparseMatrixCSC(countngrams(Sc, n, b, m)) == SparseMatrixCSC(Bc)
     end
 end
 
@@ -186,14 +186,14 @@ end
         b = 256
         A = randn(10, m)
 
-        s = [randstring(100) for _ in 1:10]
-        si = map(codeunits, s)
-        sc = map(i -> Int.(i), si)
-        B = NGramMatrix(s, n, b, m)
-        Bi = NGramMatrix(si, n, b, m)
-        Bc = NGramMatrix(sc, n, b, m)
+        S = [randstring(100) for _ in 1:10]
+        Si = map(codeunits, S)
+        Sc = map(i -> Int.(i), Si)
+        B = NGramMatrix(S, n, b, m)
+        Bi = NGramMatrix(Si, n, b, m)
+        Bc = NGramMatrix(Sc, n, b, m)
 
-        @test all(A * B ≈ A * countngrams(s, n, b, m))
+        @test all(A * B ≈ A * countngrams(S, n, b, m))
         @test all(A * Bi ≈ A * B)
         @test all(A * Bc ≈ A * B)
 
@@ -255,8 +255,8 @@ end
 
 @testset "NGramMatrix multiplication second derivative" begin
     for (n, m) in product([2, 3], [10, 20])
-        s = [randstring(10) for _ in 1:10]
-        B = NGramMatrix(s, n, 256, m)
+        S = [randstring(10) for _ in 1:10]
+        B = NGramMatrix(S, n, 256, m)
         A = randn(10, m)
         f = gradf(A -> sin.(A * B), A)
         df = gradf(A -> gradient(f, A)[1], A)
@@ -265,19 +265,19 @@ end
 end
 
 @testset "integration with MiLL & Flux" begin
-    s = ["hello", "world", "!!!"]
-    si = map(i -> Int.(codeunits(i)), s)
-    for (a, s) in [(NGramMatrix(s, 3, 256, 2057), s), (NGramMatrix(si, 3, 256, 2057), si)]
-        @test reduce(catobs, [a, a]).s == vcat(s,s)
-        @test hcat(a,a).s == vcat(s,s)
+    S = ["hello", "world", "!!!"]
+    Si = map(i -> Int.(codeunits(i)), S)
+    for (A, S) in [(NGramMatrix(S, 3, 256, 2057), S), (NGramMatrix(Si, 3, 256, 2057), Si)]
+        @test reduce(catobs, [A, A]).S == vcat(S, S)
+        @test hcat(A, A).S == vcat(S, S)
 
         W = randn(40, 2057)
-        @test gradtest(W -> W * a, W)
+        @test gradtest(W -> W * A, W)
 
-        a = ArrayNode(a, nothing)
-        @test reduce(catobs, [a, a]).data.s == vcat(s,s)
-        a = BagNode(a, [1:3], nothing)
-        @test reduce(catobs, [a, a]).data.data.s == vcat(s,s)
+        n = ArrayNode(A, nothing)
+        @test reduce(catobs, [n, n]).data.S == vcat(S, S)
+        n = BagNode(n, [1:3], nothing)
+        @test reduce(catobs, [n, n]).data.data.S == vcat(S, S)
     end
 end
 
@@ -303,15 +303,15 @@ begin
     println("Benchmarking multiplication")
     # begin block body
     A = randn(80,2053);
-    s = [randstring(10) for i in 1:1000];
-    B = NGramMatrix(s, 3, 256, 2053)
-    C = sparse(countngrams(s, 3, 256, size(A, 2)));
+    S = [randstring(10) for i in 1:1000];
+    B = NGramMatrix(S, 3, 256, 2053)
+    C = sparse(countngrams(S, 3, 256, size(A, 2)));
     println("A * B::NGramMatrix (This should be the fastest)");
     @btime A*B;                                                 # 526.456 μs (2002 allocations: 671.95 KiB)
-    println("A * countngrams(s, 3, 256, size(A, 2))")
-    @btime A * countngrams(s, 3, 256, size(A, 2));                   # 154.646 ms (3013 allocations: 16.38 MiB)
-    println("A * sparse(countngrams(s, 3, 256, size(A, 2)))")
-    @btime A*sparse(countngrams(s, 3, 256, size(A, 2)));           # 7.525 ms (3013 allocations: 16.57 MiB)
-    print("A * C where C = sparse(countngrams(s, 3, 256, size(A, 2)));");
+    println("A * countngrams(S, 3, 256, size(A, 2))")
+    @btime A * countngrams(S, 3, 256, size(A, 2));                   # 154.646 ms (3013 allocations: 16.38 MiB)
+    println("A * sparse(countngrams(S, 3, 256, size(A, 2)))")
+    @btime A*sparse(countngrams(S, 3, 256, size(A, 2)));           # 7.525 ms (3013 allocations: 16.57 MiB)
+    print("A * C where C = sparse(countngrams(S, 3, 256, size(A, 2)));");
     @btime A*C;                                                 # 1.527 ms (2 allocations: 625.08 KiB)
 end

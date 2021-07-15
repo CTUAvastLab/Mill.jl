@@ -201,8 +201,8 @@ function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector
 end
 
 function ChainRulesCore.rrule(::typeof(bagconv), x, bags, fs::Matrix...)
-    bagconv(x, bags, fs...), Δ -> (NO_FIELDS, @thunk(∇xbagconv(Δ, x, bags,  fs...)),
-                                   DoesNotExist(),  ∇wbagconv(Δ, x, bags,  fs...)...)
+    bagconv(x, bags, fs...), Δ -> (NoTangent(), @thunk(∇xbagconv(Δ, x, bags,  fs...)),
+                                   NoTangent(),  ∇wbagconv(Δ, x, bags,  fs...)...)
 end
 
 struct BagConv{T, F}
@@ -254,7 +254,7 @@ function ∇convsum(Δ, bags, n)
 end
 
 function ChainRulesCore.rrule(::typeof(convsum), bags, xs...)
-    convsum(bags, xs...), Δ -> (NO_FIELDS, DoesNotExist(),  ∇convsum(Δ, bags, length(xs))...)
+    convsum(bags, xs...), Δ -> (NoTangent(), NoTangent(),  ∇convsum(Δ, bags, length(xs))...)
 end
 
 legacy_bagconv(x, bags, f::AbstractArray{T, 3}) where {T} = convsum(bags, [f[:, :, i]*x for i in 1:size(f, 3)]...)

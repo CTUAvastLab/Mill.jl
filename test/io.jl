@@ -1,6 +1,6 @@
 @testset "data and model node io" begin
     an = ArrayNode(ones(2,5))
-    @test repr(an) == "ArrayNode(2×5 Array with Float64 elements) with 5 obs"
+    @test repr(an) == "ArrayNode(2×5 Array with Float64 elements)"
     @test repr(an; context=:compact => true) == "ArrayNode"
     @test repr(MIME("text/plain"), an) == 
         """
@@ -19,9 +19,9 @@
     @test repr(MIME("text/plain"), bn) == 
         """
         BagNode with 2 obs
-          └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
+          └── ArrayNode(2×5 Array with Float64 elements)"""
 
-    bnm = reflectinmodel(bn, d -> Dense(d, 10), d -> SegmentedMean(d))
+    bnm = reflectinmodel(bn, d -> Dense(d, 10), SegmentedMean)
     @test repr(bnm) == "BagModel … ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))"
     @test repr(bnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), bnm) == 
@@ -35,7 +35,7 @@
     @test repr(MIME("text/plain"), wbn) == 
         """
         WeightedBagNode with 2 obs
-          └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
+          └── ArrayNode(2×5 Array with Float64 elements)"""
 
     wbnm = reflectinmodel(wbn)
     @test repr(wbnm) == "BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))"
@@ -52,11 +52,11 @@
         """
         ProductNode with 2 obs
           ├─── bn: BagNode with 2 obs
-          │          └── ArrayNode(2×5 Array with Float64 elements) with 5 obs
+          │          └── ArrayNode(2×5 Array with Float64 elements)
           └── wbn: WeightedBagNode with 2 obs
-                     └── ArrayNode(2×5 Array with Float64 elements) with 5 obs"""
+                     └── ArrayNode(2×5 Array with Float64 elements)"""
 
-    pnm = reflectinmodel(pn, d -> Dense(d, 10), d -> SegmentedMean(d) |> BagCount)
+    pnm = reflectinmodel(pn, d -> Dense(d, 10), BagCount ∘ SegmentedMean)
     @test repr(pnm) == "ProductModel … ↦ ArrayModel(Dense(20, 10))"
     @test repr(pnm; context=:compact => true) == "ProductModel"
     @test repr(MIME("text/plain"), pnm) ==
@@ -223,7 +223,7 @@ end
 
 @testset "ngram matrix io" begin
     X = NGramMatrix(["a", "b", "c"])
-    @test repr(X) == "NGramMatrix(s = [\"a\", \"b\", \"c\"], n = 3, b = 256, m = 2053)"
+    @test repr(X) == "NGramMatrix(S = [\"a\", \"b\", \"c\"], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053×3 NGramMatrix"
     @test repr(MIME("text/plain"), X) == 
         """
@@ -233,7 +233,7 @@ end
          \"c\""""
 
     X = NGramMatrix([missing, "b", missing] |> PooledArray)
-    @test repr(X) == "NGramMatrix(s = Union{Missing, String}[missing, \"b\", missing], n = 3, b = 256, m = 2053)"
+    @test repr(X) == "NGramMatrix(S = Union{Missing, String}[missing, \"b\", missing], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053×3 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
@@ -243,7 +243,7 @@ end
          missing"""
 
     X = NGramMatrix([codeunits("hello"), codeunits("world")])
-    @test repr(X) == "NGramMatrix(s = CodeUnits{UInt8, String}" *
+    @test repr(X) == "NGramMatrix(S = CodeUnits{UInt8, String}" *
         "[[0x68, 0x65, 0x6c, 0x6c, 0x6f], [0x77, 0x6f, 0x72, 0x6c, 0x64]], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053×2 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
@@ -253,7 +253,7 @@ end
          UInt8[0x77, 0x6f, 0x72, 0x6c, 0x64]"""
 
     X = NGramMatrix([[1,2,3], missing, missing])
-    @test repr(X) == "NGramMatrix(s = Union{Missing, Vector{Int64}}[[1, 2, 3], missing, missing], n = 3, b = 256, m = 2053)"
+    @test repr(X) == "NGramMatrix(S = Union{Missing, Vector{Int64}}[[1, 2, 3], missing, missing], n = 3, b = 256, m = 2053)"
     @test repr(X; context=:compact => true) == "2053×3 NGramMatrix"
     @test repr(MIME("text/plain"), X) ==
         """

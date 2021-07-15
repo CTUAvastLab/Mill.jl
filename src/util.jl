@@ -45,7 +45,7 @@ julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 
 ProductNode with 2 obs
   ├── BagNode with 2 obs
   │     └── ∅
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> pred_lens(x -> x isa ArrayNode, n)
 1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
@@ -67,7 +67,7 @@ julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 
 ProductNode with 2 obs
   ├── BagNode with 2 obs
   │     └── ∅
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> list_lens(n)
 9-element Vector{Lens}:
@@ -97,7 +97,7 @@ julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 
 ProductNode with 2 obs
   ├── BagNode with 2 obs
   │     └── ∅
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> findnonempty_lens(n)
 3-element Vector{Lens}:
@@ -122,7 +122,7 @@ julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 
 ProductNode with 2 obs
   ├── BagNode with 2 obs
   │     └── ∅
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> find_lens(n, n.data[1])
 1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
@@ -158,7 +158,7 @@ julia> printtree(n; trav=true)
 ProductNode with 2 obs [""]
   ├── BagNode with 2 obs ["E"]
   │     └── ∅ ["M"]
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs ["U"]
+  └── ArrayNode(2×2 Array with Int64 elements) ["U"]
 
 julia> code2lens(n, "U")
 (@lens _.data[2])
@@ -182,7 +182,7 @@ julia> printtree(n; trav=true)
 ProductNode with 2 obs [""]
   ├── BagNode with 2 obs ["E"]
   │     └── ∅ ["M"]
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs ["U"]
+  └── ArrayNode(2×2 Array with Int64 elements) ["U"]
 
 julia> lens2code(n, (@lens _.data[2]))
 "U"
@@ -203,8 +203,8 @@ Convert `Setfield.Lens` `l` for a data node to a new lens for accessing the same
 julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
-  │     └── ArrayNode(2×2 Array with Float64 elements) with 2 obs
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  │     └── ArrayNode(2×2 Array with Float64 elements)
+  └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> m = reflectinmodel(n)
 ProductModel … ↦ ArrayModel(Dense(20, 10))
@@ -238,8 +238,8 @@ Convert `Setfield.Lens` `l` for a model node to a new lens for accessing the sam
 julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
-  │     └── ArrayNode(2×2 Array with Float64 elements) with 2 obs
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  │     └── ArrayNode(2×2 Array with Float64 elements)
+  └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> m = reflectinmodel(n)
 ProductModel … ↦ ArrayModel(Dense(20, 10))
@@ -275,13 +275,13 @@ Short description
 julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode with 2 obs
   ├── BagNode with 2 obs
-  │     └── ArrayNode(2×2 Array with Float64 elements) with 2 obs
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  │     └── ArrayNode(2×2 Array with Float64 elements)
+  └── ArrayNode(2×2 Array with Int64 elements)
 
 julia> replacein(n, n.data[1], ArrayNode(maybehotbatch([1, 2], 1:2)))
 ProductNode with 2 obs
-  ├── ArrayNode(2×2 MaybeHotMatrix with Bool elements) with 2 obs
-  └── ArrayNode(2×2 Array with Int64 elements) with 2 obs
+  ├── ArrayNode(2×2 MaybeHotMatrix with Bool elements)
+  └── ArrayNode(2×2 Array with Int64 elements)
 ```
 """
 replacein(x, oldnode, newnode) = x

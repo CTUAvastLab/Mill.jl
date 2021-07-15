@@ -78,7 +78,6 @@ function _next_ngram(z, i, s::Code, n, b)
     z *= b
     z += i ≤ length(s) ? s[i] : string_end_code()
     z -= b^n * (i > n ? s[i - n] : string_start_code())
-    z
 end
 
 Base.iterate(it::NGramIterator{Missing}) = nothing
@@ -90,11 +89,11 @@ function Base.iterate(it::NGramIterator, (z, i) = (_init_z(it), 1))
 end
 
 _init_z(it) = _init_z(it.n, it.b)
-function _init_z(n, b)
-    z = 0
+function _init_z(n::T, b::T) where T
+    z = zero(T)
     for _ in 1:n
         z *= b
-        z += 1
+        z += one(T)
     end
     string_start_code() * z
 end
@@ -241,26 +240,26 @@ See also: [`NGramIterator`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countn
     [`countngrams!`](@ref).
 """
 struct NGramMatrix{T, U, V} <: AbstractMatrix{V}
-    s::U
+    S::U
     n::Int
     b::Int
     m::Int
 
-    function NGramMatrix(s::AbstractVector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Sequence
-        new{T, typeof(s), Int}(s, n, b, m)
+    function NGramMatrix(S::AbstractVector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Sequence
+        new{T, typeof(S), Int}(S, n, b, m)
     end
 
-    function NGramMatrix(s::AbstractVector{Missing}, n::Int=3, b::Int=256, m::Int=2053)
-        new{Missing, typeof(s), Missing}(s, n, b, m)
+    function NGramMatrix(S::AbstractVector{Missing}, n::Int=3, b::Int=256, m::Int=2053)
+        new{Missing, typeof(S), Missing}(S, n, b, m)
     end
 
-    function NGramMatrix(s::AbstractVector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Maybe{Sequence}
-        new{T, typeof(s), Maybe{Int}}(s, n, b, m)
+    function NGramMatrix(S::AbstractVector{T}, n::Int=3, b::Int=256, m::Int=2053) where T <: Maybe{Sequence}
+        new{T, typeof(S), Maybe{Int}}(S, n, b, m)
     end
 
-    function NGramMatrix{T, U, V}(s, n::Int=3, b::Int=256, m::Int=2053) where
+    function NGramMatrix{T, U, V}(S, n::Int=3, b::Int=256, m::Int=2053) where
             {T <: Maybe{Sequence}, U <: AbstractVector{T}, V <: Maybe{Int}}
-        new{T, U, V}(convert(U, s), n, b, m)
+        new{T, U, V}(convert(U, S), n, b, m)
     end
 end
 
@@ -287,21 +286,21 @@ See also: [`NGramIterator`](@ref), [`ngrams`](@ref), [`ngrams!`](@ref), [`countn
 """
 NGramMatrix(s::Maybe{Sequence}, args...) = NGramMatrix([s], args...)
 
-NGramIterator(A::NGramMatrix, i::Integer) = NGramIterator(A.s[i], A.n, A.b, A.m)
+NGramIterator(A::NGramMatrix, i::Integer) = NGramIterator(A.S[i], A.n, A.b, A.m)
 
-Base.length(A::NGramMatrix) = A.m * length(A.s)
-Base.size(A::NGramMatrix) = (A.m, length(A.s))
-Base.size(A::NGramMatrix, d) = (d == 1) ? A.m : length(A.s)
+Base.length(A::NGramMatrix) = A.m * length(A.S)
+Base.size(A::NGramMatrix) = (A.m, length(A.S))
+Base.size(A::NGramMatrix, d) = (d == 1) ? A.m : length(A.S)
 
 Base.getindex(X::NGramMatrix, idcs...) = (@boundscheck checkbounds(X, idcs...); _getindex(X, idcs...))
-_getindex(X::NGramMatrix, ::Colon, i::Integer) = NGramMatrix(X.s[[i]], X.n, X.b, X.m)
-_getindex(X::NGramMatrix, ::Colon, i::AbstractArray) = NGramMatrix(X.s[i], X.n, X.b, X.m)
-_getindex(X::NGramMatrix, ::Colon, ::Colon) = NGramMatrix(X.s[:], X.n, X.b, X.m)
+_getindex(X::NGramMatrix, ::Colon, i::Integer) = NGramMatrix(X.S[[i]], X.n, X.b, X.m)
+_getindex(X::NGramMatrix, ::Colon, i::AbstractArray) = NGramMatrix(X.S[i], X.n, X.b, X.m)
+_getindex(X::NGramMatrix, ::Colon, ::Colon) = NGramMatrix(X.S[:], X.n, X.b, X.m)
 
-subset(a::NGramMatrix, i) = NGramMatrix(a.s[i], a.n, a.b, a.m)
+subset(a::NGramMatrix, i) = NGramMatrix(a.S[i], a.n, a.b, a.m)
 
 function Base.convert(::Type{<:NGramMatrix{T, U}}, A::NGramMatrix) where {T, U <: AbstractVector{T}}
-    NGramMatrix(convert(U, A.s), A.n, A.b, A.m)
+    NGramMatrix(convert(U, A.S), A.n, A.b, A.m)
 end
 
 function Base.promote_rule(::Type{NGramMatrix{T, U, V}}, ::Type{NGramMatrix{A, B, C}}) where
@@ -330,12 +329,12 @@ end
 Base.hcat(As::T...) where T <: NGramMatrix = _typed_hcat(T, As)
 Base.hcat(As::NGramMatrix...) = _typed_hcat(_promote_types(As...), As)
 function _typed_hcat(::Type{T}, As::Tuple{Vararg{NGramMatrix}}) where T <: NGramMatrix
-    T(vcat(getfield.(As, :s)...), _check_nbm(As)...)
+    T(vcat([A.S for A in As]...), _check_nbm(As)...)
 end
 
 Base.reduce(::typeof(hcat), As::Vector{<:NGramMatrix}) = _typed_hcat(mapreduce(typeof, promote_type, As), As)
 function _typed_hcat(::Type{T}, As::AbstractVector{<:NGramMatrix}) where T <: NGramMatrix
-    T(reduce(vcat, getfield.(As, :s)), _check_nbm(As)...)
+    T(reduce(vcat, [A.S for A in As]), _check_nbm(As)...)
 end
 
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Int64, UInt}(x)
@@ -362,7 +361,7 @@ Zygote.@adjoint A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); Zygote.p
 _mul(A::AbstractMatrix, B::NGramMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
 
 # TODO rewrite this to less parameters once Zygote allows for composite grads
-_mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul(A, B.s, B.n, B.b, B.m)
+_mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul(A, B.S, B.n, B.b, B.m)
 
 function _mul(A::AbstractMatrix, S::AbstractVector{T}, n, b, m) where T <: Maybe{Sequence}
     T_res = Missing <: T ? Union{eltype(A), Missing} : eltype(A)
@@ -389,7 +388,7 @@ end
 function ChainRulesCore.rrule(::typeof(_mul_∇A), Δ, A, S, n, b, m)
     y = _mul_∇A(Δ, A, S, n, b, m)
     function _mul_∇A_pullback(Δ₂)
-        return (NO_FIELDS, _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)...)
+        return (NoTangent(), _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)...)
     end
     y, _mul_∇A_pullback
 end
@@ -400,10 +399,11 @@ end
 
 _mul_vec!(C, k, A, z, s::AbstractString, args...) = _mul_vec!(C, k, A, z, codeunits(s), args...)
 function _mul_vec!(C, k, A, z, s, n, b, m, ψ=nothing)
-    @inbounds for l in 1:_len(s, n)
+    for l in 1:_len(s, n)
         z = _next_ngram(z, l, s, n, b)
-        @inbounds for i in 1:size(C, 1)
-            C[i, k] += A[i, z % m + 1]
+        zm = z%m + 1
+        for i in 1:size(C, 1)
+            @inbounds C[i, k] += A[i, zm]
         end
     end
 end
@@ -411,15 +411,16 @@ _mul_vec!(C, k, A, z, s::Missing, n, b, m, ψ=missing) = @inbounds C[:, k] .= ψ
 
 _∇A_mul_vec!(Δ, k, ∇A, z, s::AbstractString, args...) = _∇A_mul_vec!(Δ, k, ∇A, z, codeunits(s), args...)
 function _∇A_mul_vec!(Δ, k, ∇A, z, s, n, b, m)
-    @inbounds for l in 1:_len(s, n)
+    for l in 1:_len(s, n)
         z = _next_ngram(z, l, s, n, b)
-        @inbounds for i in 1:size(∇A, 1)
-            ∇A[i, z % m + 1] += Δ[i, k]
+        zm = z%m + 1
+        for i in 1:size(∇A, 1)
+            @inbounds ∇A[i, zm] += Δ[i, k]
         end
     end
 end
 _∇A_mul_vec!(Δ, k, ∇A, z, s::Missing, n, b, m) = return
 
-Base.hash(M::NGramMatrix, h::UInt) = hash((M.s, M.n, M.b, M.m), h)
-(M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.s == M2.s, true) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
-Base.isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.s, M2.s) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
+Base.hash(M::NGramMatrix, h::UInt) = hash((M.S, M.n, M.b, M.m), h)
+(M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.S == M2.S, true) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
+Base.isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.S, M2.S) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
