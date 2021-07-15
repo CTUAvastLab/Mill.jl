@@ -36,7 +36,13 @@ end
 
 Flux.@functor ArrayModel
 
-(m::ArrayModel)(x::ArrayNode) = ArrayNode(m.m(x.data))
+# (m::ArrayModel)(x::ArrayNode) = ArrayNode(m.m(getfield(x, :data)))
+
+function (m::ArrayModel)(x::ArrayNode) 
+    c = getfield(m, :m)
+    a = getfield(x, :data)
+    ArrayNode(c(a))
+end
 
 """
     identity_model()
@@ -61,22 +67,6 @@ Alias for `ArrayModel{typeof(identity)}`.
 See also: [`ArrayModel`](@ref), [`identity_model`](@ref).
 """
 const IdentityModel = ArrayModel{typeof(identity)}
-
-function HiddenLayerModel(m::ArrayModel, x::ArrayNode, k::Int)
-    os = Flux.activations(m.m, x.data)
-    layers = Chain(map(x -> Dense(size(x,1), k), os)...)
-    ArrayModel(layers), ArrayNode(os[end])
-end
-
-function mapactivations(hm::ArrayModel, x::ArrayNode, m::ArrayModel)
-    os = Flux.activations(m.m, x.data)
-    hx = mapfoldl((mx) -> mx[1](mx[2]),+,zip(hm.m, os))
-    (ArrayNode(hx), ArrayNode(os[end]))
-end
-
-fold(f, m::ArrayModel, x) = f(m, x)
-
-Flux.activations(::typeof(identity), x::Matrix) = (x,)
 
 # Base.hash(m::ArrayModel{T}, h::UInt) where {T} = hash((T, m.m), h)
 # (m1::ArrayModel{T} == m2::ArrayModel{T}) where {T} = m1.m == m2.m

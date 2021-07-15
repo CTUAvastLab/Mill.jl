@@ -94,37 +94,14 @@ Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 
 function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
-    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
+    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
 end
+# function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
+#     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
+# end
+
 function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
+    ms = getfield(m, :ms)
+    cm = getfield(m, :m)
+    cm(vcat(map((sm, sx) -> sm(sx), ms, getfield(x, :data))...))
 end
-
-function HiddenLayerModel(m::ProductModel, x::ProductNode, k::Int)
-    ks = keys(m.ms)
-    hxms = [HiddenLayerModel(m.ms[i], x.data[i], k) for i in keys(m.ms)]
-    hms = (;[ks[i] => hxms[i][1] for i in 1:length(ks)]...)
-    xms = reduce(vcat, [hxms[i][2] for i in 1:length(ks)])
-
-    hm, o = HiddenLayerModel(m.m, xms, k)
-    ProductModel(hms, hm), o
-end
-
-function mapactivations(hm::ProductModel, x::ProductNode, m::ProductModel)
-    ks = keys(m.ms)
-    _xxs = [mapactivations(hm.ms[i], x.data[i], m.ms[i]) for i in keys(m.ms)]
-    hxs = foldl(+, [_xxs[i][1].data for i in 1:length(ks)])
-    xxs = reduce(vcat, [_xxs[i][2] for i in 1:length(ks)])
-
-    ho, o = mapactivations(hm.m, xxs, m.m)
-    (ArrayNode(ho.data + hxs), o)
-end
-
-function fold(f, m::ProductModel, x)
-    o₁ = map(k -> fold(f, m.ms[k], x.data[k]), keys(m.ms))
-    o₂ = f(o₁)
-    f(m.m, o₂)
-end
-
-# Base.hash(m::ProductModel{TT,T}, h::UInt) where {TT,T} = hash((TT, T, m.ms, m.m), h)
-# (m1::ProductModel{TT,T} == m2::ProductModel{TT,T}) where {TT,T} = m1.ms == m2.ms && m1.m == m2.m

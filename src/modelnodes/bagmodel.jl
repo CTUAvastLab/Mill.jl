@@ -69,39 +69,20 @@ function BagModel(im::Union{MillFunction, AbstractMillModel}, a::Union{AbstractA
     BagModel(_make_array_model(im), a, _make_array_model(bm))
 end
 
-(m::BagModel)(x::BagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(x.data), x.bags))
-(m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags)))
-(m::BagModel)(x::WeightedBagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
-(m::BagModel)(x::WeightedBagNode{Missing}) = m.bm(ArrayNode(m.a(x.data, x.bags, x.weights)))
+# (m::BagModel)(x::BagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(getfield(x, :data)), x.bags))
+# (m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(getfield(x, :data), x.bags)))
+(m::BagModel)(x::BagNode{<:AbstractMillNode}) = _bag_forward(m, x)
+(m::BagModel)(x::BagNode{Missing}) = _bag_forward(m, x)
+(m::BagModel)(x::WeightedBagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(getfield(x, :data)), x.bags, x.weights))
+(m::BagModel)(x::WeightedBagNode{Missing}) = m.bm(ArrayNode(m.a(getfield(x, :data), x.bags, x.weights)))
 
-function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
-    im, o = HiddenLayerModel(m.im, x.data, k)
-    a = SegmentedMax(k)
-    b = m.a(o, x.bags)
-    bm, o = HiddenLayerModel(m.bm, b, k)
-    BagModel(im, a, bm), o
-end
-
-function mapactivations(hm::BagModel, x::BagNode{<:AbstractMillNode}, m::BagModel)
-    hmi, mi = mapactivations(hm.im, x.data, m.im)
-    ai = m.a(mi, x.bags)
-    hai = hm.a(hmi, x.bags)
-    hbo, bo = mapactivations(hm.bm, ai, m.bm)
-    (ArrayNode(hbo.data + hai.data), bo)
-end
-
-function mapactivations(hm::BagModel, x::BagNode{<:Missing}, m::BagModel)
-    ai = m.a(missing, x.bags)
-    hai = hm.a(missing, x.bags)
-    hbo, bo = mapactivations(hm.bm, ArrayNode(ai), m.bm)
-    (ArrayNode(hbo.data + hai), bo)
-end
-
-function fold(f, m::BagModel, x)
-    o₁ = fold(f, m.im, x.data)
-    o₂ = f(m.a, o₁, x.bags)
-    o₃ = fold(f, m.bm, o₂)
-    o₃
+function _bag_forward(m, x)
+    im = getfield(m, :im)
+    a = getfield(m, :a)
+    bm = getfield(m, :bm)
+    bg = getfield(x, :bags)
+    xx = getfield(x, :data)
+    bm(a(im(xx), bg))
 end
 
 # Base.hash(m::BagModel{T,A,U}, h::UInt) where {T,A,U} = hash((T, A, U, m.im, m.a, m.bm), h)
