@@ -20,6 +20,8 @@
 * **fast** 
 * and dependent on only handful of other packages
 
+[**Watch our introductory talk from JuliaCon 2021** ](https://www.youtube.com/watch?v=Bf0CvltIDbE)
+
 ## Installation
 
 Run the following in REPL:
