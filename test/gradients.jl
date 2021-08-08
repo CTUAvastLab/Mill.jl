@@ -9,8 +9,8 @@
     @test gradtest(f, 2.0)
     @test gradtest(f, randn(2, 2))
 
-    m1 = Dense(2, 2, relu) |> f64
-    m2 = Dense(2, 2, relu) |> f64
+    m1 = TurboDense(2, 2, relu) |> f64
+    m2 = TurboDense(2, 2, relu) |> f64
     x = randn(2, 10)
     @test gradtest(() -> m1(x), Flux.params(m1))
     @test gradtest(() -> m2(x), Flux.params(m2))
@@ -42,8 +42,8 @@ end
     @test df(A1) ≠ df(A2)
     @test gradient(df, A1) ≠ gradient(df, A2)
 
-    m1 = Dense(2, 2, relu) |> f64
-    m2 = Dense(2, 2, relu) |> f64
+    m1 = TurboDense(2, 2, relu) |> f64
+    m2 = TurboDense(2, 2, relu) |> f64
     x = randn(2, 10)
     f1 = gradf(() -> m1(x), Flux.params(m1))
     f2 = gradf(() -> m2(x), Flux.params(m2))

@@ -17,7 +17,7 @@ julia> n = ArrayNode(randn(Float32, 2, 2))
 ```
 
 ```jldoctest array_model
-julia> m = ArrayModel(Dense(2, 2))
+julia> m = ArrayModel(TurboDense(2, 2))
 ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
 ```
 

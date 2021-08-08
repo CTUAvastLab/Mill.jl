@@ -8,7 +8,7 @@
     an3 = ArrayNode(rand(10, 2))
     ds = ProductNode((pn, an3))
     # printtree(ds)
-    m = reflectinmodel(ds, d -> Chain(Dense(d, 4, relu), Dense(4,3)), SegmentedMeanMax)
+    m = reflectinmodel(ds, d -> Chain(TurboDense(d, 4, relu), TurboDense(4,3)), SegmentedMeanMax)
 
 
     @test partialeval(m.ms[2], ds.data[2], an3)[1] === m.ms[2]

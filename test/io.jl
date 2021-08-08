@@ -25,7 +25,7 @@
           └── ArrayNode(2×5 Array with Float64 elements) 	# 5 obs, 128 bytes"""
     @test datasummary(bn) == "# Summary: 2 obs, 224 bytes."
 
-    bnm = reflectinmodel(bn, d -> Dense(d, 10), SegmentedMean)
+    bnm = reflectinmodel(bn, d -> TurboDense(d, 10), SegmentedMean)
     @test repr(bnm) == "BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))"
     @test repr(bnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), bnm) == 
@@ -62,7 +62,7 @@
                      └── ArrayNode(2×5 Array with Float64 elements) 	# 5 obs, 128 bytes"""
     @test datasummary(pn) == "# Summary: 2 obs, 616 bytes."
 
-    pnm = reflectinmodel(pn, d -> Dense(d, 10), BagCount ∘ SegmentedMean)
+    pnm = reflectinmodel(pn, d -> TurboDense(d, 10), BagCount ∘ SegmentedMean)
     @test repr(pnm) == "ProductModel ↦ ArrayModel(Dense(20, 10))"
     @test repr(pnm; context=:compact => true) == "ProductModel"
     @test repr(MIME("text/plain"), pnm) ==
@@ -232,11 +232,11 @@ end
 @testset "imputing dense io" begin
     m = preimputing_dense(1, 1)
     @test repr(m) == repr(m; context=:compact => true) == "[preimputing]Dense(1, 1)"
-    @test repr(MIME("text/plain"), m) == "[preimputing]Dense(1, 1)  # 2 parameters"
+    @test repr(MIME("text/plain"), m) == "[preimputing]Dense(1, 1)"
 
     m = postimputing_dense(1, 1)
     @test repr(m) == repr(m; context=:compact => true) == "[postimputing]Dense(1, 1)"
-    @test repr(MIME("text/plain"), m) == "[postimputing]Dense(1, 1)  # 2 parameters"
+    @test repr(MIME("text/plain"), m) == "[postimputing]Dense(1, 1)"
 end
 
 @testset "ngram matrix io" begin

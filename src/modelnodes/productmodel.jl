@@ -13,7 +13,7 @@ ProductNode 	# 2 obs, 16 bytes
   ├── a: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
   └── b: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
-julia> m1 = ProductModel((a=ArrayModel(Dense(2, 2)), b=ArrayModel(Dense(2, 2))))
+julia> m1 = ProductModel((a=ArrayModel(TurboDense(2, 2)), b=ArrayModel(TurboDense(2, 2))))
 ProductModel ↦ ArrayModel(identity)
   ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
@@ -65,12 +65,12 @@ If `ms` is [`AbstractMillModel`](@ref), a one-element `Tuple` is constructed fro
 
 # Examples
 ```jldoctest
-julia> ProductModel((a=ArrayModel(Dense(2, 2)), b=identity))
+julia> ProductModel((a=ArrayModel(TurboDense(2, 2)), b=identity))
 ProductModel ↦ ArrayModel(identity)
   ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(identity)
 
-julia> ProductModel((identity_model(), BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
+julia> ProductModel((identity_model(), BagModel(ArrayModel(TurboDense(2, 2)), SegmentedMean(2), identity)))
 ProductModel ↦ ArrayModel(identity)
   ├── ArrayModel(identity)
   └── BagModel ↦ SegmentedMean(2) ↦ ArrayModel(identity) 	# 1 arrays, 2 params (all zero), 48 bytes

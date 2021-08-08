@@ -18,7 +18,7 @@ Similarly, if an [`ArrayNode`](@ref) contains data `X` where `size(X, 1)` is `1`
 model is instantiated as `identity` unless `single_scalar_identity` is `false`.
 
 # Examples
-```jldoctest
+2)) 	# 2 arrays, 6 params, 104 bytee```jldoctest
 julia> n1 = ProductNode((; a=ArrayNode(NGramMatrix(["a", "b"]))))
 ProductNode 	# 2 obs, 32 bytes
   └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) 	# 2 obs, 138 bytes
@@ -56,7 +56,7 @@ ProductModel ↦ ArrayModel(Dense(20, 10)) 	# 2 arrays, 210 params, 920 bytes
         └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
               └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
 
-julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean) |> printtree
+julia> reflectinmodel(n, d -> TurboDense(d, 3), SegmentedMean) |> printtree
 ProductModel ↦ ArrayModel(Dense(6, 3)) 	# 2 arrays, 21 params, 164 bytes
   ├── ProductModel ↦ ArrayModel(identity)
   │     └── a: ArrayModel(Dense(2053, 3)) 	# 2 arrays, 6_162 params, 24.148 KiB
@@ -65,8 +65,8 @@ ProductModel ↦ ArrayModel(Dense(6, 3)) 	# 2 arrays, 21 params, 164 bytes
         └── BagModel ↦ SegmentedMean(3) ↦ ArrayModel(Dense(3, 3)) 	# 3 arrays, 15 params, 180 bytes
               └── ArrayModel(Dense(2, 3)) 	# 2 arrays, 9 params, 116 bytes
 
-julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean;
-                        fsm=Dict("e" => d -> Chain(Dense(d, 2), Dense(2, 2))),
+julia> reflectinmodel(n, d -> TurboDense(d, 3), SegmentedMean;
+                        fsm=Dict("e" => d -> Chain(TurboDense(d, 2), TurboDense(2, 2))),
                         fsa=Dict("c" => SegmentedLSE),
                         single_key_identity=false,
                         single_scalar_identity=false) |> printtree
@@ -81,7 +81,7 @@ ProductModel ↦ ArrayModel(Dense(6, 3)) 	# 2 arrays, 21 params, 164 bytes
 
 See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`ArrayNode`](@ref).
 """
-function reflectinmodel(x, fm=d -> Dense(d, 10), fa=BagCount ∘ SegmentedMeanMax; fsm=Dict(),
+function reflectinmodel(x, fm=d -> TurboDense(d, 10), fa=BagCount ∘ SegmentedMeanMax; fsm=Dict(),
         fsa=Dict(), single_key_identity=true, single_scalar_identity=true, all_imputing=false)
     _reflectinmodel(x, fm, fa, fsm, fsa, "", single_key_identity, single_scalar_identity, all_imputing)[1]
 end
@@ -152,4 +152,4 @@ _make_imputing(x::NGramMatrix{Maybe{T}}, ::typeof(identity), ai) where T <: Sequ
 _make_imputing(x::MaybeHotArray, t::Dense, ai) = postimputing_dense(t)
 _make_imputing(x::MaybeHotArray, ::typeof(identity), ai) = postimputing_dense(_identity_dense(x))
 
-_identity_dense(x) = Dense(Matrix{Float32}(I, size(x, 1), size(x, 1)), zeros(Float32, size(x, 1)))
+_identity_dense(x) = TurboDense(Matrix{Float32}(I, size(x, 1), size(x, 1)), zeros(Float32, size(x, 1)))

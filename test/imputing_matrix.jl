@@ -23,7 +23,7 @@ end
 @testset "correct pre imputing behavior for standard vector (maybe missing)" begin
     function _test_imput(W, ob::Vector, b::Vector)
         A = PreImputingMatrix(W, ob)
-        @test A * b == W * ob
+        @test A * b ≈ W * ob # ≈ because of Octavian and Blas results being very slightly different
         @test eltype(A * b) === promote_type(eltype(W), eltype(ob))
         @inferred A * b
     end
@@ -559,7 +559,7 @@ end
     @test size(A.weight) == (3, 2)
     @test A.weight isa PostImputingMatrix
 
-    d = Dense(4, 5)
+    d = TurboDense(4, 5)
     @test preimputing_dense(d).weight |> size == d.weight |> size
     @test postimputing_dense(d).weight |> size == d.weight |> size
 end

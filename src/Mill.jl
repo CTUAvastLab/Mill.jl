@@ -41,6 +41,9 @@ include("switches.jl")
 include("bags.jl")
 export AbstractBags, AlignedBags, ScatteredBags, length2bags, remapbags, bags, adjustbags
 
+include("turbodense.jl")
+export TurboDense
+
 include("datanodes/datanode.jl")
 export AbstractMillNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode

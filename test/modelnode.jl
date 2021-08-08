@@ -3,7 +3,7 @@
 const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, lisht]
 
 @testset "testing simple matrix model" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    layerbuilder(k) = TurboDense(k, 2, NNlib.relu)
     x = ArrayNode(randn(Float32, 4, 5))
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 5)
@@ -13,7 +13,7 @@ const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, l
 end
 
 @testset "testing simple aggregation model" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    layerbuilder(k) = TurboDense(k, 2, NNlib.relu)
     x = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:2, 3:4])
     m = reflectinmodel(x, layerbuilder)
     @test size(m(x).data) == (2, 2)
@@ -23,7 +23,7 @@ end
 end
 
 @testset "testing simple tuple models" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    layerbuilder(k) = TurboDense(k, 2, NNlib.relu)
     x = ProductNode((a=ArrayNode(randn(Float32, 3, 4)), b=ArrayNode(randn(Float32, 4, 4))))
     m = reflectinmodel(x, layerbuilder)
     @test eltype(m(x).data) == Float32
@@ -50,7 +50,7 @@ end
 @testset "testing nested bag model" begin
     bn = BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8])
     x = BagNode(bn, [1:2, 3:4])
-    m = reflectinmodel(x, d -> Flux.Dense(d, 2))
+    m = reflectinmodel(x, d -> TurboDense(d, 2))
     @test size(m(x).data) == (2, 2)
     @test m isa BagModel
     @test m.im isa BagModel
@@ -85,7 +85,7 @@ end
 
 @testset "reflectinmodel for missing + all_imputing" begin
     f1 = x -> reflectinmodel(x)
-    f2 = x -> reflectinmodel(x, d -> Flux.Chain(Dense(d, 10), Dense(10, 10)))
+    f2 = x -> reflectinmodel(x, d -> Flux.Chain(TurboDense(d, 10), TurboDense(10, 10)))
     f3 = x -> reflectinmodel(x; all_imputing=true)
     _get_first(x::ArrayModel{<:Flux.Chain}) = x.m[1]
     _get_first(x) = x.m
@@ -109,7 +109,7 @@ end
     x2 = NGramMatrix(["a", missing, "c"]) |> ArrayNode
     x3 = NGramMatrix(fill(missing, 3)) |> ArrayNode
     for f in [f1, f2]
-        @test _get_first(f(x1)) isa Flux.Dense
+        @test _get_first(f(x1)) isa Mill.Dense
         @test _get_first(f(x2)) isa PostImputingDense
         @test _get_first(f(x3)) isa PostImputingDense
         for x in [x1, x2, x3] @inferred f(x)(x) end
@@ -123,7 +123,7 @@ end
     x2 = rand([1, 2, missing], 3, 3) |> ArrayNode
     x3 = fill(missing, 3, 3) |> ArrayNode
     for f in [f1, f2]
-        @test _get_first(f(x1)) isa Flux.Dense
+        @test _get_first(f(x1)) isa Mill.Dense
         @test _get_first(f(x2)) isa PreImputingDense
         @test _get_first(f(x3)) isa PreImputingDense
         for x in [x1, x2, x3] @inferred f(x)(x) end
@@ -136,7 +136,7 @@ end
 
 # pn.m should be identity for any product node pn with a single key
 @testset "single key dictionary reflect in model" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    layerbuilder(k) = TurboDense(k, 2, NNlib.relu)
     fsm = Dict("" => layerbuilder)
 
     x1 = (ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
@@ -178,21 +178,21 @@ end
         @test m.ms[2] isa ArrayModel
     end
 
-    @test m1.m isa ArrayModel{<:Dense}
-    @test m2.m isa ArrayModel{<:Dense}
-    @test m3.m isa ArrayModel{<:Dense}
+    @test m1.m isa ArrayModel{<:Mill.Dense}
+    @test m2.m isa ArrayModel{<:Mill.Dense}
+    @test m3.m isa ArrayModel{<:Mill.Dense}
     @test m1_ski.m isa IdentityModel
     @test m2_ski.m isa IdentityModel
-    @test m3_ski.m isa ArrayModel{<:Dense}
+    @test m3_ski.m isa ArrayModel{<:Mill.Dense}
     # fsm overrides ski
-    @test m1_ski_fsm.m isa ArrayModel{<:Dense}
-    @test m2_ski_fsm.m isa ArrayModel{<:Dense}
-    @test m3_ski_fsm.m isa ArrayModel{<:Dense}
+    @test m1_ski_fsm.m isa ArrayModel{<:Mill.Dense}
+    @test m2_ski_fsm.m isa ArrayModel{<:Mill.Dense}
+    @test m3_ski_fsm.m isa ArrayModel{<:Mill.Dense}
 end
 
 # array model for matrices with one row should implement identity
 @testset "single scalar as identity" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    layerbuilder(k) = TurboDense(k, 2, NNlib.relu)
     x1 = ArrayNode(randn(Float32, 1, 3))
     x2 = BagNode(ArrayNode(randn(Float32, 1, 5)), [1:2, 3:5])
     x3 = (a = ArrayNode(randn(Float32, 1, 4)), b = ArrayNode(randn(Float32, 2, 4))) |> ProductNode
@@ -215,7 +215,7 @@ end
     @test size(m2(x2).data) == (2, 2)
     @test eltype(m2(x2).data) == Float32
     @test m2 isa BagModel
-    @test m2.im isa ArrayModel{<:Dense}
+    @test m2.im isa ArrayModel{<:Mill.Dense}
     @test size(m2_sci(x2).data) == (2, 2)
     @test eltype(m2_sci(x2).data) == Float32
     @test m2_sci isa BagModel
@@ -225,19 +225,19 @@ end
     @test size(m3(x3).data) == (2, 4)
     @test eltype(m3(x3).data) == Float32
     @test m3 isa ProductModel
-    @test m3.ms[1] isa ArrayModel{<:Dense}
-    @test m3.ms[2] isa ArrayModel{<:Dense}
+    @test m3.ms[1] isa ArrayModel{<:Mill.Dense}
+    @test m3.ms[2] isa ArrayModel{<:Mill.Dense}
     @test size(m3_sci(x3).data) == (2, 4)
     @test eltype(m3_sci(x3).data) == Float32
     @test m3_sci isa ProductModel
     @test m3_sci.ms[1] isa IdentityModel
-    @test m3_sci.ms[2] isa ArrayModel{<:Dense}
+    @test m3_sci.ms[2] isa ArrayModel{<:Mill.Dense}
     @inferred m3(x3)
 end
 
 @testset "model aggregation grad check w.r.t. inputs" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
+        layerbuilder(k) = TurboDense(k, 2, rand(ACTIVATIONS)) |> f64
         abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
@@ -266,7 +266,7 @@ end
 
 @testset "model aggregation grad check w.r.t. inputs weighted" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
+        layerbuilder(k) = TurboDense(k, 2, rand(ACTIVATIONS)) |> f64
         abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
@@ -295,7 +295,7 @@ end
 
 @testset "model aggregation grad check w.r.t. params" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
+        layerbuilder(k) = TurboDense(k, 2, rand(ACTIVATIONS)) |> f64
         abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
@@ -317,7 +317,7 @@ end
 
 @testset "model aggregation grad check w.r.t. params weighted" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2) |> f64
+        layerbuilder(k) = TurboDense(k, 2) |> f64
         abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
