@@ -93,15 +93,99 @@ ProductModel(ms::Union{MillFunction, AbstractMillModel},
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 
-function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
-    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
+using ManualMemory
+function (f::ManualMemory.Reference{<:AbstractMillModel})(x)
+    ManualMemory.dereference(f)(x)
 end
-# function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-#     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
-# end
+
+function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
+    as = prodparts(m.ms, x)
+    m.m(vcat(as...))
+end
+
+function prodparts(ms, x::ProductNode{<:Tuple})
+    as = Array{Any, 1}(undef, length(ms))
+    @batch for i in eachindex(ms)
+        as[i] = ms[i](x.data[i])
+    end
+    as
+end
+
+Zygote.@adjoint function prodparts(ms::T, x::ProductNode{<:Tuple}) where T
+    Δprodparts(__context__, ms, x)
+end
+
+function Δprodparts(cx::C, ms::T, x::ProductNode{<:Tuple}) where {C, T}
+    plen = length(ms)
+    ys_backs = Array{Any, 1}(undef, plen)
+    cxs = fill(cx, plen)
+    @batch for i in 1:plen
+        ys_backs[i] = Zygote._pullback(cxs[i], ms[i], x.data[i])
+    end
+    if any(map(cx -> !isnothing(cx.cache), cxs))
+        "derivatives w.r.t. global variables are not supported" |> throw
+    end
+    if isempty(ys_backs)
+        ys_backs, _ -> nothing
+    else
+        ys, backs = Zygote.unzip(ys_backs)
+        ys, function (Δ)
+            ds = Array{Any, 1}(undef, plen)
+            @batch for i in 1:plen
+                ds[i] = backs[i](Δ[i])
+            end
+            Δms, Δx = Zygote.unzip(ds)
+            Δms = Tuple(Δms)
+            Δx = Tuple(Δx)
+            (Δms, (data=Δx, metadata=nothing))
+        end
+    end
+end
+
+###
 
 function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-    ms = getfield(m, :ms)
-    cm = getfield(m, :m)
-    cm(vcat(map((sm, sx) -> sm(sx), ms, getfield(x, :data))...))
+    as = prodparts(m.ms, x)
+    m.m(vcat(as...))
+end
+
+function prodparts(ms::T, x::ProductNode{<:NamedTuple}) where T
+    as = Array{Any, 1}(undef, length(ms))
+    @batch for i in 1:length(ms)
+        as[i] = ms[i](x.data[i])
+    end
+    as
+end
+
+Zygote.@adjoint function prodparts(ms::T, x::ProductNode{<:NamedTuple}) where T
+    Δprodparts(__context__, ms, x)
+end
+
+function Δprodparts(cx::C, ms::T, x::ProductNode{<:NamedTuple}) where {C, T}
+    plen = length(ms)
+    ys_backs = Array{Any, 1}(undef, plen)
+    cxs = fill(cx, plen)
+    @batch for i in 1:plen
+        ys_backs[i] = Zygote._pullback(cxs[i], ms[i], x.data[i])
+    end
+    non_empty_caches = filter(!isnothing, map(cx -> getfield(cx, :cache), cxs))
+    if !isempty(non_empty_caches)
+        #if all caches are nothing, then leave nothing in the original one, otherwise merge
+        cx.cache = reduce(merge, non_empty_caches)
+    end
+    if isempty(ys_backs)
+        ys_backs, _ -> nothing
+    else
+        ys, backs = Zygote.unzip(ys_backs)
+        ys, function (Δ)
+            ds = Array{Any, 1}(undef, plen)
+            @batch for i in plen:-1:1
+                ds[i] = backs[i](Δ[i])
+            end
+            Δms, Δx = Zygote.unzip(ds)
+            Δms = Tuple(Δms)
+            Δx = NamedTuple{keys(x)}(Δx)
+            (Δms, (data=Δx, metadata=nothing))
+        end
+    end
 end

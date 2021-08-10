@@ -9,6 +9,7 @@ using HierarchicalUtils
 using LearnBase
 using LinearAlgebra
 using MLDataPattern
+using Polyester
 using Setfield
 using SparseArrays
 using Statistics
