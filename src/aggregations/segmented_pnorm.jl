@@ -35,9 +35,24 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedPNorm})
 end
 
 p_map(ρ::T) where T = one(T) + softplus(ρ)
-p_map(ρ::AbstractArray) = p_map.(ρ)
-inv_p_map(p::T) where T = relu(p - one(T)) + log1p(-exp(-abs(p - one(T))))
-inv_p_map(ρ::AbstractArray) = inv_p_map.(ρ)
+p_map(ρ::AbstractArray) = @turbo p_map.(ρ)
+function ChainRulesCore.rrule(::typeof(p_map), ρ::AbstractArray)
+    o = p_map(ρ)
+    function p_map_pullback(Δ)
+        t = similar(ρ)
+        @turbo for i in eachindex(t)
+            t[i] = exp(-abs(ρ[i]))
+        end
+        f = ρ .≥ 0
+        t[f] .= inv.(1 .+ t[f])
+        t[.!f] .= t[.!f] ./ (1 .+ t[.!f])
+        @turbo Δ .* t
+    end
+    o, Δ -> (NoTangent(), p_map_pullback(Δ))
+end
+
+inv_p_map(ρ::T) where T = relu(ρ - one(T)) + log1p(-exp(-abs(ρ - one(T))))
+inv_p_map(ρ::AbstractArray) = @turbo inv_p_map.(ρ)
 
 function (a::SegmentedPNorm)(x::Missing, bags::AbstractBags,
                                 w::Optional{AbstractVecOrMat}=nothing)
@@ -55,7 +70,7 @@ function _pnorm_precomp(x::AbstractMatrix, bags)
     @inbounds for (bi, b) in enumerate(bags)
         if !isempty(b)
             for j in b
-                for i in 1:size(x, 1)
+                @turbo for i in 1:size(x, 1)
                     M[i, bi] = max(M[i, bi], abs(x[i, j]))
                 end
             end
@@ -65,25 +80,75 @@ function _pnorm_precomp(x::AbstractMatrix, bags)
 end
 
 function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::AbstractVector,
-                               bags::AbstractBags, w, M)
+                               bags::AbstractBags, w::Nothing, M)
     isnothing(w) || @assert all(w .> 0)
     t = promote_type(eltype(a), eltype(ψ))
     y = zeros(t, size(a, 1), length(bags))
     M = _pnorm_precomp(a, bags)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(ψ)
+            @turbo for i in eachindex(ψ)
                 y[i, bi] = ψ[i]
             end
         else
             ws = _bagnorm(w, b)
             for j in b
-                for i in 1:size(a, 1)
-                    y[i, bi] += _weight(w, i, j, t) * abs(a[i, j]/M[i, bi])^p[i]
+                @turbo for i in 1:size(a, 1)
+                    y[i, bi] += abs(a[i, j]/M[i, bi])^p[i]
                 end
             end
-            for i in 1:size(a, 1)
-                y[i, bi] = M[i, bi] * (y[i, bi] / _weightsum(ws, i)) ^ (one(t)/p[i])
+            @turbo for i in 1:size(a, 1)
+                y[i, bi] = M[i, bi] * (y[i, bi] / ws) ^ (one(t)/p[i])
+            end
+        end
+    end
+    y
+end
+function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::AbstractVector,
+                               bags::AbstractBags, w::AbstractVector, M)
+    isnothing(w) || @assert all(w .> 0)
+    t = promote_type(eltype(a), eltype(ψ))
+    y = zeros(t, size(a, 1), length(bags))
+    M = _pnorm_precomp(a, bags)
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            @turbo for i in eachindex(ψ)
+                y[i, bi] = ψ[i]
+            end
+        else
+            ws = _bagnorm(w, b)
+            for j in b
+                @turbo for i in 1:size(a, 1)
+                    y[i, bi] += w[j] * abs(a[i, j]/M[i, bi])^p[i]
+                end
+            end
+            @turbo for i in 1:size(a, 1)
+                y[i, bi] = M[i, bi] * (y[i, bi] / ws) ^ (one(t)/p[i])
+            end
+        end
+    end
+    y
+end
+function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::AbstractVector,
+                               bags::AbstractBags, w::AbstractMatrix, M)
+    isnothing(w) || @assert all(w .> 0)
+    t = promote_type(eltype(a), eltype(ψ))
+    y = zeros(t, size(a, 1), length(bags))
+    M = _pnorm_precomp(a, bags)
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            @turbo for i in eachindex(ψ)
+                y[i, bi] = ψ[i]
+            end
+        else
+            ws = _bagnorm(w, b)
+            for j in b
+                @turbo for i in 1:size(a, 1)
+                    y[i, bi] += w[i, j] * abs(a[i, j]/M[i, bi])^p[i]
+                end
+            end
+            @turbo for i in 1:size(a, 1)
+                y[i, bi] = M[i, bi] * (y[i, bi] / ws[i]) ^ (one(t)/p[i])
             end
         end
     end
@@ -96,7 +161,7 @@ function segmented_pnorm_forw(a::Maybe{AbstractMatrix}, ψ::AbstractVector, p::A
    _segmented_pnorm_norm(a, ψ, p, bags, w, M)
 end
 
-function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
+function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w::Nothing, M)
     da = similar(a)
     dp = zero(p)
     dps1 = zero(p)
@@ -105,7 +170,7 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
     dw = isnothing(w) ? nothing : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(ψ)
+            @turbo for i in eachindex(ψ)
                 dψ[i] += Δ[i, bi]
             end
         else
@@ -113,18 +178,88 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
             dps1 .= zero(eltype(p))
             dps2 .= zero(eltype(p))
             for j in b
-                for i in 1:size(a, 1)
+                @turbo for i in 1:size(a, 1)
                     ab = abs(a[i, j])
-                    da[i, j] = Δ[i, bi] * _weight(w, i, j, eltype(p)) * sign(a[i, j]) / _weightsum(ws, i) 
+                    da[i, j] = Δ[i, bi] * sign(a[i, j]) / ws
                     da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
-                    ww = _weight(w, i, j, eltype(p)) * (ab / M[i, bi]) ^ p[i]
+                    ww = (ab / M[i, bi]) ^ p[i]
                     dps1[i] += ww * log(ab)
                     dps2[i] += ww
                 end
             end
-            for i in 1:size(a, 1)
+            @turbo for i in 1:size(a, 1)
                 t = y[i, bi] / p[i]
-                t *= dps1[i] / dps2[i] - (p[i] * log(M[i, bi]) + log(dps2[i]) - log(_weightsum(ws, i))) / p[i]
+                t *= dps1[i] / dps2[i] - (p[i] * log(M[i, bi]) + log(dps2[i]) - log(ws)) / p[i]
+                dp[i] += Δ[i, bi] * t
+            end
+        end
+    end
+    da, dψ, dp, NoTangent(), @not_implemented("Not implemented yet!")
+end
+function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w::AbstractVector, M)
+    da = similar(a)
+    dp = zero(p)
+    dps1 = zero(p)
+    dps2 = zero(p)
+    dψ = zero(ψ)
+    dw = isnothing(w) ? nothing : zero(w)
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            @turbo for i in eachindex(ψ)
+                dψ[i] += Δ[i, bi]
+            end
+        else
+            ws = _bagnorm(w, b)
+            dps1 .= zero(eltype(p))
+            dps2 .= zero(eltype(p))
+            for j in b
+                @turbo for i in 1:size(a, 1)
+                    ab = abs(a[i, j])
+                    da[i, j] = Δ[i, bi] * w[j] * sign(a[i, j]) / ws
+                    da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
+                    ww = w[j] * (ab / M[i, bi]) ^ p[i]
+                    dps1[i] += ww * log(ab)
+                    dps2[i] += ww
+                end
+            end
+            @turbo for i in 1:size(a, 1)
+                t = y[i, bi] / p[i]
+                t *= dps1[i] / dps2[i] - (p[i] * log(M[i, bi]) + log(dps2[i]) - log(ws)) / p[i]
+                dp[i] += Δ[i, bi] * t
+            end
+        end
+    end
+    da, dψ, dp, NoTangent(), @not_implemented("Not implemented yet!")
+end
+function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w::AbstractMatrix, M)
+    da = similar(a)
+    dp = zero(p)
+    dps1 = zero(p)
+    dps2 = zero(p)
+    dψ = zero(ψ)
+    dw = isnothing(w) ? nothing : zero(w)
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            @turbo for i in eachindex(ψ)
+                dψ[i] += Δ[i, bi]
+            end
+        else
+            ws = _bagnorm(w, b)
+            dps1 .= zero(eltype(p))
+            dps2 .= zero(eltype(p))
+            for j in b
+                @turbo for i in 1:size(a, 1)
+                    ab = abs(a[i, j])
+                    da[i, j] = Δ[i, bi] * w[i, j] * sign(a[i, j]) / ws[i]
+                    da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
+                    ww = w[i, j] * (ab / M[i, bi]) ^ p[i]
+                    dps1[i] += ww * log(ab)
+                    dps2[i] += ww
+                end
+            end
+            @turbo for i in 1:size(a, 1)
+                t = y[i, bi] / p[i]
+                t *= dps1[i] / dps2[i] - (p[i] * log(M[i, bi]) + log(dps2[i]) - log(ws[i])) / p[i]
                 dp[i] += Δ[i, bi] * t
             end
         end
@@ -135,7 +270,7 @@ end
 function segmented_pnorm_back(Δ, y, ψ, bags) 
     dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
-        for i in eachindex(ψ)
+        @turbo for i in eachindex(ψ)
             dψ[i] += Δ[i, bi]
         end
     end

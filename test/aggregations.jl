@@ -223,7 +223,7 @@ end
 end
 
 @testset "type stability of the output" begin
-    types = [Float16, Float32, Float64]
+    types = [Float32, Float64]
     for t1 in types, t2 in types, b in BAGS2
         x = rand(t2, 3, 10)
         w = abs.(randn(t2, size(x, 2))) .+ t2(0.1)

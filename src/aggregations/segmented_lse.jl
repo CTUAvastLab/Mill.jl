@@ -32,8 +32,24 @@ function Base.reduce(::typeof(vcat), as::Vector{<:SegmentedLSE})
                  reduce(vcat, [a.ρ for a in as]))
 end
 
-r_map(ρ) = @. softplus(ρ)
-inv_r_map(r) = @. relu(r) + log1p(-exp(-abs(r)))
+r_map(ρ) = softplus(ρ)
+r_map(ρ::AbstractArray) = @turbo r_map.(ρ)
+function ChainRulesCore.rrule(::typeof(r_map), ρ::AbstractArray)
+    o = r_map(ρ)
+    function r_map_pullback(Δ)
+        t = similar(ρ)
+        @turbo for i in eachindex(t)
+            t[i] = exp(-abs(ρ[i]))
+        end
+        f = ρ .≥ 0
+        t[f] .= inv.(1 .+ t[f])
+        t[.!f] .= t[.!f] ./ (1 .+ t[.!f])
+        @turbo Δ .* t
+    end
+    o, Δ -> (NoTangent(), r_map_pullback(Δ))
+end
+inv_r_map(ρ) = relu(ρ) + log1p(-exp(-abs(ρ)))
+inv_r_map(ρ::AbstractArray) = @turbo inv_r_map.(ρ)
 
 function (a::SegmentedLSE)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
                               w::Optional{AbstractVecOrMat{T}}=nothing) where T
@@ -46,11 +62,11 @@ function _lse_precomp(x::AbstractMatrix, r, bags)
     M = zeros(T, length(r), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if !isempty(b)
-            for i in eachindex(r)
+            @turbo for i in eachindex(r)
                 M[i, bi] = r[i] * x[i, first(b)]
             end
             for j in b[2:end]
-                for i in eachindex(r)
+                @turbo for i in eachindex(r)
                     M[i, bi] = max(M[i, bi], r[i] * x[i, j])
                 end
             end
@@ -64,16 +80,17 @@ function _segmented_lse_norm(x::AbstractMatrix, ψ, r, bags::AbstractBags, M)
     y = zeros(t, length(r), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(ψ)
+            @turbo for i in eachindex(ψ)
                 y[i, bi] = ψ[i]
             end
         else
             for j in b
+                #cannot be turboed because of numerical stability
                 for i in eachindex(r)
-                    y[i, bi] += exp.(r[i] * x[i, j] - M[i, bi])
+                    y[i, bi] += exp(r[i] * x[i, j] - M[i, bi])
                 end
             end
-            for i in eachindex(r)
+            @turbo for i in eachindex(r)
                 y[i, bi] = (log(y[i, bi]) - log(length(b)) + M[i, bi]) / r[i]
             end
         end
@@ -96,7 +113,7 @@ function segmented_lse_back(Δ, y, x, ψ, r, bags, M)
 
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(ψ)
+            @turbo for i in eachindex(ψ)
                 dψ[i] += Δ[i, bi]
             end
         else
@@ -104,18 +121,18 @@ function segmented_lse_back(Δ, y, x, ψ, r, bags, M)
                 s1[i] = s2[i] = zero(eltype(x))
             end
             for j in b
-                for i in eachindex(r)
+                @turbo for i in eachindex(r)
                     e = exp(r[i] * x[i, j] - M[i, bi])
                     s1[i] += e
                     s2[i] += x[i, j] * e
                 end
             end
             for j in b
-                for i in eachindex(r)
+                @turbo for i in eachindex(r)
                     dx[i, j] = Δ[i, bi] * exp(r[i] * x[i, j] - M[i, bi]) / s1[i]
                 end
             end
-            for i in eachindex(r)
+            @turbo for i in eachindex(r)
                 dr[i] += Δ[i, bi] * (s2[i]/s1[i] - y[i, bi]) / r[i]
             end
         end
@@ -126,7 +143,7 @@ end
 function segmented_lse_back(Δ, ::Missing, ψ, bags)
     dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
-        for i in eachindex(ψ)
+        @turbo for i in eachindex(ψ)
             dψ[i] += Δ[i, bi]
         end
     end
