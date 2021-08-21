@@ -123,7 +123,7 @@ function Δprodparts(cx::C, ms::T, x::ProductNode{<:Tuple}) where {C, T}
         ys_backs[i] = Zygote._pullback(cxs[i], ms[i], x.data[i])
     end
     if any(map(cx -> !isnothing(cx.cache), cxs))
-        "derivatives w.r.t. global variables are not supported" |> throw
+        "derivatives w.r.t. global variables under parallel ProductModel are not supported" |> throw
     end
     if isempty(ys_backs)
         ys_backs, _ -> nothing
@@ -168,10 +168,8 @@ function Δprodparts(cx::C, ms::T, x::ProductNode{<:NamedTuple}) where {C, T}
     @batch for i in 1:plen
         ys_backs[i] = Zygote._pullback(cxs[i], ms[i], x.data[i])
     end
-    non_empty_caches = filter(!isnothing, map(cx -> getfield(cx, :cache), cxs))
-    if !isempty(non_empty_caches)
-        #if all caches are nothing, then leave nothing in the original one, otherwise merge
-        cx.cache = reduce(merge, non_empty_caches)
+    if any(map(cx -> !isnothing(cx.cache), cxs))
+        "derivatives w.r.t. global variables under parallel ProductModel are not supported" |> throw
     end
     if isempty(ys_backs)
         ys_backs, _ -> nothing
