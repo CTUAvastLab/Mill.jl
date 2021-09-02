@@ -22,22 +22,10 @@ BagModel(im::MillFunction, a, bm::AbstractMillModel) = BagModel(ArrayModel(im), 
 BagModel(im::MillFunction, a) = BagModel(im, a, identity)
 BagModel(im::AbstractMillModel, a) = BagModel(im, a, ArrayModel(identity))
 
-function (m::BagModel)(x::BagNode{<:AbstractNode, <:Any, <:Any})
-    bg = getfield(x, :bags)
-    m.bm(ArrayNode(m.a(missing, bg)))
-end
-
-function (m::BagModel)(x::BagNode{Missing, <:Any, <:Any})
-    bg = getfield(x, :bags)
-    m.bm(m.a(m.im(data(x)), bg))
-end
-
-function (m::BagModel)(x::WeightedBagNode)
-    bg = getfield(x, :bags)
-    ismissing(data(x)) ? m.bm(ArrayNode(m.a(data(x), bg, x.weights))) : m.bm(m.a(m.im(data(x)), bg, x.weights))
-end
-
+(m::BagModel)(x::BagNode{<:AbstractNode}) = m.bm(m.a(m.im(data(x)), x.bags))
+(m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(missing, x.bags)))
 (m::BagModel)(x::WeightedBagNode{<:AbstractNode}) = m.bm(m.a(m.im(data(x)), x.bags, x.weights))
+(m::BagModel)(x::WeightedBagNode{Missing}) = m.bm(ArrayNode(m.a(missing, bg, x.bags)))
 
 function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
     im, o = HiddenLayerModel(m.im, data(x), k)
