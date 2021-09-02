@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - version_1
     paths:
       - 'src/**'
       - 'test/**'
