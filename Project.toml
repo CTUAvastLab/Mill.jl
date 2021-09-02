@@ -21,7 +21,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 [compat]
 Combinatorics = "1"
 DataFrames = "0.18, 0.19, 0.20, 0.21, 0.22, 1"
-DataStructures = "0.15, 0.16, 0.17"
+DataStructures = "0.15, 0.16, 0.17, 0.18"
 Flux = "~0.11"
 HierarchicalUtils = "~1.2"
 LearnBase = "0.2, 0.3, 0.4"
