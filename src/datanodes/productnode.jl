@@ -20,17 +20,17 @@ mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.meta
 
 dropmeta(x::ProductNode) = ProductNode(x.data)
 
-Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
-Base.keys(x::ProductNode) = keys(x.data)
+Base.getindex(x::ProductNode, i::Symbol) = data(x)[i]
+Base.keys(x::ProductNode) = keys(data(x))
 
 Base.ndims(x::AbstractProductNode) = Colon()
 StatsBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
 StatsBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
 
 function reduce(::typeof(catobs), as::Vector{T}) where {T <: ProductNode}
-    data = _cattrees([x.data for x in as])
-    metadata = reduce(catobs, [a.metadata for a in as])
-    ProductNode(data, metadata)
+    xx = _cattrees([data(x) for x in as])
+    metadata = reduce(catobs, [getfield(a, :metadata) for a in as])
+    ProductNode(xx, metadata)
 end
 
 Base.getindex(x::ProductNode, i::VecOrRange) = ProductNode(subset(x.data, i), subset(x.metadata, i))

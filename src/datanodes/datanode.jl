@@ -17,7 +17,7 @@ AbstractVecOrTuple{T} = Union{AbstractVector{<:T}, Tuple{Vararg{T}}}
 
     return data hold by the datanode
 """
-data(x::AbstractNode) = x.data
+data(n::AbstractNode) = getfield(n, :data)
 data(x) = x
 
 """

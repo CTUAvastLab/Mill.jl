@@ -22,18 +22,25 @@ BagModel(im::MillFunction, a, bm::AbstractMillModel) = BagModel(ArrayModel(im), 
 BagModel(im::MillFunction, a) = BagModel(im, a, identity)
 BagModel(im::AbstractMillModel, a) = BagModel(im, a, ArrayModel(identity))
 
-function (m::BagModel)(x::BagNode)
-    ismissing(x.data) ? m.bm(ArrayNode(m.a(x.data, x.bags))) : m.bm(m.a(m.im(x.data), x.bags))
+function (m::BagModel)(x::BagNode{<:AbstractNode, <:Any, <:Any})
+    bg = getfield(x, :bags)
+    m.bm(ArrayNode(m.a(missing, bg)))
+end
+
+function (m::BagModel)(x::BagNode{Missing, <:Any, <:Any})
+    bg = getfield(x, :bags)
+    m.bm(m.a(m.im(data(x)), bg))
 end
 
 function (m::BagModel)(x::WeightedBagNode)
-    ismissing(x.data) ? m.bm(ArrayNode(m.a(x.data, x.bags, x.weights))) : m.bm(m.a(m.im(x.data), x.bags, x.weights))
+    bg = getfield(x, :bags)
+    ismissing(data(x)) ? m.bm(ArrayNode(m.a(data(x), bg, x.weights))) : m.bm(m.a(m.im(data(x)), bg, x.weights))
 end
 
-(m::BagModel)(x::WeightedBagNode{<:AbstractNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
+(m::BagModel)(x::WeightedBagNode{<:AbstractNode}) = m.bm(m.a(m.im(data(x)), x.bags, x.weights))
 
 function HiddenLayerModel(m::BagModel, x::BagNode, k::Int)
-    im, o = HiddenLayerModel(m.im, x.data, k)
+    im, o = HiddenLayerModel(m.im, data(x), k)
     a = SegmentedMax(k)
     b = m.a(o, x.bags)
     bm, o = HiddenLayerModel(m.bm, b, k)
@@ -42,7 +49,7 @@ end
 
 
 function mapactivations(hm::BagModel, x::BagNode{M, B,C}, m::BagModel) where {M<: AbstractNode,B,C}
-    hmi, mi = mapactivations(hm.im, x.data, m.im)
+    hmi, mi = mapactivations(hm.im, data(x), m.im)
     ai = m.a(mi, x.bags)
     hai = hm.a(hmi, x.bags)
     hbo, bo = mapactivations(hm.bm, ai, m.bm)
@@ -57,7 +64,7 @@ function mapactivations(hm::BagModel, x::BagNode{M, B,C}, m::BagModel) where {M<
 end
 
 function fold(f, m::BagModel, x)
-    o₁ = fold(f, m.im, x.data)
+    o₁ = fold(f, m.im, data(x))
     o₂ = f(m.a, o₁, x.bags)
     o₃ = fold(f, m.bm, o₂)
     o₃
