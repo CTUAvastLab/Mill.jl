@@ -85,7 +85,7 @@ function with_terseprint(f::Function, a)
     _terseprint[] = orig_val
 end
 
-function base_show_terse(io::IO, @nospecialize(x::Type))
+function base_show_terse(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
     # print(io, typeof(x))
     if x isa Union
         print(io, "Union")
@@ -98,7 +98,7 @@ function base_show_terse(io::IO, @nospecialize(x::Type))
 end
 
 @static if VERSION < v"1.6.0-"
-function base_show_full_1_5(io::IO, @nospecialize(x::Type))
+function base_show_full_1_5(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
     # basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
     # specifically function show(io::IO, @nospecialize(x::Type))
     if x isa DataType
@@ -106,18 +106,18 @@ function base_show_full_1_5(io::IO, @nospecialize(x::Type))
         return
     elseif x isa Union
         if x.a isa DataType && Core.Compiler.typename(x.a) === Core.Compiler.typename(DenseArray)
-            T, N = x.a.parameters
-            if x == StridedArray{T,N}
+            T2, N = x.a.parameters
+            if x == StridedArray{T2,N}
                 print(io, "StridedArray")
-                Base.show_delim_array(io, (T,N), '{', ',', '}', false)
+                Base.show_delim_array(io, (T2,N), '{', ',', '}', false)
                 return
-            elseif x == StridedVecOrMat{T}
+            elseif x == StridedVecOrMat{T2}
                 print(io, "StridedVecOrMat")
-                Base.show_delim_array(io, (T,), '{', ',', '}', false)
+                Base.show_delim_array(io, (T2,), '{', ',', '}', false)
                 return
-            elseif StridedArray{T,N} <: x
+            elseif StridedArray{T2,N} <: x
                 print(io, "Union")
-                Base.show_delim_array(io, vcat(StridedArray{T,N}, Base.uniontypes(Core.Compiler.typesubtract(x, StridedArray{T,N}))), '{', ',', '}', false)
+                Base.show_delim_array(io, vcat(StridedArray{T2,N}, Base.uniontypes(Core.Compiler.typesubtract(x, StridedArray{T2,N}))), '{', ',', '}', false)
                 return
             end
         end
@@ -151,7 +151,7 @@ end
 end
 
 @static if VERSION >= v"1.6.0-"
-function base_show_full_1_6(io::IO, @nospecialize(x::Type))
+function base_show_full_1_6(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
     # basically copied from the Julia sourcecode, seems it's one of most robust fixes to Pevňákoviny
     # specifically function show(io::IO, @nospecialize(x::Type))
     if Base.print_without_params(x)
@@ -200,7 +200,7 @@ function base_show_full_1_6(io::IO, @nospecialize(x::Type))
 end
 end
 
-function Base.show(io::IO, @nospecialize(x::Type))
+function Base.show(io::IO, x::Type{T}) where {T<:Union{AbstractNode,AbstractMillModel}}
     # println("_terseprint[] in Base.show: $(_terseprint[])")
     if _terseprint[]
         return base_show_terse(io, x)
