@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.com/pevnak/Mill.jl.svg?branch=master)](https://travis-ci.com/pevnak/Mill.jl)
-[![Coverage Status](https://coveralls.io/repos/github/pevnak/Mill.jl/badge.svg?branch=master)](https://coveralls.io/github/pevnak/Mill.jl?branch=master)
-[![codecov.io](http://codecov.io/github/Pevnak/Mill.jl/coverage.svg?branch=master)](http://codecov.io/github/Pevnak/Mill.jl?branch=master)
+[![Build Status](https://github.com/CTUAvastLab/Mill.jl/workflows/CI/badge.svg)](https://github.com/CTUAvastLab/Mill.jl/actions?query=workflow%3ACI)
+[![Coverage Status](https://coveralls.io/repos/github/CTUAvastLab/Mill.jl/badge.svg?branch=version_1)](https://coveralls.io/github/CTUAvastLab/Mill.jl?branch=version_1)
+[![codecov.io](http://codecov.io/github/CTUAvastLab/Mill.jl/coverage.svg?branch=version_1)](http://codecov.io/github/CTUAvastLab/Mill.jl?branch=version_1)
 
 # Mill – Multiple Instance Learning Library
  Mill is a library build on top of Flux.jl aimed to prototype flexible multi-instance learning models as described in  [[1](#cit1)] and  [[2](#cit2)]
