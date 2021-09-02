@@ -36,15 +36,12 @@ dropmeta(x::ArrayNode) = ArrayNode(x.data)
 
 Base.ndims(x::ArrayNode) = Colon()
 Base.size(x::ArrayNode) = size(x.data)
+
 StatsBase.nobs(a::ArrayNode) = size(a.data, 2)
 StatsBase.nobs(a::ArrayNode, ::Type{ObsDim.Last}) = nobs(a)
 
 function reduce(::typeof(catobs), as::Vector{<:ArrayNode})
     ArrayNode(reduce(catobs, data.(as)), reduce(catobs, metadata.(as)))
-end
-
-function Base.reduce(::typeof(hcat), xs::Vector{TV})  where {T, L, TV<:Flux.OneHotLike{T, L}}
-  Flux.OneHotMatrix(reduce(vcat, map(Flux._indices, xs)), L)
 end
 
 _cat_meta(f, m::Vector{Nothing}) = nothing
