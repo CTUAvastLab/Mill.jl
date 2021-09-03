@@ -11,7 +11,7 @@ end
 
 Flux.@functor ArrayModel
 
-(m::ArrayModel)(x::ArrayNode) = mapdata(x -> m.m(x), x) |> dropmeta
+(m::ArrayModel)(x::ArrayNode) = ArrayNode(m.m(x.data))
 
 identity_model() = ArrayModel(identity)
 const IdentityModel = ArrayModel{typeof(identity)}
