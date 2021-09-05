@@ -20,8 +20,8 @@ end
 include("maybe_hot_vector.jl")
 include("maybe_hot_matrix.jl")
 include("ngram_matrix.jl")
-include("pre_imputing_matrix.jl")
-include("post_imputing_matrix.jl")
+include("preimputing_matrix.jl")
+include("postimputing_matrix.jl")
 
 const MaybeHotArray{T} = Union{MaybeHotVector{T}, MaybeHotMatrix{T}}
 
@@ -101,7 +101,7 @@ Like `Flux.Dense`, but use a [`PreImputingMatrix`](@ref) instead of a standard m
 # Examples
 ```jldoctest
 julia> d = preimputing_dense(2, 3)
-[pre_imputing]Dense(2, 3)
+[preimputing]Dense(2, 3)  # 9 parameters
 
 julia> typeof(d.weight)
 PreImputingMatrix{Float32, Matrix{Float32}, Vector{Float32}}
@@ -123,7 +123,7 @@ Like `Flux.Dense`, but use a [`PostImputingMatrix`](@ref) instead of a standard 
 # Examples
 ```jldoctest
 julia> d = postimputing_dense(2, 3)
-[post_imputing]Dense(2, 3)
+[postimputing]Dense(2, 3)  # 9 parameters
 
 julia> typeof(d.weight)
 PostImputingMatrix{Float32, Matrix{Float32}, Vector{Float32}}
@@ -137,8 +137,8 @@ See also: [`PostImputingMatrix`](@ref), [`preimputing_dense`](@ref), [`PreImputi
 postimputing_dense(d::Dense) = Dense(PostImputingMatrix(d.weight), d.bias, d.σ)
 postimputing_dense(args...) = postimputing_dense(Dense(args...))
 
-_name(::PreImputingMatrix) = "[pre_imputing]"
-_name(::PostImputingMatrix) = "[post_imputing]"
+_name(::PreImputingMatrix) = "[preimputing]"
+_name(::PostImputingMatrix) = "[postimputing]"
 function Base.show(io::IO, l::Dense{F, <:ImputingMatrix}) where F
     print(io, "$(_name(l.weight))Dense(", size(l.weight, 2), ", ", size(l.weight, 1))
     l.σ == identity || print(io, ", ", l.σ)
