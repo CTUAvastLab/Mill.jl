@@ -144,7 +144,7 @@ function removeinstances end
 """
     dropmeta(n:AbstractMillNode)
 
-Drop metadata stored in data node `n`.
+Drop metadata stored in data node `n` (recursively).
 
 # Examples
 ```jldoctest
