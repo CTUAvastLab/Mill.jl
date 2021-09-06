@@ -153,8 +153,8 @@ end
 """
     code2lens(n, c)
 
-Convert code `c` from [HierarchicalUtils.jl](@ref) traversal to `Setfield.Lens` such that they access
-the same node in tree `n`.
+Convert code `c` from [HierarchicalUtils.jl](@ref) traversal to a `Vector` of `Setfield.Lens` such
+that they access each node in tree egal to `n`.
 
 # Examples
 ```jldoctest
@@ -167,18 +167,19 @@ ProductNode with 2 obs [""]
   └── ArrayNode(2×2 Array with Int64 elements) ["U"]
 
 julia> code2lens(n, "U")
-(@lens _.data[2])
+1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
+ (@lens _.data[2])
 ```
 
 See also: [`lens2code`](@ref).
 """
-code2lens(n::AbstractMillStruct, c::AbstractString) = find_lens(n, n[c]) |> only
+code2lens(n::AbstractMillStruct, c::AbstractString) = find_lens(n, n[c])
 
 """
     lens2code(n, l)
 
-Convert `Setfield.Lens` l to code `c` from [HierarchicalUtils.jl](@ref) traversal such that they access
-the same node in tree `n`.
+Convert `Setfield.Lens` l to a `Vector` of codes from [HierarchicalUtils.jl](@ref) traversal such
+that they access each node in tree egal to `n`.
 
 # Examples
 ```jldoctest
@@ -191,13 +192,14 @@ ProductNode with 2 obs [""]
   └── ArrayNode(2×2 Array with Int64 elements) ["U"]
 
 julia> lens2code(n, (@lens _.data[2]))
-"U"
+1-element Vector{String}:
+ "U"
 
 ```
 
 See also: [`code2lens`](@ref).
 """
-lens2code(n::AbstractMillStruct, l::Lens) = HierarchicalUtils.find_traversal(n, get(n, l)) |> only
+lens2code(n::AbstractMillStruct, l::Lens) = HierarchicalUtils.find_traversal(n, get(n, l))
 
 """
     model_lens(m, l)
