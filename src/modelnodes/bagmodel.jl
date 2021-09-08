@@ -70,9 +70,8 @@ function BagModel(im::Union{MillFunction, AbstractMillModel}, a::Union{AbstractA
 end
 
 # (m::BagModel)(x::BagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(getfield(x, :data)), x.bags))
-# (m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(getfield(x, :data), x.bags)))
 (m::BagModel)(x::BagNode{<:AbstractMillNode}) = _bag_forward(m, x)
-(m::BagModel)(x::BagNode{Missing}) = _bag_forward(m, x)
+(m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(getfield(x, :data), x.bags)))
 (m::BagModel)(x::WeightedBagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(getfield(x, :data)), x.bags, x.weights))
 (m::BagModel)(x::WeightedBagNode{Missing}) = m.bm(ArrayNode(m.a(getfield(x, :data), x.bags, x.weights)))
 
