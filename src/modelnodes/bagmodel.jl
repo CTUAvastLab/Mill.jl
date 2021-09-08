@@ -11,12 +11,12 @@ model `bm` on the aggregated representation of every bag in the data node.
 julia> Random.seed!(0);
 
 julia> n = BagNode(ArrayNode(randn(3, 2)), bags([0:-1, 1:2]))
-BagNode with 2 obs
-  └── ArrayNode(3×2 Array with Float64 elements)
+BagNode 	# 2 obs, 96 bytes
+  └── ArrayNode(3×2 Array with Float64 elements) 	# 2 obs, 96 bytes
 
 julia> m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMeanMax(2), ArrayModel(Dense(4, 2)))
-BagModel … ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ ArrayModel(Dense(4, 2))
-  └── ArrayModel(Dense(3, 2))
+BagModel ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ ArrayModel(Dense(4, 2)) 	# 4 arrays, 14 params, 216 bytes
+  └── ArrayModel(Dense(3, 2)) 	# 2 arrays, 8 params, 112 bytes
 
 julia> m(n)
 2×2 ArrayNode{Matrix{Float64}, Nothing}:
@@ -53,12 +53,12 @@ In that case, they are wrapped into an [`ArrayNode`](@ref).
 # Examples
 ```jldoctest
 julia> m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMeanMax(2), ArrayModel(Dense(4, 2)))
-BagModel … ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ ArrayModel(Dense(4, 2))
-  └── ArrayModel(Dense(3, 2))
+BagModel ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ ArrayModel(Dense(4, 2)) 	# 4 arrays, 14 params, 216 bytes
+  └── ArrayModel(Dense(3, 2)) 	# 2 arrays, 8 params, 112 bytes
 
 julia> m = BagModel(Dense(4, 3), BagCount(SegmentedMean(3)))
-BagModel … ↦ BagCount(SegmentedMean(3)) ↦ ArrayModel(identity)
-  └── ArrayModel(Dense(4, 3))
+BagModel ↦ BagCount(SegmentedMean(3)) ↦ ArrayModel(identity) 	# 1 arrays, 3 params (all zero), 52 bytes
+  └── ArrayModel(Dense(4, 3)) 	# 2 arrays, 15 params, 140 bytes
 ```
 
 See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`BagCount`](@ref),

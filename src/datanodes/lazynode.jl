@@ -21,7 +21,7 @@ Construct a new [`LazyNode`](@ref) with name `Name`, data `d`, and metadata `m`.
 # Examples
 ```jldoctest
 julia> LazyNode(:Codons, ["GGGCGGCGA", "CCTCGCGGG"])
-LazyNode{Codons} with 2 obs
+LazyNode{Codons} 	# 2 obs, 98 bytes
 ```
 
 See also: [`AbstractMillNode`](@ref), [`LazyModel`](@ref), [`Mill.unpack2mill`](@ref).
@@ -47,8 +47,8 @@ end
 ```
 ```jldoctest unpack2mill
 julia> LazyNode{:Sentence}(["foo bar", "baz"]) |> Mill.unpack2mill
-BagNode with 2 obs
-  └── ArrayNode(2053×3 NGramMatrix with Int64 elements)
+BagNode 	# 2 obs, 120 bytes
+  └── ArrayNode(2053×3 NGramMatrix with Int64 elements) 	# 3 obs, 176 bytes
 ```
 
 See also: [`LazyNode`](@ref), [`LazyModel`](@ref).
