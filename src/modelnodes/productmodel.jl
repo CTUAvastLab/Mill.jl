@@ -9,14 +9,14 @@ A model node for processing [`ProductNode`](@ref)s. For each subtree of the data
 julia> Random.seed!(0);
 
 julia> n = ProductNode((a=ArrayNode([0 1; 2 3]), b=ArrayNode([4 5; 6 7])))
-ProductNode with 2 obs
-  ├── a: ArrayNode(2×2 Array with Int64 elements)
-  └── b: ArrayNode(2×2 Array with Int64 elements)
+ProductNode 	# 2 obs, 16 bytes
+  ├── a: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+  └── b: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
 julia> m1 = ProductModel((a=ArrayModel(Dense(2, 2)), b=ArrayModel(Dense(2, 2))))
-ProductModel … ↦ ArrayModel(identity)
-  ├── a: ArrayModel(Dense(2, 2))
-  └── b: ArrayModel(Dense(2, 2))
+ProductModel ↦ ArrayModel(identity)
+  ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
+  └── b: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
 ```
 
 ```jldoctest product_model; filter=$(DOCTEST_FILTER)
@@ -30,7 +30,7 @@ julia> m1(n)
 
 ```jldoctest product_model
 julia> m2 = ProductModel((a=identity, b=identity))
-ProductModel … ↦ ArrayModel(identity)
+ProductModel ↦ ArrayModel(identity)
   ├── a: ArrayModel(identity)
   └── b: ArrayModel(identity)
 
@@ -66,18 +66,18 @@ If `ms` is [`AbstractMillModel`](@ref), a one-element `Tuple` is constructed fro
 # Examples
 ```jldoctest
 julia> ProductModel((a=ArrayModel(Dense(2, 2)), b=identity))
-ProductModel … ↦ ArrayModel(identity)
-  ├── a: ArrayModel(Dense(2, 2))
+ProductModel ↦ ArrayModel(identity)
+  ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(identity)
 
 julia> ProductModel((identity_model(), BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
-ProductModel … ↦ ArrayModel(identity)
+ProductModel ↦ ArrayModel(identity)
   ├── ArrayModel(identity)
-  └── BagModel … ↦ SegmentedMean(2) ↦ ArrayModel(identity)
-        └── ArrayModel(Dense(2, 2))
+  └── BagModel ↦ SegmentedMean(2) ↦ ArrayModel(identity) 	# 1 arrays, 2 params (all zero), 48 bytes
+        └── ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
 
 julia> ProductModel(identity)
-ProductModel … ↦ ArrayModel(identity)
+ProductModel ↦ ArrayModel(identity)
   └── ArrayModel(identity)
 ```
 

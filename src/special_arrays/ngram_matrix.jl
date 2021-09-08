@@ -355,6 +355,8 @@ function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: I
     sparse(I, J, V, size(x,1), size(x,2))
 end
 
+(::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
+
 A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))
 Zygote.@adjoint A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 

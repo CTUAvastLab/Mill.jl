@@ -53,8 +53,6 @@ export ImputingMatrix, PreImputingMatrix, PostImputingMatrix
 export ImputingDense, PreImputingDense, PostImputingDense
 export preimputing_dense, postimputing_dense, identity_dense
 
-(::Flux.LayerNorm)(x::Mill.NGramMatrix) = x
-
 include("aggregations/aggregations.jl")
 export AbstractAggregation, AggregationStack
 export BagCount
@@ -75,9 +73,6 @@ export bagconv, BagConv
 include("bagchain.jl")
 export BagChain
 
-include("hierarchical_utils.jl")
-export printtree
-
 include("partialeval.jl")
 export partialeval
 
@@ -90,13 +85,12 @@ export replacein, code2lens, lens2code, model_lens, data_lens
 
 include("gradients.jl")
 
-Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillStruct)) =
-    HierarchicalUtils.printtree(io, n; htrunc=3, vtrunc=5, breakline=false)
-
-function _show_fields(io, x::T; context=:compact=>true) where T
-    print(io, nameof(T), "(", join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)],", "), ")")
-end
-
 Base.getindex(n::AbstractMillStruct, i::AbstractString) = HierarchicalUtils.walk(n, i)
+
+include("show.jl")
+export datasummary, modelsummary
+
+include("hierarchical_utils.jl")
+export printtree
 
 end

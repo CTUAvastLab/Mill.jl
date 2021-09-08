@@ -45,15 +45,6 @@ include("segmented_pnorm.jl")
 include("segmented_lse.jl")
 # include("transformer.jl")
 
-function Base.show(io::IO, a::T) where T <: AbstractAggregation
-    print(io, nameof(T))
-    if !get(io, :compact, false)
-        print(io, "(", length(a), ")")
-    end
-end
-
-Base.show(io::IO, ::MIME"text/plain", a::AbstractAggregation) = _show_fields(io, a)
-
 include("aggregation_stack.jl")
 
 Base.vcat(as::AbstractAggregation...) = reduce(vcat, as |> collect)

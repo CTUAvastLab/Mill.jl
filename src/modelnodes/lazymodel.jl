@@ -18,12 +18,12 @@ end
 julia> Random.seed!(0);
 
 julia> n = LazyNode{:Sentence}(["foo bar", "baz"])
-LazyNode{Sentence} with 2 obs
+LazyNode{Sentence} 	# 2 obs, 90 bytes
 
 julia> m = LazyModel{:Sentence}(BagModel(Dense(2053, 3), SegmentedMean(3), identity))
 LazyModel{Sentence}
-  └── BagModel … ↦ SegmentedMean(3) ↦ ArrayModel(identity)
-        └── ArrayModel(Dense(2053, 3))
+  └── BagModel ↦ SegmentedMean(3) ↦ ArrayModel(identity) 	# 1 arrays, 3 params (all zero), 52 bytes
+        └── ArrayModel(Dense(2053, 3)) 	# 2 arrays, 6_162 params, 24.148 KiB
 ```
 
 ```jldoctest unpack2mill; filter=$(DOCTEST_FILTER)
@@ -50,7 +50,7 @@ Construct a new [`LazyModel`](@ref) with name `Name`, and model `m`.
 ```jldoctest
 julia> LazyModel{:Sentence}(ArrayModel(Dense(2, 2)))
 LazyModel{Sentence}
-  └── ArrayModel(Dense(2, 2))
+  └── ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
 ```
 
 See also: [`AbstractMillModel`](@ref), [`LazyNode`](@ref), [`Mill.unpack2mill`](@ref).

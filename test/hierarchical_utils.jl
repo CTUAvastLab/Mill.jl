@@ -21,9 +21,9 @@ struct NumberNode
     n::Int
     chs::Vector{NumberNode}
 end
-import HierarchicalUtils: NodeType, LeafNode, InnerNode, noderepr, children
+import HierarchicalUtils: NodeType, LeafNode, InnerNode, nodeshow, children
 NodeType(::Type{NumberNode}) = InnerNode()
-noderepr(n::NumberNode) = string(n.n)
+nodeshow(io::IO, n::NumberNode) = print(io, n.n)
 children(n::NumberNode) = n.chs
 
 function Mill.unpack2mill(ds::LazyNode{:Codons})
@@ -37,7 +37,7 @@ end
 NodeType(::Type{<:LazyNode{:Codons}}) = InnerNode()
 children(n::LazyNode{:Codons}) = (n.data,)
 NodeType(n::Vector{<:AbstractString}) = InnerNode()
-noderepr(n::Vector{<:AbstractString}) = "Array $(length(n)) items"
+nodeshow(io::IO, n::Vector{<:AbstractString}) = print(io, "Array ", length(n), " items")
 NodeType(n::AbstractString) = LeafNode()
 children(n::Vector{<:AbstractString}) = (n...,)
 
@@ -150,36 +150,36 @@ end
 @testset "printtree" begin
     @test buf_printtree(n2, trav=true) ==
         """
-        ProductNode with 2 obs [""]
-          ├── ProductNode with 2 obs ["E"]
-          │     ├─── b: BagNode with 2 obs ["I"]
-          │     │         └── ArrayNode(3×4 Array with Float32 elements) ["K"]
-          │     └── wb: WeightedBagNode with 2 obs ["M"]
-          │               └── ArrayNode(17×4 NGramMatrix with Int64 elements) ["O"]
-          └── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) ["U"]
+        ProductNode [""] 	# 2 obs, 120 bytes
+          ├── ProductNode ["E"] 	# 2 obs, 80 bytes
+          │     ├─── b: BagNode ["I"] 	# 2 obs, 192 bytes
+          │     │         └── ArrayNode(3×4 Array with Float32 elements) ["K"] 	# 4 obs, 96 bytes
+          │     └── wb: WeightedBagNode ["M"] 	# 2 obs, 280 bytes
+          │               └── ArrayNode(17×4 NGramMatrix with Int64 elements) ["O"] 	# 4 obs, 186 bytes
+          └── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) ["U"] 	# 2 obs, 464 bytes
         """
 
     @test buf_printtree(n2m, trav=true) ==
         """
-        ProductModel … ↦ ArrayModel(Dense(20, 10)) [""]
-          ├── ProductModel … ↦ ArrayModel(Dense(20, 10)) ["E"]
-          │     ├─── b: BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["I"]
-          │     │         └── ArrayModel(Dense(3, 10)) ["K"]
-          │     └── wb: BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["M"]
-          │               └── ArrayModel(Dense(17, 10)) ["O"]
-          └── ArrayModel(Dense(10, 10)) ["U"]
+        ProductModel ↦ ArrayModel(Dense(20, 10)) [""] 	# 2 arrays, 210 params, 920 bytes
+          ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"] 	# 2 arrays, 210 params, 920 bytes
+          │     ├─── b: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["I"] 	# 4 arrays, 240 params, 1.094 KiB
+          │     │         └── ArrayModel(Dense(3, 10)) ["K"] 	# 2 arrays, 40 params, 240 bytes
+          │     └── wb: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["M"] 	# 4 arrays, 240 params, 1.094 KiB
+          │               └── ArrayModel(Dense(17, 10)) ["O"] 	# 2 arrays, 180 params, 800 bytes
+          └── ArrayModel(Dense(10, 10)) ["U"] 	# 2 arrays, 110 params, 520 bytes
         """
 end
 
 @testset "LazyNode" begin
-	ds = LazyNode{:Codons}(ss)
-	m = Mill.reflectinmodel(ds)
-	@test nchildren(ds) == 1
-	@test nleafs(ds) == 4
+    ds = LazyNode{:Codons}(ss)
+    m = Mill.reflectinmodel(ds)
+    @test nchildren(ds) == 1
+    @test nleafs(ds) == 4
 
     @test buf_printtree(ds, trav=true) ==
         """
-        LazyNode{Codons} with 4 obs [""]
+        LazyNode{Codons} [""] 	# 4 obs, 8 bytes
           └── Array 4 items ["U"]
                 ├── "GGGCGGCGA" ["Y"]
                 ├── "CCTCGCGGG" ["c"]
@@ -190,7 +190,7 @@ end
     @test buf_printtree(m, trav=true) ==
         """
         LazyModel{Codons} [""]
-          └── BagModel … ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["U"]
-                └── ArrayModel(Dense(64, 10)) ["k"]
+          └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["U"] 	# 4 arrays, 240 params, 1.094 KiB
+                └── ArrayModel(Dense(64, 10)) ["k"] 	# 2 arrays, 650 params, 2.617 KiB
         """
 end

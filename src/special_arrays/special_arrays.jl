@@ -81,18 +81,6 @@ function Flux.update!(x::ImputingMatrix, x̄)
     end
 end
 
-function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotArray, NGramMatrix}
-    if get(io, :compact, false)
-        if ndims(X) == 1
-            print(io, length(X), "-element ", nameof(T))
-        else
-            print(io, join(size(X), "×"), " ", nameof(T))
-        end
-    else
-        _show_fields(io, X)
-    end
-end
-
 """
     preimputing_dense(in, out, σ)
 
@@ -136,11 +124,3 @@ See also: [`PostImputingMatrix`](@ref), [`preimputing_dense`](@ref), [`PreImputi
 """
 postimputing_dense(d::Dense) = Dense(PostImputingMatrix(d.weight), d.bias, d.σ)
 postimputing_dense(args...) = postimputing_dense(Dense(args...))
-
-_name(::PreImputingMatrix) = "[preimputing]"
-_name(::PostImputingMatrix) = "[postimputing]"
-function Base.show(io::IO, l::Dense{F, <:ImputingMatrix}) where F
-    print(io, "$(_name(l.weight))Dense(", size(l.weight, 2), ", ", size(l.weight, 1))
-    l.σ == identity || print(io, ", ", l.σ)
-    print(io, ")")
-end
