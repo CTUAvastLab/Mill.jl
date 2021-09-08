@@ -213,12 +213,12 @@ end
     Y = PreImputingMatrix(reshape(1:8, 4, 2) |> Matrix)
 
     m = preimputing_dense(1, 1)
-    @test repr(m) == "[preimputing]Dense(1, 1)"
-    @test repr(m) == repr(m; context=:compact => true) == repr(MIME("text/plain"), m)
+    @test repr(MIME("text/plain"), m) == "[preimputing]Dense(1, 1)  # 2 parameters"
+    @test repr(m) == repr(m; context=:compact => true) == "[preimputing]Dense(1, 1)"
 
     m = postimputing_dense(1, 1)
-    @test repr(m) == "[postimputing]Dense(1, 1)"
-    @test repr(m) == repr(m; context=:compact => true) == repr(MIME("text/plain"), m)
+    @test repr(MIME("text/plain"), m) == "[postimputing]Dense(1, 1)  # 2 parameters"
+    @test repr(m) == repr(m; context=:compact => true) == "[postimputing]Dense(1, 1)"
 end
 
 @testset "ngram matrix io" begin
