@@ -250,16 +250,3 @@ Base.reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
 function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractMillNode
     reduce(catobs, skipmissing(as) |> collect)
 end
-
-function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
-    print(io, nameof(typeof(n)))
-    if !get(io, :compact, false)
-        _show_data(IOContext(io, :compact => true), n)
-        if !(n isa ArrayNode)
-            print(io, " with ", nobs(n), " obs")
-        end
-    end
-end
-
-_show_data(io, n::LazyNode{Name}) where {Name} = print(io, "{", Name, "}")
-_show_data(io, _) = print(io)

@@ -1,4 +1,4 @@
-import HierarchicalUtils: NodeType, LeafNode, InnerNode, noderepr, children
+import HierarchicalUtils: NodeType, LeafNode, InnerNode, children
 
 @nospecialize
 
@@ -6,9 +6,6 @@ NodeType(::Type{<:Union{Missing, ArrayNode, ArrayModel, LazyNode}}) = LeafNode()
 NodeType(::Type{<:AbstractMillNode}) = InnerNode()
 NodeType(::Type{<:AbstractMillModel}) = InnerNode()
 NodeType(::Type{<:LazyModel}) = InnerNode()
-
-noderepr(::Missing) = "∅"
-noderepr(n::LazyNode{N, Nothing}) where {N} = "LazyNode{$N} ∅"
 
 children(n::AbstractBagNode) = (n.data,)
 children(n::BagModel) = (n.im,)
