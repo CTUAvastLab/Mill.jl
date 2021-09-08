@@ -47,10 +47,11 @@ end
 
 @testset "code2lens & lens2code" begin
     for t in list_traversal(x)
-        @test t == lens2code(x, code2lens(x, t))
+        @test all(t .== vcat([lens2code(x, l) for l in code2lens(x, t)]...))
+
     end
     for t in list_traversal(m)
-        @test t == lens2code(m, code2lens(m, t))
+        @test all(t .=== vcat([lens2code(m, l) for l in code2lens(m, t)]...))
     end
 end
 
