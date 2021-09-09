@@ -337,6 +337,6 @@ end
 
 @testset "dropmeta" begin
     for n in [a, b, c, d, e, f, h, k, l, wa, wb, wc, wd]
-        NodeIterator(dropmeta(n)) |> collect .|> Mill.metadata .|> isnothing |> all
+        @test NodeIterator(dropmeta(n)) |> collect .|> Mill.metadata .|> isnothing |> all
     end
 end
