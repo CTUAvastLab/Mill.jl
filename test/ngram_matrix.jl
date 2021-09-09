@@ -260,7 +260,8 @@ end
         A = randn(10, m)
         f = gradf(A -> sin.(A * B), A)
         df = gradf(A -> gradient(f, A)[1], A)
-        @test gradtest(df, A)
+        # see https://github.com/FluxML/Zygote.jl/issues/1067
+        @test_broken gradtest(df, A)
     end
 end
 
