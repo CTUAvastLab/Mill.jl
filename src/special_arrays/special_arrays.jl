@@ -66,18 +66,10 @@ Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.S)
 
 function Flux.update!(opt, x::ImputingMatrix, x̄)
     if !isnothing(x̄.W)
-        x.W .-= Flux.Optimise.apply!(opt, x.W, x̄.W)
+        Flux.Optimise.update!(opt, x.W, x̄.W)
     end
     if !isnothing(x̄.ψ)
-        x.ψ .-= Flux.Optimise.apply!(opt, x.ψ, x̄.ψ)
-    end
-end
-function Flux.update!(x::ImputingMatrix, x̄)
-    if !isnothing(x̄.W)
-        x.W .-= x̄.W
-    end
-    if !isnothing(x̄.ψ)
-        x.ψ .-= x̄.ψ
+        Flux.Optimise.update!(opt, x.ψ, x̄.ψ)
     end
 end
 
