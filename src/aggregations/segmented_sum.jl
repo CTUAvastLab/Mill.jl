@@ -102,12 +102,6 @@ function segmented_sum_back(Δ, y, x, ψ, bags, w)
             end
         else
             ∇dxdw_segmented_sum!(dx, dw, Δ, x, y, w, b, bi)
-            #for j in b
-            #    for i in 1:size(x, 1)
-            #        dx[i, j] = _weight(w, i, j, eltype(x)) * Δ[i, bi]
-            #        ∇dw_segmented_sum!(dw, Δ, x, y, w, i, j, bi)
-            #    end
-            #end
         end
     end
     dx, dψ, NoTangent(), dw
@@ -148,13 +142,6 @@ function ∇dxdw_segmented_sum!(dx, dw::AbstractMatrix, Δ, x, y, w::AbstractMat
         end
     end
 end
-#∇dw_segmented_sum!(dw::ZeroTangent, Δ, x, y, w::Nothing, i, j, bi) = nothing
-#function ∇dw_segmented_sum!(dw::AbstractVector, Δ, x, y, w::AbstractVector, i, j, bi) 
-#    dw[j] += Δ[i, bi] * (x[i, j])
-#end
-#function ∇dw_segmented_sum!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, i, j, bi)
-#    dw[i, j] += Δ[i, bi] * (x[i, j])
-#end
 
 function ChainRulesCore.rrule(::typeof(segmented_sum_forw), args...)
     y = segmented_sum_forw(args...)
