@@ -79,6 +79,8 @@ function _mul(A::AbstractMatrix, B::MaybeHotMatrix)
     C
 end
 
+_fast_argmax(x::MaybeHotMatrix{<:Integer}) = x.I
+
 Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = Flux.onehotbatch(X.I, 1:X.l)
 
 """

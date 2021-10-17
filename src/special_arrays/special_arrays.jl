@@ -1,3 +1,5 @@
+import Flux: onecold
+
 # TODO replace all @adjoints in matrices by rrules once Tangent gradients become available
 # https://github.com/FluxML/Zygote.jl/issues/603
 
@@ -28,6 +30,15 @@ const MaybeHotArray{T} = Union{MaybeHotVector{T}, MaybeHotMatrix{T}}
 const ImputingMatrix{T, U} = Union{PreImputingMatrix{T, U}, PostImputingMatrix{T, U}}
 const PreImputingDense = Dense{T, <: PreImputingMatrix} where T
 const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
+
+# basically copied from https://github.com/FluxML/Flux.jl/blob/v0.12.7/src/onehot.jl#L204-L209 because 
+# I don't want to overload non-exposed functions
+function onecold(y::MaybeHotArray{<:Integer}, labels = 1:size(y, 1))
+    indices = _fast_argmax(y)
+    xs = isbits(labels) ? indices : collect(indices) # non-bit type cannot be handled by CUDA
+  
+    return map(xi -> labels[xi[1]], xs)
+end
 
 Base.zero(X::T) where T <: ImputingMatrix = T(zero(X.W), zero(X.ψ))
 Base.similar(X::T) where T <: ImputingMatrix = T(similar(X.W), similar(X.ψ))

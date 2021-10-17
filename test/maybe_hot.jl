@@ -258,3 +258,15 @@ end
     @test mhm isa AbstractMatrix{Union{Bool, Missing}}
     @test mhm isa MaybeHotMatrix{Union{UInt32, Missing}}
 end
+
+@testset "onecold" begin
+    t = Flux.onehotbatch(1:3, 1:10)
+    t2 = maybehotbatch(1:3, 1:10)
+    @test Flux.onecold(t) == Flux.onecold(t2)
+
+    t3 = Flux.onehot(3, 1:10)
+    t4 = maybehot(3, 1:10)
+    @test Flux.onecold(t3) == Flux.onecold(t4)
+
+    @test_throws MethodError maybehotbatch([1,missing,3], 1:10) |> Flux.onecold
+end
