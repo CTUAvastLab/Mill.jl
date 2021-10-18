@@ -21,7 +21,7 @@ using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 using LearnBase: ObsDim
 using HierarchicalUtils: encode, stringify
 
-import Base, Flux, ChainRulesCore
+import Flux, ChainRulesCore
 import Base: *, ==, reduce
 
 # COMMON ALIASES
