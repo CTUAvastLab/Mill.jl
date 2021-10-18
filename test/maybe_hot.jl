@@ -267,9 +267,16 @@ end
     t3 = Flux.onehot(3, 1:10)
     t4 = maybehot(3, 1:10)
     @test Flux.onecold(t3) == Flux.onecold(t4)
+t3
+@which Flux.onecold(t3)
+    t5 = maybehotbatch([1, missing, 3], 1:10)
+    @test_throws ArgumentError Flux.onecold(t5)
 
-    t4 = maybehotbatch([1, missing, 3], 1:10)
-    Flux.onecold(t4)
-    methods(Flux.onecold)
-    @test_throws MethodError maybehotbatch([1,missing,3], 1:10) |> Flux.onecold
+    t6 = maybehot(missing, 1:10)
+    @test_throws ArgumentError Flux.onecold(t6)
+
+    @test Flux.onecold(t2) == maybecold(t2)
+    @test Flux.onecold(t4) == maybecold(t4)
+    @test areequal([1, missing, 3], maybecold(t5))
+    @test areequal(missing, maybecold(t6))
 end

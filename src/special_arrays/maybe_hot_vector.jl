@@ -70,6 +70,7 @@ Flux._fast_argmax(x::MaybeHotVector{<:Integer}) = x.i
 Flux._fast_argmax(x::MaybeHotVector{<:Maybe{Integer}}) = x.i
 
 Flux.onehot(x::MaybeHotVector{<:Integer}) = Flux.onehot(x.i, 1:x.l)
+maybecold(x::MaybeHotVector{<:Maybe{Integer}}, labels = 1:length(y)) = ismissing(x.i) ? x.i : labels[argmax(x)]
 
 """
     maybehot(l, labels)
