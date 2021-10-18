@@ -52,18 +52,6 @@ function Base.copyto!(A::T, bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) 
     return A
 end
 
-_print_params(io::IO, A::PreImputingMatrix) = Base.print_array(io, A.ψ |> permutedims)
-_print_params(io::IO, A::PostImputingMatrix) = Base.print_array(io, A.ψ)
-
-function Base.print_array(io::IO, A::ImputingMatrix)
-    println(io, "W:")
-    Base.print_array(io, A.W)
-    println(io, "\n\nψ:")
-    _print_params(io, A)
-end
-
-Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.S)
-
 function Flux.update!(opt, x::ImputingMatrix, x̄)
     if !isnothing(x̄.W)
         Flux.Optimise.update!(opt, x.W, x̄.W)

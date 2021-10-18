@@ -147,17 +147,17 @@ end
     @test repr(x; context=:compact => true) == "3-element MaybeHotVector"
     @test repr(MIME("text/plain"), x) ==
         """
-        3-element MaybeHotVector{Int64, Int64, Bool}:
+        3-element MaybeHotVector with eltype Bool:
          1
-         0
-         0"""
+         ⋅
+         ⋅"""
 
     x = MaybeHotVector(missing, 4)
     @test repr(x) == "MaybeHotVector(i = missing, l = 4)"
     @test repr(x; context=:compact => true) == "4-element MaybeHotVector"
     @test repr(MIME("text/plain"), x) ==
         """
-        4-element MaybeHotVector{Missing, Int64, Missing}:
+        4-element MaybeHotVector with eltype Missing:
          missing
          missing
          missing
@@ -170,18 +170,18 @@ end
     @test repr(X; context=:compact => true) == "3×2 MaybeHotMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
-        3×2 MaybeHotMatrix{Int64, Int64, Bool}:
-         1  0
-         0  0
-         0  1"""
+        3×2 MaybeHotMatrix with eltype Bool:
+         1  ⋅
+         ⋅  ⋅
+         ⋅  1"""
 
     X = MaybeHotMatrix([missing, 2], 2)
     @test repr(X) == "MaybeHotMatrix(I = Union{Missing, Int64}[missing, 2], l = 2)"
     @test repr(X; context=:compact => true) == "2×2 MaybeHotMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
-        2×2 MaybeHotMatrix{Union{Missing, Int64}, Int64, Union{Missing, Bool}}:
-         missing  false
+        2×2 MaybeHotMatrix with eltype Union{Missing, Bool}:
+         missing    ⋅  
          missing   true"""
 
     X = MaybeHotMatrix([missing, missing, missing], 4)
@@ -189,7 +189,7 @@ end
     @test repr(X; context=:compact => true) == "4×3 MaybeHotMatrix"
     @test repr(MIME("text/plain"), X) ==
         """
-        4×3 MaybeHotMatrix{Missing, Int64, Missing}:
+        4×3 MaybeHotMatrix with eltype Missing:
          missing  missing  missing
          missing  missing  missing
          missing  missing  missing
