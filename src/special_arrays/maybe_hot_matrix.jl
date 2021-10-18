@@ -72,7 +72,7 @@ Zygote.@adjoint A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygot
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{<:Integer}) = A[:, B.I]
 function _mul(A::AbstractMatrix, B::MaybeHotMatrix)
-    C = zeros(Union{eltype(A), Missing}, size(A, 1), size(B, 2))
+    C = zeros(Maybe{eltype(A)}, size(A, 1), size(B, 2))
     @inbounds for (k,i) in enumerate(B.I)
         C[:, k] = A * MaybeHotVector(i, B.l)
     end

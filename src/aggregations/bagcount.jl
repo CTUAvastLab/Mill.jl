@@ -54,7 +54,7 @@ Flux.@functor BagCount
 _bagcount(T, bags) = permutedims(log.(one(T) .+ length.(bags)))
 ChainRulesCore.@non_differentiable _bagcount(T, bags)
 
-function (bc::BagCount)(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...)
+function (bc::BagCount)(x::Maybe{AbstractArray}, bags::AbstractBags, args...)
     o1 = bc.a(x, bags, args...)
     o2 = _bagcount(eltype(o1), bags)
     vcat(o1, o2)

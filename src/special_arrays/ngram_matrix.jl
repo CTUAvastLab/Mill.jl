@@ -309,7 +309,7 @@ function Base.promote_rule(::Type{NGramMatrix{T, U, V}}, ::Type{NGramMatrix{A, B
 end
 function Base.promote_rule(::Type{<:NGramMatrix{Missing, U, V}}, ::Type{<:NGramMatrix{A, B, C}}) where
     {A <: Sequence, U, B, V, C}
-    X = Union{Missing, A}
+    X = Maybe{A}
     NGramMatrix{X, promote_type(U, B){X}, promote_type(V, C)}
 end
 Base.promote_rule(t1::Type{<:NGramMatrix{<:Sequence}}, t2::Type{<:NGramMatrix{Missing}}) = promote_rule(t2, t1)
@@ -366,7 +366,7 @@ _mul(A::AbstractMatrix, B::NGramMatrix{Missing}) = fill(missing, size(A, 1), siz
 _mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul(A, B.S, B.n, B.b, B.m)
 
 function _mul(A::AbstractMatrix, S::AbstractVector{T}, n, b, m) where T <: Maybe{Sequence}
-    T_res = Missing <: T ? Union{eltype(A), Missing} : eltype(A)
+    T_res = Missing <: T ? Maybe{eltype(A)} : eltype(A)
     C = zeros(T_res, size(A, 1), length(S))
     z = _init_z(n, b)
     for (k, s) in enumerate(S)

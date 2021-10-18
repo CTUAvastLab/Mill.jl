@@ -68,7 +68,7 @@ AggregationStack(fs::AbstractAggregation...) = AggregationStack(fs)
 
 Flux.@functor AggregationStack
 
-function (a::AggregationStack)(x::Union{AbstractArray, Missing}, bags::AbstractBags, args...)
+function (a::AggregationStack)(x::Maybe{AbstractArray}, bags::AbstractBags, args...)
     reduce(vcat, (f(x, bags, args...) for f in a.fs))
 end
 
