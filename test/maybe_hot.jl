@@ -268,5 +268,8 @@ end
     t4 = maybehot(3, 1:10)
     @test Flux.onecold(t3) == Flux.onecold(t4)
 
+    t4 = maybehotbatch([1, missing, 3], 1:10)
+    Flux.onecold(t4)
+    methods(Flux.onecold)
     @test_throws MethodError maybehotbatch([1,missing,3], 1:10) |> Flux.onecold
 end

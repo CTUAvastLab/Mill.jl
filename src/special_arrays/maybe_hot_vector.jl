@@ -64,7 +64,10 @@ Zygote.@adjoint A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygot
 _mul(A::AbstractMatrix, b::MaybeHotVector{Missing}) = fill(missing, size(A, 1))
 _mul(A::AbstractMatrix, b::MaybeHotVector{<:Integer}) = A[:, b.i]
 
-_fast_argmax(x::MaybeHotVector{<:Integer}) = x.i
+# this is a bit shady because we're overloading unexported method not intended for public use
+Flux._fast_argmax(x::MaybeHotVector{<:Integer}) = x.i
+# this returns different type
+Flux._fast_argmax(x::MaybeHotVector{<:Maybe{Integer}}) = x.i
 
 Flux.onehot(x::MaybeHotVector{<:Integer}) = Flux.onehot(x.i, 1:x.l)
 
