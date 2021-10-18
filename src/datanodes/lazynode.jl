@@ -48,7 +48,7 @@ end
 ```jldoctest unpack2mill
 julia> LazyNode{:Sentence}(["foo bar", "baz"]) |> Mill.unpack2mill
 BagNode 	# 2 obs, 120 bytes
-  └── ArrayNode(2053×3 NGramMatrix with Int64 elements) 	# 3 obs, 176 bytes
+  └── ArrayNode(2053×3 NGramMatrix with Int64 elements) 	# 3 obs, 274 bytes
 ```
 
 See also: [`LazyNode`](@ref), [`LazyModel`](@ref).
