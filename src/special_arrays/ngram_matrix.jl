@@ -299,6 +299,9 @@ _getindex(X::NGramMatrix, ::Colon, ::Colon) = NGramMatrix(X.S[:], X.n, X.b, X.m)
 
 subset(a::NGramMatrix, i) = NGramMatrix(a.S[i], a.n, a.b, a.m)
 
+ChainRulesCore.ProjectTo(a::NGramMatrix) = ProjectTo{typeof(a)}()
+(p::ProjectTo{<:NGramMatrix})(dx::AbstractZero) = dx
+
 function Base.convert(::Type{<:NGramMatrix{T, U}}, A::NGramMatrix) where {T, U <: AbstractVector{T}}
     NGramMatrix(convert(U, A.S), A.n, A.b, A.m)
 end
