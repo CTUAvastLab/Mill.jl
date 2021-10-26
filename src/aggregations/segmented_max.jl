@@ -41,12 +41,12 @@ function segmented_max_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstrac
     y = Matrix{T}(fill(_typemin(T), size(x, 1), length(bags)))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(ψ)
+            @turbo for i in eachindex(ψ)
                 y[i, bi] = ψ[i]
             end
         else
             for j in b
-                for i in 1:size(x, 1)
+                @turbo for i in 1:size(x, 1)
                     y[i, bi] = max(y[i, bi], x[i, j])
                 end
             end
@@ -62,13 +62,15 @@ function segmented_max_back(Δ, y, x, ψ, bags)
     idxs = zeros(Int, size(x, 1))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(ψ)
+            @turbo for i in eachindex(ψ)
                 dψ[i] += Δ[i, bi]
             end
         else
             fi = first(b)
-            v .= x[:,fi]
-            idxs .= fi
+            @turbo for i in 1:size(x,1)
+                v[i] = x[i, fi]
+                idxs[i] = fi
+            end
             for j in b
                 for i in 1:size(x,1)
                     if v[i] < x[i, j]
@@ -77,7 +79,7 @@ function segmented_max_back(Δ, y, x, ψ, bags)
                     end
                 end
             end
-            for i in 1:size(x, 1)
+            @turbo for i in 1:size(x, 1)
                 dx[i, idxs[i]] += Δ[i, bi]
             end
         end
@@ -88,7 +90,7 @@ end
 function segmented_max_back(Δ, y, x::Missing, ψ, bags) 
     dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
-        for i in eachindex(ψ)
+        @turbo for i in eachindex(ψ)
             dψ[i] += Δ[i, bi]
         end
     end

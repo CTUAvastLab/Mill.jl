@@ -13,7 +13,7 @@ ProductNode 	# 2 obs, 16 bytes
   ├── a: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
   └── b: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
-julia> m1 = ProductModel((a=ArrayModel(Dense(2, 2)), b=ArrayModel(Dense(2, 2))))
+julia> m1 = ProductModel((a=ArrayModel(TurboDense(2, 2)), b=ArrayModel(TurboDense(2, 2))))
 ProductModel ↦ ArrayModel(identity)
   ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
@@ -65,12 +65,12 @@ If `ms` is [`AbstractMillModel`](@ref), a one-element `Tuple` is constructed fro
 
 # Examples
 ```jldoctest
-julia> ProductModel((a=ArrayModel(Dense(2, 2)), b=identity))
+julia> ProductModel((a=ArrayModel(TurboDense(2, 2)), b=identity))
 ProductModel ↦ ArrayModel(identity)
   ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(identity)
 
-julia> ProductModel((identity_model(), BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
+julia> ProductModel((identity_model(), BagModel(ArrayModel(TurboDense(2, 2)), SegmentedMean(2), identity)))
 ProductModel ↦ ArrayModel(identity)
   ├── ArrayModel(identity)
   └── BagModel ↦ SegmentedMean(2) ↦ ArrayModel(identity) 	# 1 arrays, 2 params (all zero), 48 bytes
@@ -93,15 +93,97 @@ ProductModel(ms::Union{MillFunction, AbstractMillModel},
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 
-function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
-    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
+using ManualMemory
+function (f::ManualMemory.Reference{<:AbstractMillModel})(x)
+    ManualMemory.dereference(f)(x)
 end
-# function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-#     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
-# end
+
+function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
+    as = prodparts(m.ms, x)
+    m.m(vcat(as...))
+end
+
+function prodparts(ms, x::ProductNode{<:Tuple})
+    as = Array{Any, 1}(undef, length(ms))
+    @batch for i in eachindex(ms)
+        as[i] = ms[i](x.data[i])
+    end
+    as
+end
+
+Zygote.@adjoint function prodparts(ms::T, x::ProductNode{<:Tuple}) where T
+    Δprodparts(__context__, ms, x)
+end
+
+function Δprodparts(cx::C, ms::T, x::ProductNode{<:Tuple}) where {C, T}
+    plen = length(ms)
+    ys_backs = Array{Any, 1}(undef, plen)
+    cxs = fill(cx, plen)
+    @batch for i in 1:plen
+        ys_backs[i] = Zygote._pullback(cxs[i], ms[i], x.data[i])
+    end
+    if any(map(cx -> !isnothing(cx.cache), cxs))
+        "derivatives w.r.t. global variables under parallel ProductModel are not supported" |> throw
+    end
+    if isempty(ys_backs)
+        ys_backs, _ -> nothing
+    else
+        ys, backs = Zygote.unzip(ys_backs)
+        ys, function (Δ)
+            ds = Array{Any, 1}(undef, plen)
+            @batch for i in 1:plen
+                ds[i] = backs[i](Δ[i])
+            end
+            Δms, Δx = Zygote.unzip(ds)
+            Δms = Tuple(Δms)
+            Δx = Tuple(Δx)
+            (Δms, (data=Δx, metadata=nothing))
+        end
+    end
+end
+
+###
 
 function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-    ms = getfield(m, :ms)
-    cm = getfield(m, :m)
-    cm(vcat(map((sm, sx) -> sm(sx), ms, getfield(x, :data))...))
+    as = prodparts(m.ms, x)
+    m.m(vcat(as...))
+end
+
+function prodparts(ms::T, x::ProductNode{<:NamedTuple}) where T
+    as = Array{Any, 1}(undef, length(ms))
+    @batch for i in 1:length(ms)
+        as[i] = ms[i](x.data[i])
+    end
+    as
+end
+
+Zygote.@adjoint function prodparts(ms::T, x::ProductNode{<:NamedTuple}) where T
+    Δprodparts(__context__, ms, x)
+end
+
+function Δprodparts(cx::C, ms::T, x::ProductNode{<:NamedTuple}) where {C, T}
+    plen = length(ms)
+    ys_backs = Array{Any, 1}(undef, plen)
+    cxs = fill(cx, plen)
+    @batch for i in 1:plen
+        ys_backs[i] = Zygote._pullback(cxs[i], ms[i], x.data[i])
+    end
+    if any(map(cx -> !isnothing(cx.cache), cxs))
+        "derivatives w.r.t. global variables under parallel ProductModel are not supported" |> throw
+    end
+    if isempty(ys_backs)
+        ys_backs, _ -> nothing
+    else
+        ys, backs = Zygote.unzip(ys_backs)
+        ys, function (Δ)
+            ds = Array{Any, 1}(undef, plen)
+            @batch for i in plen:-1:1
+                ds[i] = backs[i](Δ[i])
+            end
+            Δms, Δx = Zygote.unzip(ds)
+            Δms = Tuple(Δms)
+            Δx = NamedTuple{keys(x)}(Δx)
+            (Δms, (data=Δx, metadata=nothing))
+        end
+    end
 end

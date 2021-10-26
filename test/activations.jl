@@ -1,9 +1,8 @@
 @testset "activations of simple matrix model" begin
     x = ArrayNode(randn(2, 4))
-    m = ArrayModel(Chain(Dense(2,2,leakyrelu), Dense(2,2)))
+    m = ArrayModel(Chain(TurboDense(2,2,leakyrelu), TurboDense(2,2)))
     # hm, o = HiddenLayerModel(m, x, 3)
     # os = Flux.activations(m.m, x.data)
-
     # hx, mx = mapactivations(hm, x, m)
     @test_broken o.data ≈ m(x).data
     @test_broken mx.data ≈ m(x).data
@@ -13,9 +12,9 @@ end
 @testset "testing simple aggregation model" begin
     x = BagNode(ArrayNode(randn(2, 4)), [1:2,3:4])
     m = BagModel(
-        ArrayModel(Chain(Dense(2,2,leakyrelu), Dense(2,2))),
+        ArrayModel(Chain(TurboDense(2,2,leakyrelu), TurboDense(2,2))),
         SegmentedMeanMax(2),
-        ArrayModel(Chain(Dense(4,2,leakyrelu), Dense(2,2))))
+        ArrayModel(Chain(TurboDense(4,2,leakyrelu), TurboDense(2,2))))
 
     # hm, o = HiddenLayerModel(m, x, 3)
     # hx, mx = mapactivations(hm, x, m)
@@ -32,8 +31,8 @@ end
     x = ProductNode((a = ArrayNode(randn(2,2)),
         b = ArrayNode(randn(3,2))))
     m = ProductModel((
-        a = ArrayModel(Chain(Dense(2,2,leakyrelu), Dense(2,2))),
-        b = ArrayModel(Chain(Dense(3,3,leakyrelu), Dense(3,3)))))
+        a = ArrayModel(Chain(TurboDense(2,2,leakyrelu), TurboDense(2,2))),
+        b = ArrayModel(Chain(TurboDense(3,3,leakyrelu), TurboDense(3,3)))))
 
     # hm, o = HiddenLayerModel(m, x, 3)
     # hx, mx = mapactivations(hm, x, m)

@@ -74,7 +74,8 @@ Zygote.@adjoint A::PostImputingMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Z
 A::PostImputingMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))
 Zygote.@adjoint A::PostImputingMatrix * B::NGramMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
-_mul(A::PostImputingMatrix, B::AbstractVecOrMat) = A.W * B
+_mul(A::PostImputingMatrix, B::AbstractVecOrMat) = matmul(A.W, B)
+_mul(A::PostImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * B
 _mul(A::PostImputingMatrix, b::MaybeHotVector{Missing}) = A.ψ
 _mul(A::PostImputingMatrix, b::MaybeHotVector{<:Integer}) = A.W * b
 _mul(A::PostImputingMatrix, B::MaybeHotMatrix{Missing}) = repeat(A.ψ, 1, size(B, 2))

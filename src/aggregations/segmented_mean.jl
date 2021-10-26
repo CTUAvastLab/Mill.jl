@@ -36,43 +36,79 @@ function (a::SegmentedMean)(x::Maybe{AbstractMatrix{T}}, bags::AbstractBags,
 end
 
 segmented_mean_forw(::Missing, ψ::AbstractVector, bags::AbstractBags, w) = repeat(ψ, 1, length(bags))
-function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::Optional{AbstractVecOrMat}) 
+function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::Nothing) 
     t = promote_type(eltype(x), eltype(ψ))
     y = zeros(t, size(x, 1), length(bags))
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(ψ)
+            @turbo for i in eachindex(ψ)
                 y[i, bi] = ψ[i]
             end
         else
             for j in b
-                for i in 1:size(x, 1)
-                    y[i, bi] += _weight(w, i, j, t) * x[i, j]
+                @turbo for i in 1:size(x, 1)
+                    y[i, bi] += x[i, j]
                 end
             end
-            @views y[:, bi] ./= _bagnorm(w, b)
+            bl = length(b)
+            @turbo for i in 1:size(y, 1)
+                y[i, bi] /= bl
+            end
+        end
+    end
+    y
+end
+function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::AbstractVector)
+    t = promote_type(eltype(x), eltype(ψ))
+    y = zeros(t, size(x, 1), length(bags))
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            @turbo for i in eachindex(ψ)
+                y[i, bi] = ψ[i]
+            end
+        else
+            for j in b
+                @turbo for i in 1:size(x, 1)
+                    y[i, bi] += w[j] * x[i, j]
+                end
+            end
+            @turbo y[:, bi] ./= _bagnorm(w, b)
+        end
+    end
+    y
+end
+function segmented_mean_forw(x::AbstractMatrix, ψ::AbstractVector, bags::AbstractBags, w::AbstractMatrix)
+    t = promote_type(eltype(x), eltype(ψ))
+    y = zeros(t, size(x, 1), length(bags))
+    @inbounds for (bi, b) in enumerate(bags)
+        if isempty(b)
+            @turbo for i in eachindex(ψ)
+                y[i, bi] = ψ[i]
+            end
+        else
+            for j in b
+                @turbo for i in 1:size(x, 1)
+                    y[i, bi] += w[i, j] * x[i, j]
+                end
+            end
+            @turbo y[:, bi] ./= _bagnorm(w, b)
         end
     end
     y
 end
 
 function segmented_mean_back(Δ, y, x, ψ, bags, w) 
-    dx = zero(x)
+    dx = similar(x)
     dψ = zero(ψ)
     dw = isnothing(w) ? ZeroTangent() : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
-            for i in eachindex(ψ)
+            @turbo for i in eachindex(ψ)
                 dψ[i] += Δ[i, bi]
             end
         else
             ws = _bagnorm(w, b)
-            for j in b
-                for i in 1:size(x, 1)
-                    dx[i, j] += _weight(w, i, j, eltype(x)) * Δ[i, bi] / _weightsum(ws, i)
-                    ∇dw_segmented_mean!(dw, Δ, x, y, w, ws, i, j, bi)
-                end
-            end
+            ∇dxdw_segmented_turbomean!(dx, dw, Δ, x, y, w, ws, b, bi)
         end
     end
     dx, dψ, NoTangent(), dw
@@ -81,19 +117,37 @@ end
 function segmented_mean_back(Δ, y, x::Missing, ψ, bags, w) 
     dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
-        for i in eachindex(ψ)
+        @turbo for i in eachindex(ψ)
             dψ[i] += Δ[i, bi]
         end
     end
     ZeroTangent(), dψ, NoTangent(), ZeroTangent()
 end
 
-∇dw_segmented_mean!(dw::ZeroTangent, Δ, x, y, w::Nothing, ws, i, j, bi) = nothing
-function ∇dw_segmented_mean!(dw::AbstractVector, Δ, x, y, w::AbstractVector, ws, i, j, bi) 
-    dw[j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws
+function ∇dxdw_segmented_turbomean!(dx, dw::ZeroTangent, Δ, x, y, w::Nothing, ws, b, bi)
+    for j in b
+        @turbo for i in 1:size(x, 1)
+            dx[i, j] = Δ[i, bi] / ws
+        end
+    end
 end
-function ∇dw_segmented_mean!(dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, ws, i, j, bi)
-    dw[i, j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws[i]
+function ∇dxdw_segmented_turbomean!(dx, dw::AbstractVector, Δ, x, y, w::AbstractVector, ws, b, bi)
+    for j in b
+        @inbounds for i in 1:size(x, 1)
+            dw[j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws
+        end
+        @turbo for i in 1:size(x, 1)
+            dx[i, j] = w[j] * Δ[i, bi] / ws
+        end
+    end
+end
+function ∇dxdw_segmented_turbomean!(dx, dw::AbstractMatrix, Δ, x, y, w::AbstractMatrix, ws, b, bi)
+    for j in b
+        @turbo for i in 1:size(x, 1)
+            dx[i, j] = w[i, j] * Δ[i, bi] / ws[i]
+            dw[i, j] += Δ[i, bi] * (x[i, j] - y[i, bi]) / ws[i]
+        end
+    end
 end
 
 function ChainRulesCore.rrule(::typeof(segmented_mean_forw), args...)

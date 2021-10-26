@@ -63,10 +63,10 @@ Zygote.@adjoint A::PreImputingMatrix * b::AbstractVector = (_check_mul(A, b); Zy
 A::PreImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
 Zygote.@adjoint A::PreImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
-_mul(A::PreImputingMatrix, B::AbstractVecOrMat) = A.W * B
-_mul(A::PreImputingMatrix, ::AbstractVector{Missing}) = A.W * A.ψ
-_mul(A::PreImputingMatrix, B::AbstractMatrix{Missing}) = repeat(A.W * A.ψ, 1, size(B, 2))
-_mul(A::PreImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * _mul_maybe(A.ψ, B)
+_mul(A::PreImputingMatrix, B::AbstractVecOrMat) = matmul(A.W, B)
+_mul(A::PreImputingMatrix, ::AbstractVector{Missing}) = matmul(A.W, A.ψ)
+_mul(A::PreImputingMatrix, B::AbstractMatrix{Missing}) = repeat(matmul(A.W, A.ψ), 1, size(B, 2))
+_mul(A::PreImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = matmul(A.W, _mul_maybe(A.ψ, B))
 
 _mul_maybe(ψ, B) = _impute_row(ψ, B)[1]
 function ChainRulesCore.rrule(::typeof(_mul_maybe), ψ, B)

@@ -75,7 +75,7 @@ end
 @testset "testing model operations missing values" begin
     a = BagNode(ArrayNode(rand(3, 4)), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
-    m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMean(2), ArrayModel(Dense(2, 2)))
+    m = BagModel(ArrayModel(TurboDense(3, 2)), SegmentedMean(2), ArrayModel(TurboDense(2, 2)))
 
     @testset "BagNode" begin
         x = reduce(catobs, [a, e])
@@ -125,9 +125,9 @@ end
     y = reduce(catobs, [ba, bb, bc])
     z = reduce(catobs, [bba, bbb, bbc])
 
-    mx = reflectinmodel(x, d -> Dense(d, 2, relu))
-    my = reflectinmodel(y, d -> Dense(d, 2, relu))
-    mz = reflectinmodel(z, d -> Dense(d, 2, relu))
+    mx = reflectinmodel(x, d -> TurboDense(d, 2, relu))
+    my = reflectinmodel(y, d -> TurboDense(d, 2, relu))
+    mz = reflectinmodel(z, d -> TurboDense(d, 2, relu))
 
     @test mx(x).data[:, 1] ≈ mx(c).data
     @test mx(x).data[:, 2] ≈ mx(d).data
