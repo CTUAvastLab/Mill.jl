@@ -44,6 +44,8 @@ function (m::ArrayModel)(x::ArrayNode)
     ArrayNode(c(a))
 end
 
+(m::ArrayModel)(x::AbstractVector{<:ArrayNode}) = m(reduce(catobs, x))
+
 """
     identity_model()
 

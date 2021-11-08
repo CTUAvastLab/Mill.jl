@@ -338,3 +338,13 @@ end
         end
     end
 end
+
+@testset "testing simple named tuple model with reduce catobs in gradient" begin
+    x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
+                     node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
+    m = reflectinmodel(x, layerbuilder)
+    @test gradient(() -> sum(m([x, x]).data), params(m)) isa Flux.Zygote.Grads
+    @test gradient(() -> sum(m[:node1]([x[:node1], x[:node1]]).data), params(m)) isa Flux.Zygote.Grads
+    reduced = reduce(catobs, [x, x])
+    @test gradient(() -> sum(m([x, x]).data), params(m)).params == gradient(() -> sum(m(reduced).data), params(m)).params
+end

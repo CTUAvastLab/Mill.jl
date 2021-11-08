@@ -74,6 +74,7 @@ end
 (m::BagModel)(x::BagNode{Missing}) = m.bm(ArrayNode(m.a(getfield(x, :data), x.bags)))
 (m::BagModel)(x::WeightedBagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(getfield(x, :data)), x.bags, x.weights))
 (m::BagModel)(x::WeightedBagNode{Missing}) = m.bm(ArrayNode(m.a(getfield(x, :data), x.bags, x.weights)))
+(m::BagModel)(x::AbstractVector{<:BagNode}) = m(reduce(catobs, x))
 
 function _bag_forward(m, x)
     im = getfield(m, :im)

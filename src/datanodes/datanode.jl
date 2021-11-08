@@ -250,3 +250,5 @@ Base.reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
 function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractMillNode
     reduce(catobs, skipmissing(as) |> collect)
 end
+
+ChainRulesCore.@non_differentiable Base.reduce(catobs, x::AbstractVector{<:AbstractMillNode})

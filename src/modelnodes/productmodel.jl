@@ -105,3 +105,5 @@ function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
     cm = getfield(m, :m)
     cm(vcat(map((sm, sx) -> sm(sx), ms, getfield(x, :data))...))
 end
+
+(m::ProductModel)(x::AbstractVector{<:ProductNode}) = m(reduce(catobs, x))
