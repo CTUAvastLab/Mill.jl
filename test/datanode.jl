@@ -160,6 +160,7 @@ end
     for n in [a, b, c, d, e, f, h, k, l, wa, wb, wc, wd]
         @inferred catobs(n, n)
         @inferred reduce(catobs, [n, n])
+        @inferred catobs([n, n])
     end
 end
 

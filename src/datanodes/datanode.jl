@@ -251,5 +251,7 @@ function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: Abstract
     reduce(catobs, skipmissing(as) |> collect)
 end
 
+catobs(as::AbstractVector{<:AbstractMillNode}) = reduce(catobs, as)
+
 ChainRulesCore.@non_differentiable Base.reduce(catobs, x::AbstractVector{<:AbstractMillNode})
 ChainRulesCore.@non_differentiable MLDataPattern.getobs(x::DataSubset{<:AbstractMillNode})
