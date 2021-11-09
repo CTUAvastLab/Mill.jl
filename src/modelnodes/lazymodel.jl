@@ -61,7 +61,6 @@ LazyModel{Name}(m::M) where {Name, M} = LazyModel{Name, M}(m)
 Flux.@functor LazyModel
 
 (m::LazyModel{Name})(x::LazyNode{Name}) where {Name} = m.m(unpack2mill(x))
-(m::LazyModel{Name})(x::AbstractVector{<:LazyNode{Name}}) where {Name} = m(reduce(catobs, x))
 
 function HiddenLayerModel(m::LazyModel{N}, ds::LazyNode{N}, n) where {N}
     hm, o = HiddenLayerModel(m.m, unpack2mill(ds), n)

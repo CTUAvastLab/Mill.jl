@@ -313,3 +313,5 @@ function replacein(x::LazyModel{N}, oldnode, newnode) where {N}
     x === oldnode && return newnode
     LazyModel{N}(replacein(x.m, oldnode, newnode))
 end
+
+(m::AbstractMillModel)(x::AbstractVector{<:AbstractMillNode}) = m(reduce(catobs, x))

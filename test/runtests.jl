@@ -21,6 +21,7 @@ using HierarchicalUtils
 using PooledArrays
 using Random
 using SparseArrays
+using MLDataPattern
 
 using BenchmarkTools: @btime
 
