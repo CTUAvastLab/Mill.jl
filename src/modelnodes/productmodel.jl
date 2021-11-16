@@ -100,19 +100,28 @@ end
 #     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
 # end
 
-# function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-#     ms = getfield(m, :ms)
-#     cm = getfield(m, :m)
-#     cm(vcat(map((sm, sx) -> sm(sx), ms, getfield(x, :data))...))
-# end
+function (m::ProductModel{<:NamedTuple{MS}})(ds::ProductNode{<:NamedTuple{MS}}) where {MS}
+    ms = getfield(m, :ms)
+    cm = getfield(m, :m)
+    cm(vcat(map((sm, sx) -> sm(sx), ms, getfield(ds, :data))...))
+end
 
-#
 # This is an ugly version of the above with the advantage that it will work with 
 # ds.data and m.ms having different orders of arguments in the NamedTuples (it is 
 # even sufficient) 
 # Alternatively, we can do if @generated else 
 @generated function (m::ProductModel{<:NamedTuple{MS}})(ds::ProductNode{<:NamedTuple{DS}}) where {MS, DS}
-    vals = [:(Core.getfield(m.ms, $(QuoteNode(k)))(Core.getfield(ds.data, $(QuoteNode(k))))) for k in MS]
-    :(m.m(vcat($(vals...))))
+  @assert issubset(MS,DS)
+  evaluated_childs = [:($(_getitem(:childs_m, k, MS))($(_getitem(:childs_d, k, DS)))) for k in MS]
+  quote 
+    childs_m = getfield(m, :ms)
+    childs_d = getfield(ds, :data)
+    cm = getfield(m, :m)
+    cm(vcat($(evaluated_childs...)))
+  end
 end
 
+function _getitem(name, k, KS) 
+  i = findfirst(k .== KS)
+  :(getfield($(name), $(i)))
+end
