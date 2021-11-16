@@ -34,17 +34,25 @@ end
 
 Flux.@functor PostImputingMatrix
 
+# This way of projection is correct, but I am not certain at all, how well it 
+# will play with the second order gradient.
 ChainRulesCore.ProjectTo(m::PostImputingMatrix) = ProjectTo{PostImputingMatrix}(;W = ChainRulesCore.ProjectTo(m.W), ψ = ChainRulesCore.ProjectTo(m.ψ))
 function (p::ProjectTo{<:PostImputingMatrix})(dx)
-    # PostImputingMatrix(
-    #     p.W(dx.W),
-    #     p.ψ(dx.ψ),
-    #     )
     Tangent{PostImputingMatrix}(;
         W = p.W(dx.W),
         ψ = p.ψ(dx.ψ),
         )
 end
+
+# function (p::ProjectTo{<:PostImputingMatrix})(dx)
+#     PostImputingMatrix(
+#         p.W(dx.W),
+#         p.ψ(dx.ψ),
+#         )
+# end
+# PostImputingMatrix(W::Matrix, ::ChainRulesCore.ZeroTangent) = PostImputingMatrix(W)
+# PostImputingMatrix(W::Matrix, ::ChainRulesCore.NoTangent) = PostImputingMatrix(W)
+
 
 """
     PostImputingMatrix(W::AbstractMatrix{T}, ψ=zeros(T, size(W, 1))) where T
