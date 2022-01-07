@@ -7,7 +7,7 @@ Before sending your pull requests, make sure you do the following:
 - Check if your changes are consistent with the
     [guidelines](#general-guidelines-and-philosophy-for-contribution).
 - Check [Julia Ecosystem contributing guide](https://julialang.org/contribute/).
-- Changes are consistent with the [Coding Style](#c-coding-style).
+- Changes are consistent with the [Coding Style](https://docs.julialang.org/en/v1/manual/style-guide/).
 - Run the [unit tests](#running-unit-tests).
 
 ## Good First Issues
@@ -26,7 +26,7 @@ and contributors before the issues is ready to be tackled by a new contributor.
 If you have improvements to Mill.jl, send us your pull requests! For those
 just getting started, Github has a [how to](https://help.github.com/articles/using-pull-requests/).
 
-If you want to contribute, start working through the TensorFlow codebase, navigate to the
+If you want to contribute, start working through the codebase, navigate to the
 [Github "issues" tab](https://github.com/CTUAvastLab/Mill.jl/issues) and start
 looking through interesting issues. If you are not sure of where to start, then
 start by trying one of the smaller/easier issues here i.e.
@@ -51,234 +51,27 @@ make sure your changes are consistent with the guidelines and follow the recomme
     changes to lower the maintenance cost.
 *   Bug fixes also generally require unit tests, because the presence of bugs
     usually indicates insufficient test coverage.
-*   Keep API compatibility in mind when you change code in core TensorFlow,
-    e.g., code in
-    [tensorflow/core](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/core)
-    and
-    [tensorflow/python](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/python).
-    TensorFlow has passed version 1.0 and hence cannot make
-    non-backward-compatible API changes without a major release. Reviewers of
-    your pull request will comment on any API compatibility issues
-    [following API review practices](https://github.com/tensorflow/community/blob/master/governance/api-reviews.md).
-*   When you contribute a new feature to TensorFlow, the maintenance burden is
-    (by default) transferred to the TensorFlow team. This means that the benefit
+*   When you contribute a new feature to Mill.jl, the maintenance burden is
+    (by default) transferred to the CTUAvastLab. This means that the benefit
     of the contribution must be compared against the cost of maintaining the
     feature.
-*   Full new features (e.g., a new op implementing a cutting-edge algorithm)
-    typically will live in
-    [tensorflow/addons](https://github.com/tensorflow/addons) to get some
-    airtime before a decision is made regarding whether they are to be migrated
-    to the core.
-*   As every PR requires several CPU/GPU hours of CI testing, we discourage
-    submitting PRs to fix one typo, one warning,etc. We recommend fixing the
-    same issue at the file level at least (e.g.: fix all typos in a file, fix
-    all compiler warning in a file, etc.)
-*   Tests should follow the
-    [testing best practices](https://www.tensorflow.org/community/contribute/tests)
-    guide.
-
-#### License
-
-Include a license at the top of new files.
-
-* [C/C++ license example](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/framework/op.cc#L1)
-* [Python license example](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/ops/nn.py#L1)
-* [Java license example](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/java/src/main/java/org/tensorflow/Graph.java#L1)
-* [Go license example](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/go/operation.go#L1)
-* [Bash license example](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/ci_build/ci_sanity.sh#L2)
-* [HTML license example](https://github.com/tensorflow/tensorboard/blob/master/tensorboard/components/tf_backend/tf-backend.html#L2)
-* [JavaScript/TypeScript license example](https://github.com/tensorflow/tensorboard/blob/master/tensorboard/components/tf_backend/backend.ts#L1)
-
-Bazel BUILD files also need to include a license section, e.g.,
-[BUILD example](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/BUILD#L61).
-
-#### C++ coding style
-
-Changes to TensorFlow C++ code should conform to
-[Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html).
-
-Use `clang-tidy` to check your C/C++ changes. To install `clang-tidy` on ubuntu:16.04, do:
-
-```bash
-apt-get install -y clang-tidy
-```
-
-You can check a C/C++ file by doing:
-
-
-```bash
-clang-format <my_cc_file> --style=google > /tmp/my_cc_file.cc
-diff <my_cc_file> /tmp/my_cc_file.cc
-```
-
-#### Python coding style
-
-Changes to TensorFlow Python code should conform to
-[Google Python Style Guide](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
-
-Use `pylint` to check your Python changes. To install `pylint` and check a file
-with `pylint` against TensorFlow's custom style definition:
-
-```bash
-pip install pylint
-pylint --rcfile=tensorflow/tools/ci_build/pylintrc myfile.py
-```
-
-Note `pylint --rcfile=tensorflow/tools/ci_build/pylintrc` should run from the
-top level tensorflow directory.
-
-#### Coding style for other languages
-
-* [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html)
-* [Google JavaScript Style Guide](https://google.github.io/styleguide/jsguide.html)
-* [Google Shell Style Guide](https://google.github.io/styleguide/shell.xml)
-* [Google Objective-C Style Guide](https://google.github.io/styleguide/objcguide.html)
-
-#### Running sanity check
-
-If you have Docker installed on your system, you can perform a sanity check on
-your changes by running the command:
-
-```bash
-tensorflow/tools/ci_build/ci_build.sh CPU tensorflow/tools/ci_build/ci_sanity.sh
-```
-
-This will catch most license, Python coding style and BUILD file issues that
-may exist in your changes.
 
 #### Running unit tests
 
-There are two ways to run TensorFlow unit tests.
+There are two ways to run unit tests.
 
-1.  Using tools and libraries installed directly on your system.
-
-    Refer to the
-    [CPU-only developer Dockerfile](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/dockerfiles/dockerfiles/devel-cpu.Dockerfile)
-    and
-    [GPU developer Dockerfile](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/dockerfiles/dockerfiles/devel-gpu.Dockerfile)
-    for the required packages. Alternatively, use the said
-    [Docker images](https://hub.docker.com/r/tensorflow/tensorflow/tags/), e.g.,
-    `tensorflow/tensorflow:devel` and `tensorflow/tensorflow:devel-gpu` for
-    development to avoid installing the packages directly on your system (in
-    which case remember to change directory from `/root` to `/tensorflow` once
-    you get into the running container so `bazel` can find the `tensorflow`
-    workspace).
-
-    Once you have the packages installed, you can run a specific unit test in
-    bazel by doing as follows:
-
+1. From the CLI in the root directory of the project:
+   
     ```bash
-    export flags="--config=opt -k"
+    julia --color=yes --project=@. -e 'using Pkg; pkg"test"'
     ```
 
-    If the tests are to be run on GPU, add CUDA paths to LD_LIBRARY_PATH and add
-    the `cuda` option flag
-
-    ```bash
-    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH"
-
-    export flags="--config=opt --config=cuda -k"
+2. Running the tests from REPL
+ 
+    Make sure you're in the root directory of the project.
+    Run
+    ```julia
+    using Pkg; pkg"test"
     ```
 
-    For example, to run all tests under tensorflow/python, do:
-
-    ```bash
-    bazel test ${flags} //tensorflow/python/...
-    ```
-
-    For a single component e.g. softmax op:
-
-    ```bash
-    bazel test ${flags} tensorflow/python/kernel_tests:softmax_op_test
-    ```
-
-    For a single/parametrized test e.g. `test_capture_variables` in
-    `tensorflow/python/saved_model/load_test.py`:
-
-    (Requires `python>=3.7`)
-
-    ```bash
-    bazel test ${flags} //tensorflow/python/saved_model:load_test --test_filter=*LoadTest.test_capture_variables*
-    ```
-
-    **Note:** You can add `--test_sharding_strategy=disabled` to the `flags` to
-    disable the sharding so that all the test outputs are in one file. However,
-    it may slow down the tests for not running in parallel and may cause the
-    test to timeout but it could be useful when you need to execute a single
-    test or more in general your filtered/selected tests have a very low
-    execution time and the sharding
-    [could create an overhead on the test esecution](https://github.com/bazelbuild/bazel/issues/2113#issuecomment-264054799).
-
-2.  Using [Docker](https://www.docker.com) and TensorFlow's CI scripts.
-
-    ```bash
-    # Install Docker first, then this will build and run cpu tests
-    tensorflow/tools/ci_build/ci_build.sh CPU bazel test //tensorflow/...
-    ```
-
-    See
-    [TensorFlow Builds](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/ci_build)
-    for details.
-
-#### Running doctest for testable docstring
-
-There are two ways to test the code in the docstring locally:
-
-1.  If you are only changing the docstring of a class/function/method, then you
-    can test it by passing that file's path to
-    [tf_doctest.py](https://www.tensorflow.org/code/tensorflow/tools/docs/tf_doctest.py).
-    For example:
-
-    ```bash
-    python tf_doctest.py --file=<file_path>
-    ```
-
-    This will run it using your installed version of TensorFlow. To be sure
-    you're running the same code that you're testing:
-
-    *   Use an up to date [tf-nightly](https://pypi.org/project/tf-nightly/)
-        `pip install -U tf-nightly`
-    *   Rebase your pull request onto a recent pull from
-        [TensorFlow's](https://github.com/tensorflow/tensorflow) master branch.
-
-2.  If you are changing the code and the docstring of a class/function/method,
-    then you will need to
-    [build TensorFlow from source](https://www.tensorflow.org/install/source).
-    Once you are setup to build from source, you can run the tests:
-
-    ```bash
-    bazel run //tensorflow/tools/docs:tf_doctest
-    ```
-
-    or
-
-    ```bash
-    bazel run //tensorflow/tools/docs:tf_doctest -- --module=ops.array_ops
-    ```
-
-    The `--module` is relative to `tensorflow.python`.
-
-#### Debug builds
-
-When [building Tensorflow](https://www.tensorflow.org/install/source), passing
-`--config=dbg` to Bazel will build with debugging information and without
-optimizations, allowing you to use GDB or other debuggers to debug C++ code. For
-example, you can build the pip package with debugging information by running:
-
-```bash
-bazel build --config=dbg //tensorflow/tools/pip_package:build_pip_package
-```
-
-TensorFlow kernels and TensorFlow's dependencies are still not built with
-debugging information with `--config=dbg`, as issues occur on Linux if
-there is too much debug info (see [this GitHub
-issue](https://github.com/tensorflow/tensorflow/issues/48919) for context). If
-you want to debug a kernel, you can compile specific files with `-g` using the
-`--per_file_copt` bazel option. For example, if you want to debug the Identity
-op, which are in files starting with `identity_op`, you can run
-
-```bash
-bazel build --config=dbg --per_file_copt=+tensorflow/core/kernels/identity_op.*@-g //tensorflow/tools/pip_package:build_pip_package
-```
-
-Note that the `--config=dbg` option is not officially supported.
+This will run both the unit tests and the doctests for the documentation.
