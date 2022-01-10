@@ -62,8 +62,7 @@ export SegmentedMean, SegmentedMax, SegmentedSum, SegmentedLSE, SegmentedPNorm
 include("modelnodes/modelnode.jl")
 export AbstractMillModel, ArrayModel, BagModel, ProductModel, LazyModel
 export IdentityModel, identity_model
-export HiddenLayerModel
-export mapactivations, reflectinmodel
+export reflectinmodel
 
 const AbstractMillStruct = Union{AbstractMillModel, AbstractMillNode}
 
