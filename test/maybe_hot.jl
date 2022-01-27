@@ -31,6 +31,7 @@ end
     @test isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,3,9], 10))
 
     @test isequal(MaybeHotMatrix([1,2,missing], 10), MaybeHotMatrix([1,2,missing], 10))
+    @test !isequal(MaybeHotMatrix([1,2,missing,3], 10), MaybeHotMatrix([1,2,missing,4], 10))
     @test !isequal(MaybeHotMatrix([1,2,missing,3], 10) == MaybeHotMatrix([1,2,missing,4], 10))
 end
 
