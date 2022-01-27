@@ -23,16 +23,23 @@ end
 
 @testset "comparisons" begin
     @test MaybeHotVector(2, 10) == MaybeHotVector(2, 10)
+    @test MaybeHotVector(2, 10) != MaybeHotVector(3, 10)
     @test isequal(MaybeHotVector(1, 10), MaybeHotVector(1, 10))
+    @test !isequal(MaybeHotVector(1, 10), MaybeHotVector(2, 10))
 
     @test isequal(MaybeHotVector(missing, 10), MaybeHotVector(missing, 10))
+    @test !isequal(MaybeHotVector(missing, 10), MaybeHotVector(missing, 11))
 
     @test MaybeHotMatrix([7,2], 10) == MaybeHotMatrix([7,2], 10)
+    @test MaybeHotMatrix([7,2], 10) != MaybeHotMatrix([7,3], 10)
+    @test MaybeHotMatrix([7,2], 10) != MaybeHotMatrix([7,2], 11)
     @test isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,3,9], 10))
+    @test !isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,4,9], 10))
+    @test !isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,4,9], 11))
 
     @test isequal(MaybeHotMatrix([1,2,missing], 10), MaybeHotMatrix([1,2,missing], 10))
     @test !isequal(MaybeHotMatrix([1,2,missing,3], 10), MaybeHotMatrix([1,2,missing,4], 10))
-    @test !isequal(MaybeHotMatrix([1,2,missing,3], 10) == MaybeHotMatrix([1,2,missing,4], 10))
+    @test !isequal(MaybeHotMatrix([1,2,missing,3], 10), MaybeHotMatrix([1,2,missing,3], 11))
 end
 
 @testset "hcat" begin
