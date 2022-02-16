@@ -253,5 +253,4 @@ end
 
 catobs(as::AbstractVector{<:AbstractMillNode}) = reduce(catobs, as)
 
-ChainRulesCore.@non_differentiable Base.reduce(catobs, x::AbstractVector{<:AbstractMillNode})
 ChainRulesCore.@non_differentiable MLDataPattern.getobs(x::DataSubset{<:AbstractMillNode})
