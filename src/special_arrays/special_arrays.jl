@@ -30,16 +30,16 @@ const PreImputingDense = Dense{T, <: PreImputingMatrix} where T
 const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
 
 # so we error on integers with missings
-Flux.onecold(y::MaybeHotArray{Maybe{T}}, labels = 1:size(y, 1)) where T<:Integer = 
-    throw(ArgumentError("MaybeHotArray{Union{T, Missing}} where T <:Integer can't produce onecold encoding, use maybecold instead."))
+Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T<:Integer = 
+    throw(ArgumentError("$(typeof(X)) can't produce `onecold` encoding, use `maybecold` instead."))
 # but we don't error on maybehot which has only integers
 
-y = maybehotbatch([1, missing, 3], 1:10)
-function maybecold(y::AbstractArray, labels = 1:size(y, 1))
-    indices = Flux._fast_argmax(y)
+function maybecold(X::MaybeHotMatrix{<:Maybe{Integer}}, labels = 1:size(X, 1))
+    indices = Flux._fast_argmax(X)
     xs = isbits(labels) ? indices : collect(indices) # non-bit type cannot be handled by CUDA
     return map(xi -> ismissing(xi) ? xi : labels[xi[1]], xs)
 end
+maybecold(X::MaybeHotMatrix{<:Integer}, labels = 1:size(X, 1)) = Flux.onecold(X, labels)
 
 Base.zero(X::T) where T <: ImputingMatrix = T(zero(X.W), zero(X.ψ))
 Base.similar(X::T) where T <: ImputingMatrix = T(similar(X.W), similar(X.ψ))
