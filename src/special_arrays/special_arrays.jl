@@ -32,6 +32,10 @@ const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
 Base.zero(X::T) where T <: ImputingMatrix = T(zero(X.W), zero(X.ψ))
 Base.similar(X::T) where T <: ImputingMatrix = T(similar(X.W), similar(X.ψ))
 
+ChainRulesCore.ProjectTo(X::ImputingMatrix) = ProjectTo{typeof(X)}(W = ChainRulesCore.ProjectTo(X.W),
+                                                                   ψ = ChainRulesCore.ProjectTo(X.ψ))
+ChainRulesCore.ProjectTo(X::Union{MaybeHotVector, MaybeHotMatrix, NGramMatrix}) = ProjectTo{typeof(X)}()
+
 function _split_bc(bc::Base.Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) where T <: ImputingMatrix
     bc1, bc2 = _split_bc(bc.args)
     Base.broadcasted(bc.f, bc1...), Base.broadcasted(bc.f, bc2...)

@@ -301,7 +301,6 @@ end
 
 begin
     println("Benchmarking multiplication")
-    # begin block body
     A = randn(80,2053);
     S = [randstring(10) for i in 1:1000];
     B = NGramMatrix(S, 3, 256, 2053)

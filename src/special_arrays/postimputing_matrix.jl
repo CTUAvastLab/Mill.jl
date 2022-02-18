@@ -34,14 +34,6 @@ end
 
 Flux.@functor PostImputingMatrix
 
-ChainRulesCore.ProjectTo(m::PostImputingMatrix) = ProjectTo{PostImputingMatrix}(;W = ChainRulesCore.ProjectTo(m.W), ψ = ChainRulesCore.ProjectTo(m.ψ))
-function (p::ProjectTo{<:PostImputingMatrix})(dx::Tangent{<:T}) where {T}
-    Tangent{PostImputingMatrix}(;
-        W = p.W(dx.W),
-        ψ = p.ψ(dx.ψ),
-        )
-end
-
 """
     PostImputingMatrix(W::AbstractMatrix{T}, ψ=zeros(T, size(W, 1))) where T
 
