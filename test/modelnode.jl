@@ -334,25 +334,23 @@ end
                   ]
             m = reflectinmodel(ds, layerbuilder, abuilder)
             @inferred m(ds)
-            @test gradtest(() -> m(ds).data, Flux.params(m))
+            @test gradtest(() -> m(ds).data, params(m))
         end
     end
 end
-
-gradients_match(grads1::Grads, grads2::Grads) = grads1.params == grads2.params && gradients_match(grads1.grads, grads2.grads)
-gradients_match(grads1::IdDict, grads2::IdDict) = length(grads1) == length(grads2) && all(kv1 == kv2 for (kv1, kv2) in zip(grads1, grads2))
 
 @testset "testing simple named tuple model with reduce catobs in gradient" begin
     layerbuilder(k) = Dense(k, 2, relu)
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
-    @test gradient(() -> sum(m([x, x]).data), params(m)) isa Grads
-    vec_grad = gradient(() -> sum(m([x, x]).data), params(m))
+    ps = params(m)
+    @test gradient(() -> sum(m([x, x]).data), ps) isa Grads
+    vec_grad = gradient(() -> sum(m([x, x]).data), ps)
     @test vec_grad isa Grads
     reduced = reduce(catobs, [x, x])
-    orig_grad = gradient(() -> sum(m(reduced).data), params(m))
-    @test gradients_match(vec_grad, orig_grad)
+    orig_grad = gradient(() -> sum(m(reduced).data), ps)
+    @test all(p -> vec_grad[p] == orig_grad[p], ps)
 end
 
 @testset "testing simple named tuple model with minibatching from MLDataPattern" begin
@@ -360,10 +358,11 @@ end
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
+    ps = params(m)
     mbs = RandomBatches(x, size = 4)
-    mb_grad = gradient(() -> sum(m(first(mbs)).data), params(m))
+    mb_grad = gradient(() -> sum(m(first(mbs)).data), ps)
     @test mb_grad isa Grads
     reduced = reduce(catobs, [x[2], x[2], x[2], x[2]])  # conditioned by the random seed
-    orig_grad = gradient(() -> sum(m(reduced).data), params(m))
-    @test gradients_match(mb_grad, orig_grad)
+    orig_grad = gradient(() -> sum(m(reduced).data), ps)
+    @test all(p -> mb_grad[p] == orig_grad[p], ps)
 end
