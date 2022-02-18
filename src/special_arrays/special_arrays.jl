@@ -29,10 +29,9 @@ const ImputingMatrix{T, U} = Union{PreImputingMatrix{T, U}, PostImputingMatrix{T
 const PreImputingDense = Dense{T, <: PreImputingMatrix} where T
 const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
 
-# so we error on integers with missings
+# so we error on integers with missings (but not on maybehot which has only integers)
 Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T<:Integer = 
     throw(ArgumentError("$(typeof(X)) can't produce `onecold` encoding, use `maybecold` instead."))
-# but we don't error on maybehot which has only integers
 
 function maybecold(X::MaybeHotMatrix{<:Maybe{Integer}}, labels = 1:size(X, 1))
     indices = Flux._fast_argmax(X)

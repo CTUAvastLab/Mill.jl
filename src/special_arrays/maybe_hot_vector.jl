@@ -68,7 +68,6 @@ _mul(A::AbstractMatrix, b::MaybeHotVector{<:Integer}) = A[:, b.i]
 Flux._fast_argmax(x::MaybeHotVector) = x.i
 
 Flux.onehot(x::MaybeHotVector{<:Integer}) = Flux.onehot(x.i, 1:x.l)
-maybecold(x::MaybeHotVector{<:Maybe{Integer}}, labels = 1:length(x)) = ismissing(x.i) ? x.i : labels[argmax(x)]
 maybecold(x::MaybeHotVector{Missing}, labels = 1:length(x)) = missing
 maybecold(x::MaybeHotVector{<:Integer}, labels = 1:length(x)) = labels[x.i]
 
