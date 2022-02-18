@@ -339,32 +339,30 @@ end
     end
 end
 
-gradients_match(grads1::Flux.Zygote.Grads, grads2::Flux.Zygote.Grads) = grads1.params == grads2.params && gradients_match(grads1.grads, grads2.grads)
-gradients_match(grads1::Flux.Zygote.Grads, grads2::Flux.Zygote.Grads) = grads1.params == grads2.params && gradients_match(grads1.grads, grads2.grads)
+gradients_match(grads1::Grads, grads2::Grads) = grads1.params == grads2.params && gradients_match(grads1.grads, grads2.grads)
 gradients_match(grads1::IdDict, grads2::IdDict) = length(grads1) == length(grads2) && all(kv1 == kv2 for (kv1, kv2) in zip(grads1, grads2))
 
 @testset "testing simple named tuple model with reduce catobs in gradient" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    layerbuilder(k) = Dense(k, 2, relu)
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
-    @test gradient(() -> sum(m[:node1]([x[:node1], x[:node1]]).data), params(m)) isa Flux.Zygote.Grads
+    @test gradient(() -> sum(m([x, x]).data), params(m)) isa Grads
     vec_grad = gradient(() -> sum(m([x, x]).data), params(m))
-    @test vec_grad isa Flux.Zygote.Grads
+    @test vec_grad isa Grads
     reduced = reduce(catobs, [x, x])
     orig_grad = gradient(() -> sum(m(reduced).data), params(m))
     @test gradients_match(vec_grad, orig_grad)
 end
 
 @testset "testing simple named tuple model with minibatching from MLDataPattern" begin
-    Random.seed!(420)
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+    layerbuilder(k) = Dense(k, 2, relu)
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
     mbs = RandomBatches(x, size = 4)
-    mb_grad = gradient(() -> sum(m(getobs(first(mbs))).data), params(m))
-    @test mb_grad isa Flux.Zygote.Grads
+    mb_grad = gradient(() -> sum(m(first(mbs)).data), params(m))
+    @test mb_grad isa Grads
     reduced = reduce(catobs, [x[2], x[2], x[2], x[2]])  # conditioned by the random seed
     orig_grad = gradient(() -> sum(m(reduced).data), params(m))
     @test gradients_match(mb_grad, orig_grad)
