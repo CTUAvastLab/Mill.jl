@@ -33,6 +33,37 @@ const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
 Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T<:Integer = 
     throw(ArgumentError("$(typeof(X)) can't produce `onecold` encoding, use `maybecold` instead."))
 
+"""
+    maybecold(y::AbstractArray, labels = 1:size(y,1))
+
+Roughly the inverse operation of [`maybehot`](@ref) or [`maybehotbatch`](@ref): 
+This finds the index of the largest element of `y`, or each column of `y`, 
+and looks them up in `labels`.
+If `labels` are not specified, the default is integers `1:size(y,1)` --
+the roughly same operation as `argmax(y, dims=1)` but sometimes a different return type
+and can handle missings.
+# Examples
+```jldoctest
+julia> maybecold(maybehot(:b, [:a, :b, :c]))
+2
+julia> maybecold(maybehot(:b, [:a, :b, :c]), [:a, :b, :c])
+:b
+julia> maybehot(missing, 1:3)
+3-element MaybeHotVector with eltype Missing:
+ missing
+ missing
+ missing
+julia> maybecold(maybehotbatch(1:3, 1:10))
+3-element Vector{Int64}:
+ 1
+ 2
+ 3
+julia> maybecold(maybehotbatch([missing, 2], 1:3))
+2-element Vector{Union{Missing, Int64}}:
+  missing
+ 2
+```
+"""
 function maybecold(X::MaybeHotMatrix{<:Maybe{Integer}}, labels = 1:size(X, 1))
     indices = Flux._fast_argmax(X)
     xs = isbits(labels) ? indices : collect(indices) # non-bit type cannot be handled by CUDA
