@@ -345,7 +345,6 @@ end
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
     ps = params(m)
-    @test gradient(() -> sum(m([x, x]).data), ps) isa Grads
     vec_grad = gradient(() -> sum(m([x, x]).data), ps)
     @test vec_grad isa Grads
     reduced = reduce(catobs, [x, x])
