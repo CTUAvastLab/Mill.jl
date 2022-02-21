@@ -23,15 +23,23 @@ end
 
 @testset "comparisons" begin
     @test MaybeHotVector(2, 10) == MaybeHotVector(2, 10)
+    @test MaybeHotVector(2, 10) != MaybeHotVector(3, 10)
     @test isequal(MaybeHotVector(1, 10), MaybeHotVector(1, 10))
+    @test !isequal(MaybeHotVector(1, 10), MaybeHotVector(2, 10))
 
     @test isequal(MaybeHotVector(missing, 10), MaybeHotVector(missing, 10))
+    @test !isequal(MaybeHotVector(missing, 10), MaybeHotVector(missing, 11))
 
     @test MaybeHotMatrix([7,2], 10) == MaybeHotMatrix([7,2], 10)
+    @test MaybeHotMatrix([7,2], 10) != MaybeHotMatrix([7,3], 10)
+    @test MaybeHotMatrix([7,2], 10) != MaybeHotMatrix([7,2], 11)
     @test isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,3,9], 10))
+    @test !isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,4,9], 10))
+    @test !isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,4,9], 11))
 
     @test isequal(MaybeHotMatrix([1,2,missing], 10), MaybeHotMatrix([1,2,missing], 10))
-    @test !isequal(MaybeHotMatrix([1,2,missing,3], 10) == MaybeHotMatrix([1,2,missing,4], 10))
+    @test !isequal(MaybeHotMatrix([1,2,missing,3], 10), MaybeHotMatrix([1,2,missing,4], 10))
+    @test !isequal(MaybeHotMatrix([1,2,missing,3], 10), MaybeHotMatrix([1,2,missing,3], 11))
 end
 
 @testset "hcat" begin
@@ -257,4 +265,25 @@ end
     @test all(isequal.(mhm.I, [1, missing]))
     @test mhm isa AbstractMatrix{Union{Bool, Missing}}
     @test mhm isa MaybeHotMatrix{Union{UInt32, Missing}}
+end
+
+@testset "onecold" begin
+    t = Flux.onehotbatch(1:3, 1:10)
+    t2 = maybehotbatch(1:3, 1:10)
+    @test Flux.onecold(t) == Flux.onecold(t2)
+
+    t3 = Flux.onehot(3, 1:10)
+    t4 = maybehot(3, 1:10)
+    @test Flux.onecold(t3) == Flux.onecold(t4)
+
+    t5 = maybehotbatch([1, missing, 3], 1:10)
+    @test_throws ArgumentError Flux.onecold(t5)
+
+    t6 = maybehot(missing, 1:10)
+    @test_throws ArgumentError Flux.onecold(t6)
+
+    @test Flux.onecold(t2) == maybecold(t2)
+    @test Flux.onecold(t4) == maybecold(t4)
+    @test areequal([1, missing, 3], maybecold(t5))
+    @test areequal(missing, maybecold(t6))
 end

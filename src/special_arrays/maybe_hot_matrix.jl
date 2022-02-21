@@ -67,18 +67,19 @@ function _typed_hcat(::Type{T}, Xs::AbstractVector{<:MaybeHotMatrix}) where T <:
 end
 
 A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))
-Zygote.@adjoint A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{<:Integer}) = A[:, B.I]
 function _mul(A::AbstractMatrix, B::MaybeHotMatrix)
-    C = zeros(Union{eltype(A), Missing}, size(A, 1), size(B, 2))
+    C = zeros(Maybe{eltype(A)}, size(A, 1), size(B, 2))
     @inbounds for (k,i) in enumerate(B.I)
         C[:, k] = A * MaybeHotVector(i, B.l)
     end
     C
 end
 
+# this is a bit shady because we're overloading unexported method not intended for public use
+Flux._fast_argmax(X::MaybeHotMatrix) = X.I
 Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = Flux.onehotbatch(X.I, 1:X.l)
 
 """
@@ -105,6 +106,13 @@ julia> maybehotbatch([missing, 2], 1:3)
 See also: [`maybehot`](@ref), [`MaybeHotMatrix`](@ref), [`MaybeHotVector`](@ref).
 """
 maybehotbatch(L, labels) = MaybeHotMatrix([maybehot(l, labels).i for l in L], length(labels))
+
+function maybecold(X::MaybeHotMatrix{<:Maybe{Integer}}, labels=1:size(X, 1))
+    indices = Flux._fast_argmax(X)
+    xs = isbits(labels) ? indices : collect(indices) # non-bit type cannot be handled by CUDA
+    return map(xi -> ismissing(xi) ? xi : labels[xi[1]], xs)
+end
+maybecold(X::MaybeHotMatrix{<:Integer}, labels=1:size(X, 1)) = Flux.onecold(X, labels)
 
 Base.hash(X::MaybeHotMatrix, h::UInt) where {T, U, V, W} = hash((X.I, X.l), h)
 (X1::MaybeHotMatrix == X2::MaybeHotMatrix) = X1.I == X2.I && X1.l == X2.l

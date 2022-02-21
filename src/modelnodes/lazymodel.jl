@@ -62,14 +62,5 @@ Flux.@functor LazyModel
 
 (m::LazyModel{Name})(x::LazyNode{Name}) where {Name} = m.m(unpack2mill(x))
 
-function HiddenLayerModel(m::LazyModel{N}, ds::LazyNode{N}, n) where {N}
-    hm, o = HiddenLayerModel(m.m, unpack2mill(ds), n)
-    return(LazyModel{N}(hm), o )
-end
-
-function mapactivations(hm::LazyModel{N}, x::LazyNode{N}, m::LazyModel{N}) where {N}
-    ho, o = mapactivations(hm.m, unpack2mill(x), m.m)
-end
-
 # Base.hash(m::LazyModel{T}, h::UInt) where {T} = hash((T, m.m), h)
 # (m1::LazyModel{T} == m2::LazyModel{T}) where {T} = m1.m == m2.m

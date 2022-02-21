@@ -59,10 +59,12 @@ end
 reduce(::typeof(catobs), as::Vector{<:MaybeHotVector}) = reduce(hcat, as)
 
 A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); _mul(A, b))
-Zygote.@adjoint A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
 
 _mul(A::AbstractMatrix, b::MaybeHotVector{Missing}) = fill(missing, size(A, 1))
 _mul(A::AbstractMatrix, b::MaybeHotVector{<:Integer}) = A[:, b.i]
+
+# this is a bit shady because we're overloading unexported method not intended for public use
+Flux._fast_argmax(x::MaybeHotVector) = x.i
 
 Flux.onehot(x::MaybeHotVector{<:Integer}) = Flux.onehot(x.i, 1:x.l)
 
@@ -95,6 +97,9 @@ function maybehot(l, labels)
     isnothing(i) && ArgumentError("Value $l not in labels $labels") |> throw
     MaybeHotVector(UInt32(i), length(labels))
 end
+
+maybecold(x::MaybeHotVector{Missing}, labels=nothing) = missing
+maybecold(x::MaybeHotVector{<:Integer}, labels=1:length(x)) = labels[x.i]
 
 Base.hash(x::MaybeHotVector, h::UInt) = hash((x.i, x.l), h)
 (x1::MaybeHotVector == x2::MaybeHotVector) = x1.i == x2.i && x1.l == x2.l

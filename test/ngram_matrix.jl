@@ -301,17 +301,16 @@ end
 
 begin
     println("Benchmarking multiplication")
-    # begin block body
     A = randn(80,2053);
     S = [randstring(10) for i in 1:1000];
     B = NGramMatrix(S, 3, 256, 2053)
     C = sparse(countngrams(S, 3, 256, size(A, 2)));
     println("A * B::NGramMatrix (This should be the fastest)");
-    @btime A*B;                                                 # 526.456 μs (2002 allocations: 671.95 KiB)
+    @btime A*B;                                                 # 501.238 μs (2 allocations: 625.08 KiB)
     println("A * countngrams(S, 3, 256, size(A, 2))")
-    @btime A * countngrams(S, 3, 256, size(A, 2));                   # 154.646 ms (3013 allocations: 16.38 MiB)
+    @btime A * countngrams(S, 3, 256, size(A, 2));              # 138.392 ms (11 allocations: 16.27 MiB)
     println("A * sparse(countngrams(S, 3, 256, size(A, 2)))")
-    @btime A*sparse(countngrams(S, 3, 256, size(A, 2)));           # 7.525 ms (3013 allocations: 16.57 MiB)
+    @btime A*sparse(countngrams(S, 3, 256, size(A, 2)));        # 5.241 ms (11 allocations: 16.46 MiB)
     print("A * C where C = sparse(countngrams(S, 3, 256, size(A, 2)));");
-    @btime A*C;                                                 # 1.527 ms (2 allocations: 625.08 KiB)
+    @btime A*C;                                                 # 350.919 μs (2 allocations: 625.08 KiB)
 end

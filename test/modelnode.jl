@@ -334,7 +334,34 @@ end
                   ]
             m = reflectinmodel(ds, layerbuilder, abuilder)
             @inferred m(ds)
-            @test gradtest(() -> m(ds).data, Flux.params(m))
+            @test gradtest(() -> m(ds).data, params(m))
         end
     end
+end
+
+@testset "testing simple named tuple model with reduce catobs in gradient" begin
+    layerbuilder(k) = Dense(k, 2, relu)
+    x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
+                     node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
+    m = reflectinmodel(x, layerbuilder)
+    ps = params(m)
+    vec_grad = gradient(() -> sum(m([x, x]).data), ps)
+    @test vec_grad isa Grads
+    reduced = reduce(catobs, [x, x])
+    orig_grad = gradient(() -> sum(m(reduced).data), ps)
+    @test all(p -> vec_grad[p] == orig_grad[p], ps)
+end
+
+@testset "testing simple named tuple model with minibatching from MLDataPattern" begin
+    layerbuilder(k) = Dense(k, 2, relu)
+    x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
+                     node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
+    m = reflectinmodel(x, layerbuilder)
+    ps = params(m)
+    mbs = RandomBatches(x, size = 4)
+    mb_grad = gradient(() -> sum(m(first(mbs)).data), ps)
+    @test mb_grad isa Grads
+    reduced = reduce(catobs, [x[2], x[2], x[2], x[2]])  # conditioned by the random seed
+    orig_grad = gradient(() -> sum(m(reduced).data), ps)
+    @test all(p -> mb_grad[p] == orig_grad[p], ps)
 end

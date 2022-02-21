@@ -16,11 +16,12 @@ using Combinatorics
 using DataFrames
 using Documenter
 using Flux
-using Flux: onehot, onehotbatch
+using Flux: Zygote.Grads, onehot, onehotbatch
 using HierarchicalUtils
 using PooledArrays
 using Random
 using SparseArrays
+using MLDataPattern
 
 using BenchmarkTools: @btime
 

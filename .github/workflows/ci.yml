@@ -44,6 +44,8 @@ jobs:
             arch: x86
           - os: windows-latest
             arch: x86
+    env:
+          PYTHON: ""
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
@@ -61,14 +63,8 @@ jobs:
             ${{ runner.os }}-test-
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
-        env:
-          PYTHON: ""
       - uses: julia-actions/julia-runtest@v1
-        env:
-          PYTHON: ""
       - uses: julia-actions/julia-processcoverage@v1
-        env:
-          PYTHON: ""
       - uses: codecov/codecov-action@v1
         with:
           file: ./lcov.info
