@@ -30,11 +30,8 @@ Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T<:Integer
     maybecold(y, labels=1:size(y,1))
 
 Similar to [`Flux.onecold`](@ref) but when `y` contains `missing` values, `missing` is in the result as well.
-Therefore, it is roughly the inverse operation of [`maybehot`](@ref) or [`maybehotbatch`](@ref).
 
-If `labels` are not specified, the default is integers `1:size(y,1)`
-the roughly same operation as `argmax(y, dims=1)` but sometimes a different return type
-and can handle missings.
+Therefore, it is roughly the inverse operation of [`maybehot`](@ref) or [`maybehotbatch`](@ref).
 
 # Examples
 ```jldoctest
