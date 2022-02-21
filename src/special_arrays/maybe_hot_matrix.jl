@@ -67,7 +67,6 @@ function _typed_hcat(::Type{T}, Xs::AbstractVector{<:MaybeHotMatrix}) where T <:
 end
 
 A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))
-Zygote.@adjoint A::AbstractMatrix * B::MaybeHotMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
 _mul(A::AbstractMatrix, B::MaybeHotMatrix{<:Integer}) = A[:, B.I]

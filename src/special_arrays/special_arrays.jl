@@ -19,11 +19,13 @@ end
 
 include("maybe_hot_vector.jl")
 include("maybe_hot_matrix.jl")
-include("ngram_matrix.jl")
-include("preimputing_matrix.jl")
-include("postimputing_matrix.jl")
 
 const MaybeHotArray{T} = Union{MaybeHotVector{T}, MaybeHotMatrix{T}}
+
+include("ngram_matrix.jl")
+
+include("preimputing_matrix.jl")
+include("postimputing_matrix.jl")
 
 const ImputingMatrix{T, U} = Union{PreImputingMatrix{T, U}, PostImputingMatrix{T, U}}
 const PreImputingDense = Dense{T, <: PreImputingMatrix} where T
@@ -34,7 +36,7 @@ Base.similar(X::T) where T <: ImputingMatrix = T(similar(X.W), similar(X.ψ))
 
 ChainRulesCore.ProjectTo(X::ImputingMatrix) = ProjectTo{typeof(X)}(W = ChainRulesCore.ProjectTo(X.W),
                                                                    ψ = ChainRulesCore.ProjectTo(X.ψ))
-ChainRulesCore.ProjectTo(X::Union{MaybeHotVector, MaybeHotMatrix, NGramMatrix}) = ProjectTo{typeof(X)}()
+ChainRulesCore.ProjectTo(X::NGramMatrix) = ProjectTo{typeof(X)}()
 
 function _split_bc(bc::Base.Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) where T <: ImputingMatrix
     bc1, bc2 = _split_bc(bc.args)

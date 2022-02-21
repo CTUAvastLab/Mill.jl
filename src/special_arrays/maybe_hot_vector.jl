@@ -59,7 +59,6 @@ end
 reduce(::typeof(catobs), as::Vector{<:MaybeHotVector}) = reduce(hcat, as)
 
 A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); _mul(A, b))
-Zygote.@adjoint A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
 
 _mul(A::AbstractMatrix, b::MaybeHotVector{Missing}) = fill(missing, size(A, 1))
 _mul(A::AbstractMatrix, b::MaybeHotVector{<:Integer}) = A[:, b.i]
