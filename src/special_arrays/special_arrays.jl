@@ -22,7 +22,53 @@ include("maybe_hot_matrix.jl")
 
 const MaybeHotArray{T} = Union{MaybeHotVector{T}, MaybeHotMatrix{T}}
 
+# so we error on integers with missings (but not on maybehot which has only integers)
+Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T<:Integer = 
+    throw(ArgumentError("$(typeof(X)) can't produce `onecold` encoding, use `maybecold` instead."))
+
+"""
+    maybecold(y, labels=1:size(y,1))
+
+Similar to [`Flux.onecold`](@ref) but when `y` contains `missing` values, `missing` is in the result as well.
+Therefore, it is roughly the inverse operation of [`maybehot`](@ref) or [`maybehotbatch`](@ref).
+
+If `labels` are not specified, the default is integers `1:size(y,1)`
+the roughly same operation as `argmax(y, dims=1)` but sometimes a different return type
+and can handle missings.
+
+# Examples
+```jldoctest
+julia> maybehot(:b, [:a, :b, :c])
+3-element MaybeHotVector with eltype Bool:
+ ⋅
+ 1
+ ⋅
+
+julia> maybecold(ans, [:a, :b, :c])
+:b
+
+julia> maybehot(missing, 1:3)
+3-element MaybeHotVector with eltype Missing:
+ missing
+ missing
+ missing
+
+julia> maybecold(ans)
+missing
+
+julia> maybecold(maybehotbatch([missing, 2], 1:3))
+2-element Vector{Union{Missing, Int64}}:
+  missing
+ 2
+```
+
+See also: [`Flux.onecold`](@ref), [`maybehot`](@ref), [`maybehotbatch`](@ref).
+"""
+function maybecold end
+
 include("ngram_matrix.jl")
+
+ChainRulesCore.ProjectTo(X::NGramMatrix) = ProjectTo{typeof(X)}()
 
 include("preimputing_matrix.jl")
 include("postimputing_matrix.jl")
@@ -31,54 +77,11 @@ const ImputingMatrix{T, U} = Union{PreImputingMatrix{T, U}, PostImputingMatrix{T
 const PreImputingDense = Dense{T, <: PreImputingMatrix} where T
 const PostImputingDense = Dense{T, <: PostImputingMatrix} where T
 
-# so we error on integers with missings (but not on maybehot which has only integers)
-Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T<:Integer = 
-    throw(ArgumentError("$(typeof(X)) can't produce `onecold` encoding, use `maybecold` instead."))
-
-"""
-    maybecold(y::AbstractArray, labels = 1:size(y,1))
-
-Roughly the inverse operation of [`maybehot`](@ref) or [`maybehotbatch`](@ref): 
-This finds the index of the largest element of `y`, or each column of `y`, 
-and looks them up in `labels`.
-If `labels` are not specified, the default is integers `1:size(y,1)` --
-the roughly same operation as `argmax(y, dims=1)` but sometimes a different return type
-and can handle missings.
-# Examples
-```jldoctest
-julia> maybecold(maybehot(:b, [:a, :b, :c]))
-2
-julia> maybecold(maybehot(:b, [:a, :b, :c]), [:a, :b, :c])
-:b
-julia> maybehot(missing, 1:3)
-3-element MaybeHotVector with eltype Missing:
- missing
- missing
- missing
-julia> maybecold(maybehotbatch(1:3, 1:10))
-3-element Vector{Int64}:
- 1
- 2
- 3
-julia> maybecold(maybehotbatch([missing, 2], 1:3))
-2-element Vector{Union{Missing, Int64}}:
-  missing
- 2
-```
-"""
-function maybecold(X::MaybeHotMatrix{<:Maybe{Integer}}, labels = 1:size(X, 1))
-    indices = Flux._fast_argmax(X)
-    xs = isbits(labels) ? indices : collect(indices) # non-bit type cannot be handled by CUDA
-    return map(xi -> ismissing(xi) ? xi : labels[xi[1]], xs)
-end
-maybecold(X::MaybeHotMatrix{<:Integer}, labels = 1:size(X, 1)) = Flux.onecold(X, labels)
-
 Base.zero(X::T) where T <: ImputingMatrix = T(zero(X.W), zero(X.ψ))
 Base.similar(X::T) where T <: ImputingMatrix = T(similar(X.W), similar(X.ψ))
 
 ChainRulesCore.ProjectTo(X::ImputingMatrix) = ProjectTo{typeof(X)}(W = ChainRulesCore.ProjectTo(X.W),
                                                                    ψ = ChainRulesCore.ProjectTo(X.ψ))
-ChainRulesCore.ProjectTo(X::NGramMatrix) = ProjectTo{typeof(X)}()
 
 function _split_bc(bc::Base.Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) where T <: ImputingMatrix
     bc1, bc2 = _split_bc(bc.args)

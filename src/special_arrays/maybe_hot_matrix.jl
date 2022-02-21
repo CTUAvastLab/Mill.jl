@@ -107,6 +107,13 @@ See also: [`maybehot`](@ref), [`MaybeHotMatrix`](@ref), [`MaybeHotVector`](@ref)
 """
 maybehotbatch(L, labels) = MaybeHotMatrix([maybehot(l, labels).i for l in L], length(labels))
 
+function maybecold(X::MaybeHotMatrix{<:Maybe{Integer}}, labels=1:size(X, 1))
+    indices = Flux._fast_argmax(X)
+    xs = isbits(labels) ? indices : collect(indices) # non-bit type cannot be handled by CUDA
+    return map(xi -> ismissing(xi) ? xi : labels[xi[1]], xs)
+end
+maybecold(X::MaybeHotMatrix{<:Integer}, labels=1:size(X, 1)) = Flux.onecold(X, labels)
+
 Base.hash(X::MaybeHotMatrix, h::UInt) where {T, U, V, W} = hash((X.I, X.l), h)
 (X1::MaybeHotMatrix == X2::MaybeHotMatrix) = X1.I == X2.I && X1.l == X2.l
 Base.isequal(X1::MaybeHotMatrix, X2::MaybeHotMatrix) = isequal(X1.I, X2.I) && X1.l == X2.l
