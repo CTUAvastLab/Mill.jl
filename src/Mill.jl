@@ -47,7 +47,7 @@ export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export catobs, removeinstances, dropmeta
 
 include("special_arrays/special_arrays.jl")
-export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch
+export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch, maybecold
 export NGramMatrix, NGramIterator, ngrams, ngrams!, countngrams, countngrams!
 export ImputingMatrix, PreImputingMatrix, PostImputingMatrix
 export ImputingDense, PreImputingDense, PostImputingDense
