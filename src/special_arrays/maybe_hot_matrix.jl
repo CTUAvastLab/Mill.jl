@@ -78,6 +78,8 @@ function _mul(A::AbstractMatrix, B::MaybeHotMatrix)
     C
 end
 
+# this is a bit shady because we're overloading unexported method not intended for public use
+Flux._fast_argmax(X::MaybeHotMatrix) = X.I
 Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = Flux.onehotbatch(X.I, 1:X.l)
 
 """
