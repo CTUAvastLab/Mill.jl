@@ -2,7 +2,7 @@
 # see e.g. https://stackoverflow.com/questions/40623512/how-to-check-relu-gradient
 const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, lisht]
 
-@testset "testing simple matrix model" begin
+@testset "simple matrix model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
     x = ArrayNode(randn(Float32, 4, 5))
     m = reflectinmodel(x, layerbuilder)
@@ -12,7 +12,7 @@ const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, l
     @inferred m(x)
 end
 
-@testset "testing simple aggregation model" begin
+@testset "simple aggregation model" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
     x = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:2, 3:4])
     m = reflectinmodel(x, layerbuilder)
@@ -22,7 +22,7 @@ end
     @inferred m(x)
 end
 
-@testset "testing simple tuple models" begin
+@testset "simple tuple models" begin
     layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
     x = ProductNode((a=ArrayNode(randn(Float32, 3, 4)), b=ArrayNode(randn(Float32, 4, 4))))
     m = reflectinmodel(x, layerbuilder)
@@ -47,7 +47,7 @@ end
     @inferred m(x)
 end
 
-@testset "testing nested bag model" begin
+@testset "nested bag model" begin
     bn = BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8])
     x = BagNode(bn, [1:2, 3:4])
     m = reflectinmodel(x, d -> Flux.Dense(d, 2))
@@ -339,7 +339,7 @@ end
     end
 end
 
-@testset "testing simple named tuple model with reduce catobs in gradient" begin
+@testset "simple named tuple model with reduce catobs in gradient" begin
     layerbuilder(k) = Dense(k, 2, relu)
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
@@ -352,7 +352,8 @@ end
     @test all(p -> vec_grad[p] == orig_grad[p], ps)
 end
 
-@testset "testing simple named tuple model with minibatching from MLDataPattern" begin
+@testset "simple named tuple model with minibatching from MLDataPattern" begin
+    Random.seed!(42)
     layerbuilder(k) = Dense(k, 2, relu)
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
@@ -361,7 +362,7 @@ end
     mbs = RandomBatches(x, size = 4)
     mb_grad = gradient(() -> sum(m(first(mbs)).data), ps)
     @test mb_grad isa Grads
-    reduced = reduce(catobs, [x[2], x[2], x[2], x[2]])  # conditioned by the random seed
+    reduced = reduce(catobs, [x[2], x[1], x[1], x[1]])  # conditioned by the random seed
     orig_grad = gradient(() -> sum(m(reduced).data), ps)
     @test all(p -> mb_grad[p] == orig_grad[p], ps)
 end
