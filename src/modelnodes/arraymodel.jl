@@ -1,5 +1,5 @@
 """
-    ArrayModel{T <: MillFunction} <: AbstractMillModel
+    ArrayModel{T} <: AbstractMillModel
 
 A model node for processing [`ArrayNode`](@ref)s. It applies a (sub)model `m` stored in it to data of 
 the [`ArrayNode`](@ref).
@@ -30,7 +30,7 @@ julia> m(n)
 
 See also: [`AbstractMillModel`](@ref), [`IdentityModel`](@ref), [`identity_model`](@ref), [`ArrayNode`](@ref).
 """
-struct ArrayModel{T <: MillFunction} <: AbstractMillModel
+struct ArrayModel{T} <: AbstractMillModel
     m::T
 end
 

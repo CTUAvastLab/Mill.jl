@@ -64,9 +64,8 @@ BagModel ↦ BagCount(SegmentedMean(3)) ↦ ArrayModel(identity) 	# 1 arrays, 3 
 See also: [`AbstractMillModel`](@ref), [`AbstractAggregation`](@ref), [`BagCount`](@ref),
     [`AbstractBagNode`](@ref), [`BagNode`](@ref), [`WeightedBagNode`](@ref).
 """
-function BagModel(im::Union{MillFunction, AbstractMillModel}, a::Union{AbstractAggregation, BagCount},
-        bm::Union{MillFunction, ArrayModel}=identity_model())
-    BagModel(_make_array_model(im), a, _make_array_model(bm))
+function BagModel(im, a::Union{AbstractAggregation, BagCount}, bm=identity_model())
+    BagModel(_make_mill_model(im), a, _make_mill_model(bm))
 end
 
 (m::BagModel)(x::BagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(x.data), x.bags))

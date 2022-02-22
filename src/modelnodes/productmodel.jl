@@ -1,5 +1,5 @@
 """
-    ProductModel{T <: VecOrTupOrNTup{<:AbstractMillModel}, U <: ArrayModel} <: AbstractMillModel
+    ProductModel{T <: Mill.VecOrTupOrNTup{<:AbstractMillModel}, U <: ArrayModel} <: AbstractMillModel
 
 A model node for processing [`ProductNode`](@ref)s. For each subtree of the data node it applies one
 (sub)model from `ms` and then applies `m` on the concatenation of results.
@@ -47,6 +47,12 @@ See also: [`AbstractMillModel`](@ref), [`AbstractProductNode`](@ref), [`ProductN
 struct ProductModel{T <: VecOrTupOrNTup{AbstractMillModel}, U <: ArrayModel} <: AbstractMillModel
     ms::T
     m::U
+
+    function ProductModel(ms::Union{Tuple, NamedTuple, AbstractVector}, m=identity_model())
+        ms = map(_make_mill_model, ms)
+        m = _make_mill_model(m)
+        new{typeof(ms), typeof(m)}(ms, m)
+    end
 end
 
 Flux.@functor ProductModel
@@ -83,12 +89,7 @@ ProductModel ↦ ArrayModel(identity)
 
 See also: [`AbstractMillModel`](@ref), [`AbstractProductNode`](@ref), [`ProductNode`](@ref).
 """
-function ProductModel(ms::VecOrTupOrNTup{Union{MillFunction, AbstractMillModel}},
-                                m::Union{MillFunction, ArrayModel}=identity_model())
-    ProductModel(map(_make_array_model, ms), _make_array_model(m))
-end
-ProductModel(ms::Union{MillFunction, AbstractMillModel},
-             m::Union{MillFunction, ArrayModel}=identity_model()) = ProductModel((ms,), m)
+ProductModel(ms, m=identity_model()) = ProductModel((ms,), m)
 
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
