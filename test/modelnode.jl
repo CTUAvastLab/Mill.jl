@@ -353,7 +353,7 @@ end
 end
 
 @testset "simple named tuple model with minibatching from MLDataPattern" begin
-    Random.seed!(42)
+    Random.seed!(StableRNG(1), 25)
     layerbuilder(k) = Dense(k, 2, relu)
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
@@ -362,7 +362,7 @@ end
     mbs = RandomBatches(x, size = 4)
     mb_grad = gradient(() -> sum(m(first(mbs)).data), ps)
     @test mb_grad isa Grads
-    reduced = reduce(catobs, [x[2], x[1], x[1], x[1]])  # conditioned by the random seed
+    reduced = reduce(catobs, [x[2], x[2], x[1], x[2]])  # conditioned by the random seed
     orig_grad = gradient(() -> sum(m(reduced).data), ps)
     @test all(p -> mb_grad[p] == orig_grad[p], ps)
 end

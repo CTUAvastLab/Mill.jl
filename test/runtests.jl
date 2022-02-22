@@ -22,13 +22,14 @@ using PooledArrays
 using Random
 using SparseArrays
 using MLDataPattern
+using StableRNGs
 
 using BenchmarkTools: @btime
 
 areequal(x) = true
 areequal(x, y, zs...) = isequal(x, y) && areequal(y, zs...)
 
-Random.seed!(25)
+Random.seed!(StableRNG(25), 25)
 
 const BAGS = [
       length2bags([1, 2, 3]),
