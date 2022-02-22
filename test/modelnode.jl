@@ -7,35 +7,53 @@ const ABUILDER = d -> BagCount(all_aggregations(Float32, d))
 @testset "matrix model" begin
     x = ArrayNode(randn(Float32, 4, 5))
     m = reflectinmodel(x, LAYERBUILDER)
-    @test size(m(x).data) == (2, 5)
     @test m isa ArrayModel
+
+    @test size(m(x).data) == (2, 5)
     @test eltype(m(x).data) == Float32
+
     @inferred m(x)
 end
 
 @testset "bag model" begin
     x = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:2, 3:4])
     m = reflectinmodel(x, LAYERBUILDER)
-    @test size(m(x).data) == (2, 2)
     @test m isa BagModel
+    @test m.im isa ArrayModel
+
+    @test size(m(x).data) == (2, 2)
     @test eltype(m(x).data) == Float32
+
     @inferred m(x)
 end
 
 @testset "product models" begin
-    x = ProductNode((a=ArrayNode(randn(Float32, 3, 4)), b=ArrayNode(randn(Float32, 4, 4))))
-    m = reflectinmodel(x, LAYERBUILDER)
-    @test eltype(m(x).data) == Float32
-    @test size(m(x).data) == (2, 4)
+    a = ArrayNode(randn(Float32, 3, 4))
+    b = ArrayNode(randn(Float32, 4, 4))
+    c = ArrayNode(randn(Float32, 3, 4))
+    x1 = ProductNode((; a, b))
+    x2 = ProductNode((; b, a))
+    x3 = ProductNode((; a, b, c))
+
+    m = reflectinmodel(x1, LAYERBUILDER)
     @test m isa ProductModel
     @test m.ms[:a] isa ArrayModel
     @test m.ms[:b] isa ArrayModel
-    @inferred m(x)
 
-    x = ProductNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
-                     BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
-    m = reflectinmodel(x, LAYERBUILDER)
-    @test size(m(x).data) == (2, 2)
+    @test eltype(m(x1).data) == eltype(m(x2).data) == eltype(m(x3).data) == Float32
+    @test size(m(x1).data) == size(m(x2).data) == size(m(x3).data) == (2, 4)
+    @test m(x1) == m(x2) == m(x3)
+
+    @inferred m(x1)
+    @inferred m(x2)
+
+    a = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4])
+    b = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])
+    c = BagNode(ArrayNode(randn(Float32, 2, 4)), [1:2, 3:4])
+    x1 = ProductNode((a, b))
+    x2 = ProductNode((a, b, c))
+
+    m = reflectinmodel(x1, LAYERBUILDER)
     @test m isa ProductModel
     @test m.ms[1] isa BagModel
     @test m.ms[1].im isa ArrayModel
@@ -43,14 +61,21 @@ end
     @test m.ms[2] isa BagModel
     @test m.ms[2].im isa ArrayModel
     @test m.ms[2].bm isa ArrayModel
-    @inferred m(x)
+
+    @test size(m(x1).data) == size(m(x2).data) == (2, 2)
+    @test m(x1) == m(x2)
+
+    @inferred m(x1)
+    @inferred m(x2)
 
     x = ProductNode([ArrayNode(randn(Float32, 3, 4))])
     m = reflectinmodel(x, LAYERBUILDER)
-    @test eltype(m(x).data) == Float32
-    @test size(m(x).data) == (2, 4)
     @test m isa ProductModel
     @test m.ms[1] isa ArrayModel
+
+    @test eltype(m(x).data) == Float32
+    @test size(m(x).data) == (2, 4)
+
     @inferred m(x)
 end
 

@@ -94,39 +94,20 @@ Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 Base.haskey(m::ProductModel{<:NamedTuple}, k::Symbol) = haskey(m.ms, k)
 
-function (m::ProductModel{<:AbstractVector})(x::ProductNode{<:AbstractVector})
-    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
+(m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple}) = m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
+(m::ProductModel{<:AbstractVector})(x::ProductNode{<:AbstractVector}) = m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
+function (m::ProductModel{<:NamedTuple{K}})(x::ProductNode{<:NamedTuple{K}}) where K
+    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
 end
 
-function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
-     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
-end
-# function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-#     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
-# end
-
-function (m::ProductModel{<:NamedTuple{MS}})(ds::ProductNode{<:NamedTuple{MS}}) where {MS}
-    ms = getfield(m, :ms)
-    cm = getfield(m, :m)
-    cm(vcat(map((sm, sx) -> sm(sx), ms, getfield(ds, :data))...))
-end
-
-# This is an ugly version of the above with the advantage that it will work with 
-# ds.data and m.ms having different orders of arguments in the NamedTuples (it is 
-# even sufficient) 
-# Alternatively, we can do if @generated else 
-@generated function (m::ProductModel{<:NamedTuple{MS}})(ds::ProductNode{<:NamedTuple{DS}}) where {MS, DS}
-  @assert issubset(MS,DS)
-  evaluated_childs = [:($(_getitem(:childs_m, k, MS))($(_getitem(:childs_d, k, DS)))) for k in MS]
-  quote 
-    childs_m = getfield(m, :ms)
-    childs_d = getfield(ds, :data)
-    cm = getfield(m, :m)
-    cm(vcat($(evaluated_childs...)))
-  end
-end
-
-function _getitem(name, k, KS) 
-  i = findfirst(k .== KS)
-  :(getfield($(name), $(i)))
+@generated function (m::ProductModel{<:NamedTuple{KM}})(x::ProductNode{<:NamedTuple{KD}}) where {KM, KD}
+    @assert issubset(KM, KD)
+    chs = map(KM) do k
+        quote
+            m.ms.$k(x.data.$k)
+        end
+    end
+    quote
+        m.m(vcat($(chs...)))
+    end
 end
