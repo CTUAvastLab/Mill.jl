@@ -361,6 +361,10 @@ end
     mbs = RandomBatches(x, size = 4)
     mb_grad = gradient(() -> sum(m(first(mbs)).data), ps)
     @test mb_grad isa Grads
+    all_combs = Base.Iterators.product(1:2, 1:2, 1:2, 1:2) |> collect |> x->reshape(x, :) |> collect
+    for a_comb in all_combs
+        @info "comparing" a_comb (getobs(first(mbs)) == reduce(catobs, getindex.(Ref(x), all_combs[1])))
+    end
     reduced = reduce(catobs, [x[2], x[1], x[1], x[2]])  # conditioned by the random seed
     orig_grad = gradient(() -> sum(m(reduced).data), ps)
     @test all(p -> mb_grad[p] == orig_grad[p], ps)
