@@ -106,7 +106,7 @@ end
         ds = BagNode(ArrayNode(Float32.(x)), bags)
 
         m = BagConv(3, 4, 3, relu)
-        @test length(params(m)) == 3
+        @test length(Flux.params(m)) == 3
         @test size(m(x, bags)) == (4, 15)
         @test size(m(xs, bags)) == (4, 15)
 
@@ -115,6 +115,6 @@ end
         @test size(m(xs, bags)) == (4, 15)
 
         m = BagChain(BagConv(3, 4, 3, relu), BagConv(3, 4, 2))
-        @test length(params(m)) == 5
+        @test length(Flux.params(m)) == 5
     end
 end

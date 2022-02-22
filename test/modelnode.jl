@@ -82,7 +82,9 @@ end
     @test size(m(x).data) == (2, 4)
 
     @test m(x).data == m.m.m(m.ms[1].m(x.data[1].data))
-    @inferred m(x)
+    if VERSION ≥ v"1.7"
+        @inferred m(x)
+    end
 end
 
 @testset "keys and haskey" begin
@@ -384,7 +386,7 @@ end
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds)
-            @test gradtest(() -> m(ds).data, params(m))
+            @test gradtest(() -> m(ds).data, Flux.params(m))
         end
     end
 end
@@ -394,7 +396,7 @@ end
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
-    ps = params(m)
+    ps = Flux.params(m)
     vec_grad = gradient(() -> sum(m([x, x]).data), ps)
     @test vec_grad isa Grads
     reduced = reduce(catobs, [x, x])
@@ -408,12 +410,16 @@ end
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
     m = reflectinmodel(x, layerbuilder)
-    ps = params(m)
+    ps = Flux.params(m)
     mbs = RandomBatches(x, size = 4)
     mb_grad = gradient(() -> sum(m(first(mbs)).data), ps)
     @test mb_grad isa Grads
     # conditioned by the random seed
-    reduced = reduce(catobs, [x[1], x[1], x[2], x[2]])
+    if VERSION ≥ v"1.7"
+        reduced = reduce(catobs, [x[1], x[1], x[2], x[2]])
+    else
+        reduced = reduce(catobs, [x[1], x[1], x[2], x[1]])
+    end
     orig_grad = gradient(() -> sum(m(reduced).data), ps)
     @test all(p -> mb_grad[p] == orig_grad[p], ps)
 end
