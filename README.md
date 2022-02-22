@@ -58,8 +58,8 @@ and the following for this implementation (fill in the used `version`):
 
 ## Contribution guidelines
 
-**If you want to contribute to Mill.jl, be sure to review the
-[contribution guidelines](CONTRIBUTING.md).**
+If you want to contribute to Mill.jl, be sure to review the
+[contribution guidelines](CONTRIBUTING.md).
 
-**We use [GitHub issues](https://github.com/CTUAvastLab/Mill.jl/issues) for
-tracking requests and bugs.**
+We use [GitHub issues](https://github.com/CTUAvastLab/Mill.jl/issues) for
+tracking requests and bugs.
