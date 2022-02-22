@@ -52,6 +52,7 @@ dropmeta(x::ProductNode) = ProductNode(map(dropmeta, x.data))
 
 Base.getindex(x::ProductNode, i::Symbol) = x.data[i]
 Base.keys(x::ProductNode) = keys(x.data)
+Base.haskey(x::ProductNode{<:NamedTuple}, k::Symbol) = haskey(x.data, k)
 
 _check_idxs(as::Vector{<:Union{Vector, Tuple}}) = all(isequal(length(as[1])), (length(a) for a in as))
 _check_idxs(as::Vector{<:NamedTuple{K}}) where K = true

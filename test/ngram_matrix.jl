@@ -148,13 +148,13 @@ end
         o
     end
 
-    @testset "testing ngrams on vector of Ints" begin
+    @testset "ngrams on vector of Ints" begin
         @test ngrams(x,3,b) == map(x -> indexes(x,b),slicer(x,3))
         @test ngrams(x,2,b) == map(x -> indexes(x,b),slicer(x,2))
         @test ngrams(x,1,b) == map(x -> indexes(x,b),slicer(x,1))
     end
 
-    @testset "testing frequency of ngrams on vector of Ints and on Strings" begin
+    @testset "frequency of ngrams on vector of Ints and on Strings" begin
         @test countngrams(x,3,b,10) == idx2vec(map(x -> indexes(x,b), slicer(x,3)), 10)
         for s in split("Lorem ipsum dolor sit amet, consectetur adipiscing elit")
             @test countngrams(s,3,256,10) == idx2vec(ngrams(s,3,256),10)

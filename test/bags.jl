@@ -85,7 +85,7 @@ end
     @test vcat(b1, b2, b3, b4).bags == vcat(vcat(b1, b2), vcat(b3, b4)).bags
 end
 
-@testset "testing remapping for aligned bags" begin
+@testset "remapping for aligned bags" begin
     b = AlignedBags([1:1,2:3,4:5])
     @test remapbags(b, [2,3])[1].bags == [1:2,3:4]
     @test remapbags(b, 2:3)[1].bags == [1:2,3:4]
@@ -103,7 +103,7 @@ end
     @test remapbags(b, [2,3])[2] == [3,4]
 end
 
-@testset "testing remapping for scattered bags" begin
+@testset "remapping for scattered bags" begin
     b = ScatteredBags([[1], Int[], [1,5], [4,3,5]])
     @test remapbags(b, [1])[1].bags == remapbags(b, 1:1)[1].bags
     @test remapbags(b, [1])[2] == remapbags(b, 1:1)[2]

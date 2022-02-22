@@ -47,6 +47,20 @@ end
     @inferred m(x)
 end
 
+@testset "keys and haskey" begin
+    a = ArrayModel(Dense(2, 2))
+    m1 = ProductModel([a, a])
+    m2 = ProductModel((a, a))
+    m3 = ProductModel((a = a, b = a))
+    @test keys(m1) == [1, 2]
+    @test keys(m2) == [1, 2]
+    @test keys(m3) == (:a, :b)
+
+    @test haskey(m3, :a)
+    @test haskey(m3, :b)
+    @test !haskey(m3, :c)
+end
+
 @testset "nested bag model" begin
     bn = BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8])
     x = BagNode(bn, [1:2, 3:4])
