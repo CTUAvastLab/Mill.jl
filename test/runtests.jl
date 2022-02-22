@@ -22,6 +22,7 @@ using PooledArrays
 using Random
 using SparseArrays
 using MLDataPattern
+using StableRNGs
 
 using BenchmarkTools: @btime
 
