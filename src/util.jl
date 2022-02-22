@@ -25,20 +25,6 @@ function Base.reduce(::typeof(hcat), xs::Vector{TV})  where {T, L, TV<:Flux.OneH
     Flux.OneHotMatrix(reduce(vcat, map(Flux._indices, xs)), L)
 end
 
-# can be removed when https://github.com/FluxML/Flux.jl/pull/1357 is merged
-function Base.:*(A::AbstractMatrix, B::Adjoint{Bool,<: Flux.OneHotArray})
-    m = size(A,1)
-    Y = similar(A, m, size(B,2))
-    Y .= 0
-    BT = B'
-    for (j, ix) in enumerate(BT.indices)
-        for i in 1:m
-            @inbounds Y[i, ix] += A[i, j]
-        end
-    end
-    Y
-end
-
 """
     pred_lens(p, n)
 
