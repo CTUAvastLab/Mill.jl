@@ -353,7 +353,6 @@ end
 end
 
 @testset "simple named tuple model with minibatching from MLDataPattern" begin
-    Random.seed!(42)
     layerbuilder(k) = Dense(k, 2, relu)
     x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
