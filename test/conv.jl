@@ -1,12 +1,12 @@
 
-@testset "testing convolution shift" begin
+@testset "convolution shift" begin
     @test _convshift(2) == 0:1
     @test _convshift(3) == -1:1
     @test _convshift(4) == -1:2
     @test _convshift(5) == -2:2
 end
 
-@testset "testing matvec and vecvec products " begin
+@testset "matvec and vecvec products " begin
     W = randn(3, 4)
     Wt = Matrix(transpose(W))
     xs = sprand(4, 10, 0.5)
@@ -44,7 +44,7 @@ end
     @test o ≈ r * transpose(s)
 end
 
-@testset "testing forward convolution & gradient" begin
+@testset "forward convolution & gradient" begin
     x = Float64.([1 10  100  1000  10000]);
     y = 2 .* x;
     z = 4 .* x;
@@ -59,7 +59,7 @@ end
     end
 end
 
-@testset "testing the convolution" begin
+@testset "the convolution" begin
     xs = sprand(3, 15, 0.5)
     x = Matrix(xs)
     filters = randn(4, 3, 3)
@@ -74,7 +74,7 @@ end
     end
 end
 
-@testset "testing convolution with ScatteredBags" begin
+@testset "convolution with ScatteredBags" begin
     xs = sprand(3, 7, 0.5)
     x = Matrix(xs)
     filters = randn(4, 3, 3)
@@ -99,7 +99,7 @@ end
     end
 end
 
-@testset "testing convolution layer" begin
+@testset "convolution layer" begin
     xs = sprand(3, 15, 0.5)
     x = Matrix(xs)
     for bags in [AlignedBags([1:1, 2:3, 4:6, 7:15]), ScatteredBags(collect.([1:1, 2:3, 4:6, 7:15]))]

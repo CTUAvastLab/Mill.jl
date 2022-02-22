@@ -92,10 +92,22 @@ ProductModel(ms::Union{MillFunction, AbstractMillModel},
 
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
+Base.haskey(m::ProductModel{<:NamedTuple}, k::Symbol) = haskey(m.ms, k)
 
-function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
-     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
-end
-function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
+(m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple}) = m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
+(m::ProductModel{<:AbstractVector})(x::ProductNode{<:AbstractVector}) = m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
+function (m::ProductModel{<:NamedTuple{K}})(x::ProductNode{<:NamedTuple{K}}) where K
     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
+end
+
+@generated function (m::ProductModel{<:NamedTuple{KM}})(x::ProductNode{<:NamedTuple{KD}}) where {KM, KD}
+    @assert issubset(KM, KD)
+    chs = map(KM) do k
+        quote
+            m.ms.$k(x.data.$k)
+        end
+    end
+    quote
+        m.m(vcat($(chs...)))
+    end
 end

@@ -1,4 +1,4 @@
-@testset "testing catobs & getindex operations missing values" begin
+@testset "catobs & getindex operations missing values" begin
     a = BagNode(ArrayNode(rand(3,4)), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
 
@@ -40,7 +40,7 @@
     @test_throws ErrorException BagNode(missing, Mill.ScatteredBags([[1,2,3]]), nothing)
 end
 
-@testset "testing catobs & getindex operations missing values for weighted" begin
+@testset "catobs & getindex operations missing values for weighted" begin
     a = WeightedBagNode(ArrayNode(rand(3,4)), [1:4], [1.0, 0.0, 1.0, 0.5], nothing)
     e = WeightedBagNode(missing, AlignedBags([0:-1]), [], nothing)
 
@@ -72,7 +72,7 @@ end
     @test  x[1].bags.bags == [1:4]
 end
 
-@testset "testing model operations missing values" begin
+@testset "model operations missing values" begin
     a = BagNode(ArrayNode(rand(3, 4)), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
     m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMean(2), ArrayModel(Dense(2, 2)))
@@ -102,7 +102,7 @@ end
     end
 end
 
-@testset "testing reduction with missing values" begin
+@testset "reduction with missing values" begin
     a = ProductNode((x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4))))
     b = ProductNode((x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4))))
 
