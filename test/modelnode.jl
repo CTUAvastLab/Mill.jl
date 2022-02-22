@@ -12,6 +12,7 @@ const ABUILDER = d -> BagCount(all_aggregations(Float32, d))
     @test size(m(x).data) == (2, 5)
     @test eltype(m(x).data) == Float32
 
+    @test m(x).data == m.m(x.data)
     @inferred m(x)
 end
 
@@ -24,6 +25,7 @@ end
     @test size(m(x).data) == (2, 2)
     @test eltype(m(x).data) == Float32
 
+    @test m(x).data == m.bm.m(m.a(m.im.m(x.data.data), x.bags))
     @inferred m(x)
 end
 
@@ -44,13 +46,14 @@ end
     @test size(m(x1).data) == size(m(x2).data) == size(m(x3).data) == (2, 4)
     @test m(x1) == m(x2) == m(x3)
 
-    @inferred m(x1)
-    @inferred m(x2)
-    @inferred m(x3)
+    for x in [x1, x2, x3]
+        @test m(x).data == m.m.m(vcat(m.ms[:a].m(a.data),
+                                      m.ms[:b].m(b.data)))
+        @inferred m(x)
+    end
 
     a = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4])
     b = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])
-    c = BagNode(ArrayNode(randn(Float32, 2, 4)), [1:2, 3:4])
     x = ProductNode((a, b))
 
     m = reflectinmodel(x, LAYERBUILDER)
@@ -64,6 +67,10 @@ end
 
     @test size(m(x).data) == (2, 2)
 
+    ma = m.ms[1]
+    mb = m.ms[2]
+    @test m(x).data == m.m.m(vcat(ma.bm.m(ma.a(ma.im.m(a.data.data), a.bags)),
+                                  mb.bm.m(mb.a(mb.im.m(b.data.data), b.bags))))
     @inferred m(x)
 
     x = ProductNode([ArrayNode(randn(Float32, 3, 4))])
@@ -74,6 +81,7 @@ end
     @test eltype(m(x).data) == Float32
     @test size(m(x).data) == (2, 4)
 
+    @test m(x).data == m.m.m(m.ms[1].m(x.data[1].data))
     @inferred m(x)
 end
 
@@ -94,14 +102,18 @@ end
 @testset "nested bag model" begin
     bn = BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8])
     x = BagNode(bn, [1:2, 3:4])
+
     m = reflectinmodel(x, d -> Flux.Dense(d, 2))
-    @test size(m(x).data) == (2, 2)
     @test m isa BagModel
     @test m.im isa BagModel
     @test m.im.im isa ArrayModel
     @test m.im.bm isa ArrayModel
     @test m.bm isa ArrayModel
+
+    @test size(m(x).data) == (2, 2)
     @test eltype(m(x).data) == Float32
+
+    @test m(x).data == m.bm.m(m.a(m.im.bm.m(m.im.a(m.im.im.m(bn.data.data), bn.bags)), x.bags))
     @inferred m(x)
 
     a = BagNode(BagNode(ArrayNode(randn(2,2)),[1:2]),[1:1])
@@ -116,15 +128,19 @@ end
     mabc = m(abc).data
     mbca = m(bca).data
     @test mb ≈ mc
-    @test mabc[:,1] ≈ ma
-    @test mabc[:,2] ≈ mb
-    @test mabc[:,3] ≈ mc
-    @test mbca[:,1] ≈ mb
-    @test mbca[:,2] ≈ mc
-    @test mbca[:,3] ≈ ma
-    @inferred m(a)
+    @test mabc[:, 1] ≈ ma
+    @test mabc[:, 2] ≈ mb
+    @test mabc[:, 3] ≈ mc
+    @test mbca[:, 1] ≈ mb
+    @test mbca[:, 2] ≈ mc
+    @test mbca[:, 3] ≈ ma
+
+    @test m(b).data == m.bm.m(m.a(b.data, b.bags))
     @inferred m(b)
-    @inferred m(c)
+    for ds in [a, c, abc, bca]
+        @test m(ds).data == m.bm.m(m.a(m.im.bm.m(m.im.a(m.im.im.m(ds.data.data.data), ds.data.bags)), ds.bags))
+        @inferred m(ds)
+    end
 end
 
 @testset "reflectinmodel for missing + all_imputing" begin
