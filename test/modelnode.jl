@@ -361,7 +361,7 @@ end
     mbs = RandomBatches(x, size = 4)
     mb_grad = gradient(() -> sum(m(first(mbs)).data), ps)
     @test mb_grad isa Grads
-    reduced = reduce(catobs, [x[2], x[1], x[1], x[1]])  # conditioned by the random seed
+    reduced = reduce(catobs, [x[2], x[1], x[1], x[2]])  # conditioned by the random seed
     orig_grad = gradient(() -> sum(m(reduced).data), ps)
     @test all(p -> mb_grad[p] == orig_grad[p], ps)
 end
