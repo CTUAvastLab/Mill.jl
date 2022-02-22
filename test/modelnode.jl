@@ -46,14 +46,14 @@ end
 
     @inferred m(x1)
     @inferred m(x2)
+    @inferred m(x3)
 
     a = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4])
     b = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])
     c = BagNode(ArrayNode(randn(Float32, 2, 4)), [1:2, 3:4])
-    x1 = ProductNode((a, b))
-    x2 = ProductNode((a, b, c))
+    x = ProductNode((a, b))
 
-    m = reflectinmodel(x1, LAYERBUILDER)
+    m = reflectinmodel(x, LAYERBUILDER)
     @test m isa ProductModel
     @test m.ms[1] isa BagModel
     @test m.ms[1].im isa ArrayModel
@@ -62,11 +62,9 @@ end
     @test m.ms[2].im isa ArrayModel
     @test m.ms[2].bm isa ArrayModel
 
-    @test size(m(x1).data) == size(m(x2).data) == (2, 2)
-    @test m(x1) == m(x2)
+    @test size(m(x).data) == (2, 2)
 
-    @inferred m(x1)
-    @inferred m(x2)
+    @inferred m(x)
 
     x = ProductNode([ArrayNode(randn(Float32, 3, 4))])
     m = reflectinmodel(x, LAYERBUILDER)
