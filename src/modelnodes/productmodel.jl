@@ -94,6 +94,10 @@ Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 Base.haskey(m::ProductModel{<:NamedTuple}, k::Symbol) = haskey(m.ms, k)
 
+function (m::ProductModel{<:AbstractVector})(x::ProductNode{<:AbstractVector})
+    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
+end
+
 function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
      m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
 end

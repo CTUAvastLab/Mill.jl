@@ -98,6 +98,7 @@ end
 
 _remap(data::NamedTuple, ms) = (; zip(keys(data), ms)...)
 _remap(::Tuple, ms) = tuple(ms...)
+_remap(::AbstractVector, ms) = collect(ms)
 
 function _reflectinmodel(x::AbstractProductNode, fm, fa, fsm, fsa, s, ski, args...)
     c = stringify(s)

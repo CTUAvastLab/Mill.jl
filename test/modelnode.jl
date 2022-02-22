@@ -1,31 +1,30 @@
 # use only activations without "kinks" for numerical gradient checking
 # see e.g. https://stackoverflow.com/questions/40623512/how-to-check-relu-gradient
 const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, lisht]
+const LAYERBUILDER = k -> Flux.Dense(k, 2, rand(ACTIVATIONS))
+const ABUILDER = d -> BagCount(all_aggregations(Float32, d))
 
-@testset "simple matrix model" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+@testset "matrix model" begin
     x = ArrayNode(randn(Float32, 4, 5))
-    m = reflectinmodel(x, layerbuilder)
+    m = reflectinmodel(x, LAYERBUILDER)
     @test size(m(x).data) == (2, 5)
     @test m isa ArrayModel
     @test eltype(m(x).data) == Float32
     @inferred m(x)
 end
 
-@testset "simple aggregation model" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+@testset "bag model" begin
     x = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:2, 3:4])
-    m = reflectinmodel(x, layerbuilder)
+    m = reflectinmodel(x, LAYERBUILDER)
     @test size(m(x).data) == (2, 2)
     @test m isa BagModel
     @test eltype(m(x).data) == Float32
     @inferred m(x)
 end
 
-@testset "simple tuple models" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
+@testset "product models" begin
     x = ProductNode((a=ArrayNode(randn(Float32, 3, 4)), b=ArrayNode(randn(Float32, 4, 4))))
-    m = reflectinmodel(x, layerbuilder)
+    m = reflectinmodel(x, LAYERBUILDER)
     @test eltype(m(x).data) == Float32
     @test size(m(x).data) == (2, 4)
     @test m isa ProductModel
@@ -35,7 +34,7 @@ end
 
     x = ProductNode((BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
                      BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
-    m = reflectinmodel(x, layerbuilder)
+    m = reflectinmodel(x, LAYERBUILDER)
     @test size(m(x).data) == (2, 2)
     @test m isa ProductModel
     @test m.ms[1] isa BagModel
@@ -44,6 +43,14 @@ end
     @test m.ms[2] isa BagModel
     @test m.ms[2].im isa ArrayModel
     @test m.ms[2].bm isa ArrayModel
+    @inferred m(x)
+
+    x = ProductNode([ArrayNode(randn(Float32, 3, 4))])
+    m = reflectinmodel(x, LAYERBUILDER)
+    @test eltype(m(x).data) == Float32
+    @test size(m(x).data) == (2, 4)
+    @test m isa ProductModel
+    @test m.ms[1] isa ArrayModel
     @inferred m(x)
 end
 
@@ -150,22 +157,21 @@ end
 
 # pn.m should be identity for any product node pn with a single key
 @testset "single key dictionary reflect in model" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
-    fsm = Dict("" => layerbuilder)
+    fsm = Dict("" => LAYERBUILDER)
 
     x1 = (ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
     x2 = (a = ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
     x3 = (a = ArrayNode(randn(Float32, 3, 4)), b = ArrayNode(randn(Float32, 3, 4))) |> ProductNode
 
-    m1 = reflectinmodel(x1, layerbuilder; single_key_identity=false)
-    m1_ski = reflectinmodel(x1, layerbuilder; single_key_identity=true)
-    m1_ski_fsm = reflectinmodel(x1, layerbuilder; fsm=fsm, single_key_identity=true)
-    m2 = reflectinmodel(x2, layerbuilder; single_key_identity=false)
-    m2_ski = reflectinmodel(x2, layerbuilder; single_key_identity=true)
-    m2_ski_fsm = reflectinmodel(x2, layerbuilder; fsm=fsm, single_key_identity=true)
-    m3 = reflectinmodel(x3, layerbuilder; single_key_identity=false)
-    m3_ski = reflectinmodel(x3, layerbuilder; single_key_identity=true)
-    m3_ski_fsm = reflectinmodel(x3, layerbuilder; fsm=fsm, single_key_identity=true)
+    m1 = reflectinmodel(x1, LAYERBUILDER; single_key_identity=false)
+    m1_ski = reflectinmodel(x1, LAYERBUILDER; single_key_identity=true)
+    m1_ski_fsm = reflectinmodel(x1, LAYERBUILDER; fsm=fsm, single_key_identity=true)
+    m2 = reflectinmodel(x2, LAYERBUILDER; single_key_identity=false)
+    m2_ski = reflectinmodel(x2, LAYERBUILDER; single_key_identity=true)
+    m2_ski_fsm = reflectinmodel(x2, LAYERBUILDER; fsm=fsm, single_key_identity=true)
+    m3 = reflectinmodel(x3, LAYERBUILDER; single_key_identity=false)
+    m3_ski = reflectinmodel(x3, LAYERBUILDER; single_key_identity=true)
+    m3_ski_fsm = reflectinmodel(x3, LAYERBUILDER; fsm=fsm, single_key_identity=true)
 
     for m in [m1, m1_ski, m1_ski_fsm]
         @test eltype(m(x1).data) == Float32
@@ -206,17 +212,16 @@ end
 
 # array model for matrices with one row should implement identity
 @testset "single scalar as identity" begin
-    layerbuilder(k) = Flux.Dense(k, 2, NNlib.relu)
     x1 = ArrayNode(randn(Float32, 1, 3))
     x2 = BagNode(ArrayNode(randn(Float32, 1, 5)), [1:2, 3:5])
     x3 = (a = ArrayNode(randn(Float32, 1, 4)), b = ArrayNode(randn(Float32, 2, 4))) |> ProductNode
 
-    m1 = reflectinmodel(x1, layerbuilder; single_scalar_identity=false)
-    m1_sci = reflectinmodel(x1, layerbuilder; single_scalar_identity=true)
-    m2 = reflectinmodel(x2, layerbuilder; single_scalar_identity=false)
-    m2_sci = reflectinmodel(x2, layerbuilder; single_scalar_identity=true)
-    m3 = reflectinmodel(x3, layerbuilder; single_scalar_identity=false)
-    m3_sci = reflectinmodel(x3, layerbuilder; single_scalar_identity=true)
+    m1 = reflectinmodel(x1, LAYERBUILDER; single_scalar_identity=false)
+    m1_sci = reflectinmodel(x1, LAYERBUILDER; single_scalar_identity=true)
+    m2 = reflectinmodel(x2, LAYERBUILDER; single_scalar_identity=false)
+    m2_sci = reflectinmodel(x2, LAYERBUILDER; single_scalar_identity=true)
+    m3 = reflectinmodel(x3, LAYERBUILDER; single_scalar_identity=false)
+    m3_sci = reflectinmodel(x3, LAYERBUILDER; single_scalar_identity=true)
 
     @test size(m1(x1).data) == (2, 3)
     @test eltype(m1(x1).data) == Float32
@@ -251,28 +256,26 @@ end
 
 @testset "model aggregation grad check w.r.t. inputs" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
-        abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
 
         for ds in [x -> ArrayNode(x),
                    x -> BagNode(ArrayNode(x), bags1)]
-            m = reflectinmodel(ds(x), layerbuilder, abuilder)
+            m = reflectinmodel(ds(x), LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds(x))
             @test gradtest(x -> m(ds(x)).data, x)
         end
 
         for ds in [(x, y) -> ProductNode((ArrayNode(x), ArrayNode(y))),
                    (x, y) -> ProductNode((a=BagNode(ArrayNode(x), bags1), b=BagNode(ArrayNode(y), bags2)))]
-            m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
+            m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds(x, y))
             @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
         end
 
         ds = z -> BagNode(BagNode(ArrayNode(z), bags3), bags1)
-        m = reflectinmodel(ds(z), layerbuilder, abuilder)
+        m = reflectinmodel(ds(z), LAYERBUILDER, ABUILDER) |> f64
         @inferred m(ds(z))
         @test gradtest(z -> m(ds(z)).data, z)
     end
@@ -280,8 +283,6 @@ end
 
 @testset "model aggregation grad check w.r.t. inputs weighted" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
-        abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -290,18 +291,18 @@ end
         w3 = abs.(randn(8)) .+ 0.1
 
         ds = x -> WeightedBagNode(ArrayNode(x), bags1, w1)
-        m = reflectinmodel(ds(x), layerbuilder, abuilder)
+        m = reflectinmodel(ds(x), LAYERBUILDER, ABUILDER) |> f64
         @inferred m(ds(x))
         @test gradtest(x -> m(ds(x)).data, x)
 
         ds = (x, y) -> ProductNode((WeightedBagNode(ArrayNode(x), bags1, w1),
                                     WeightedBagNode(ArrayNode(y), bags2, w2))) 
-        m = reflectinmodel(ds(x, y), layerbuilder, abuilder)
+        m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER) |> f64
         @inferred m(ds(x, y))
         @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
 
         ds = z -> WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
-        m = reflectinmodel(ds(z), layerbuilder, abuilder)
+        m = reflectinmodel(ds(z), LAYERBUILDER, ABUILDER) |> f64
         @inferred m(ds(z))
         @test gradtest(z -> m(ds(z)).data, z)
     end
@@ -309,8 +310,6 @@ end
 
 @testset "model aggregation grad check w.r.t. params" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2, rand(ACTIVATIONS)) |> f64
-        abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -322,7 +321,7 @@ end
                    ProductNode((a=BagNode(ArrayNode(y), bags1), b=BagNode(ArrayNode(x), bags2))),
                    BagNode(BagNode(ArrayNode(z), bags3), bags1)
                   ]
-            m = reflectinmodel(ds, layerbuilder, abuilder)
+            m = reflectinmodel(ds, LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds)
             @test gradtest(() -> m(ds).data, Flux.params(m))
         end
@@ -331,8 +330,6 @@ end
 
 @testset "model aggregation grad check w.r.t. params weighted" begin
     for (bags1, bags2, bags3) in BAGS3
-        layerbuilder(k) = Dense(k, 2) |> f64
-        abuilder(d) = BagCount(all_aggregations(Float64, d))
         x = randn(4, 4)
         y = randn(3, 4)
         z = randn(2, 8)
@@ -346,7 +343,7 @@ end
                                 WeightedBagNode(ArrayNode(y), bags2, w2))) ,
                    WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
                   ]
-            m = reflectinmodel(ds, layerbuilder, abuilder)
+            m = reflectinmodel(ds, LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds)
             @test gradtest(() -> m(ds).data, params(m))
         end
