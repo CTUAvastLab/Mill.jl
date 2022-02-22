@@ -39,7 +39,7 @@ julia> Mill.data(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"))
 
 See also: [`Mill.metadata`](@ref)
 """
-data(n::AbstractMillNode) = getfield(n, :data)
+data(n::AbstractMillNode) = n.data
 
 """
     Mill.metadata(n::AbstractMillNode)
@@ -57,7 +57,7 @@ julia> Mill.metadata(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"
 
 See also: [`Mill.data`](@ref)
 """
-metadata(x::AbstractMillNode) = getfield(x, :metadata)
+metadata(x::AbstractMillNode) = x.metadata
 
 """
     catobs(ns...)

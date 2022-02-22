@@ -36,13 +36,7 @@ end
 
 Flux.@functor ArrayModel
 
-# (m::ArrayModel)(x::ArrayNode) = ArrayNode(m.m(getfield(x, :data)))
-
-function (m::ArrayModel)(x::ArrayNode) 
-    c = getfield(m, :m)
-    a = getfield(x, :data)
-    ArrayNode(c(a))
-end
+(m::ArrayModel)(x::ArrayNode) = ArrayNode(m.m(x.data))
 
 """
     identity_model()

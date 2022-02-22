@@ -94,14 +94,8 @@ Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 
 function (m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple})
-    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
+     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
 end
-# function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-#     m.m(vcat(map((sm, sx) -> sm(sx), m.ms, getfield(x, :data))...))
-# end
-
 function (m::ProductModel{<:NamedTuple})(x::ProductNode{<:NamedTuple})
-    ms = getfield(m, :ms)
-    cm = getfield(m, :m)
-    cm(vcat(map((sm, sx) -> sm(sx), ms, getfield(x, :data))...))
+    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
 end

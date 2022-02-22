@@ -20,8 +20,7 @@ See also: [`Mill.mapdata`](@ref).
 sparsify(x, nnzrate) = x
 sparsify(x::Matrix, nnzrate) = (mean(x .!= 0) < nnzrate) ? sparse(x) : x
 
-
-# can be remove when https://github.com/FluxML/Flux.jl/issues/1596 is closed
+# can be removed when https://github.com/FluxML/Flux.jl/issues/1596 is closed
 function Base.reduce(::typeof(hcat), xs::Vector{TV})  where {T, L, TV<:Flux.OneHotLike{T, L}}
     Flux.OneHotMatrix(reduce(vcat, map(Flux._indices, xs)), L)
 end

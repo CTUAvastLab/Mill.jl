@@ -64,7 +64,7 @@ Base.hash(e::ArrayNode, h::UInt) = hash((e.data, e.metadata), h)
 Base.isequal(e1::ArrayNode, e2::ArrayNode) = isequal(e1.data, e2.data) && isequal(e1.metadata, e2.metadata)
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::ArrayNode))
-    print(io, join(size(n.data), "×"), " ", summary(n))
+    print(io, join(size(n), "×"), " ", summary(n))
     if !isempty(n.data)
         print(io, ":\n")
         Base.print_array(IOContext(io, :typeinfo => eltype(n.data)), n.data)
@@ -76,7 +76,7 @@ function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
     if ndims(n.data) == 1
         print(io, nameof(T), " of length ", length(n.data))
     else
-        print(io, join(size(n.data), "×"), " ", nameof(T))
+        print(io, join(size(n), "×"), " ", nameof(T))
     end
     print(io, " with ", eltype(n.data), " elements)")
 end
