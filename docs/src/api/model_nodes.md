@@ -14,7 +14,7 @@ identity_model
 IdentityModel
 
 BagModel
-BagModel(::AbstractMillModel, ::Aggregation, ::ArrayModel)
+BagModel(::AbstractMillModel, ::Union{AbstractAggregation, BagCount}, ::ArrayModel)
 
 ProductModel
 ProductModel(::Tuple{AbstractMillModel}, ::ArrayModel)

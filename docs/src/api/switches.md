@@ -10,9 +10,6 @@ Pages = ["general.md"]
 Mill.emptyismissing
 Mill.emptyismissing!
 
-Mill.bagcount
-Mill.bagcount!
-
 Mill.string_start_code
 Mill.string_start_code!
 

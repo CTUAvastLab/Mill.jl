@@ -29,83 +29,11 @@ end
     @inferred m(x)
 end
 
-@testset "product models" begin
-    a = ArrayNode(randn(Float32, 3, 4))
-    b = ArrayNode(randn(Float32, 4, 4))
-    c = ArrayNode(randn(Float32, 3, 4))
-    x1 = ProductNode((; a, b))
-    x2 = ProductNode((; b, a))
-    x3 = ProductNode((; a, b, c))
-
-    m = reflectinmodel(x1, LAYERBUILDER)
-    @test m isa ProductModel
-    @test m.ms[:a] isa ArrayModel
-    @test m.ms[:b] isa ArrayModel
-
-    @test eltype(m(x1).data) == eltype(m(x2).data) == eltype(m(x3).data) == Float32
-    @test size(m(x1).data) == size(m(x2).data) == size(m(x3).data) == (2, 4)
-    @test m(x1) == m(x2) == m(x3)
-
-    for x in [x1, x2, x3]
-        @test m(x).data == m.m.m(vcat(m.ms[:a].m(a.data),
-                                      m.ms[:b].m(b.data)))
-        @inferred m(x)
-    end
-
-    a = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4])
-    b = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])
-    x = ProductNode((a, b))
-
-    m = reflectinmodel(x, LAYERBUILDER)
-    @test m isa ProductModel
-    @test m.ms[1] isa BagModel
-    @test m.ms[1].im isa ArrayModel
-    @test m.ms[1].bm isa ArrayModel
-    @test m.ms[2] isa BagModel
-    @test m.ms[2].im isa ArrayModel
-    @test m.ms[2].bm isa ArrayModel
-
-    @test size(m(x).data) == (2, 2)
-
-    ma = m.ms[1]
-    mb = m.ms[2]
-    @test m(x).data == m.m.m(vcat(ma.bm.m(ma.a(ma.im.m(a.data.data), a.bags)),
-                                  mb.bm.m(mb.a(mb.im.m(b.data.data), b.bags))))
-    @inferred m(x)
-
-    x = ProductNode([ArrayNode(randn(Float32, 3, 4))])
-    m = reflectinmodel(x, LAYERBUILDER)
-    @test m isa ProductModel
-    @test m.ms[1] isa ArrayModel
-
-    @test eltype(m(x).data) == Float32
-    @test size(m(x).data) == (2, 4)
-
-    @test m(x).data == m.m.m(m.ms[1].m(x.data[1].data))
-    if VERSION ≥ v"1.7"
-        @inferred m(x)
-    end
-end
-
-@testset "keys and haskey" begin
-    a = ArrayModel(Dense(2, 2))
-    m1 = ProductModel([a, a])
-    m2 = ProductModel((a, a))
-    m3 = ProductModel((a = a, b = a))
-    @test keys(m1) == [1, 2]
-    @test keys(m2) == [1, 2]
-    @test keys(m3) == (:a, :b)
-
-    @test haskey(m3, :a)
-    @test haskey(m3, :b)
-    @test !haskey(m3, :c)
-end
-
 @testset "nested bag model" begin
     bn = BagNode(ArrayNode(randn(Float32, 2, 8)), [1:1, 2:2, 3:6, 7:8])
     x = BagNode(bn, [1:2, 3:4])
 
-    m = reflectinmodel(x, d -> Flux.Dense(d, 2))
+    m = reflectinmodel(x, LAYERBUILDER)
     @test m isa BagModel
     @test m.im isa BagModel
     @test m.im.im isa ArrayModel
@@ -118,7 +46,7 @@ end
     @test m(x).data == m.bm.m(m.a(m.im.bm.m(m.im.a(m.im.im.m(bn.data.data), bn.bags)), x.bags))
     @inferred m(x)
 
-    a = BagNode(BagNode(ArrayNode(randn(2,2)),[1:2]),[1:1])
+    a = BagNode(BagNode(ArrayNode(randn(Float32, 2, 2)),[1:2]),[1:1])
     b = BagNode(missing,[0:-1])
     c = BagNode(a.data[1:0], [0:-1])
     m = reflectinmodel(a)
@@ -138,11 +66,92 @@ end
     @test mbca[:, 3] ≈ ma
 
     @test m(b).data == m.bm.m(m.a(b.data, b.bags))
+    @test eltype(m(b).data) == Float32
     @inferred m(b)
     for ds in [a, c, abc, bca]
         @test m(ds).data == m.bm.m(m.a(m.im.bm.m(m.im.a(m.im.im.m(ds.data.data.data), ds.data.bags)), ds.bags))
+        @test eltype(m(ds).data) == Float32
         @inferred m(ds)
     end
+end
+
+@testset "product models" begin
+    a = ArrayNode(randn(Float32, 3, 4))
+    b = ArrayNode(randn(Float32, 4, 4))
+    c = ArrayNode(randn(Float32, 3, 4))
+    x1 = ProductNode((; a, b))
+    x2 = ProductNode((; b, a))
+    x3 = ProductNode((; a, b, c))
+
+    m = reflectinmodel(x1, LAYERBUILDER)
+    @test m isa ProductModel
+    @test m.ms[:a] isa ArrayModel
+    @test m.ms[:b] isa ArrayModel
+
+    @test m(x1) == m(x2) == m(x3)
+
+    for x in [x1, x2, x3]
+        @test m(x).data == m.m.m(vcat(m.ms[:a].m(a.data),
+                                      m.ms[:b].m(b.data)))
+        @test eltype(m(x).data) == Float32
+        @test size(m(x).data) == (2, 4)
+        @inferred m(x)
+    end
+
+    a = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4])
+    b = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])
+    c = BagNode(ArrayNode(randn(Float32, 2, 4)), [1:1, 2:4])
+    x1 = ProductNode((a, b))
+    x2 = ProductNode((a, b, c))
+    x3 = ProductNode((a, ))
+
+    m = reflectinmodel(x1, LAYERBUILDER)
+    @test m isa ProductModel
+    @test m.ms[1] isa BagModel
+    @test m.ms[1].im isa ArrayModel
+    @test m.ms[1].bm isa ArrayModel
+    @test m.ms[2] isa BagModel
+    @test m.ms[2].im isa ArrayModel
+    @test m.ms[2].bm isa ArrayModel
+
+    ma = m.ms[1]
+    mb = m.ms[2]
+    for x in [x1, x2]
+        @test m(x).data == m.m.m(vcat(ma.bm.m(ma.a(ma.im.m(a.data.data), a.bags)),
+                                      mb.bm.m(mb.a(mb.im.m(b.data.data), b.bags))))
+        @test size(m(x).data) == (2, 2)
+        @test eltype(m(x).data) == Float32
+        @inferred m(x)
+    end
+    @test_throws AssertionError m(x3)
+
+
+    x = ProductNode([ArrayNode(randn(Float32, 3, 4))])
+    m = reflectinmodel(x, LAYERBUILDER)
+    @test m isa ProductModel
+    @test m.ms[1] isa ArrayModel
+
+    @test size(m(x).data) == (2, 4)
+    @test eltype(m(x).data) == Float32
+
+    @test m(x).data == m.m.m(m.ms[1].m(x.data[1].data))
+    if VERSION ≥ v"1.7"
+        @inferred m(x)
+    end
+end
+
+@testset "product model keys and haskey" begin
+    a = ArrayModel(Dense(2, 2))
+    m1 = ProductModel([a, a])
+    m2 = ProductModel((a, a))
+    m3 = ProductModel((a = a, b = a))
+    @test keys(m1) == [1, 2]
+    @test keys(m2) == [1, 2]
+    @test keys(m3) == (:a, :b)
+
+    @test haskey(m3, :a)
+    @test haskey(m3, :b)
+    @test !haskey(m3, :c)
 end
 
 @testset "reflectinmodel for missing + all_imputing" begin

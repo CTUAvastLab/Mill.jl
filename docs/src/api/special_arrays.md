@@ -11,6 +11,7 @@ MaybeHotVector
 maybehot
 MaybeHotMatrix
 maybehotbatch
+maybecold
 
 NGramIterator
 NGramIterator(::AbstractString, ::Any, ::Any, ::Any)

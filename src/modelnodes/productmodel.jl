@@ -95,17 +95,27 @@ Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 Base.haskey(m::ProductModel{<:NamedTuple}, k::Symbol) = haskey(m.ms, k)
 
-(m::ProductModel{<:Tuple})(x::ProductNode{<:Tuple}) = m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
 (m::ProductModel{<:AbstractVector})(x::ProductNode{<:AbstractVector}) = m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
-function (m::ProductModel{<:NamedTuple{K}})(x::ProductNode{<:NamedTuple{K}}) where K
-    m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
-end
 
 @generated function (m::ProductModel{<:NamedTuple{KM}})(x::ProductNode{<:NamedTuple{KD}}) where {KM, KD}
     @assert issubset(KM, KD)
     chs = map(KM) do k
         quote
             m.ms.$k(x.data.$k)
+        end
+    end
+    quote
+        m.m(vcat($(chs...)))
+    end
+end
+
+@generated function (m::ProductModel{T})(x::ProductNode{U}) where {T <: Tuple, U <: Tuple}
+    l1 = T.parameters |> length
+    l2 = U.parameters |> length
+    @assert l1 ≤ l2 "Applied ProductModel{<:Tuple} has more children than ProductNode"
+    chs = map(1:l1) do i
+        quote
+            m.ms[$i](x.data[$i])
         end
     end
     quote

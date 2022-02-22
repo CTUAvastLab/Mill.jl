@@ -1,5 +1,6 @@
 [deps]
 Cairo = "159f3aea-2a34-519c-b102-8c37f9878175"
+ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 Compose = "a81c6b42-2e10-5240-aca2-a61377ecd94b"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"

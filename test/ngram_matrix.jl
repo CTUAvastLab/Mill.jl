@@ -264,7 +264,7 @@ end
     end
 end
 
-@testset "integration with MiLL & Flux" begin
+@testset "integration with Mill & Flux" begin
     S = ["hello", "world", "!!!"]
     Si = map(i -> Int.(codeunits(i)), S)
     for (A, S) in [(NGramMatrix(S, 3, 256, 2057), S), (NGramMatrix(Si, 3, 256, 2057), Si)]

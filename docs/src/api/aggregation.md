@@ -7,8 +7,8 @@ Pages = ["aggregation.md"]
 
 ## API
 ```@docs
-AggregationOperator
-Aggregation
+AbstractAggregation
+AggregationStack
 
 SegmentedSum
 SegmentedMax
@@ -16,12 +16,8 @@ SegmentedMean
 SegmentedPNorm
 SegmentedLSE
 
-sum_aggregation
-max_aggregation
-mean_aggregation
-pnorm_aggregation
-lse_aggregation
+SegmentedMeanMax
+SegmentedPNormLSE
 
-meanmax_aggregation
-pnormlse_aggregation
+BagCount
 ```

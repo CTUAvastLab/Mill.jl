@@ -129,7 +129,7 @@ Because all parameter constraints are included implicitly (field `ρ` in both ty
 To use a concatenation of two or more operators, one can use the [`Aggregation`](@ref) constructor:
 
 ```@repl aggregation
-a = Aggregation(a_mean, a_max)
+a = AggregationStack(a_mean, a_max)
 a(X, bags)
 ```
 

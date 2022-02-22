@@ -6,11 +6,11 @@ function datasummary(n::AbstractMillNode)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillNode))
-    HierarchicalUtils.printtree(io, n; htrunc=3, vtrunc=5, breakline=false)
+    HierarchicalUtils.printtree(io, n; htrunc = 3, vtrunc = 5, breakline = false)
 end
 
 nodeshow(io::IO, ::Missing) = print(io, "∅")
-nodeshow(io::IO, n::LazyNode{N, Nothing}) where N = print(io, "LazyNode{$N} ∅")
+nodeshow(io::IO, n::LazyNode{N,Nothing}) where {N} = print(io, "LazyNode{$N} ∅")
 
 function nodecommshow(io::IO, @nospecialize(n::AbstractMillNode))
     bytes = Base.format_bytes(Base.summarysize(n) - (isleaf(n) ? 0 : Base.summarysize(data(n))))
@@ -29,20 +29,20 @@ _show_data(io, _) = print(io)
 
 # params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
 function modelsummary(m::AbstractMillModel)
-    ps = params(m)
+    ps = Flux.params(m)
     npars = Flux.underscorise(sum(length, ps))
     bytes = Base.format_bytes(sum(Base.summarysize, collect(ps.params)))
     string("# Summary: ", length(ps), " arrays, ", npars, " params, ", bytes)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(m::AbstractMillModel))
-    HierarchicalUtils.printtree(io, m; htrunc=3, vtrunc=5, breakline=false)
+    HierarchicalUtils.printtree(io, m; htrunc = 3, vtrunc = 5, breakline = false)
 end
 
-_levelparams(m::ArrayModel) = params(m.m)
-_levelparams(m::BagModel) = params(m.a, m.bm)
-_levelparams(m::ProductModel) = params(m.m)
-_levelparams(m::LazyModel) = Params([])
+_levelparams(m::ArrayModel) = Flux.params(m.m)
+_levelparams(m::BagModel) = Flux.params(m.a, m.bm)
+_levelparams(m::ProductModel) = Flux.params(m.m)
+_levelparams(m::LazyModel) = Flux.Params([])
 
 # params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
 function nodecommshow(io::IO, @nospecialize(m::AbstractMillModel))
@@ -92,7 +92,7 @@ function Base.replace_in_print_matrix(x::MaybeHotArray, i::Integer, j::Integer, 
     ismissing(x[i, j]) || x[i, j] ? s : Base.replace_with_centered_mark(s)
 end
 
-function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotArray, NGramMatrix}
+function Base.show(io::IO, X::T) where {T<:Union{ImputingMatrix,MaybeHotArray,NGramMatrix}}
     if get(io, :compact, false)
         if ndims(X) == 1
             print(io, length(X), "-element ", nameof(T))
@@ -106,8 +106,8 @@ end
 
 Base.show(io::IO, ::MIME"text/plain", a::AbstractAggregation) = _show_fields(io, a)
 
-function _show_fields(io, x::T; context=:compact=>true) where T
-    o = join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)],", ")
+function _show_fields(io, x::T; context = :compact => true) where {T}
+    o = join(["$f = $(repr(getfield(x, f); context))" for f in fieldnames(T)], ", ")
     print(io, nameof(T), "(", o, ")")
 end
 
@@ -123,7 +123,7 @@ _print_params(io::IO, A::PostImputingMatrix) = Base.print_array(io, A.ψ)
 
 Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.S)
 
-function Base.show(io::IO, l::Dense{F, <:ImputingMatrix}) where F
+function Base.show(io::IO, l::Dense{F,<:ImputingMatrix}) where {F}
     print(io, _name(l.weight), "Dense(", size(l.weight, 2), ", ", size(l.weight, 1))
     l.σ == identity || print(io, ", ", l.σ)
     l.bias == Flux.Zeros() && print(io, "; bias=false")
@@ -133,7 +133,7 @@ end
 _name(::PreImputingMatrix) = "[preimputing]"
 _name(::PostImputingMatrix) = "[postimputing]"
 
-function Base.show(io::IO, a::T) where T <: AbstractAggregation
+function Base.show(io::IO, a::T) where {T<:AbstractAggregation}
     print(io, nameof(T))
     if !get(io, :compact, false)
         print(io, "(", length(a), ")")
