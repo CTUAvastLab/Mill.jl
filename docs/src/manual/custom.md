@@ -29,9 +29,10 @@ ds = LazyNode{:Path}(["/var/lib/blob_files/myfile.blob"])
 ```
 it's important to have the `{:Path}` parameter there, because it's used to dispatch to the `Mill.unpack2mill(ds::LazyNode{:Path})`, which we'll define below.
 
-Note that the node keeps array of strings. That's because the `LazyNode` will always keep the array of strings,
+Note that the node keeps array of strings. The `LazyNode` will always keep the array of strings,
 because internally the structure is designed to hold minibatch of any size, so 1 sample is batch of size 1,
 but we can merge multiple samples together, and it will still produce sample with array of strings.
+
 See
 ```@example custom
 ds2 = LazyNode{:Path}(["/var/lib/python"])
