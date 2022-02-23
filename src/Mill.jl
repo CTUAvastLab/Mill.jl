@@ -9,9 +9,11 @@ using HierarchicalUtils
 using LearnBase
 using LinearAlgebra
 using MLDataPattern
+using Preferences
 using Setfield
 using SparseArrays
 using Statistics
+
 using StatsBase
 using Zygote
 
@@ -75,8 +77,8 @@ export BagChain
 include("partialeval.jl")
 export partialeval
 
-include("mill_string.jl")
-export MillString, @mill_str
+# include("mill_string.jl")
+# export MillString, @mill_str
 
 include("util.jl")
 export sparsify, pred_lens, list_lens, find_lens, findnonempty_lens
