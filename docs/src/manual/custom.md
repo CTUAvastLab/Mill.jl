@@ -5,7 +5,68 @@ using Flux
 
 ## Custom nodes
 
-[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into `Mill` environment:
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. 
+When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) environment, 
+which is the purpose for [`LazyNode`](@ref) which you can easily use to extend the functionality of Mill.
+
+### Unix path example
+
+Let's define one custom node type for representing path names in Unix and one custom model type for processing it. 
+The [`LazyNode`](@ref) provides wrappers to plug any preprocessing producing [`AbstractMillNode`](@ref) into the [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) ecosystem.
+
+Let us start by defining the function which takes path as a string and produces [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure.
+Note that the part of the model node is a function which converts the pathname string to a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. 
+For simplicity, we will represent the path as a bag of individual directory and file names, which we obtain by splitting the path by `/`. 
+One could hypothesize that using ordered sequences would provide more information because we would not lose the ordering, but
+let's keep it simple for now. We will represent individual directory names using a [`NGramMatrix`](@ref) representation in this example.
+
+[`LazyNode`](@ref) lets us wrap the data (path as a string) into out custom parametric type and let it expand lazily during the inference (hence the name).
+In order to do this for out path, we need to define function accepting the [`LazyNode`](@ref) containing string and which will produce the [`AbstractMillNode`](@ref) structure.
+
+```@example custom
+function Mill.unpack2mill(ds::LazyNode{:Path})
+    ss = split.(ds.data, "/")
+    x = NGramMatrix(reduce(vcat, ss), 3)
+    BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
+end
+```
+
+Then we can wrap out paths to [`LazyNode`](@ref) as follows:
+```@example custom
+ds = LazyNode{:Path}(["/var/lib/blob_files/myfile.blob"])
+```
+
+it's important to have the `{:Path}` parameter there, because it's used to dispatch to the `Mill.unpack2mill(ds::LazyNode{:Path})`.
+Note that the node keeps array of strings. That's because the `LazyNode` will always keep the array of strings, because interally the structure is designed to hold minibatch of any size, so 1 sample is batch of size 1, but we can merge multiple samples together and it will still produce sample with array of strings.
+See
+```@example custom
+ds = LazyNode{:Path}(["/var/lib/blob_files/myfile.blob"])
+ds2 = LazyNode{:Path}(["/var/lib/python"])
+ds3 = reduce(catobs, [ds, ds2])
+```
+
+Internally, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) calls the `unpack2mill` function, but we can try to call it explicitly to see if it works.
+```@example custom
+Mill.unpack2mill(ds)
+```
+
+then we can create the model using the common functionality.
+```@repl custom
+pm = reflectinmodel(ds)
+```
+
+this creates [`LazyModel`](@ref), which is able to work with [`LazyNode`](@ref)s.
+
+Then we can use it to perform inference as we would do with any other model.
+
+```@repl custom
+pm(ds).data
+```
+
+### Adding custom nodes which don't fit into the [`LazyNode`](@ref) formalism
+
+Of course the [`LazyNode`](@ref) might not cover all your needs, in which case see the below example how to plug in any functionality to Mill without the usage of LazyNode, 
+so here is the checklist of what you should implement if you want the functionality to fit into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) environment nicely: 
 
 * allow nesting (if needed)
 * implement `getindex` to obtain subsets of observations. For this purpose, `Mill` defines a [`Mill.subset`](@ref) function for common datatypes, which can be used.
@@ -13,7 +74,7 @@ using Flux
 * define a specialized method for `nobs`
 * register the custom node with [HierarchicalUtils.jl](@ref) to obtain pretty printing, iterators and other functionality
 
-## Unix path example
+#### Unix path example
 
 Let's define one custom node type for representing pathnames in Unix and one custom model type for processing it. We'll start by defining the structure holding pathnames:
 
@@ -83,14 +144,6 @@ Flux.@functor PathModel
 Note that the part of the model node is a function which converts the pathname string to a `Mill` structure. For simplicity, we use a trivial [`NGramMatrix`](@ref) representation in this example and define `path2mill` as follows:
 
 ```@example custom
-function path2mill(s::String)
-    ss = String.(split(s, "/"))
-    BagNode(ArrayNode(Mill.NGramMatrix(ss, 3)), AlignedBags([1:length(ss)]))
-end
-
-path2mill(ss::Vector{S}) where {S <: AbstractString} = reduce(catobs, map(path2mill, ss))
-path2mill(ds::PathNode) = path2mill(ds.data)
-nothing # hide
 ```
 
 Now we define how the model node is applied:
