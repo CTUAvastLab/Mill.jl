@@ -52,7 +52,7 @@ function Mill.unpack2mill(ds::LazyNode{:Path})
 end
 ```
 
-Internally, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) calls the `unpack2mill` function, but we can try to call it explicitly to see if it works.
+Internally, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) calls the [`unpack2mill`](@ref) function, but we can try to call it explicitly to see if it works.
 ```@example custom
 Mill.unpack2mill(ds)
 ```
