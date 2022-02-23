@@ -5,23 +5,34 @@ using Flux
 
 ## Custom nodes
 
-[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. 
-When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) environment, 
-which is the purpose for [`LazyNode`](@ref) which you can easily use to extend the functionality of Mill.
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) environment:
+
+* allow nesting (if needed)
+* implement `getindex` to obtain subsets of observations. For this purpose, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) defines a [`Mill.subset`](@ref) function for common datatypes, which can be used.
+* allow concatenation of nodes with [`catobs`](@ref). Optionally, implement `reduce(catobs, ...)` as well to avoid excessive compilations if a number of arguments will vary a lot
+* define a specialized method for `nobs`
+* register the custom node with [HierarchicalUtils.jl](@ref) to obtain pretty printing, iterators and other functionality
+
+luckily, you don't need to implement this all by yourself for most cases, and you can use [`LazyNode`](@ref) which implements mose of this logic, so you can extend the functionality of Mill easily.
+The following example shows how to use the [`LazyNode`](@ref) in order to make a custom node.
 
 ### Unix path example
 
-Let's define one custom node type for representing path names in Unix and one custom model type for processing it. 
-The [`LazyNode`](@ref) provides wrappers to plug any preprocessing producing [`AbstractMillNode`](@ref) into the [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) ecosystem.
+Let's use the [`LazyNode`](@ref) as a custom node type for representing path names in Unix and define a function to parse the path in string form in to the [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. 
 
-Let us start by defining the function which takes path as a string and produces [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure.
+The [`LazyNode`](@ref) lets us wrap the data (path as a string) into out custom parametric type and let it expand lazily during the inference (hence the name).
+In order to do this, we need to define function accepting the [`LazyNode`](@ref) containing string and which will produce the [`AbstractMillNode`](@ref) structure.
+
+```@example custom
+ds = LazyNode{:Path}(["/var/lib/blob_files/myfile.blob"])
+```
+it's important to have the `{:Path}` parameter there, because it's used to dispatch to the `Mill.unpack2mill(ds::LazyNode{:Path})`, which we'll define below.
+
+Then we can define the function which takes the [`LazyNode`](@ref)`{:Path}` containing data as a vector of strings and produces [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure.
 Note that the part of the model node is a function which converts the pathname string to a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. 
 For simplicity, we will represent the path as a bag of individual directory and file names, which we obtain by splitting the path by `/`. 
 One could hypothesize that using ordered sequences would provide more information because we would not lose the ordering, but
 let's keep it simple for now. We will represent individual directory names using a [`NGramMatrix`](@ref) representation in this example.
-
-[`LazyNode`](@ref) lets us wrap the data (path as a string) into out custom parametric type and let it expand lazily during the inference (hence the name).
-In order to do this for out path, we need to define function accepting the [`LazyNode`](@ref) containing string and which will produce the [`AbstractMillNode`](@ref) structure.
 
 ```@example custom
 function Mill.unpack2mill(ds::LazyNode{:Path})
@@ -31,12 +42,6 @@ function Mill.unpack2mill(ds::LazyNode{:Path})
 end
 ```
 
-Then we can wrap out paths to [`LazyNode`](@ref) as follows:
-```@example custom
-ds = LazyNode{:Path}(["/var/lib/blob_files/myfile.blob"])
-```
-
-it's important to have the `{:Path}` parameter there, because it's used to dispatch to the `Mill.unpack2mill(ds::LazyNode{:Path})`.
 Note that the node keeps array of strings. That's because the `LazyNode` will always keep the array of strings, because interally the structure is designed to hold minibatch of any size, so 1 sample is batch of size 1, but we can merge multiple samples together and it will still produce sample with array of strings.
 See
 ```@example custom
