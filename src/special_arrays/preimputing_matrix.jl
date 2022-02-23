@@ -58,19 +58,18 @@ function Base.vcat(As::PreImputingMatrix...)
     ArgumentError("It doesn't make sense to vcat PreImputingMatrices") |> throw
 end
 
-A::PreImputingMatrix * b::AbstractVector = (_check_mul(A, b); _mul_preimputing(A, b))
-# Zygote.@adjoint A::PreImputingMatrix * b::AbstractVector = (_check_mul_preimputing(A, b); Zygote.pullback(_mul_preimputing, A, b))
-@opt_out ChainRulesCore.rrule(::typeof(*), ::MyMatrix, ::AbstractVector)
-A::PreImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul_preimputing(A, B))
-Zygote.@adjoint A::PreImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); Zygote.pullback(_mul_preimputing, A, B))
+A::PreImputingMatrix * b::AbstractVector = (_check_mul(A, b); _mul(A, b))
+Zygote.@adjoint A::PreImputingMatrix * b::AbstractVector = (_check_mul(A, b); Zygote.pullback(_mul, A, b))
+A::PreImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
+Zygote.@adjoint A::PreImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
 
-_mul_preimputing(A::PreImputingMatrix, B::AbstractVecOrMat) = A.W * B
-_mul_preimputing(A::PreImputingMatrix, ::AbstractVector{Missing}) = A.W * A.ψ
-_mul_preimputing(A::PreImputingMatrix, B::AbstractMatrix{Missing}) = repeat(A.W * A.ψ, 1, size(B, 2))
-_mul_preimputing(A::PreImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * _mul_preimputing_maybe(A.ψ, B)
+_mul(A::PreImputingMatrix, B::AbstractVecOrMat) = A.W * B
+_mul(A::PreImputingMatrix, ::AbstractVector{Missing}) = A.W * A.ψ
+_mul(A::PreImputingMatrix, B::AbstractMatrix{Missing}) = repeat(A.W * A.ψ, 1, size(B, 2))
+_mul(A::PreImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * _mul_maybe(A.ψ, B)
 
-_mul_preimputing_maybe(ψ, B) = _impute_row(ψ, B)[1]
-function ChainRulesCore.rrule(::typeof(_mul_preimputing_maybe), ψ, B)
+_mul_maybe(ψ, B) = _impute_row(ψ, B)[1]
+function ChainRulesCore.rrule(::typeof(_mul_maybe), ψ, B)
     X, m = _impute_row(ψ, B)
     X, Δ -> (NoTangent(), @thunk(vec(sum(.!m .* Δ, dims=2))), @thunk(m .* Δ))
 end
