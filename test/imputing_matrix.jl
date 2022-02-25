@@ -183,7 +183,7 @@ end
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
 
-        S = [randstring(rand(1:100)) for _ in 1:k] |> PooledArray
+        S = [randustring(rand(1:100)) for _ in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
         @test A * B ≈ W * Matrix(SparseMatrixCSC(B))
         @inferred A * B
@@ -196,7 +196,7 @@ end
         @test eltype(A * B) === eltype(ψ)
 
         if k > 1
-            S = [isodd(i) ? missing : randstring(rand(1:10)) for i in 1:k]
+            S = [isodd(i) ? missing : randustring(rand(1:10)) for i in 1:k]
             B = NGramMatrix(S, 3, 256, n)
             C = A * B
             @test all(isequal(ψ), eachcol(C[:, ismissing.(S)]))
@@ -298,7 +298,7 @@ end
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
-        S = [randstring(rand(1:100)) for _ in 1:k] |> PooledArray
+        S = [randustring(rand(1:100)) for _ in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
 
         @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
@@ -384,7 +384,7 @@ end
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
-        S = [isodd(i) ? missing : randstring(rand(1:100)) for i in 1:k] |> PooledArray
+        S = [isodd(i) ? missing : randustring(rand(1:100)) for i in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
 
         @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
@@ -488,11 +488,11 @@ end
 
         d = postimputing_dense(n, m)
 
-        S = [randstring(rand(1:100)) for _ in 1:k]
+        S = [randustring(rand(1:100)) for _ in 1:k]
         X = NGramMatrix(S, 3, 256, n)
         check(d, X, true, false)
         if k > 1
-            S = [isodd(i) ? missing : randstring(rand(1:10)) for i in 1:k] |> PooledArray
+            S = [isodd(i) ? missing : randustring(rand(1:10)) for i in 1:k] |> PooledArray
             X = NGramMatrix(S, 3, 256, n)
             check(d, X, true, true)
         end

@@ -1,7 +1,7 @@
 @testset "NGramIterator and friends" begin
-    for s in [randstring(100) for _ in 1:10]
+    for s in [randustring(100) for _ in 1:10]
         it = NGramIterator(s)
-        @test length(it) == 100 + 3 - 1
+        @test length(it) == length(codeunits(s)) + 3 - 1
         c = collect(it)
         @test c == ngrams(s)
         @test c == NGramIterator(codeunits(s)) |> collect
@@ -9,8 +9,8 @@
 end
 
 @testset "NGramMatrix construction types and basics" begin
-    M1 = NGramMatrix(["hello", "world"])
-    M2 = NGramMatrix(["a part", "is", missing] |> PooledArray)
+    M1 = NGramMatrix(["heλlo", "world"])
+    M2 = NGramMatrix(["α part", "is", missing] |> PooledArray)
     M3 = NGramMatrix([missing, missing])
     @test M1 isa NGramMatrix{String}
     @test M1 isa AbstractMatrix{Int64}
@@ -23,8 +23,8 @@ end
     @test size(M2) == (2053, 3)
     @test size(M3) == (2053, 2)
 
-    M1 = NGramMatrix([codeunits("hello"), codeunits("world")])
-    M2 = NGramMatrix([codeunits("a part"), codeunits("is"), missing])
+    M1 = NGramMatrix([codeunits("heλlo"), codeunits("world")])
+    M2 = NGramMatrix([codeunits("α part"), codeunits("is"), missing])
     M3 = NGramMatrix([missing, missing] |> PooledArray)
     @test M1 isa NGramMatrix{<:CodeUnits}
     @test M1 isa AbstractMatrix{Int64}
@@ -53,8 +53,8 @@ end
 end
 
 @testset "Indexing" begin
-    S1 = ["hello", "world"]
-    S2 = ["a part", "is", missing] |> PooledArray
+    S1 = ["heλlo", "world"]
+    S2 = ["α part", "is", missing] |> PooledArray
     S3 = [missing, missing]
     M1 = NGramMatrix(S1)
     M2 = NGramMatrix(S2)
@@ -96,8 +96,8 @@ end
 end
 
 @testset "hcat" begin
-    S1 = ["hello", "world"]
-    S2 = ["a part", "is", missing]
+    S1 = ["heλlo", "world"]
+    S2 = ["α part", "is", missing]
     S3 = [missing, missing]
     M1 = NGramMatrix(S1)
     M2 = NGramMatrix(S2)
@@ -168,7 +168,7 @@ end
 @testset "NGramMatrix to SparseMatrix" begin
     for (n, m) in product([2,3,5], [10, 100, 1000])
         b = 256
-        S = ["hello", "world", "!!!"]
+        S = ["heλlo", "world", "!!!"]
         Si = map(codeunits, S)
         Sc = map(i -> Int.(i), Si)
         B = NGramMatrix(S, n, b, m)
@@ -186,7 +186,7 @@ end
         b = 256
         A = randn(10, m)
 
-        S = [randstring(100) for _ in 1:10]
+        S = [randustring(100) for _ in 1:10]
         Si = map(codeunits, S)
         Sc = map(i -> Int.(i), Si)
         B = NGramMatrix(S, n, b, m)
@@ -216,7 +216,7 @@ end
         b = 256
         A = randn(10, m)
 
-        s = [randstring(100) for _ in 1:10] |> PooledArray
+        s = [randustring(100) for _ in 1:10] |> PooledArray
         si = map(codeunits, s)
         sc = map(i -> Int.(i), si)
         Ns = countngrams(s, n, b, m)
@@ -255,7 +255,7 @@ end
 
 @testset "NGramMatrix multiplication second derivative" begin
     for (n, m) in product([2, 3], [10, 20])
-        S = [randstring(10) for _ in 1:10]
+        S = [randustring(10) for _ in 1:10]
         B = NGramMatrix(S, n, 256, m)
         A = randn(10, m)
         _, f = gradf(A -> sin.(A * B), A)
@@ -302,7 +302,7 @@ end
 begin
     println("Benchmarking multiplication")
     A = randn(80,2053);
-    S = [randstring(10) for i in 1:1000];
+    S = [randustring(10) for i in 1:1000];
     B = NGramMatrix(S, 3, 256, 2053)
     C = sparse(countngrams(S, 3, 256, size(A, 2)));
     println("A * B::NGramMatrix (This should be the fastest)");

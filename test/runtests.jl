@@ -30,6 +30,10 @@ areequal(x, y, zs...) = isequal(x, y) && areequal(y, zs...)
 
 Random.seed!(0)
 
+const CHARSET = ['0':'9';'A':'Z';'a':'z';'α':'ω']
+
+randustring(n) = randstring(CHARSET, n)
+
 const BAGS = [
       length2bags([1, 2, 3]),
       length2bags([4, 1, 1]),
