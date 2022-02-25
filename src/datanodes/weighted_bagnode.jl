@@ -39,6 +39,9 @@ See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@re
 WeightedBagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, weights::Vector, metadata=nothing) =
     WeightedBagNode(d, bags(b), weights, metadata)
 
+
+Flux.@functor WeightedBagNode
+
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 
 dropmeta(x::WeightedBagNode) = WeightedBagNode(dropmeta(x.data), x.bags, x.weights)
