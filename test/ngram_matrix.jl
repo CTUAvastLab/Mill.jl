@@ -229,7 +229,7 @@ end
         Ssi = SparseMatrixCSC(Bi)
         Ssc = SparseMatrixCSC(Bc)
 
-        f = gradf(*, A, B)
+        _, f = gradf(*, A, B)
         dNs = gradient(f, A, Ns)[1]
         dSs = gradient(f, A, Ss)[1]
 
@@ -237,19 +237,19 @@ end
         @test dA ≈ dNs
         @test dA ≈ dSs
         @test isnothing(dB)
-        @test gradtest(A -> A * B, A)
+        @test @gradtest A -> A * B
 
         dA, dBi = gradient(f, A, Bi)
         @test dA ≈ dNs
         @test dA ≈ dSs
         @test isnothing(dBi)
-        @test gradtest(A -> A * Bi, A)
+        @test @gradtest A -> A * Bi
 
         dA, dBc = gradient(f, A, Bc)
         @test dA ≈ dNs
         @test dA ≈ dSs
         @test isnothing(dBi)
-        @test gradtest(A -> A * Bc, A)
+        @test @gradtest A -> A * Bc
     end
 end
 
@@ -258,9 +258,9 @@ end
         S = [randstring(10) for _ in 1:10]
         B = NGramMatrix(S, n, 256, m)
         A = randn(10, m)
-        f = gradf(A -> sin.(A * B), A)
-        df = gradf(A -> gradient(f, A)[1], A)
-        @test gradtest(df, A)
+        _, f = gradf(A -> sin.(A * B), A)
+        _, df = gradf(A -> gradient(f, A)[1], A)
+        @test @gradtest A -> df(A)
     end
 end
 
@@ -272,7 +272,7 @@ end
         @test hcat(A, A).S == vcat(S, S)
 
         W = randn(40, 2057)
-        @test gradtest(W -> W * A, W)
+        @test @gradtest W -> W * A
 
         n = ArrayNode(A, nothing)
         @test reduce(catobs, [n, n]).data.S == vcat(S, S)

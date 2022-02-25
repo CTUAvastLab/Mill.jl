@@ -314,20 +314,20 @@ end
                    x -> BagNode(ArrayNode(x), bags1)]
             m = reflectinmodel(ds(x), LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds(x))
-            @test gradtest(x -> m(ds(x)).data, x)
+            @test @gradtest x -> m(ds(x)).data [m]
         end
 
         for ds in [(x, y) -> ProductNode((ArrayNode(x), ArrayNode(y))),
                    (x, y) -> ProductNode((a=BagNode(ArrayNode(x), bags1), b=BagNode(ArrayNode(y), bags2)))]
             m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds(x, y))
-            @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
+            @test @gradtest (x, y) -> m(ds(x, y)).data [m]
         end
 
         ds = z -> BagNode(BagNode(ArrayNode(z), bags3), bags1)
         m = reflectinmodel(ds(z), LAYERBUILDER, ABUILDER) |> f64
         @inferred m(ds(z))
-        @test gradtest(z -> m(ds(z)).data, z)
+        @test @gradtest z -> m(ds(z)).data [m]
     end
 end
 
@@ -340,21 +340,21 @@ end
         w2 = abs.(randn(4)) .+ 0.1
         w3 = abs.(randn(8)) .+ 0.1
 
-        ds = x -> WeightedBagNode(ArrayNode(x), bags1, w1)
-        m = reflectinmodel(ds(x), LAYERBUILDER, ABUILDER) |> f64
-        @inferred m(ds(x))
-        @test gradtest(x -> m(ds(x)).data, x)
+        ds = (x, w1) -> WeightedBagNode(ArrayNode(x), bags1, w1)
+        m = reflectinmodel(ds(x, w1), LAYERBUILDER, ABUILDER) |> f64
+        @inferred m(ds(x, w1))
+        @test @gradtest x -> m(ds(x, w1)).data [m, w1]
 
-        ds = (x, y) -> ProductNode((WeightedBagNode(ArrayNode(x), bags1, w1),
-                                    WeightedBagNode(ArrayNode(y), bags2, w2))) 
-        m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER) |> f64
-        @inferred m(ds(x, y))
-        @test gradtest((x, y) -> m(ds(x, y)).data, x, y)
-
-        ds = z -> WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
-        m = reflectinmodel(ds(z), LAYERBUILDER, ABUILDER) |> f64
-        @inferred m(ds(z))
-        @test gradtest(z -> m(ds(z)).data, z)
+        ds = (x, y, w1, w2) -> ProductNode((WeightedBagNode(ArrayNode(x), bags1, w1),
+                                    WeightedBagNode(ArrayNode(y), bags2, w2)))
+        m = reflectinmodel(ds(x, y, w1, w2), LAYERBUILDER, ABUILDER) |> f64
+        @inferred m(ds(x, y, w1, w2))
+        @test @gradtest (x, y) -> m(ds(x, y, w1, w2)).data [m, w1, w2]
+        #
+        ds = (z, w3, w1) -> WeightedBagNode(WeightedBagNode(ArrayNode(z), bags3, w3), bags1, w1)
+        m = reflectinmodel(ds(z, w3, w1), LAYERBUILDER, ABUILDER) |> f64
+        @inferred m(ds(z, w3, w1))
+        @test @gradtest z -> m(ds(z, w3, w1)).data [m, w3, w1]
     end
 end
 
@@ -373,7 +373,7 @@ end
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds)
-            @test gradtest(() -> m(ds).data, Flux.params(m))
+            @test @pgradtest m -> m(ds).data [ds]
         end
     end
 end
@@ -395,7 +395,7 @@ end
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds)
-            @test gradtest(() -> m(ds).data, Flux.params(m))
+            @test @pgradtest m -> m(ds).data [ds]
         end
     end
 end

@@ -45,17 +45,15 @@ end
 end
 
 @testset "forward convolution & gradient" begin
-    x = Float64.([1 10  100  1000  10000]);
-    y = 2 .* x;
-    z = 4 .* x;
+    x = [1 10  100  1000  10000]
+    y = 2 .* x
+    z = 4 .* x
     Δ = ones(1, 5)
-    for bags in [AlignedBags([1:2,3:5]), ScatteredBags([[1,2],[3,4,5]])];
-
+    for bags in [AlignedBags([1:2,3:5]), ScatteredBags([[1,2],[3,4,5]])]
         @test convsum(bags, x) == x
         @test convsum(bags, x, y) == [21  10  2100  21000  10000]
         @test convsum(bags, x, y, z) == [42  21  4200  42100  21000]
-
-        @test gradtest((a, b, c) -> convsum(bags, a, b, c), x, y, z)
+        @test @gradtest (x, y, z) -> convsum(bags, x, y, z)
     end
 end
 
@@ -67,10 +65,12 @@ end
     for bags in [AlignedBags([1:1, 2:3, 4:6, 7:15]), ScatteredBags(collect.([1:1, 2:3, 4:6, 7:15]))]
         @test bagconv(x, bags, fs...) ≈ legacy_bagconv(x, bags, filters)
         @test bagconv(x, bags, fs...) ≈ bagconv(xs, bags, fs...)
-        @test gradtest((a, b, c) -> bagconv(x, bags, a, b, c), fs...)
-        @test gradtest((a, b, c) -> bagconv(xs, bags, a, b, c), fs...)
-        @test gradtest(x -> bagconv(x, bags, fs...), x)
-        @test gradtest((x, a, b , c) -> bagconv(x, bags, a, b, c), x, fs...)
+        @test @gradtest fs -> bagconv(x, bags, fs...) [x]
+        @test @gradtest fs -> bagconv(xs, bags, fs...) [xs]
+        @test @gradtest x -> bagconv(x, bags, fs...) [fs]
+        @test @gradtest xs -> bagconv(xs, bags, fs...) [fs]
+        @test @gradtest (x, fs) -> bagconv(x, bags, fs...)
+        @test @gradtest (xs, fs) -> bagconv(xs, bags, fs...)
     end
 end
 
@@ -93,9 +93,12 @@ end
     end
 
     @testset "Test that gradient of scattered convolution is correct" begin
-        @test gradtest((a, b, c) -> bagconv(x, bags, a, b, c), fs...)
-        @test gradtest(x -> bagconv(x, bagsp, fs...), xp)
-        @test gradtest((x, a, b , c) -> bagconv(x, bagsp, a, b, c), xp, fs...)
+        @test @gradtest fs -> bagconv(x, bags, fs...) [x]
+        @test @gradtest fs -> bagconv(xp, bags, fs...) [xp]
+        @test @gradtest x -> bagconv(x, bags, fs...) [fs]
+        @test @gradtest xp -> bagconv(x, bagsp, fs...) [fs]
+        @test @gradtest (x, fs) -> bagconv(x, bagsp, fs...)
+        @test @gradtest (xp, fs) -> bagconv(xp, bagsp, fs...)
     end
 end
 
@@ -103,8 +106,6 @@ end
     xs = sprand(3, 15, 0.5)
     x = Matrix(xs)
     for bags in [AlignedBags([1:1, 2:3, 4:6, 7:15]), ScatteredBags(collect.([1:1, 2:3, 4:6, 7:15]))]
-        ds = BagNode(ArrayNode(Float32.(x)), bags)
-
         m = BagConv(3, 4, 3, relu)
         @test length(Flux.params(m)) == 3
         @test size(m(x, bags)) == (4, 15)

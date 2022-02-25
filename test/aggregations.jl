@@ -293,9 +293,9 @@ end
         w_mat = abs.(randn(size(x))) .+ 0.1
         agg = all_aggregations(Float64, d)
         for a in [agg, BagCount(agg)]
-            @test gradtest(x -> a(x, bags), x)
-            @test gradtest(x -> a(x, bags, w), x)
-            @test gradtest(x -> a(x, bags, w_mat), x)
+            @test @gradtest x -> a(x, bags)
+            @test @gradtest x -> a(x, bags, w) [w]
+            @test @gradtest x -> a(x, bags, w_mat) [w_mat]
         end
     end
 end
@@ -309,11 +309,11 @@ end
         agg = all_aggregations(Float64, d)
         for a in tuple(agg.fs..., BagCount.(agg.fs)...)
             if a isa SegmentedPNorm || a isa BagCount{<:SegmentedPNorm}
-                @test_throws NotImplementedException gradtest(w -> a(x, bags, w), w)
-                @test_throws NotImplementedException gradtest(w -> a(x, bags, w), w_mat)
+                @test_throws NotImplementedException @gradtest w -> a(x, bags, w) [x]
+                @test_throws NotImplementedException @gradtest w_mat -> a(x, bags, w_mat) [x]
             else
-                @test gradtest(w -> a(x, bags, w), w)
-                @test gradtest(w -> a(x, bags, w), w_mat)
+                @test @gradtest w -> a(x, bags, w) [x]
+                @test @gradtest w_mat -> a(x, bags, w_mat) [x]
             end
         end
     end
@@ -325,10 +325,10 @@ end
     a1 = nonparam_aggregations(Float64, d)
     a2 = param_aggregations(Float64, d)
     for a in [a1, BagCount(a1), a2, BagCount(a2)]
-        @test gradtest(() -> a(missing, ScatteredBags([Int[], Int[]])), Flux.params(a))
-        @test gradtest(() -> a(missing, AlignedBags([0:-1]), nothing), Flux.params(a))
-        @test gradtest(() -> a(x, ScatteredBags([Int[]])), Flux.params(a))
-        @test gradtest(() -> a(x, AlignedBags([0:-1, 0:-1]), nothing), Flux.params(a))
+        @test @pgradtest a -> a(missing, ScatteredBags([Int[], Int[]]))
+        @test @pgradtest a -> a(missing, AlignedBags([0:-1]), nothing)
+        @test @pgradtest a -> a(x, ScatteredBags([Int[]])) [x]
+        @test @pgradtest a -> a(x, AlignedBags([0:-1, 0:-1]), nothing) [x]
     end
 
     for bags in BAGS2
@@ -339,14 +339,14 @@ end
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
         for a in [a1, BagCount(a1)]
-            @test gradtest(() -> a(x, bags), Flux.params(a))
-            @test gradtest(() -> a(x, bags, w), Flux.params(a))
-            @test gradtest(() -> a(x, bags, w_mat), Flux.params(a))
+            @test @pgradtest a -> a(x, bags) [x]
+            @test @pgradtest a -> a(x, bags, w) [x, w]
+            @test @pgradtest a -> a(x, bags, w_mat) [x, w_mat]
         end
         for a in [a2, BagCount(a2)]
-            @test gradtest(() -> a(x, bags), Flux.params(a); atol=1e-3)
-            @test gradtest(() -> a(x, bags, w), Flux.params(a); atol=1e-3)
-            @test gradtest(() -> a(x, bags, w_mat), Flux.params(a); atol=1e-3)
+            @test @pgradtest a -> a(x, bags) [x]
+            @test @pgradtest a -> a(x, bags, w) [x, w]
+            @test @pgradtest a -> a(x, bags, w_mat) [x, w_mat]
         end
     end
 end

@@ -8,6 +8,7 @@ using Flux
 using HierarchicalUtils
 using LearnBase
 using LinearAlgebra
+using MacroTools
 using MLDataPattern
 using Preferences
 using Setfield

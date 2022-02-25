@@ -63,9 +63,7 @@ _cattrees(as::Vector{T}) where T <: Tuple = T(reduce(catobs, [a[i] for a in as])
 _cattrees(as::Vector{T}) where T <: NamedTuple = T(reduce(catobs, [a[i] for a in as]) for i in keys(as[1]))
 @generated function _cattrees(xs::Vector{NamedTuple{K, T}}) where {K, T}
     chs = map(K, T.parameters) do k, t
-        quote
-            reduce(catobs, $t[x.$k for x in xs])
-        end
+        :(reduce(catobs, $t[x.$k for x in xs]))
     end
     quote
         NamedTuple{$K}(tuple($(chs...)))

@@ -100,9 +100,7 @@ Base.haskey(m::ProductModel{<:NamedTuple}, k::Symbol) = haskey(m.ms, k)
 @generated function (m::ProductModel{<:NamedTuple{KM}})(x::ProductNode{<:NamedTuple{KD}}) where {KM, KD}
     @assert issubset(KM, KD)
     chs = map(KM) do k
-        quote
-            m.ms.$k(x.data.$k)
-        end
+        :(m.ms.$k(x.data.$k))
     end
     quote
         m.m(vcat($(chs...)))
@@ -114,9 +112,7 @@ end
     l2 = U.parameters |> length
     @assert l1 ≤ l2 "Applied ProductModel{<:Tuple} has more children than ProductNode"
     chs = map(1:l1) do i
-        quote
-            m.ms[$i](x.data[$i])
-        end
+        :(m.ms[$i](x.data[$i]))
     end
     quote
         m.m(vcat($(chs...)))

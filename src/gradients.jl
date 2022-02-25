@@ -1,6 +1,8 @@
+# using MacroTools: prewalk, splitdef, rmlines
+using MacroTools: splitdef
+
 numgrad(m, f, xs...) = FiniteDifferences.grad(m, f, xs...)
 function numgrad(m, f, ps::Flux.Params)
-    ccp = deepcopy(ps)
     function gp(p)
         cp = deepcopy(p)
         g = FiniteDifferences.grad(m, x -> (p .= x; f()), p) |> only
@@ -12,34 +14,91 @@ end
 
 # For points that are close to discontinuities or non-differentiable parts
 function numgrads(f, xs...)
-    bg = numgrad(backward_fdm(7, 1, max_range=1e-5), f, xs...)
-    cg = numgrad(central_fdm(7, 1, max_range=1e-5), f, xs...)
-    fg = numgrad(forward_fdm(7, 1, max_range=1e-5), f, xs...)
+    bg = numgrad(backward_fdm(5, 1), f, xs...)
+    cg = numgrad(central_fdm(5, 1), f, xs...)
+    fg = numgrad(forward_fdm(5, 1), f, xs...)
     zip(bg, cg, fg) |> collect
 end
 
-gradcheck(ag, ng; atol=1e-5, rtol=1e-5) = isnothing(ag) ? isapprox.(ng, 0; atol) : isapprox.(ng, ag; atol, rtol)
-gradcheck(ag, ngs::Tuple; atol=1e-5, rtol=1e-5) = all(.|(map(ng -> gradcheck(ag, ng; atol, rtol), ngs)...))
-gradcheck(ag::NotImplemented, ngs::Tuple; atol=1e-5, rtol=1e-5) = throw(NotImplementedException(ag))
+gradcomp(ag1::Nothing, ag2::Nothing, args...) = true
+gradcomp(ag, ng, atol, rtol) = isapprox(ag, ng; atol, rtol)
+gradcomp(ag1::Nothing, ng, atol, rtol) = isapprox(ng, 0; atol, rtol)
+gradcomp(ag, ngs::Tuple, atol, rtol) = all(.|(map(ng -> isapprox.(ag, ng; atol, rtol), ngs)...))
+gradcomp(ag::Nothing, ngs::Tuple, atol, rtol) = all(.|(map(ng -> isapprox.(ng, 0; atol, rtol), ngs)...))
+gradcomp(ag::NotImplemented, ngs, atol, rtol) = NotImplementedException(ag) |> throw
+gradcomp(ag::NotImplemented, ngs::Tuple, atol, rtol) = NotImplementedException(ag) |> throw
 
-function gradf(f, xs...)
-    A = rand(size(f(xs...))...)
-    (xs...) -> sum(A .* f(xs...))
-end
-function gradf(f, ps::Flux.Params)
-    A = rand(size(f())...)
-    () -> sum(A .* f())
+# it is ok to use Float32 weights even for Float64 versions
+gradf(f::Function, xs...) = gradf(rand(Float32, size(f(xs...))...), f)
+gradf(f::Function, ::Flux.Params) = gradf(rand(Float32, size(f())...), f)
+gradf(A, f::Function) = A, (xs...) -> sum(A .* f(xs...))
+
+# extend f32 and f64 definitions from Flux to plain numbers for gradient testing
+mf32(x::Number) = Float32(x)
+mf32(x) = Flux.f32(x)
+mf64(x::Number) = Float64(x)
+mf64(x) = Flux.f64(x)
+
+# compute numerical gradient with double precision and compare to analytical gradient computed in single precision
+# also check analytical gradient in either precisions against each other to see whether the implementation
+# suffers from insufficient numerical precision
+macro gradtest(gf, cvars=:[], atol=1e-5, rtol=1e-5)
+    args = splitdef(gf)[:args]
+    @assert cvars isa Expr && cvars.head == :vect "@gradient accepts an array of closured variables as a second argument"
+    cvars = cvars.args
+    args32 = Symbol.(string.(args) .* "32")
+    args64 = Symbol.(string.(args) .* "64")
+    cvars32 = Symbol.(string.(cvars) .* "32")
+    cvars64 = Symbol.(string.(cvars) .* "64")
+    asgn32 = [:( $v = mf32($(esc(x))) ) for (v, x) in zip([args32; cvars32], [args; cvars])]
+    asgn64 = [:( $v = mf64($(esc(x))) ) for (v, x) in zip([args64; cvars64], [args; cvars])]
+    gf32 = MacroTools.postwalk(e -> e ∈ cvars ? Symbol("$(e)32") : e isa Symbol ? esc(e) : e, gf)
+    gf64 = MacroTools.postwalk(e -> e ∈ cvars ? Symbol("$(e)64") : e isa Symbol ? esc(e) : e, gf)
+    quote
+        $(asgn32...)
+        $(asgn64...)
+        A, gf32 = gradf($gf32, $(args32...))
+        _, gf64 = gradf(A, $gf64)
+        ag32 = Flux.gradient(gf32, $(args32...))
+        ag64 = Flux.gradient(gf64, $(args64...))
+        ngs = numgrads(gf64, $(args64...))
+        all(1:$(length(args))) do i
+            gradcomp(ag32[i], ngs[i], $atol, $rtol) && gradcomp(ag32[i], ag64[i], $atol, $rtol)
+        end
+    end
 end
 
-function gradtest(f, xs...; atol=1e-5, rtol=1e-5)
-    f2 = gradf(f, xs...)
-    ag = Flux.gradient(f2, xs...)
-    ngs = numgrads(f2, xs...)
-    all(i -> gradcheck(ag[i], ngs[i]; atol, rtol), eachindex(xs))
-end
-function gradtest(f, ps::Flux.Params; atol=1e-5, rtol=1e-5)
-    f2 = gradf(f, ps)
-    ag = Flux.gradient(f2, ps)
-    ngs = numgrads(f2, ps)
-    all(i -> gradcheck(ag[ps[i]], ngs[i]; atol, rtol), 1:length(ps))
+macro pgradtest(gf, cvars=:[], atol=1e-5, rtol=1e-5)
+    m = splitdef(gf)[:args]
+    @assert length(m) == 1 "@pgradient accepts a function with only one argument"
+    m = only(m)
+    @assert cvars isa Expr && cvars.head == :vect "@pgradient accepts an array of closured variables as a second argument"
+    cvars = cvars.args
+    cvars32 = Symbol.(string.(cvars) .* "32")
+    cvars64 = Symbol.(string.(cvars) .* "64")
+    asgn32 = [:( $v = mf32($(esc(x))) ) for (v, x) in zip(cvars32, cvars)]
+    asgn64 = [:( $v = mf64($(esc(x))) ) for (v, x) in zip(cvars64, cvars)]
+    gf_body = splitdef(gf)[:body]
+    gf32 = MacroTools.postwalk(gf_body) do e
+        e == m ? :m32 : e ∈ cvars ? Symbol("$(e)32") : e isa Symbol ? esc(e) : e
+    end
+    gf64 = MacroTools.postwalk(gf_body) do e
+        e == m ? :m64 : e ∈ cvars ? Symbol("$(e)64") : e isa Symbol ? esc(e) : e
+    end
+    quote
+        $(asgn32...)
+        $(asgn64...)
+        m32 = Flux.f32($(esc(m)))
+        m64 = Flux.f64($(esc(m)))
+        ps32 = Flux.params(m32)
+        ps64 = Flux.params(m64)
+        A, gf32 = gradf(() -> $gf32, ps32)
+        _, gf64 = gradf(A, () -> $gf64)
+        ag32 = Flux.gradient(gf32, ps32)
+        ag64 = Flux.gradient(gf64, ps64)
+        ngs = numgrads(gf64, ps64)
+        all(1:length(ps32)) do i
+            gradcomp(ag32[ps32[i]], ngs[i], $atol, $rtol) && gradcomp(ag32[ps32[i]], ag64[ps64[i]], $atol, $rtol)
+        end
+    end
 end
