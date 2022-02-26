@@ -265,7 +265,7 @@ end
 end
 
 @testset "integration with Mill & Flux" begin
-    S = ["hello", "world", "!!!"]
+    S = ["heλlo", "world", "!!!"]
     Si = map(i -> Int.(codeunits(i)), S)
     for (A, S) in [(NGramMatrix(S, 3, 256, 2057), S), (NGramMatrix(Si, 3, 256, 2057), Si)]
         @test reduce(catobs, [A, A]).S == vcat(S, S)
@@ -282,8 +282,8 @@ end
 end
 
 @testset "equals with missings" begin
-    M1 = NGramMatrix(["hello", "world"])
-    M2 = NGramMatrix(["a part", "is", missing])
+    M1 = NGramMatrix(["heλlo", "world"])
+    M2 = NGramMatrix(["α part", "is", missing])
     M3 = NGramMatrix([missing, missing])
     @test M1 == M1
     @test isequal(M1, M1)
