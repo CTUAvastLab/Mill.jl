@@ -114,7 +114,6 @@ function _impute_maybe_hot(W, ψ, I)
     C, m
 end
 
-# TODO rewrite this to less parameters once Zygote allows for composite grads
 _mul_ngram(W, ψ, S, n, b, m) = _impute_ngram(W, ψ, S, n, b, m)
 function ChainRulesCore.rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
     function ∇W(Δ)
