@@ -1,4 +1,3 @@
-# using MacroTools: prewalk, splitdef, rmlines
 using MacroTools: splitdef
 
 numgrad(m, f, xs...) = FiniteDifferences.grad(m, f, xs...)

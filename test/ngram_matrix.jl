@@ -260,7 +260,7 @@ end
         A = randn(10, m)
         _, f = gradf(A -> sin.(A * B), A)
         _, df = gradf(A -> gradient(f, A)[1], A)
-        @test @gradtest A -> df(A)
+        @test @gradtest A -> df(A) [] 1e-4
     end
 end
 
