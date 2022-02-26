@@ -65,14 +65,14 @@ A::PreImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
 _mul(A::PreImputingMatrix, B::AbstractVecOrMat) = A.W * B
 _mul(A::PreImputingMatrix, ::AbstractVector{Missing}) = A.W * A.ψ
 _mul(A::PreImputingMatrix, B::AbstractMatrix{Missing}) = repeat(A.W * A.ψ, 1, size(B, 2))
-_mul(A::PreImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * _mul_maybe(A.ψ, B)
+_mul(A::PreImputingMatrix, B::AbstractVecOrMat{Maybe{T}}) where {T <: Number} = A.W * _mul_pi_maybe(A.ψ, B)
 
-_mul_maybe(ψ, B) = _impute_row(ψ, B)[1]
-function ChainRulesCore.rrule(::typeof(_mul_maybe), ψ, B)
-    X, m = _impute_row(ψ, B)
+_mul_pi_maybe(ψ, B) = _preimpute(ψ, B)[1]
+function ChainRulesCore.rrule(::typeof(_mul_pi_maybe), ψ, B)
+    X, m = _preimpute(ψ, B)
     X, Δ -> (NoTangent(), @thunk(vec(sum(.!m .* Δ, dims=2))), @thunk(m .* Δ))
 end
-function _impute_row(ψ, B)
+function _preimpute(ψ, B)
     m = .!ismissing.(B)
     X = similar(ψ, size(B))
     X .= ψ

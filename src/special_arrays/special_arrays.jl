@@ -1,6 +1,3 @@
-# TODO replace all @adjoints in matrices by rrules once Tangent gradients become available
-# https://github.com/FluxML/Zygote.jl/issues/603
-
 function _check_mul(A::AbstractMatrix, b::AbstractVector)
     if size(A, 2) != length(b)
         DimensionMismatch(

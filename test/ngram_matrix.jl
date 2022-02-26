@@ -253,17 +253,6 @@ end
     end
 end
 
-@testset "NGramMatrix multiplication second derivative" begin
-    for (n, m) in product([2, 3], [10, 20])
-        S = [randustring(10) for _ in 1:10]
-        B = NGramMatrix(S, n, 256, m)
-        A = randn(10, m)
-        _, f = gradf(A -> sin.(A * B), A)
-        _, df = gradf(A -> gradient(f, A)[1], A)
-        @test @gradtest A -> df(A) [] 1e-4
-    end
-end
-
 @testset "integration with Mill & Flux" begin
     S = ["heλlo", "world", "!!!"]
     Si = map(i -> Int.(codeunits(i)), S)

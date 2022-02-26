@@ -76,19 +76,17 @@ _mul(A::PostImputingMatrix, b::MaybeHotVector{Missing}) = A.ψ
 _mul(A::PostImputingMatrix, b::MaybeHotVector{<:Integer}) = A.W * b
 _mul(A::PostImputingMatrix, B::MaybeHotMatrix{Missing}) = repeat(A.ψ, 1, size(B, 2))
 _mul(A::PostImputingMatrix, B::MaybeHotMatrix{<:Integer}) = A.W * B
-_mul(A::PostImputingMatrix, B::MaybeHotMatrix{Maybe{T}}) where {T <: Integer} =
-    _mul_maybe_hot(A.W, A.ψ, B.I)
+_mul(A::PostImputingMatrix, B::MaybeHotMatrix{Maybe{T}}) where {T <: Integer} = _mul_pi_maybe_hot(A, B)
 _mul(A::PostImputingMatrix, B::NGramMatrix{<:Sequence}) = A.W * B
 _mul(A::PostImputingMatrix, B::NGramMatrix{Missing}) = repeat(A.ψ, 1, size(B, 2))
-_mul(A::PostImputingMatrix, B::NGramMatrix{Maybe{T}}) where {T <: Sequence} =
-    _mul_ngram(A.W, A.ψ, B.S, B.n, B.b, B.m)
+_mul(A::PostImputingMatrix, B::NGramMatrix{Maybe{T}}) where {T <: Sequence} = _mul_pi_ngram(A, B)
 
-_mul_maybe_hot(W, ψ, I) = _impute_maybe_hot(W, ψ, I)[1]
-function ChainRulesCore.rrule(::typeof(_mul_maybe_hot), W, ψ, I)
-    C, m = _impute_maybe_hot(W, ψ, I)
+_mul_pi_maybe_hot(A, B) = _postimpute_maybe_hot(A, B)[1]
+function ChainRulesCore.rrule(::typeof(_mul_pi_maybe_hot), A, B)
+    C, m = _postimpute_maybe_hot(A, B)
     function ∇W(Δ)
-        dW = zero(W)
-        @inbounds for (k, j) in enumerate(I)
+        dW = zero(A.W)
+        @inbounds for (k, j) in enumerate(B.I)
             if !ismissing(j)
                 for i in 1:size(dW, 1)
                     dW[i, j] += Δ[i, k]
@@ -97,43 +95,51 @@ function ChainRulesCore.rrule(::typeof(_mul_maybe_hot), W, ψ, I)
         end
         dW
     end
-    C, Δ -> (NoTangent(), @thunk(∇W(Δ)), @thunk(vec(sum(view(Δ, :, m), dims=2))), NoTangent())
+    C, Δ -> begin
+        NoTangent(),
+        Tangent{typeof(A)}(W = @thunk(∇W(Δ)),
+                           ψ = @thunk(vec(sum(view(Δ, :, m), dims=2)))),
+        NoTangent()
+    end
 end
-function _impute_maybe_hot(W, ψ, I)
-    m = trues(length(I))
-    C = similar(ψ, size(W, 1), length(I))
-    C .= ψ
-    @inbounds for (j, k) in enumerate(I)
+function _postimpute_maybe_hot(A, B)
+    m = trues(length(B.I))
+    C = similar(A.ψ, size(A.W, 1), length(B.I))
+    C .= A.ψ
+    @inbounds for (j, k) in enumerate(B.I)
         if !ismissing(k)
             m[j] = false
             for i in 1:size(C, 1)
-                C[i, j] = W[i, k]
+                C[i, j] = A.W[i, k]
             end
         end
     end
     C, m
 end
 
-_mul_ngram(W, ψ, S, n, b, m) = _impute_ngram(W, ψ, S, n, b, m)
-function ChainRulesCore.rrule(::typeof(_mul_ngram), W, ψ, S, n, b, m)
+_mul_pi_ngram(A, B) = _postimpute_ngram(A, B)
+function ChainRulesCore.rrule(::typeof(_mul_pi_ngram), A, B)
     function ∇W(Δ)
-        dW = zero(W)
-        z = _init_z(n, b)
-        for (k, s) in enumerate(S)
-            _∇A_mul_vec!(Δ, k, dW, z, s, n, b, m)
+        dW = zero(A.W)
+        z = _init_z(B.n, B.b)
+        for (k, s) in enumerate(B.S)
+            _∇A_mul_vec!(Δ, k, dW, z, B, s)
         end
         dW
     end
-    _impute_ngram(W, ψ, S, n, b, m), Δ -> (NoTangent(), @thunk(∇W(Δ)),
-                                           @thunk(vec(sum(view(Δ, :, ismissing.(S)), dims=2))),
-                                  fill(NoTangent(), 4)...)
+    _postimpute_ngram(A, B), Δ -> begin
+        NoTangent(),
+        Tangent{typeof(A)}(W = @thunk(∇W(Δ)),
+                           ψ = @thunk(vec(sum(view(Δ, :, ismissing.(B.S)), dims=2)))),
+        NoTangent()
+    end
 end
 
-function _impute_ngram(W, ψ, S, n, b, m)
-    C = zeros(eltype(ψ), size(W, 1), length(S))
-    z = _init_z(n, b)
-    for (k, s) in enumerate(S)
-        _mul_vec!(C, k, W, z, s, n, b, m, ψ)
+function _postimpute_ngram(A, B)
+    C = zeros(eltype(A.ψ), size(A.W, 1), length(B.S))
+    z = _init_z(B.n, B.b)
+    for (k, s) in enumerate(B.S)
+        _mul_vec!(C, k, A.W, z, B, s, A.ψ)
     end
     C
 end

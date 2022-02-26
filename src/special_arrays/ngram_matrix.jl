@@ -359,66 +359,55 @@ A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))
 @opt_out rrule(::typeof(*), ::AbstractVecOrMat{<:Union{Real, Complex}}, ::NGramMatrix)
 
 _mul(A::AbstractMatrix, B::NGramMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
-_mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul(A, B.S, B.n, B.b, B.m)
+_mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul_ngram(A, B)
 
-function _mul(A::AbstractMatrix, S::AbstractVector{T}, n, b, m) where T <: Maybe{Sequence}
+_mul_ngram(A, B) = _mul_ngram_forw(A, B)
+function ChainRulesCore.rrule(::typeof(_mul_ngram), A::AbstractMatrix, B::NGramMatrix)
+    return _mul_ngram_forw(A, B), Δ -> (NoTangent(), _mul_∇A(Δ, A, B), NoTangent())
+end
+function _mul_ngram_forw(A::AbstractMatrix, B::NGramMatrix{<:Maybe{T}}) where T <: Maybe{Sequence}
     T_res = Missing <: T ? Maybe{eltype(A)} : eltype(A)
-    C = zeros(T_res, size(A, 1), length(S))
-    z = _init_z(n, b)
-    for (k, s) in enumerate(S)
-        _mul_vec!(C, k, A, z, s, n, b, m)
+    C = zeros(T_res, size(A, 1), length(B.S))
+    z = _init_z(B.n, B.b)
+    for (k, s) in enumerate(B.S)
+        _mul_vec!(C, k, A, z, B, s)
     end
     C
 end
 
-Zygote.@adjoint function _mul(A::AbstractMatrix, S::AbstractVector{<:Maybe{Sequence}}, n, b, m)
-    return _mul(A, S, n, b, m), Δ -> (_mul_∇A(Δ, A, S, n, b, m), nothing, nothing, nothing, nothing)
-end
 
-function _mul_∇A(Δ, A, S, n, b, m)
+function _mul_∇A(Δ, A, B)
     ∇A = zero(A)
-    z = _init_z(n, b)
-    for (k, s) in enumerate(S)
-        _∇A_mul_vec!(Δ, k, ∇A, z, s, n, b, m)
+    z = _init_z(B.n, B.b)
+    for (k, s) in enumerate(B.S)
+        _∇A_mul_vec!(Δ, k, ∇A, z, B, s)
     end
     ∇A
 end
 
-function ChainRulesCore.rrule(::typeof(_mul_∇A), Δ, A, S, n, b, m)
-    y = _mul_∇A(Δ, A, S, n, b, m)
-    function _mul_∇A_pullback(Δ₂)
-        return (NoTangent(), _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)...)
-    end
-    y, _mul_∇A_pullback
-end
-
-function _mul_∇₂A(Δ₂, Δ, A, S, n, b, m)
-    _mul(Δ₂, S, n, b, m), nothing, nothing, nothing, nothing, nothing
-end
-
-_mul_vec!(C, k, A, z, s::AbstractString, args...) = _mul_vec!(C, k, A, z, codeunits(s), args...)
-function _mul_vec!(C, k, A, z, s, n, b, m, ψ=nothing)
-    for l in 1:_len(s, n)
-        z = _next_ngram(z, l, s, n, b)
-        zm = z%m + 1
+_mul_vec!(C, k, A, z, B, s::AbstractString, args...) = _mul_vec!(C, k, A, z, B, codeunits(s), args...)
+function _mul_vec!(C, k, A, z, B, s, ψ=nothing)
+    for l in 1:_len(s, B.n)
+        z = _next_ngram(z, l, s, B.n, B.b)
+        zm = z%B.m + 1
         for i in 1:size(C, 1)
             @inbounds C[i, k] += A[i, zm]
         end
     end
 end
-_mul_vec!(C, k, A, z, s::Missing, n, b, m, ψ=missing) = @inbounds C[:, k] .= ψ
+_mul_vec!(C, k, A, z, B, s::Missing, ψ=missing) = @inbounds C[:, k] .= ψ
 
-_∇A_mul_vec!(Δ, k, ∇A, z, s::AbstractString, args...) = _∇A_mul_vec!(Δ, k, ∇A, z, codeunits(s), args...)
-function _∇A_mul_vec!(Δ, k, ∇A, z, s, n, b, m)
-    for l in 1:_len(s, n)
-        z = _next_ngram(z, l, s, n, b)
-        zm = z%m + 1
+_∇A_mul_vec!(Δ, k, ∇A, z, B, s::AbstractString) = _∇A_mul_vec!(Δ, k, ∇A, z, B, codeunits(s))
+function _∇A_mul_vec!(Δ, k, ∇A, z, B, s)
+    for l in 1:_len(s, B.n)
+        z = _next_ngram(z, l, s, B.n, B.b)
+        zm = z%B.m + 1
         for i in 1:size(∇A, 1)
             @inbounds ∇A[i, zm] += Δ[i, k]
         end
     end
 end
-_∇A_mul_vec!(Δ, k, ∇A, z, s::Missing, n, b, m) = return
+_∇A_mul_vec!(Δ, k, ∇A, z, B, s::Missing) = return
 
 Base.hash(M::NGramMatrix, h::UInt) = hash((M.S, M.n, M.b, M.m), h)
 (M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.S == M2.S, true) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
