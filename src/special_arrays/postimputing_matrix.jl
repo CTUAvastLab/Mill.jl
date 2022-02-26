@@ -68,7 +68,7 @@ A::PostImputingMatrix * b::MaybeHotVector = (_check_mul(A, b); _mul(A, b))
 A::PostImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
 A::PostImputingMatrix * B::MaybeHotMatrix = (_check_mul(A, B); _mul(A, B))
 A::PostImputingMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))
-@opt_out rrule(::typeof(*), ::PostImputingMatrix, ::AbstractVecOrMat)
+@opt_out rrule(::typeof(*), ::PostImputingMatrix, ::AbstractVecOrMat{<:Union{Real, Complex}})
 @opt_out rrule(::typeof(*), ::PostImputingMatrix, ::NGramMatrix)
 
 _mul(A::PostImputingMatrix, B::AbstractVecOrMat) = A.W * B

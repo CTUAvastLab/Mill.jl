@@ -60,7 +60,7 @@ end
 
 A::PreImputingMatrix * b::AbstractVector = (_check_mul(A, b); _mul(A, b))
 A::PreImputingMatrix * B::AbstractMatrix = (_check_mul(A, B); _mul(A, B))
-@opt_out rrule(::typeof(*), ::PreImputingMatrix, ::AbstractVecOrMat)
+@opt_out rrule(::typeof(*), ::PreImputingMatrix, ::AbstractVecOrMat{<:Union{Real, Complex}})
 
 _mul(A::PreImputingMatrix, B::AbstractVecOrMat) = A.W * B
 _mul(A::PreImputingMatrix, ::AbstractVector{Missing}) = A.W * A.ψ

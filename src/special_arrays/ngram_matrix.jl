@@ -356,7 +356,7 @@ function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: I
 end
 
 A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))
-@opt_out rrule(::typeof(*), ::AbstractMatrix, ::NGramMatrix)
+@opt_out rrule(::typeof(*), ::AbstractVecOrMat{<:Union{Real, Complex}}, ::NGramMatrix)
 
 _mul(A::AbstractMatrix, B::NGramMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
 _mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul(A, B.S, B.n, B.b, B.m)
