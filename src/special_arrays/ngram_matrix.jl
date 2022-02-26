@@ -356,11 +356,9 @@ function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: I
 end
 
 A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))
-Zygote.@adjoint A::AbstractMatrix * B::NGramMatrix = (_check_mul(A, B); Zygote.pullback(_mul, A, B))
+@opt_out rrule(::typeof(*), ::AbstractMatrix, ::NGramMatrix)
 
 _mul(A::AbstractMatrix, B::NGramMatrix{Missing}) = fill(missing, size(A, 1), size(B, 2))
-
-# TODO rewrite this to less parameters once Zygote allows for composite grads
 _mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul(A, B.S, B.n, B.b, B.m)
 
 function _mul(A::AbstractMatrix, S::AbstractVector{T}, n, b, m) where T <: Maybe{Sequence}
@@ -385,6 +383,7 @@ function _mul_∇A(Δ, A, S, n, b, m)
     end
     ∇A
 end
+
 function ChainRulesCore.rrule(::typeof(_mul_∇A), Δ, A, S, n, b, m)
     y = _mul_∇A(Δ, A, S, n, b, m)
     function _mul_∇A_pullback(Δ₂)
