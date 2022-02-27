@@ -82,6 +82,21 @@ _mul(A::PostImputingMatrix, B::NGramMatrix{Missing}) = repeat(A.ψ, 1, size(B, 2
 _mul(A::PostImputingMatrix, B::NGramMatrix{Maybe{T}}) where {T <: Sequence} = _mul_pi_ngram(A, B)
 
 _mul_pi_maybe_hot(A, B) = _postimpute_maybe_hot(A, B)[1]
+function _postimpute_maybe_hot(A, B)
+    m = trues(length(B.I))
+    C = similar(A.ψ, size(A.W, 1), length(B.I))
+    C .= A.ψ
+    @inbounds for (j, k) in enumerate(B.I)
+        if !ismissing(k)
+            m[j] = false
+            for i in 1:size(C, 1)
+                C[i, j] = A.W[i, k]
+            end
+        end
+    end
+    C, m
+end
+
 function ChainRulesCore.rrule(::typeof(_mul_pi_maybe_hot), A, B)
     C, m = _postimpute_maybe_hot(A, B)
     function ∇W(Δ)
@@ -102,28 +117,25 @@ function ChainRulesCore.rrule(::typeof(_mul_pi_maybe_hot), A, B)
         NoTangent()
     end
 end
-function _postimpute_maybe_hot(A, B)
-    m = trues(length(B.I))
-    C = similar(A.ψ, size(A.W, 1), length(B.I))
-    C .= A.ψ
-    @inbounds for (j, k) in enumerate(B.I)
-        if !ismissing(k)
-            m[j] = false
-            for i in 1:size(C, 1)
-                C[i, j] = A.W[i, k]
-            end
-        end
-    end
-    C, m
-end
 
 _mul_pi_ngram(A, B) = _postimpute_ngram(A, B)
+function _postimpute_ngram(A, B)
+    C = zeros(eltype(A.ψ), size(A.W, 1), length(B.S))
+    z = _init_z(B.n, B.b)
+    bn = B.b^B.n
+    for (k, s) in enumerate(B.S)
+        _mul_ngram_vec!(s, A.W, B, bn, C, k, z, A.ψ)
+    end
+    C
+end
+
 function ChainRulesCore.rrule(::typeof(_mul_pi_ngram), A, B)
     function ∇W(Δ)
         dW = zero(A.W)
         z = _init_z(B.n, B.b)
+        bn = B.b^B.n
         for (k, s) in enumerate(B.S)
-            _∇A_mul_vec!(Δ, k, dW, z, B, s)
+            _∇A_mul_ngram_vec!(Δ, s, B, bn, dW, k, z)
         end
         dW
     end
@@ -133,13 +145,4 @@ function ChainRulesCore.rrule(::typeof(_mul_pi_ngram), A, B)
                            ψ = @thunk(vec(sum(view(Δ, :, ismissing.(B.S)), dims=2)))),
         NoTangent()
     end
-end
-
-function _postimpute_ngram(A, B)
-    C = zeros(eltype(A.ψ), size(A.W, 1), length(B.S))
-    z = _init_z(B.n, B.b)
-    for (k, s) in enumerate(B.S)
-        _mul_vec!(C, k, A.W, z, B, s, A.ψ)
-    end
-    C
 end
