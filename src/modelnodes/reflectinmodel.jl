@@ -1,11 +1,11 @@
 """
     reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=BagCount ∘ SegmentedMeanMax;
-        fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true)
+        fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true, all_imputing=false)
 
 Build a `Mill.jl` model capable of processing `x`.
 
 All inner `Dense` layers are constructed using `fm`, a function accepting input dimension `d` and
-returning suitable model. All aggregation operators are constructed using `fa` in a similar manner.
+returning a suitable model. All aggregation operators are constructed using `fa` in a similar manner.
 
 More fine-grained control can be achieved with `fsm` and `fsa` keyword arguments, which should be
 `Dict`s of `c => f` pairs, where `c` is a `String` traversal code from [HierarchicalUtils.jl](@ref) and
@@ -16,6 +16,8 @@ is instantiated as `identity` instead of using `fm` and `fsm`. This can be contr
 
 Similarly, if an [`ArrayNode`](@ref) contains data `X` where `size(X, 1)` is `1`, the corresponding
 model is instantiated as `identity` unless `single_scalar_identity` is `false`.
+
+If `all_imputing` is true, all `Dense` models in leafs are replaced by their imputing variants.
 
 # Examples
 ```jldoctest
@@ -56,14 +58,14 @@ ProductModel ↦ ArrayModel(Dense(20, 10)) 	# 2 arrays, 210 params, 920 bytes
         └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
               └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
 
-julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean) |> printtree
+julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean, all_imputing=true) |> printtree
 ProductModel ↦ ArrayModel(Dense(6, 3)) 	# 2 arrays, 21 params, 164 bytes
   ├── ProductModel ↦ ArrayModel(identity)
-  │     └── a: ArrayModel(Dense(2053, 3)) 	# 2 arrays, 6_162 params, 24.148 KiB
+  │     └── a: ArrayModel([postimputing]Dense(2053, 3)) 	# 2 arrays, 6_162 params, 24.215 KiB
   └── ProductModel ↦ ArrayModel(Dense(4, 3)) 	# 2 arrays, 15 params, 140 bytes
-        ├── ArrayModel(identity)
+        ├── ArrayModel([preimputing]Dense(1, 1)) 	# 2 arrays, 2 params, 148 bytes
         └── BagModel ↦ SegmentedMean(3) ↦ ArrayModel(Dense(3, 3)) 	# 3 arrays, 15 params, 180 bytes
-              └── ArrayModel(Dense(2, 3)) 	# 2 arrays, 9 params, 116 bytes
+              └── ArrayModel([preimputing]Dense(2, 3)) 	# 2 arrays, 9 params, 180 bytes
 
 julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean;
                         fsm=Dict("e" => d -> Chain(Dense(d, 2), Dense(2, 2))),
@@ -79,7 +81,7 @@ ProductModel ↦ ArrayModel(Dense(6, 3)) 	# 2 arrays, 21 params, 164 bytes
               └── ArrayModel(Chain(Dense(2, 2), Dense(2, 2))) 	# 4 arrays, 12 params, 208 bytes
 ```
 
-See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`ArrayNode`](@ref).
+See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`BagNode`](@ref), [`ArrayNode`](@ref).
 """
 function reflectinmodel(x, fm=d -> Dense(d, 10), fa=BagCount ∘ SegmentedMeanMax; fsm=Dict(),
         fsa=Dict(), single_key_identity=true, single_scalar_identity=true, all_imputing=false)
@@ -100,11 +102,11 @@ _remap(data::NamedTuple, ms) = (; zip(keys(data), ms)...)
 _remap(::Tuple, ms) = tuple(ms...)
 _remap(::AbstractVector, ms) = collect(ms)
 
-function _reflectinmodel(x::AbstractProductNode, fm, fa, fsm, fsa, s, ski, args...)
+function _reflectinmodel(x::AbstractProductNode, fm, fa, fsm, fsa, s, ski, ssi, ai)
     c = stringify(s)
     n = length(x.data)
     ks = keys(x.data)
-    ms, d = zip([_reflectinmodel(x.data[k], fm, fa, fsm, fsa, s * encode(i, n), ski, args...)
+    ms, d = zip([_reflectinmodel(x.data[k], fm, fa, fsm, fsa, s * encode(i, n), ski, ssi, ai)
                   for (i, k) in enumerate(ks)]...) |> collect
     ms = _remap(x.data, ms)
     m = if haskey(fsm, c)
@@ -112,7 +114,7 @@ function _reflectinmodel(x::AbstractProductNode, fm, fa, fsm, fsa, s, ski, args.
     elseif ski && n == 1
         identity_model()
     else
-        _reflectinmodel(ProductModel(ms)(x), fm, fa, fsm, fsa, s, ski, args...)[1]
+        _reflectinmodel(ProductModel(ms)(x), fm, fa, fsm, fsa, s, ski, ssi, false)[1]
     end
     m = ProductModel(ms, m)
     m, size(m(x).data, 1)

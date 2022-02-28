@@ -180,7 +180,7 @@ end
     x2 = NGramMatrix(["a", missing, "c"]) |> ArrayNode
     x3 = NGramMatrix(fill(missing, 3)) |> ArrayNode
     for f in [f1, f2]
-        @test _get_first(f(x1)) isa Flux.Dense
+        @test _get_first(f(x1)) isa Flux.Dense{T, <:Matrix} where T
         @test _get_first(f(x2)) isa PostImputingDense
         @test _get_first(f(x3)) isa PostImputingDense
         for x in [x1, x2, x3] @inferred f(x)(x) end
@@ -194,7 +194,7 @@ end
     x2 = rand([1, 2, missing], 3, 3) |> ArrayNode
     x3 = fill(missing, 3, 3) |> ArrayNode
     for f in [f1, f2]
-        @test _get_first(f(x1)) isa Flux.Dense
+        @test _get_first(f(x1)) isa Flux.Dense{T, <:Matrix} where T
         @test _get_first(f(x2)) isa PreImputingDense
         @test _get_first(f(x3)) isa PreImputingDense
         for x in [x1, x2, x3] @inferred f(x)(x) end
@@ -203,6 +203,12 @@ end
         @test _get_first(f3(x)) isa PreImputingDense
         @inferred f3(x)(x)
     end
+
+    # BagNode and ProductNode submodels are not mapped
+    n = BagNode(ArrayNode(zeros(2, 2)), [1:1, 2:2])
+    @test f3(n).bm.m isa Flux.Dense{T, <:Matrix} where T
+    n = ProductNode(a = ArrayNode(zeros(2, 2)), b = ArrayNode(zeros(2, 2)))
+    @test f3(n).m.m isa Flux.Dense{T, <:Matrix} where T
 end
 
 # pn.m should be identity for any product node pn with a single key
