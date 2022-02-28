@@ -292,8 +292,7 @@ Base.size(A::NGramMatrix, d) = (d == 1) ? A.m : length(A.S)
 
 Base.getindex(X::NGramMatrix, idcs...) = (@boundscheck checkbounds(X, idcs...); _getindex(X, idcs...))
 _getindex(X::NGramMatrix, ::Colon, i::Integer) = NGramMatrix(X.S[[i]], X.n, X.b, X.m)
-_getindex(X::NGramMatrix, ::Colon, i::AbstractArray) = NGramMatrix(X.S[i], X.n, X.b, X.m)
-_getindex(X::NGramMatrix, ::Colon, i::UnitRange) = NGramMatrix(X.S[i], X.n, X.b, X.m)
+_getindex(X::NGramMatrix, i::AbstractArray) = NGramMatrix(X.S[i], X.n, X.b, X.m)
 _getindex(X::NGramMatrix, ::Colon, ::Colon) = NGramMatrix(X.S[:], X.n, X.b, X.m)
 
 subset(a::NGramMatrix, i) = NGramMatrix(a.S[i], a.n, a.b, a.m)

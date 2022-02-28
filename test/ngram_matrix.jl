@@ -71,7 +71,8 @@ end
     end
 
     @test M1[:, [1,2]] == NGramMatrix(S1[[1,2]])
-    @test M1[:, 1:2] == NGramMatrix(S1[[1,2]])
+    @test M1[1:2] == NGramMatrix(S1[[1,2]])
+    @test M1[1:2] == NGramMatrix(S1[[1,2]])
     @test isequal(M2[:, [3,2]], NGramMatrix(S2[[3,2]]))
     @test isequal(M3[:, [1]], NGramMatrix(S3[[1]]))
 
