@@ -43,10 +43,20 @@ _levelparams(m::ArrayModel) = Flux.params(m.m)
 _levelparams(m::BagModel) = Flux.params(m.a, m.bm)
 _levelparams(m::ProductModel) = Flux.params(m.m)
 _levelparams(m::LazyModel) = Flux.Params([])
+_levelparams(m) = _levelparams(NodeType(m), m)
+_levelparams(::LeafNode, m) = Flux.params(m)
+function _levelparams(_, m)
+    error("Define custom HierarchicalUtils.nodecommshow or Mill._levelparams for $(nameof(typeof(m)))")
+end
 
 # params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
 function nodecommshow(io::IO, @nospecialize(m::AbstractMillModel))
-    ps = _levelparams(m)
+    # destructuralize params of special matrices
+    destruct(m::AbstractArray{<:Number}) = [m]
+    destruct(m) = isempty(m) ? collect(m) : mapreduce(destruct, vcat, collect(m))
+    destruct(m::ImputingMatrix) = [m.W, m.ψ]
+
+    ps = _levelparams(m).params |> destruct
     if !isempty(ps)
         npars = Flux.underscorise(sum(length, ps))
         print(io, "\t# ", length(ps), " arrays, ", npars, " params")
@@ -57,7 +67,7 @@ function nodecommshow(io::IO, @nospecialize(m::AbstractMillModel))
         elseif Flux._any(isinf, ps)
             print(io, " (some Inf)")
         end
-        bytes = Base.format_bytes(sum(Base.summarysize, collect(ps.params)))
+        bytes = Base.format_bytes(sum(Base.summarysize, ps))
         print(io, ", ", bytes)
     end
 end
@@ -92,7 +102,7 @@ function Base.replace_in_print_matrix(x::MaybeHotArray, i::Integer, j::Integer, 
     ismissing(x[i, j]) || x[i, j] ? s : Base.replace_with_centered_mark(s)
 end
 
-function Base.show(io::IO, X::T) where {T<:Union{ImputingMatrix,MaybeHotArray,NGramMatrix}}
+function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix,MaybeHotArray,NGramMatrix}
     if get(io, :compact, false)
         if ndims(X) == 1
             print(io, length(X), "-element ", nameof(T))
@@ -130,10 +140,18 @@ function Base.show(io::IO, l::Dense{F,<:ImputingMatrix}) where {F}
     print(io, ")")
 end
 
+function Base.show(io::IO, ::MIME"text/plain", l::Dense{F,<:ImputingMatrix}) where {F}
+    show(io, l)
+    if !get(io, :compact, false)
+        print(io, ' ')
+        nodecommshow(io, ArrayModel(l))
+    end
+end
+
 _name(::PreImputingMatrix) = "[preimputing]"
 _name(::PostImputingMatrix) = "[postimputing]"
 
-function Base.show(io::IO, a::T) where {T<:AbstractAggregation}
+function Base.show(io::IO, a::T) where T <: AbstractAggregation
     print(io, nameof(T))
     if !get(io, :compact, false)
         print(io, "(", length(a), ")")

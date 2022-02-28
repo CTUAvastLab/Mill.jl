@@ -114,7 +114,7 @@ Like `Flux.Dense`, but use a [`PreImputingMatrix`](@ref) instead of a standard m
 # Examples
 ```jldoctest
 julia> d = preimputing_dense(2, 3)
-[preimputing]Dense(2, 3)  # 9 parameters
+[preimputing]Dense(2, 3) 	# 3 arrays, 11 params, 164 bytes
 
 julia> typeof(d.weight)
 PreImputingMatrix{Float32, Matrix{Float32}, Vector{Float32}}
@@ -135,8 +135,8 @@ Like `Flux.Dense`, but use a [`PostImputingMatrix`](@ref) instead of a standard 
 
 # Examples
 ```jldoctest
-julia> d = postimputing_dense(2, 3)
-[postimputing]Dense(2, 3)  # 9 parameters
+julia> d = postimputing_dense(3, 2)
+[postimputing]Dense(3, 2) 	# 3 arrays, 10 params, 160 bytes
 
 julia> typeof(d.weight)
 PostImputingMatrix{Float32, Matrix{Float32}, Vector{Float32}}

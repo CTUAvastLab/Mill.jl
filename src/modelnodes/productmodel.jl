@@ -8,7 +8,7 @@ A model node for processing [`ProductNode`](@ref)s. For each subtree of the data
 ```jldoctest product_model
 julia> Random.seed!(0);
 
-julia> n = ProductNode((a=ArrayNode([0 1; 2 3]), b=ArrayNode([4 5; 6 7])))
+julia> n = ProductNode(a=ArrayNode([0 1; 2 3]), b=ArrayNode([4 5; 6 7]))
 ProductNode 	# 2 obs, 16 bytes
   ├── a: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
   └── b: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes

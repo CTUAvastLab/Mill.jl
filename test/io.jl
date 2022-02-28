@@ -51,7 +51,7 @@
           └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes"""
     @test modelsummary(wbnm) == "# Summary: 6 arrays, 270 params, 1.289 KiB"
 
-	pn = ProductNode((; bn=deepcopy(bn), wbn=deepcopy(wbn)))
+	pn = ProductNode(bn=deepcopy(bn), wbn=deepcopy(wbn))
     @test repr(pn) == repr(pn; context=:compact => true) == "ProductNode"
     @test repr(MIME("text/plain"), pn) ==
         """
@@ -232,11 +232,11 @@ end
 @testset "imputing dense io" begin
     m = preimputing_dense(1, 1)
     @test repr(m) == repr(m; context=:compact => true) == "[preimputing]Dense(1, 1)"
-    @test repr(MIME("text/plain"), m) == "[preimputing]Dense(1, 1)  # 2 parameters"
+    @test repr(MIME("text/plain"), m) == "[preimputing]Dense(1, 1) 	# 3 arrays, 3 params, 132 bytes"
 
-    m = postimputing_dense(1, 1)
-    @test repr(m) == repr(m; context=:compact => true) == "[postimputing]Dense(1, 1)"
-    @test repr(MIME("text/plain"), m) == "[postimputing]Dense(1, 1)  # 2 parameters"
+    m = postimputing_dense(2, 1)
+    @test repr(m) == repr(m; context=:compact => true) == "[postimputing]Dense(2, 1)"
+    @test repr(MIME("text/plain"), m) == "[postimputing]Dense(2, 1) 	# 3 arrays, 4 params, 136 bytes"
 end
 
 @testset "ngram matrix io" begin

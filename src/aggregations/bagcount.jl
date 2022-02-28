@@ -45,7 +45,7 @@ julia> BagCount(a)(x, b)
 See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`SegmentedSum`](@ref),
     [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
 """
-struct BagCount{T <: AbstractAggregation}
+struct BagCount{T<:AbstractAggregation}
     a::T
 end
 
@@ -60,7 +60,7 @@ function (bc::BagCount)(x::Maybe{AbstractArray}, bags::AbstractBags, args...)
     vcat(o1, o2)
 end
 
-function Base.show(io::IO, m::MIME"text/plain", @nospecialize(bc::BagCount{T})) where T
+function Base.show(io::IO, m::MIME"text/plain", @nospecialize(bc::BagCount{T})) where {T}
     print(io, "BagCount(", repr(m, bc.a))
     print(io, T <: AggregationStack ? "\n)" : ")")
 end

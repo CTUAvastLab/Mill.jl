@@ -316,7 +316,7 @@ end
     @test c != c
     @test isequal(c, c)
 
-    d = ProductNode((; a=a, b=b))
+    d = ProductNode(; a, b)
     e = ProductNode((; a=a, b=b), [])
     @test isequal(d, d)
     @test !isequal(d, e)

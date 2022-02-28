@@ -17,13 +17,14 @@ is instantiated as `identity` instead of using `fm` and `fsm`. This can be contr
 Similarly, if an [`ArrayNode`](@ref) contains data `X` where `size(X, 1)` is `1`, the corresponding
 model is instantiated as `identity` unless `single_scalar_identity` is `false`.
 
-If `all_imputing` is true, all `Dense` models in leafs are replaced by their imputing variants.
+By default, `reflectinmodel` makes first `Dense` layers in leafs imputing only if the datatype suggests
+that missing data is present. If `all_imputing` is true, all such `Dense` layers are replaced by their imputing variants.
 
 # Examples
 ```jldoctest
-julia> n1 = ProductNode((; a=ArrayNode(NGramMatrix(["a", "b"]))))
+julia> n1 = ProductNode(a=ArrayNode(NGramMatrix(["a", missing])))
 ProductNode 	# 2 obs, 32 bytes
-  └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) 	# 2 obs, 138 bytes
+  └── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements) 	# 2 obs, 129 bytes
 
 julia> n2 = ProductNode((ArrayNode([0 1]), BagNode(ArrayNode([0 1; 2 3]), bags([1:1, 2:2]))))
 ProductNode 	# 2 obs, 24 bytes
@@ -34,7 +35,7 @@ ProductNode 	# 2 obs, 24 bytes
 julia> n = ProductNode((n1, n2))
 ProductNode 	# 2 obs, 56 bytes
   ├── ProductNode 	# 2 obs, 32 bytes
-  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) 	# 2 obs, 138 bytes
+  │     └── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements) 	# 2 obs, 129 bytes
   └── ProductNode 	# 2 obs, 24 bytes
         ├── ArrayNode(1×2 Array with Int64 elements) 	# 2 obs, 64 bytes
         └── BagNode 	# 2 obs, 96 bytes
@@ -43,7 +44,7 @@ ProductNode 	# 2 obs, 56 bytes
 julia> printtree(n; trav=true)
 ProductNode [""] 	# 2 obs, 56 bytes
   ├── ProductNode ["E"] 	# 2 obs, 32 bytes
-  │     └── a: ArrayNode(2053×2 NGramMatrix with Int64 elements) ["M"] 	# 2 obs, 138 bytes
+  │     └── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements) ["M"] 	# 2 obs, 129 bytes
   └── ProductNode ["U"] 	# 2 obs, 24 bytes
         ├── ArrayNode(1×2 Array with Int64 elements) ["Y"] 	# 2 obs, 64 bytes
         └── BagNode ["c"] 	# 2 obs, 96 bytes
@@ -52,7 +53,7 @@ ProductNode [""] 	# 2 obs, 56 bytes
 julia> reflectinmodel(n) |> printtree
 ProductModel ↦ ArrayModel(Dense(20, 10)) 	# 2 arrays, 210 params, 920 bytes
   ├── ProductModel ↦ ArrayModel(identity)
-  │     └── a: ArrayModel(Dense(2053, 10)) 	# 2 arrays, 20_540 params, 80.312 KiB
+  │     └── a: ArrayModel([postimputing]Dense(2053, 10)) 	# 3 arrays, 20_550 params, 80.391 KiB
   └── ProductModel ↦ ArrayModel(Dense(11, 10)) 	# 2 arrays, 120 params, 560 bytes
         ├── ArrayModel(identity)
         └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
@@ -61,11 +62,11 @@ ProductModel ↦ ArrayModel(Dense(20, 10)) 	# 2 arrays, 210 params, 920 bytes
 julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean, all_imputing=true) |> printtree
 ProductModel ↦ ArrayModel(Dense(6, 3)) 	# 2 arrays, 21 params, 164 bytes
   ├── ProductModel ↦ ArrayModel(identity)
-  │     └── a: ArrayModel([postimputing]Dense(2053, 3)) 	# 2 arrays, 6_162 params, 24.215 KiB
+  │     └── a: ArrayModel([postimputing]Dense(2053, 3)) 	# 3 arrays, 6_165 params, 24.199 KiB
   └── ProductModel ↦ ArrayModel(Dense(4, 3)) 	# 2 arrays, 15 params, 140 bytes
-        ├── ArrayModel([preimputing]Dense(1, 1)) 	# 2 arrays, 2 params, 148 bytes
+        ├── ArrayModel([preimputing]Dense(1, 1)) 	# 3 arrays, 3 params, 132 bytes
         └── BagModel ↦ SegmentedMean(3) ↦ ArrayModel(Dense(3, 3)) 	# 3 arrays, 15 params, 180 bytes
-              └── ArrayModel([preimputing]Dense(2, 3)) 	# 2 arrays, 9 params, 180 bytes
+              └── ArrayModel([preimputing]Dense(2, 3)) 	# 3 arrays, 11 params, 164 bytes
 
 julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean;
                         fsm=Dict("e" => d -> Chain(Dense(d, 2), Dense(2, 2))),
@@ -74,7 +75,7 @@ julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean;
                         single_scalar_identity=false) |> printtree
 ProductModel ↦ ArrayModel(Dense(6, 3)) 	# 2 arrays, 21 params, 164 bytes
   ├── ProductModel ↦ ArrayModel(Dense(3, 3)) 	# 2 arrays, 12 params, 128 bytes
-  │     └── a: ArrayModel(Dense(2053, 3)) 	# 2 arrays, 6_162 params, 24.148 KiB
+  │     └── a: ArrayModel([postimputing]Dense(2053, 3)) 	# 3 arrays, 6_165 params, 24.199 KiB
   └── ProductModel ↦ ArrayModel(Dense(6, 3)) 	# 2 arrays, 21 params, 164 bytes
         ├── ArrayModel(Dense(1, 3)) 	# 2 arrays, 6 params, 104 bytes
         └── BagModel ↦ SegmentedLSE(2) ↦ ArrayModel(Dense(2, 3)) 	# 4 arrays, 13 params, 212 bytes

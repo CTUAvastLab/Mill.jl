@@ -79,9 +79,9 @@ end
     a = ArrayNode(randn(Float32, 3, 4))
     b = ArrayNode(randn(Float32, 4, 4))
     c = ArrayNode(randn(Float32, 3, 4))
-    x1 = ProductNode((; a, b))
-    x2 = ProductNode((; b, a))
-    x3 = ProductNode((; a, b, c))
+    x1 = ProductNode(; a, b)
+    x2 = ProductNode(; b, a)
+    x3 = ProductNode(; a, b, c)
 
     m = reflectinmodel(x1, LAYERBUILDER)
     @test m isa ProductModel
@@ -324,7 +324,7 @@ end
         end
 
         for ds in [(x, y) -> ProductNode((ArrayNode(x), ArrayNode(y))),
-                   (x, y) -> ProductNode((a=BagNode(ArrayNode(x), bags1), b=BagNode(ArrayNode(y), bags2)))]
+                   (x, y) -> ProductNode(a=BagNode(ArrayNode(x), bags1), b=BagNode(ArrayNode(y), bags2))]
             m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER) |> f64
             @inferred m(ds(x, y))
             @test @gradtest (x, y) -> m(ds(x, y)).data [m]
@@ -374,7 +374,7 @@ end
                    ArrayNode(x),
                    BagNode(ArrayNode(x), bags1),
                    ProductNode((ArrayNode(x), ArrayNode(y))),
-                   ProductNode((a=BagNode(ArrayNode(y), bags1), b=BagNode(ArrayNode(x), bags2))),
+                   ProductNode(a=BagNode(ArrayNode(y), bags1), b=BagNode(ArrayNode(x), bags2)),
                    BagNode(BagNode(ArrayNode(z), bags3), bags1)
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER) |> f64
@@ -408,8 +408,8 @@ end
 
 @testset "simple named tuple model with reduce catobs in gradient" begin
     layerbuilder(k) = Dense(k, 2, relu)
-    x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
-                     node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
+    x = ProductNode(node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
+                    node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4]))
     m = reflectinmodel(x, layerbuilder)
     ps = Flux.params(m)
     vec_grad = gradient(() -> sum(m([x, x]).data), ps)
@@ -422,8 +422,8 @@ end
 @testset "simple named tuple model with minibatching from MLDataPattern" begin
     Random.seed!(0)
     layerbuilder(k) = Dense(k, 2, relu)
-    x = ProductNode((node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
-                     node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4])))
+    x = ProductNode(node1 = BagNode(ArrayNode(randn(Float32, 3, 4)), [1:2, 3:4]),
+                    node2 = BagNode(ArrayNode(randn(Float32, 4, 4)), [1:1, 2:4]))
     m = reflectinmodel(x, layerbuilder)
     ps = Flux.params(m)
     mbs = RandomBatches(x, size = 4)

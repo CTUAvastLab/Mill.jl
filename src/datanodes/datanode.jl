@@ -76,7 +76,7 @@ julia> catobs(ArrayNode(zeros(2, 2)), ArrayNode([1 2; 3 4]))
  0.0  0.0  1.0  2.0
  0.0  0.0  3.0  4.0
 
-julia> n = ProductNode((t1=ArrayNode(randn(2, 3)), t2=BagNode(ArrayNode(randn(3, 8)), bags([1:3, 4:5, 6:8]))))
+julia> n = ProductNode(t1=ArrayNode(randn(2, 3)), t2=BagNode(ArrayNode(randn(3, 8)), bags([1:3, 4:5, 6:8])))
 ProductNode 	# 3 obs, 24 bytes
   ├── t1: ArrayNode(2×3 Array with Float64 elements) 	# 3 obs, 96 bytes
   └── t2: BagNode 	# 3 obs, 112 bytes
@@ -173,7 +173,7 @@ Recursively apply `f` to data in all leaves of `x`.
 
 # Examples
 ```jldoctest
-julia> n1 = ProductNode((a=ArrayNode(zeros(2,2)), b=ArrayNode(ones(2,2))))
+julia> n1 = ProductNode(a=ArrayNode(zeros(2,2)), b=ArrayNode(ones(2,2)))
 ProductNode 	# 2 obs, 16 bytes
   ├── a: ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
   └── b: ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes

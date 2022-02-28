@@ -103,15 +103,15 @@ end
 end
 
 @testset "reduction with missing values" begin
-    a = ProductNode((x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4))))
-    b = ProductNode((x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4))))
+    a = ProductNode(x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4)))
+    b = ProductNode(x=ArrayNode(rand(3,4)), y=ArrayNode(rand(3,4)))
 
-    c = ProductNode((
+    c = ProductNode(
         x=BagNode(missing, AlignedBags([0:-1]), nothing), y=ArrayNode(rand(3,1)),
-    ))
-    d = ProductNode((
+    )
+    d = ProductNode(
         x=BagNode(a, [1:4], nothing), y=ArrayNode(rand(3,1)),
-    ))
+    )
 
     ba = BagNode(a, [1:4], nothing)
     bb = BagNode(b, [1:4], nothing)
