@@ -19,7 +19,7 @@ using Base.Iterators: repeated
 using Random; Random.seed!(42)
 ```
 
-and then load the dataset and transform it into a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. The `musk.jld2` file contains:
+and then load the dataset and transform it into a `Mill` structure. The `musk.jld2` file contains:
 
 * a matrix with features `fMat`:
 
@@ -50,7 +50,7 @@ y = map(i -> maximum(y[i]) + 1, ds.bags)  # create labels on bags
 y_oh = Flux.onehotbatch(y, 1:2)           # one-hot encoding
 ```
 
-Once the data are in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) internal format, we will manually create a model. [`BagModel`](@ref) is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
+Once the data are in `Mill` internal format, we will manually create a model. [`BagModel`](@ref) is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
 
 ```@repl musk
 model = BagModel(
@@ -67,7 +67,7 @@ Let's check that forward pass works:
 model(ds)
 ```
 
-Since [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
+Since `Mill` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
 
 ```@repl musk
 loss(ds, y_oh) = Flux.logitcrossentropy(model(ds) |> Mill.data, y_oh)

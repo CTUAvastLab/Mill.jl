@@ -26,7 +26,7 @@ Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T<:Integer
 """
     maybecold(y, labels=1:size(y,1))
 
-Similar to [`Flux.onecold`](@ref) but when `y` contains `missing` values, `missing` is in the result as well.
+Similar to `Flux.onecold` but when `y` contains `missing` values, `missing` is in the result as well.
 
 Therefore, it is roughly the inverse operation of [`maybehot`](@ref) or [`maybehotbatch`](@ref).
 
@@ -56,7 +56,7 @@ julia> maybecold(maybehotbatch([missing, 2], 1:3))
  2
 ```
 
-See also: [`Flux.onecold`](@ref), [`maybehot`](@ref), [`maybehotbatch`](@ref).
+See also: `Flux.onecold`, [`maybehot`](@ref), [`maybehotbatch`](@ref).
 """
 function maybecold end
 

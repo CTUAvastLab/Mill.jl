@@ -3,10 +3,12 @@
 
 A container that implements a concatenation of one or more `AbstractAggregation`s.
 
-Construct with e.g. `mean_aggregation([t::Type, ]d)`, `max_aggregation([t::Type, ]d)` for single
-operators and with e.g. `pnormlse_aggregation([t::Type, ]d)` for concatenations. With these calls
+Construct with e.g. `AggregationStack(SegmentedMean([t::Type, ]d))` for single
+operators and with e.g. `SegmentedPNormLSE([t::Type, ]d)` for concatenations. With these calls
 all parameters inside operators are initialized randomly as `Float32` arrays, unless type `t` is
-further specified. It is also possible to call the constructor directly, see Examples.
+further specified. Another option is to `vcat` two operators together.
+
+Nested stacks are flattened into a single-level structure upon construction, see examples.
 
 Intended to be used as a functor:
 
@@ -14,9 +16,6 @@ Intended to be used as a functor:
 
 where `x` is either `Missing`, `AbstractMatrix` or [`ArrayNode`](@ref),
 `bags` is [`AbstractBags`](@ref) structure and optionally `w` is an `AbstractVector` of weights.
-
-TODO mention that it can be constructed by vcatting operators as well.
-mention flattening
 
 # Examples
 ```jldoctest

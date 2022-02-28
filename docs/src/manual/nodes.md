@@ -48,7 +48,7 @@ f(X) == AM(AN) |> Mill.data
 ```
 
 !!! ukn "Model outputs"
-    A convenient property of all [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) models is that after applying them to a corresponding data node we **always** obtain an [`ArrayNode`](@ref) as output regardless of the type and complexity of the model. This becomes important later.
+    A convenient property of all `Mill` models is that after applying them to a corresponding data node we **always** obtain an [`ArrayNode`](@ref) as output regardless of the type and complexity of the model. This becomes important later.
 
 The most common interpretation of the data inside [`ArrayNode`](@ref)s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, [`ArrayNode`](@ref)s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any [`AbstractMillNode`](@ref) with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
 
@@ -65,7 +65,7 @@ nobs(AN)
 [`BagNode`](@ref) is represents the standard *multiple instance learning* problem, that is, each sample is a *bag* containing an arbitrary number of *instances*. In the simplest case, each instance is a vector:
 
 ```@repl nodes
-BN = BagNode(AN, [1:1, 2:3, 4:4])
+BN = BagNode(AN, [1:3, 4:4])
 ```
 
 where for simplicity we used `AN` from the previous example. Each [`BagNode`](@ref) carries `data` and `bags` fields:
@@ -75,30 +75,30 @@ Mill.data(BN)
 BN.bags
 ```
 
-Here, `data` can be an arbitrary [`AbstractMillNode`](@ref) storing representation of instances ([`ArrayNode`](@ref) in this case) and `bags` field contains information, which instances belong to which bag. In this specific case `bn` stores three bags (samples). The first one consists of a single instance `{[1.0, 5.0]}` (first column of `AN`), the second one of two instances `{[2.0, 6.0], [3.0, 7.0]}`, and the last one of a single instance `{[4.0, 8.0]}`. We can see that we deal with three top-level samples (bags):
+Here, `data` can be an arbitrary [`AbstractMillNode`](@ref) storing representation of instances ([`ArrayNode`](@ref) in this case) and `bags` field contains information, which instances belong to which bag. In this specific case `bn` stores three bags (samples). The first one consists of a single instance `{[1.0, 4.0]}` (first column of `AN`) and the second one of two instances `{[2.0, 5.0], [3.0, 6.0]}`. We can see that we deal with two top-level samples (bags):
 
 ```@repl nodes
 nobs(BN)
 ```
 
-whereas they are formed using four instances:
+whereas they are formed using three instances:
 
 ```@repl nodes
 nobs(AN)
 ```
 
-In [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), there two ways to store indices of the bag's instances:
+In `Mill`, there are two ways to store indices of the bag's instances:
 
 * in [`AlignedBags`](@ref) structure, which accepts a `Vector` of `UnitRange`s and requires all bag's instances stored continuously:
 
 ```@repl nodes
-AlignedBags([1:3, 4:4, 5:6])
+AlignedBags([1:2, 3:3])
 ```
 
 * and in [`ScatteredBags`](@ref) structure, which accepts a `Vector` of `Vectors`s storing not necessarily contiguous indices:
 
 ```@repl nodes
-ScatteredBags([[3, 2, 1], [4], [6, 5]])
+ScatteredBags([[2, 1], [3]])
 ```
 
 The two examples above are semantically equivalent, as bags are unordered collections of instances. An **empty** bag with no instances is in [`AlignedBags`](@ref) specified as empty range `0:-1` and in [`ScatteredBags`](@ref) as an empty vector `Int[]`. The constructor of [`BagNode`](@ref) accepts directly one of these two structures and tries to automagically decide the better type in other cases.
@@ -148,7 +148,7 @@ The whole procedure is depicted in the following picture:
 Three instances of the [`BagNode`](@ref) are represented by red subtrees are first mapped with instance model `im`, aggregated (aggregation operator here is a concatenation of two different operators ``a_1`` and ``a_2``), and the results of aggregation are transformed with bag model `bm`.
 
 !!! ukn "Musk example"
-    Another handy feature of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
+    Another handy feature of `Mill` models is that they are completely differentiable and therefore fit in the [`Flux.jl`](https://fluxml.ai) framework. Nodes for processing arrays and bags are sufficient to solve the classical [Musk](@ref) problem.
 
 ## [`ProductNode`](@ref)s and [`ProductModel`](@ref)s
 

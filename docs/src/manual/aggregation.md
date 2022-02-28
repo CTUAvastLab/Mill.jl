@@ -27,7 +27,7 @@ Different choice of operator, or their combinations, are suitable for different 
 a_{\max}(\{x_1, \ldots, x_k\}) = \max_{i = 1, \ldots, k} x_i
 ```
 
-where ``\{x_1, \ldots, x_k\}`` are all instances of the given bag. In [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), the operator is constructed this way:
+where ``\{x_1, \ldots, x_k\}`` are all instances of the given bag. In `Mill`, the operator is constructed this way:
 
 ```@repl aggregation
 a_max = SegmentedMax(d)
@@ -90,7 +90,7 @@ Whereas non-parametric aggregations do not use any parameter, parametric aggrega
 a_{\operatorname{lse}}(\{x_1, \ldots, x_k\}; r) = \frac{1}{r}\log \left(\frac{1}{k} \sum_{i = 1}^{k} \exp({r\cdot x_i})\right)
 ```
 
-With different values of ``r``, LSE behaves differently and in fact both max and mean operators are limiting cases of LSE. If ``r`` is very small, the output approaches simple mean, and on the other hand, if ``r`` is a large number, LSE becomes a smooth approximation of the max function. Naively implementing the definition above may lead to numerical instabilities, however, the [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) implementation is numerically stable.
+With different values of ``r``, LSE behaves differently and in fact both max and mean operators are limiting cases of LSE. If ``r`` is very small, the output approaches simple mean, and on the other hand, if ``r`` is a large number, LSE becomes a smooth approximation of the max function. Naively implementing the definition above may lead to numerical instabilities, however, the `Mill` implementation is numerically stable.
 
 ```@repl aggregation
 a_lse = SegmentedLSE(d)
@@ -105,7 +105,7 @@ a_lse(X, bags)
 a_{\operatorname{pnorm}}(\{x_1, \ldots, x_k\}; p, c) = \left(\frac{1}{k} \sum_{i = 1}^{k} \vert x_i - c \vert ^ {p} \right)^{\frac{1}{p}}
 ```
 
-Again, the [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) implementation is stable.
+Again, the `Mill` implementation is stable.
 
 ```@repl aggregation
 a_pnorm = SegmentedPNorm(d)
@@ -123,7 +123,7 @@ a = AggregationStack(a_mean, a_max)
 a(X, bags)
 ```
 
-For the most common combinations, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) provides some convenience definitions:
+For the most common combinations, `Mill` provides some convenience definitions:
 
 ```@repl aggregation
 SegmentedMeanMax(d)
@@ -142,7 +142,7 @@ a_{\operatorname{mean}}(\{(x_i, w_i)\}_{i=1}^k) = \frac{1}{\sum_{i=1}^k w_i} \su
 a_{\operatorname{pnorm}}(\{x_i, w_i\}_{i=1}^k; p, c) = \left(\frac{1}{\sum_{i=1}^k w_i} \sum_{i = 1}^{k} w_i\cdot\vert x_i - c \vert ^ {p} \right)^{\frac{1}{p}}
 ```
 
-This is done in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) by passing an additional parameter:
+This is done in `Mill` by passing an additional parameter:
 
 ```@repl aggregation
 w = Float32.([1.0, 0.2, 0.8, 0.5])
@@ -177,7 +177,7 @@ Otherwise, [`WeightedBagNode`](@ref) behaves exactly like the standard [`BagNode
 
 For some problems, it may be beneficial to use the size of the bag directly and feed it to subsequent layers. To do this, wrap an instance of [`AbstractAggregation`](@ref) or [`AggregationStack`](@ref) in the [`BagCount`](@ref) type.
 
-In the aggregation phase, bag count appends one more element which stores the bag size to the output after all operators are applied. Furthermore, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), performs a mapping ``x \mapsto \log(x) + 1`` on top of that:
+In the aggregation phase, bag count appends one more element which stores the bag size to the output after all operators are applied. Furthermore, `Mill`, performs a mapping ``x \mapsto \log(x) + 1`` on top of that:
 
 ```@repl aggregation
 a_mean_bc = BagCount(a_mean)

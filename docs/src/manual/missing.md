@@ -17,7 +17,7 @@ and many other possible reasons. At the same time, it is wasteful to throw away 
 2. Empty bags with no instances in a [`BagNode`](@ref)
 3. And entire key missing in a [`ProductNode`](@ref)
 
-At the moment, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) is capable of handling the first two cases. The solution always involves an additional vector of parameters (denoted always by `ψ`) that are used during the model evaluation to substitute the missing values. Parameters `ψ` can be either fixed or learned during training. Everything is done automatically.
+At the moment, `Mill` is capable of handling the first two cases. The solution always involves an additional vector of parameters (denoted always by `ψ`) that are used during the model evaluation to substitute the missing values. Parameters `ψ` can be either fixed or learned during training. Everything is done automatically.
 
 ## Empty bags
 
@@ -99,7 +99,7 @@ Storing missing strings in [`NGramMatrix`](@ref) is straightforward:
 missing_ngrams = NGramMatrix(["foo", missing, "bar"], 3, 256, 5)
 ```
 
-When some values of categorical variables are missing, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) defines a new type for representation:
+When some values of categorical variables are missing, `Mill` defines a new type for representation:
 
 ```@repl missing
 missing_categorical = maybehotbatch([missing, 2, missing], 1:5)
@@ -187,7 +187,7 @@ Here, `[pre_imputing]Dense` and `[post_imputing]Dense` are standard dense layers
 dense = m.ms[1].m; typeof(dense.W)
 ```
 
-Inside [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) we add a special definition `Base.show` for these types for compact printing.
+Inside `Mill` we add a special definition `Base.show` for these types for compact printing.
 
 The [`reflectinmodel`](@ref) method use types to determine whether imputing is needed or not. Compare the following:
 

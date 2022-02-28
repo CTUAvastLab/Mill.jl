@@ -14,7 +14,8 @@ struct BagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, C} <: AbstractBa
     metadata::C
 
     function BagNode(d::T, b::B, m::C=nothing) where {T <: Maybe{AbstractMillNode}, B <: AbstractBags, C}
-        ismissing(d) && any(length.(b) .> 0) && error("BagNode with `missing` in data cannot have a non-empty bag")
+        @assert(!ismissing(d) || all(length.(b) .== 0),
+                "BagNode with `missing` in data cannot have a non-empty bag")
         new{T, B, C}(d, b, m)
     end
 end

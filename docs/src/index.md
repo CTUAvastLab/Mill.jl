@@ -11,9 +11,9 @@ Watch our [`introductory talk`](https://www.youtube.com/watch?v=Bf0CvltIDbE) fro
 
 Go to
 
-* [Motivation](@ref) for a brief introduction into the philosophy of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl)
-* [Manual](@ref Nodes) for a brief tutorial into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) 
-* [Examples](@ref Musk) for some examples of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) use
+* [Motivation](@ref) for a brief introduction into the philosophy of `Mill`
+* [Manual](@ref Nodes) for a brief tutorial into `Mill`
+* [Examples](@ref Musk) for some examples of `Mill` use
 * [External tools](@ref HierarchicalUtils.jl) to see examples of integration with other packages
 * [Public API](@ref Aggregation) for an extensive API reference
 * [References](@ref) for related literature

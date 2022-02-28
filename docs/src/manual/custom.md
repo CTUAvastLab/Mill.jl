@@ -5,10 +5,10 @@ using Flux
 
 ## Custom nodes
 
-[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) environment:
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into `Mill` environment:
 
 * allow nesting (if needed)
-* implement `getindex` to obtain subsets of observations. For this purpose, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) defines a [`Mill.subset`](@ref) function for common datatypes, which can be used.
+* implement `getindex` to obtain subsets of observations. For this purpose, `Mill` defines a [`Mill.subset`](@ref) function for common datatypes, which can be used.
 * allow concatenation of nodes with [`catobs`](@ref). Optionally, implement `reduce(catobs, ...)` as well to avoid excessive compilations if a number of arguments will vary a lot
 * define a specialized method for `nobs`
 * register the custom node with [HierarchicalUtils.jl](@ref) to obtain pretty printing, iterators and other functionality
@@ -80,7 +80,7 @@ Base.show(io::IO, n::PathModel) = print(io, "PathModel")
 Flux.@functor PathModel
 ```
 
-Note that the part of the model node is a function which converts the pathname string to a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. For simplicity, we use a trivial [`NGramMatrix`](@ref) representation in this example and define `path2mill` as follows:
+Note that the part of the model node is a function which converts the pathname string to a `Mill` structure. For simplicity, we use a trivial [`NGramMatrix`](@ref) representation in this example and define `path2mill` as follows:
 
 ```@example custom
 function path2mill(s::String)
