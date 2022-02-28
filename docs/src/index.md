@@ -1,21 +1,23 @@
-# Home
+# Mill.jl (Multiple Instance Learning Library)
 
-[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) is a library built on top of [`Flux.jl`](https://fluxml.ai) aimed to flexibly prototype *hierarchical multi-instance learning* models as described in [Pevny2018a](@cite) and  [Pevny2018b](@cite). It is developed to be:
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) is a library built on top of [`Flux.jl`](https://fluxml.ai) aimed to flexibly prototype *hierarchical multiple instance learning* models as described in [Mandlik2021](@cite), [Pevny2018a](@cite) and  [Pevny2018b](@cite). It is developed to be:
 
 * **flexible** and **versatile**
 * as **general** as possible
 * **fast** 
 * and dependent on only handful of other packages
 
+Watch our [`introductory talk`](https://www.youtube.com/watch?v=Bf0CvltIDbE) from JuliaCon 2021.
+
 Go to
 
 * [Motivation](@ref) for a brief introduction into the philosophy of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl)
-* [Manual](@ref Nodes) for brief tutorial into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) 
+* [Manual](@ref Nodes) for a brief tutorial into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) 
 * [Examples](@ref Musk) for some examples of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) use
 * [External tools](@ref HierarchicalUtils.jl) to see examples of integration with other packages
 * [Public API](@ref Aggregation) for an extensive API reference
 * [References](@ref) for related literature
-* [Citation](@ref) for preferred citation entry
+* [Citation](@ref) for preferred citation entries
 
 ## Installation
 
@@ -24,3 +26,5 @@ Run the following in REPL:
 ```julia
 ] add Mill
 ```
+
+Julia v1.6 or later is required.

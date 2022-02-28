@@ -17,15 +17,17 @@ ds = BagNode(BagNode(ArrayNode(randn(4, 10)),
 
 Here is one example of a model, which is appropriate for this hierarchy:
 
-```@repl more_on_nodes
+```@example more_on_nodes
 using Flux: Dense, Chain, relu
+```
+```@repl more_on_nodes
 m = BagModel(
         BagModel(
-            ArrayModel(Dense(4, 3, relu)),   
-            meanmax_aggregation(3),
-            ArrayModel(Dense(7, 3, relu))),
-        meanmax_aggregation(3),
-        ArrayModel(Chain(Dense(7, 3, relu), Dense(3, 2))))
+            ArrayModel(Dense(4, 3, relu)),
+            SegmentedMeanMax(3),
+            ArrayModel(Dense(6, 3, relu))),
+        SegmentedMeanMax(3),
+        ArrayModel(Chain(Dense(6, 3, relu), Dense(3, 2))))
 ```
 
 and can be directly applied to obtain a result:
@@ -53,10 +55,17 @@ ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
              [1:1, 2:3, 4:5])
 ```
 
-Instead of defining a model manually, we make use of [Model Reflection](@ref), another [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) functionality, which simplifies model creation:
+As data and model trees tend to be complex, [`Mill.jl`](@ref) limits the printing. To inspect the whole tree, use
+[`printtree`](@ref):
 
 ```@repl more_on_nodes
-m = reflectinmodel(ds)
+printtree(ds)
+```
+
+Instead of defining a model manually, we can also make use of [Model Reflection](@ref), another [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) functionality, which simplifies model creation:
+
+```@repl more_on_nodes
+m = reflectinmodel(ds, d -> Dense(d, 2), SegmentedMean)
 m(ds)
 ```
 
@@ -69,7 +78,7 @@ AN = ArrayNode(Float32.([1 2 3 4; 5 6 7 8]))
 AM = reflectinmodel(AN)
 BN = BagNode(AN, [1:1, 2:3, 4:4])
 BM = reflectinmodel(BN)
-PN = ProductNode((a=ArrayNode(Float32.([1 2 3; 4 5 6])), b=BN))
+PN = ProductNode(a=ArrayNode(Float32.([1 2 3; 4 5 6])), b=BN)
 PM = reflectinmodel(PN)
 ```
 
@@ -133,3 +142,15 @@ catobs(BN[3], BN[[1]]).bags
 
 !!! ukn "More tips"
     For more tips for handling datasets and models, see [External tools](@ref HierarchicalUtils.jl).
+
+## Metadata
+
+Each [`AbstractMillNodes`](@ref) can also carry arbitrary **metadata** (defaulting to `nothing`).
+Metadata is provided upon construction of the node and accessed metadata by [`Mill.metadata`](@ref):
+
+```@repl more_on_nodes
+n1 = ArrayNode(randn(2, 2), ["metadata"])
+Mill.metadata(n1)
+n2 = ProductNode(tuple(n1), [1 3; 2 4])
+Mill.metadata(n2)
+```

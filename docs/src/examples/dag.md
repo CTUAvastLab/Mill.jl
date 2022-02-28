@@ -1,7 +1,7 @@
 ```@setup dag
 using Mill
 
-using LightGraphs, GraphPlot, Cairo, Compose
+using LightGraphs, GraphRecipes, Plots
 
 g = SimpleDiGraph(8)
 for e in [(1, 2), (1, 3), (2, 4), (2, 5), (3, 5),
@@ -9,14 +9,20 @@ for e in [(1, 2), (1, 3), (2, 4), (2, 5), (3, 5),
     add_edge!(g, e...)
 end
 
-gp = gplot(g; nodelabel=range('a'; length=nv(g)))
-draw(SVG("dag.svg"), gp)
+gp = graphplot(adjacency_matrix(g); linecolor = :darkgrey,
+                                    nodecolor=:lightgrey,
+                                    fontsize=11,
+                                    markersize=0.2, nodeshape=:circle,
+                                    background_color=:transparent,
+                                    names=range('a', length=nv(g))
+                                    )
+savefig(gp, "dag.svg")
 ```
 
 # DAGs
 
 ```@example dag
-using Flux, Zygote, ChainRulesCore, LightGraphs
+using Mill, Flux, Zygote, ChainRulesCore, LightGraphs
 ```
 Imagine a data/knowledge base represented in a form of a directed acyclic graph (DAG), where a vertex would be modelled based on its parents (and their parents), but not on its descendants. We will make one assumption (common in graphical models) that two children are independent given their parent or, in other words, once we have access to the data or inferred values of the parent, we do not have to inspect its other children.
 
@@ -92,8 +98,8 @@ And what does `millvertex!` function do? It just takes the representation of anc
 
 ```@example dag
 function millvertex!(cache, g::DagGraph, model::DagModel, i)
-    ProductNode((neighbours = millneighbors!(cache, g, model, i), 
-      vertex = vertex_features[i])
+    ProductNode(neighbours = millneighbors!(cache, g, model, i), 
+                vertex = vertex_features[i]
     )
 end
 nothing # hide

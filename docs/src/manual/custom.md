@@ -3,7 +3,7 @@ using Mill
 using Flux
 ```
 
-## Adding custom nodes
+## Custom nodes
 
 [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. When implementing custom nodes, it is recommended to equip them with the following functionality to fit better into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) environment:
 
@@ -24,6 +24,8 @@ struct PathNode{S <: AbstractString, C} <: AbstractMillNode
 end
 
 PathNode(data::Vector{S}) where {S <: AbstractString} = PathNode(data, nothing)
+
+Base.show(io::IO, n::PathNode) = print(io, "PathNode ($(nobs(n)) obs)")
 nothing # hide
 ```
 
@@ -52,12 +54,11 @@ function Base.getindex(x::PathNode, i::Mill.VecOrRange{<:Int})
 end
 ```
 
-The last touch is to add the definition needed by [HierarchicalUtils.jl](@ref):
+The last touch is to add the traits needed by [HierarchicalUtils.jl](@ref):
 
 ```@example custom
 import HierarchicalUtils
 HierarchicalUtils.NodeType(::Type{<:PathNode}) = HierarchicalUtils.LeafNode()
-HierarchicalUtils.noderepr(n::PathNode) = "PathNode ($(nobs(n)) obs)"
 nothing # hide
 ```
 
@@ -75,6 +76,7 @@ struct PathModel{T, F} <: AbstractMillModel
     path2mill::F
 end
 
+Base.show(io::IO, n::PathModel) = print(io, "PathModel")
 Flux.@functor PathModel
 ```
 
@@ -101,7 +103,6 @@ And again, define everything needed in [HierarchicalUtils.jl](@ref):
 
 ```@example custom
 HierarchicalUtils.NodeType(::Type{<:PathModel}) = HierarchicalUtils.LeafNode()
-HierarchicalUtils.noderepr(n::PathModel) = "PathModel"
 ```
 
 Let's test that everything works:

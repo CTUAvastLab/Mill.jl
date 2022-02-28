@@ -1,10 +1,10 @@
 ```@setup aggregation 
-using Mill
+using Mill, Flux
 ```
 
 # Bag aggregation
 
-A wrapper type [`Aggregation`](@ref) and all subtypes of [`AggregationOperator`](@ref) it wraps are structures that are responsible for mapping of vector representations of multiple instances into a single vector. They all operate element-wise and independently of dimension and thus the output has the same size as representations on the input, unless the [Concatenation](@ref) of multiple operators is used or [Bag count](@ref) is enabled.
+Aggregation operators in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) are all subtypes of [`AbstractAggregation`](@ref). These structures are responsible for mapping of vector representations of multiple instances into a single vector. They all operate element-wise and independently of dimension and thus the output has the same size as representations on the input, unless the [Concatenation](@ref) of multiple operators is used.
 
 Some setup:
 
@@ -21,7 +21,7 @@ Different choice of operator, or their combinations, are suitable for different 
 
 ### Max aggregation
 
-[`SegmentedMax`](@ref) is the most straightforward operator defined in one dimension as follows:
+[`SegmentedMax`](@ref) implements a simple `max` and is the most straightforward operator defined in one dimension as follows:
 
 ```math
 a_{\max}(\{x_1, \ldots, x_k\}) = \max_{i = 1, \ldots, k} x_i
@@ -30,18 +30,8 @@ a_{\max}(\{x_1, \ldots, x_k\}) = \max_{i = 1, \ldots, k} x_i
 where ``\{x_1, \ldots, x_k\}`` are all instances of the given bag. In [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), the operator is constructed this way:
 
 ```@repl aggregation
-a_max = max_aggregation(d)
+a_max = SegmentedMax(d)
 ```
-
-!!! ukn "Dimension"
-    The dimension of input is required so that the default parameters `ψ` can be properly instantiated (see [Missing data](@ref) for details).
-
-!!! ukn "Operator construction"
-    It is also possible to get the operator by calling the constructor directly:
-    ```julia
-    SegmentedMax(d)
-    ```
-    However, it is recommended to use [`max_aggregation`](@ref) that returns `Aggregation` structure.
 
 The application is straightforward and can be performed on both raw `AbstractArray`s or [`ArrayNode`](@ref)s:
 
@@ -54,7 +44,7 @@ Since we have three bags, we have three columns in the output, each storing the 
 
 ### Mean aggregation
 
-[`SegmentedMean`](@ref) is defined as:
+[`SegmentedMean`](@ref) implements `mean` function, defined as:
 
 ```math
 a_{\operatorname{mean}}(\{x_1, \ldots, x_k\}) = \frac{1}{k} \sum_{i = 1}^{k} x_i
@@ -63,15 +53,15 @@ a_{\operatorname{mean}}(\{x_1, \ldots, x_k\}) = \frac{1}{k} \sum_{i = 1}^{k} x_i
 and used the same way:
 
 ```@repl aggregation
-a_mean = mean_aggregation(d)
+a_mean = SegmentedMean(d)
 a_mean(X, bags)
 a_mean(n, bags)
 ```
 
 !!! ukn "Sufficiency of the mean operator"
-    In theory, mean aggregation is sufficient for approximation ([Pevny2019](@cite)), but in practice, a combination of multiple operators performes better.
+    In theory, `mean` aggregation is sufficient for approximation as proven in [Pevny2019](@cite), but in practice, a combination of multiple operators performes better.
 
-The max aggregation is suitable for cases when one instance in the bag may give evidence strong enough to predict the label. On the other side of the spectrum lies the mean aggregation function, which detects well trends identifiable globally over the whole bag.
+The `max` aggregation is suitable for cases when one instance in the bag may give evidence strong enough to predict the label. On the other side of the spectrum lies the mean aggregation function, which detects well trends identifiable globally over the whole bag.
 
 ### Sum aggregation
 
@@ -84,7 +74,7 @@ a_{\operatorname{mean}}(\{x_1, \ldots, x_k\}) = \sum_{i = 1}^{k} x_i
 and used the same way:
 
 ```@repl aggregation
-a_sum = sum_aggregation(d)
+a_sum = SegmentedSum(d)
 a_sum(X, bags)
 a_sum(n, bags)
 ```
@@ -103,7 +93,7 @@ a_{\operatorname{lse}}(\{x_1, \ldots, x_k\}; r) = \frac{1}{r}\log \left(\frac{1}
 With different values of ``r``, LSE behaves differently and in fact both max and mean operators are limiting cases of LSE. If ``r`` is very small, the output approaches simple mean, and on the other hand, if ``r`` is a large number, LSE becomes a smooth approximation of the max function. Naively implementing the definition above may lead to numerical instabilities, however, the [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) implementation is numerically stable.
 
 ```@repl aggregation
-a_lse = lse_aggregation(d)
+a_lse = SegmentedLSE(d)
 a_lse(X, bags)
 ```
 
@@ -118,7 +108,7 @@ a_{\operatorname{pnorm}}(\{x_1, \ldots, x_k\}; p, c) = \left(\frac{1}{k} \sum_{i
 Again, the [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) implementation is stable.
 
 ```@repl aggregation
-a_pnorm = pnorm_aggregation(d)
+a_pnorm = SegmentedPNorm(d)
 a_pnorm(X, bags)
 ```
 
@@ -126,7 +116,7 @@ Because all parameter constraints are included implicitly (field `ρ` in both ty
 
 ### Concatenation
 
-To use a concatenation of two or more operators, one can use the [`Aggregation`](@ref) constructor:
+To use a concatenation of two or more operators, one can use the [`AggregationStack`](@ref) constructor:
 
 ```@repl aggregation
 a = AggregationStack(a_mean, a_max)
@@ -136,8 +126,8 @@ a(X, bags)
 For the most common combinations, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) provides some convenience definitions:
 
 ```@repl aggregation
-meanmax_aggregation(d)
-pnormlse_aggregation(d)
+SegmentedMeanMax(d)
+SegmentedPNormLSE(d)
 ```
 
 ## Weighted aggregation
@@ -160,7 +150,7 @@ a_mean(X, bags, w)
 a_pnorm(X, bags, w)
 ```
 
-For [`SegmentedMax`](@ref) (and [`SegmentedLSE`](@ref)) it is possible to pass in weights, but they are ignored during computation:
+For [`SegmentedMax`](@ref) and [`SegmentedLSE`](@ref) it is possible to pass in weights, but they are ignored during computation:
 
 ```@repl aggregation
 a_max(X, bags, w) == a_max(X, bags)
@@ -177,7 +167,7 @@ wbn = WeightedBagNode(n, bags, w)
 and passes them to aggregation operators:
 
 ```@repl aggregation
-m = reflectinmodel(wbn)
+m = reflectinmodel(wbn, d -> Dense(d, 3))
 m(wbn)
 ```
 
@@ -185,44 +175,29 @@ Otherwise, [`WeightedBagNode`](@ref) behaves exactly like the standard [`BagNode
 
 ### Bag count
 
-For some problems, it may be beneficial to use the size of the bag directly and feed it to subsequent layers. This is controlled by [`Mill.bagcount!`](@ref) function (on by default).
+For some problems, it may be beneficial to use the size of the bag directly and feed it to subsequent layers. To do this, wrap an instance of [`AbstractAggregation`](@ref) or [`AggregationStack`](@ref) in the [`BagCount`](@ref) type.
 
-In the aggregation phase, bag count appends one more element which stores the bag size to the output after all operators are applied. Furthermore, in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), we opted to perform a mapping ``x \mapsto \log(x) + 1`` on top of that:
+In the aggregation phase, bag count appends one more element which stores the bag size to the output after all operators are applied. Furthermore, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), performs a mapping ``x \mapsto \log(x) + 1`` on top of that:
 
 ```@repl aggregation
-a_mean(X, bags)
+a_mean_bc = BagCount(a_mean)
+a_mean_bc(X, bags)
 ```
 
 The matrix now has three rows, the last one storing the size of the bag.
 
-When the bag count is on, one needs to have a model accepting corresponding sizes:
+[Model Reflection](@ref) adds [`BagCount`](@ref) after each aggregation operator by default.
 
 ```@repl aggregation
 bn = BagNode(n, bags)
-bm = reflectinmodel(bn)
+bm = reflectinmodel(bn, d -> Dense(d, 3))
 ```
 
-Note that the `bm` (sub)model field of the [`BagNode`](@ref) has size of `(11, 10)`, `10` for aggregation output and `1` for sizes of bags.
+Note that the `bm` (sub)model field of the [`BagNode`](@ref) has size of `(7, 3)`, `3` for each of two aggregation outputs and `1` for sizes of bags.
 
 ```@repl aggregation
 bm(bn)
 ```
-
-Model reflection takes bag count toggle into account. If we disable it again, `bm` (sub)model has size `(10, 10)`:
-
-```@repl aggregation
-Mill.bagcount!(false)
-bm = reflectinmodel(bn)
-```
-
-```@setup aggregation
-Mill.bagcount!(true)
-```
-
-!!! ukn "Aggregation bagcount"
-    Only [`Aggregation`](@ref) supports bagcount. Lower level plain [`AggregationOperator`](@ref)s
-    ([`SegmentedMean`](@ref), [`SegmentedMax`](@ref) and others) are intended for inner use and thus 
-    do not support it.
 
 ## Default aggregation values
 
@@ -233,4 +208,4 @@ bags = AlignedBags([1:1, 0:-1, 2:3, 0:-1, 4:4])
 a_mean(X, bags)
 ```
 
-See [Missing data](@ref) page for more information.
+That's why the dimension of input is required in the constructor. See [Missing data](@ref) page for more information.

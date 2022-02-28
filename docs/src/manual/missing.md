@@ -1,5 +1,5 @@
 ```@setup missing
-using Mill
+using Mill, Flux
 ```
 
 # Missing data
@@ -28,10 +28,10 @@ empty_bags_1 = AlignedBags([1:2, 0:-1, 3:5, 0:-1])
 empty_bags_2 = ScatteredBags([[1, 2], Int[], [3, 4, 5], Int[]])
 ```
 
-To obtain the vector representation for a bag, be it for dircetly predicting some value or using it to represent some higher-level structures, we need to deal with these empty bags. This is done in [Bag aggregation](@ref). Each [`AggregationOperator`](@ref) carries a vector of parameters `ψ`, initialized to zeros upon creation:
+To obtain the vector representation for a bag, be it for dircetly predicting some value or using it to represent some higher-level structures, we need to deal with these empty bags. This is done in [Bag aggregation](@ref). Each [`AbstractAggregation`](@ref) operator carries a vector of parameters `ψ`, initialized to zeros upon creation:
 
 ```@repl missing
-a = summax_aggregation(2)
+a = SegmentedSumMax(2)
 ```
 
 When we evaluate any [`BagModel`](@ref), these values are used to compute output for empty bags instead of the aggregation itself. See the demo below:
@@ -169,8 +169,6 @@ A * X
 what happens is that when we perform a dot product of a row of `A` and a column of `X`, we first fill in values from `ψ` into the column **before** the multiplication is performed. Again, it is possible to compute gradients with respect to all three of `W`, `ψ` and `X` and therefore learn the appropriate default values in `ψ` from the data:
 
 ```@repl missing
-using Flux
-
 gradient((A, X) -> sum(A * X), A, X)
 ```
 

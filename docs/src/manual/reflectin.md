@@ -1,5 +1,5 @@
 ```@setup reflection 
-using Mill
+using Mill, Flux
 ```
 
 # Model Reflection
@@ -17,7 +17,7 @@ ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
              [1:1, 2:3, 4:5]);
 printtree(ds)
 
-m = reflectinmodel(ds);
+m = reflectinmodel(ds, d -> Dense(d, 2));
 printtree(m)
 
 m(ds)
@@ -30,16 +30,12 @@ The sample `ds` serves here as a *specimen* needed to specify a structure of the
 To have better control over the topology, [`reflectinmodel`](@ref) accepts up to two more optional arguments and four keyword arguments:
 
 * The first optional argument expects a function that returns a layer (or a set of layers) given input dimension `d` (defaults to `d -> Flux.Dense(d, 10)`).
-* The second optional argument is a function returning aggregation function for [`BagModel`](@ref) nodes (defaults to `d -> mean_aggregation(d)`).
+* The second optional argument is a function returning aggregation function for [`BagModel`](@ref) nodes (defaults to `BagCount ∘ SegmentedMeanMax`).
 
 Compare the following example to the previous one:
 
-```@example reflection
-using Flux
-```
-
 ```@repl reflection
-m = reflectinmodel(ds, d -> Dense(d, 5, relu), d -> max_aggregation(d));
+m = reflectinmodel(ds, d -> Dense(d, 5, relu), SegmentedMax);
 printtree(m)
 
 m(ds)
@@ -65,14 +61,16 @@ These identifiers can be used to override the default construction functions. No
 For example to specify just the last feed forward neural network:
 
 ```@repl reflection
-reflectinmodel(ds, d -> Dense(d, 5, relu), d -> meanmax_aggregation(d);
+reflectinmodel(ds, d -> Dense(d, 5, relu), SegmentedMeanMax;
     fsm = Dict("" => d -> Chain(Dense(d, 20, relu), Dense(20, 12)))) |> printtree
 ```
 
 Both keyword arguments in action:
 
 ```@repl reflection
-reflectinmodel(ds, d -> Dense(d, 5, relu), d -> meanmax_aggregation(d);
+reflectinmodel(ds, d -> Dense(d, 5, relu), SegmentedMeanMax;
     fsm = Dict("" => d -> Chain(Dense(d, 20, relu), Dense(20, 12))),
-    fsa = Dict("Y" => d -> mean_aggregation(d), "g" => d -> pnorm_aggregation(d))) |> printtree
+    fsa = Dict("Y" => SegmentedMean, "g" => SegmentedPNorm)) |> printtree
 ```
+
+There are even more ways to modify the reflection behavior, see the [`reflectinmodel`](@ref) api reference.

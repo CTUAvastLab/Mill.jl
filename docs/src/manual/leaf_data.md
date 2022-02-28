@@ -1,27 +1,28 @@
 ```@setup leafs
-using Mill
+using Mill, Flux
 ```
 
 # Data in leaves
 
 In [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) tree-like data representations, there are always some raw data on the leaf level, whereas on higher levels instances are grouped into bags ([`BagNode`](@ref)s), and different sets are joined together with Cartesion products ([`ProductNode`](@ref)s) and thus more abstract concepts are created. In this section we look into several examples how the lowest-level data can be represented.
 
-For this purpose, let's assume that we would like to identify infected computers in a network from their HTTP traffic. Since one computer can make an arbitrary number of connections during the observation period, modelling the computer as a *bag* of connections seems like the most natural approach:
+For this purpose, let's assume that we would like to identify infected clients in a network from their HTTP traffic. Since one client can make an arbitrary number of connections during the observation period, modelling the client as a *bag* of connections seems like the most natural approach:
 
 ```@repl leafs
-connections = AlignedBags([1:2, 3:3, 4:7, 8:8, 9:10])
+connections = AlignedBags([1:2, 3:3, 4:6])
 ```
 
-Thus, each of the ten connections becomes an *instance* in one of the bags. How to represent this instance? Each HTTP flow has properties that can be expressed as standard numerical features, categorical features or strings of characters.
+Thus, each of the six connections becomes an *instance* in one of the three bags representing clients. How to represent such connections instances? Each HTTP flow has properties that can be expressed as standard numerical features, categorical features or strings of characters.
 
 ## Numerical features
 
 We have already shown how to represent standard numerical features in previous parts of this manual. It is as simple as wrapping a type that behaves like a matrix into an [`ArrayNode`](@ref):
 
 ```@repl leafs
-content_lengths = [4446, 1957, 4310, 11604, 17019, 13947, 13784, 15495, 3888, 11853]
-dates = [1435420950, 1376190532, 1316869962, 1302775198, 1555598383,
-         1562237892, 1473173059, 1325242539, 1508048391, 1532722821]
+content_lengths = [4446, 1957, 4310,
+                   11604, 17019, 13947]
+dates = [1435420950, 1376190532, 1316869962,
+         1302775198, 1555598383, 1562237892]
 numerical_node = ArrayNode([content_lengths'; dates'])
 ```
 
@@ -32,10 +33,8 @@ We use `Content-Length`  and `Date` request headers, the latter converted to Uni
 For categorical variables, we proceed in the same way, but we use one-hot encoding implemented in [`Flux.jl`](https://fluxml.ai). This way, we can encode for example a verb of the request:
 
 ```@repl leafs
-using Flux
-
 ALL_VERBS = ["GET", "HEAD", "POST", "PUT", "DELETE"] # etc...
-verbs = ["GET", "GET", "POST", "HEAD", "HEAD", "HEAD", "HEAD", "PUT", "DELETE", "PUT"]
+verbs = ["GET", "GET", "POST", "HEAD", "HEAD", "PUT"]
 verb_node = ArrayNode(Flux.onehotbatch(verbs, ALL_VERBS))
 ```
 
@@ -43,7 +42,7 @@ or `Content-Encoding` header:
 
 ```@repl leafs
 ALL_ENCODINGS = ["bzip2", "gzip", "xz", "identity"] # etc...
-encodings = ["xz", "gzip", "bzip2", "xz", "identity", "bzip2", "identity", "identity", "xz", "xz"]
+encodings = ["xz", "gzip", "bzip2", "xz", "identity", "bzip2"]
 encoding_node = ArrayNode(Flux.onehotbatch(encodings, ALL_ENCODINGS))
 ```
 
@@ -55,16 +54,8 @@ The last example we will consider are string features. This could for example be
 
 ```@repl leafs
 hosts = [
-    "www.foo.com",
-    "www.foo.com",
-    "www.baz.com",
-    "www.foo.com",
-    "www.baz.com",
-    "www.foo.com",
-    "www.baz.com",
-    "www.baz.com",
-    "www.bar.com",
-    "www.baz.com",
+    "www.foo.com", "www.foo.com", "www.baz.com",
+    "www.foo.com", "www.baz.com", "www.foo.com"
 ]
 ```
 
@@ -119,24 +110,33 @@ host_node = ArrayNode(hosts_ngrams)
 
 ## Putting it all together
 
-Now, we can finally put wrap everything into one [`ProductNode`](@ref):
+Now, we can finally put wrap all features of all six connections into one [`ProductNode`](@ref) and
+construct a [`BagNode`](@ref) representing a bag of all connections (corresponding to three
+different clients):
 
 ```@repl leafs
-ds = ProductNode((
+ds = BagNode(ProductNode(
     numerical=numerical_node,
     verb=verb_node,
     encoding=encoding_node,
     hosts=host_node
-))
+), connections)
 ```
 
-create a model for training and compute some gradients:
+create a model for training and run one forward pass:
+
 ```@repl leafs
 m = reflectinmodel(ds)
+m(ds)
+```
+
+We now obtain a matrix with three columns, each corresponding to one of the clients. Now we can for example calculate gradients with respect to the model parameters:
+
+```@repl leafs
 gradient(() -> sum(Mill.data(m(ds))), Flux.params(m))
 ```
 
 !!! ukn "Numerical features"
-    To put all numerical features into one [`ArrayNode`](@ref) is a design choice. We could as well introduce more keys in the final [`ProductNode`](@ref). The model treats these two cases differently (see [Nodes](@ref) section).
+    To put all numerical features into one [`ArrayNode`](@ref) is a design choice. We could as well introduce more keys in the final [`ProductNode`](@ref). The model treats these two cases slightly differently (see [Nodes](@ref) section).
 
 This dummy example illustrates the versatility of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). With little to no preprocessing we are able to process complex hierarchical structures and avoid manually designing feature extraction procedures. For a more involved study on processing Internet traffic with [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), see for example [Pevny2020](@cite).

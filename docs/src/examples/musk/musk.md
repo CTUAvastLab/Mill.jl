@@ -1,6 +1,4 @@
 ```@setup musk
-using Random; Random.seed!(0)
-
 using Pkg
 old_path = Pkg.project().path
 Pkg.activate(pwd())
@@ -10,13 +8,15 @@ Pkg.instantiate()
 # Musk
 [`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). The full example is also accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/docs/src/examples/musk/), as well as a Julia environment to run it.
 
-For the demo, we load all dependencies:
+For the demo, we load all dependencies and fix the seed:
 
 ```@example musk
 using FileIO, JLD2, Statistics, Mill, Flux
 using Flux: throttle, @epochs
 using Mill: reflectinmodel
 using Base.Iterators: repeated
+
+using Random; Random.seed!(42)
 ```
 
 and then load the dataset and transform it into a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. The `musk.jld2` file contains:
@@ -55,7 +55,7 @@ Once the data are in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) interna
 ```@repl musk
 model = BagModel(
     ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
-    meanmax_aggregation(10),                                    # aggregation
+    BagCount(SegmentedMeanMax(10)),                             # aggregation
     ArrayModel(Chain(Dense(21, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
 ```
 

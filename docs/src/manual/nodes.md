@@ -12,14 +12,14 @@ using Mill
 1. [`AbstractMillNode`](@ref) which stores data on any level of abstraction and its subtypes can be further nested
 2. [`AbstractMillModel`](@ref) which helps to define a corresponding model. For each specific implementation of [`AbstractMillNode`](@ref) we have one or more specific [`AbstractMillModel`](@ref)s for processing it.
 
-Below we will go through implementation of [`ArrayNode`](@ref), [`BagNode`](@ref) and [`ProductNode`](@ref) together with their corresponding models. It is possible to define data and model nodes for more complex behaviors (see [Adding custom nodes](@ref)), however, these three core types are already sufficient for a lot of tasks, for instance, representing any `JSON` document and using appropriate models to convert it to a vector represention or classify it (see [Processing JSONs](@ref)).
+Below we will introduce [`ArrayNode`](@ref), [`BagNode`](@ref) and [`ProductNode`](@ref) together with their corresponding models. It is possible to define data and model nodes for more complex behaviors (see [Custom nodes](@ref)), however, these three core types are already sufficient for most tasks. For instance, we can represent any `JSON` document and use appropriate models to convert it to a vector represention or classify it (see [Processing JSONs](@ref)).
 
 ## [`ArrayNode`](@ref) and [`ArrayModel`](@ref)
 
 [`ArrayNode`](@ref) thinly wraps an array of features (specifically any subtype of `AbstractArray`):
 
 ```@repl nodes
-X = Float32.([1 2 3 4; 5 6 7 8])
+X = Float32.([1 2 3 ; 4 5 6])
 AN = ArrayNode(X)
 ```
 
@@ -109,8 +109,8 @@ Each [`BagNode`](@ref) is processed by a [`BagModel`](@ref), which contains two 
 
 ```@repl nodes
 im = ArrayModel(Dense(2, 3))
-a = max_aggregation(3)
-bm = ArrayModel(Dense(4, 4))
+a = SegmentedMax(3)
+bm = ArrayModel(Dense(3, 4))
 BM = BagModel(im, a, bm)
 ```
 
@@ -120,14 +120,14 @@ The first network submodel (called instance model `im`) is responsible for conve
 y = im(AN)
 ```
 
-Note that because of the property mentioned above, the output of instance model `im` will always be an [`ArrayNode`](@ref) wrapping a matrix. We get four columns, one for each instance. This result is then used in [`Aggregation`](@ref) (`a`) which takes vector representation of all instances and produces a **single** vector per bag:
+Note that because of the property mentioned above, the output of instance model `im` will always be an [`ArrayNode`](@ref) wrapping a matrix. We get four columns, one for each instance. This result is then used in [`SegmentedMax`](@ref) operator `a` which takes vector representation of all instances and produces a **single** vector per bag:
 
 ```@repl nodes
 y = a(y, BN.bags)
 ```
 
 !!! unk "More about aggregation"
-    To read more about aggregation operators and find out why there are four rows instead of three after applying the operator, see [Bag aggregation](@ref) section.
+    To read more about aggregation operators, see the [Bag aggregation](@ref) section.
 
 Finally, `y` is then passed to a feed forward model (called bag model `bm`) producing the final output per bag. In our example we therefore get a matrix with three columns:
 
@@ -152,10 +152,10 @@ Three instances of the [`BagNode`](@ref) are represented by red subtrees are fir
 
 ## [`ProductNode`](@ref)s and [`ProductModel`](@ref)s
 
-[`ProductNode`](@ref) can be thought of as a [*Cartesian Product*](https://en.wikipedia.org/wiki/Cartesian_product) or a `Dictionary`. It holds a `Tuple` or `NamedTuple` of nodes (not necessarily of the same type). For example, a [`ProductNode`](@ref) with a [`BagNode`](@ref) and an [`ArrayNode`](@ref) as children would look like this:
+[`ProductNode`](@ref) can be thought of as a [*Cartesian Product*](https://en.wikipedia.org/wiki/Cartesian_product) or a `Dictionary`. It holds a `Tuple` or `NamedTuple` of nodes (not necessarily of the same type). For example, a [`ProductNode`](@ref) with the [`BagNode`](@ref) and the [`ArrayNode`](@ref) from above as children would look like this:
 
 ```@repl nodes
-PN = ProductNode((a=ArrayNode(Float32.([1 2 3; 4 5 6])), b=BN))
+PN = ProductNode(a=AN, b=BN)
 ```
 
 Analogically, the [`ProductModel`](@ref) contains a (`Named`)`Tuple` of (sub)models processing each of its children (stored in `ms` field standing for models), as well as one more (sub)model `m`:

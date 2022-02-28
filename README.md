@@ -30,6 +30,8 @@ Run the following in REPL:
 ] add Mill
 ```
 
+Julia v1.6 or later is required.
+
 ## Citation
 
 For citing, please use the following entry for the [original paper](https://arxiv.org/abs/2105.09107):
