@@ -10,7 +10,7 @@ function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillNode
 end
 
 nodeshow(io::IO, ::Missing) = print(io, "∅")
-nodeshow(io::IO, n::LazyNode{N,Nothing}) where {N} = print(io, "LazyNode{$N} ∅")
+nodeshow(io::IO, n::LazyNode{N, Nothing}) where {N} = print(io, "LazyNode{$N} ∅")
 
 function nodecommshow(io::IO, @nospecialize(n::AbstractMillNode))
     bytes = Base.format_bytes(Base.summarysize(n) - (isleaf(n) ? 0 : Base.summarysize(data(n))))
@@ -24,7 +24,6 @@ function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
     end
 end
 
-_show_data(io, n::LazyNode{Name}) where {Name} = print(io, "{", Name, "}")
 _show_data(io, _) = print(io)
 
 # params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl

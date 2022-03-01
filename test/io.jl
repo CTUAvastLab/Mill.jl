@@ -75,9 +75,15 @@
     @test modelsummary(pnm) == "# Summary: 12 arrays, 530 params, 2.539 KiB"
 
     ln = LazyNode{:Sentence}(["a", "b", "c", "d"])
-    @test repr(ln) == "LazyNode{Sentence}"
-    @test repr(ln; context=:compact => true) == "LazyNode"
-    @test repr(MIME("text/plain"), ln) == "LazyNode{Sentence} 	# 4 obs, 116 bytes"
+    @test repr(ln) == "LazyNode{Sentence}(String)"
+    @test repr(ln; context=:compact => true) == "LazyNode{Sentence}"
+    @test repr(MIME("text/plain"), ln) ==
+        """
+        LazyNode{:Sentence, Vector{String}, Nothing}:
+         "a"
+         "b"
+         "c"
+         "d\""""
     @test datasummary(ln) == "# Summary: 4 obs, 116 bytes."
 
     lnm = reflectinmodel(ln)
