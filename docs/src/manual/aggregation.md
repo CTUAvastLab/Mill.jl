@@ -33,7 +33,7 @@ where ``\{x_1, \ldots, x_k\}`` are all instances of the given bag. In `Mill`, th
 a_max = SegmentedMax(d)
 ```
 
-The application is straightforward and can be performed on both raw `AbstractArray`s or [`ArrayNode`](@ref)s:
+The application is straightforward:
 
 ```@repl aggregation
 a_max(X, bags)

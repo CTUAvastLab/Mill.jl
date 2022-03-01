@@ -39,7 +39,7 @@ bagids = load("musk.jld2", "bagids")      # ties instances to bags
 The resulting [`BagNode`](@ref) is a structure which holds (i) feature matrix and (ii) ranges identifying which columns in the feature matrix each bag spans. This representation ensures that feed-forward networks do not need to deal with bag boundaries and always process full continuous matrices:
 
 ```@repl musk
-ds = BagNode(ArrayNode(fMat), bagids)     # create a BagNode dataset
+ds = BagNode(fMat, bagids)     # create a BagNode dataset
 ```
 
 * the label of each instance in `y`.  The label of a bag is a maximum of labels of its instances, i.e. one positive instance in a bag makes it positive:
@@ -54,9 +54,9 @@ Once the data are in `Mill` internal format, we will manually create a model. [`
 
 ```@repl musk
 model = BagModel(
-    ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
+    Dense(166, 10, Flux.tanh),                      # model on the level of Flows
     BagCount(SegmentedMeanMax(10)),                             # aggregation
-    ArrayModel(Chain(Dense(21, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
+    Chain(Dense(21, 10, Flux.tanh), Dense(10, 2)))  # model on the level of bags
 ```
 
 Instances are first passed through a single layer with 10 neurons (input dimension is 166) with `tanh` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `tanh` nonlinearity followed by linear layer with 2 neurons (output dimension).
@@ -70,7 +70,7 @@ model(ds)
 Since `Mill` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
 
 ```@repl musk
-loss(ds, y_oh) = Flux.logitcrossentropy(model(ds) |> Mill.data, y_oh)
+loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)
 ```
 
 and run simple training procedure using its tooling:
@@ -86,7 +86,7 @@ end
 We can also calculate training error, which should be not so surprisingly low:
 
 ```@repl musk
-mean(mapslices(argmax, model(ds).data, dims=1)' .!= y)
+mean(mapslices(argmax, model(ds), dims=1)' .!= y)
 ```
 
 ```@setup musk

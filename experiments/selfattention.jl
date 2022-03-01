@@ -27,7 +27,7 @@ function BagMultiheadSelfAttention(input_dim::Int, nheads::Int, hidden_dim::Int,
 end
 
 #Let's create an absolutely dummy dataset 
-ds = BagNode(ArrayNode(randn(2,5)), [1:2,2:5,0:-1])
+ds = BagNode(randn(2,5), [1:2,2:5,0:-1])
 
 #try it with reflectinmodel
 model = reflectinmodel(ds, 

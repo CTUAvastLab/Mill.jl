@@ -24,7 +24,7 @@ end
     function _test_imput(W, ob::Vector, b::Vector)
         A = PreImputingMatrix(W, ob)
         @test A * b == W * ob
-        @test eltype(A * b) === promote_type(eltype(W), eltype(ob))
+        @test eltype(A * b) ≡ promote_type(eltype(W), eltype(ob))
         @inferred A * b
     end
 
@@ -78,7 +78,7 @@ end
     @inferred A * B3
     @inferred A * B4
 
-    @test eltype(A * B1) === eltype(A * B2) === eltype(A * B3) === eltype(A * B4) === Int64
+    @test eltype(A * B1) ≡ eltype(A * B2) ≡ eltype(A * B3) ≡ eltype(A * B4) ≡ Int64
 end
 
 @testset "correct post imputing behavior for full standard arrays" begin
@@ -91,8 +91,8 @@ end
     @test A * b == W * b
     @inferred A * B
     @inferred A * b
-    @test eltype(A * B) === Int64
-    @test eltype(A * b) === Int64
+    @test eltype(A * B) ≡ Int64
+    @test eltype(A * b) ≡ Int64
 
     B = [missing 3; missing 1]
     b = [3, missing]
@@ -100,8 +100,8 @@ end
     @test isequal(A * b, W * b)
     @inferred A * B
     @inferred A * b
-    @test eltype(A * B) === Union{Int64, Missing}
-    @test eltype(A * b) === Union{Int64, Missing}
+    @test eltype(A * B) ≡ Maybe{Int64}
+    @test eltype(A * b) ≡ Maybe{Int64}
 
     W = randn(2,3)
     ψ = randn(2)
@@ -113,8 +113,8 @@ end
     @test A * b ≈ W * b
     @inferred A * B
     @inferred A * b
-    @test eltype(A * B) === Float64
-    @test eltype(A * b) === Float64
+    @test eltype(A * B) ≡ Float64
+    @test eltype(A * b) ≡ Float64
 
     B = [missing 3.0; missing 1.0; 2.0 5.0]
     b = [3.0, missing, 1.0]
@@ -122,8 +122,8 @@ end
     @test isequal(A * b, W * b)
     @inferred A * B
     @inferred A * b
-    @test eltype(A * B) === Union{Float64, Missing}
-    @test eltype(A * b) === Union{Float64, Missing}
+    @test eltype(A * B) ≡ Maybe{Float64}
+    @test eltype(A * b) ≡ Maybe{Float64}
 
     B = fill(missing, 3, 5)
     b = fill(missing, 3)
@@ -131,8 +131,8 @@ end
     @test isequal(A * b, W * b)
     @inferred A * B
     @inferred A * b
-    @test eltype(A * B) === Missing
-    @test eltype(A * b) === Missing
+    @test eltype(A * B) ≡ Missing
+    @test eltype(A * b) ≡ Missing
 end
 
 @testset "correct post imputing behavior for maybe hot vector" begin
@@ -144,11 +144,11 @@ end
         b = MaybeHotVector(i, n)
         @test A * b == W * onehot(b)
         @inferred A * b
-        @test eltype(A * b) === eltype(W)
+        @test eltype(A * b) ≡ eltype(W)
         b = MaybeHotVector(missing, n)
         @test A * b == ψ
         @inferred A * b
-        @test eltype(A * b) === eltype(ψ)
+        @test eltype(A * b) ≡ eltype(ψ)
     end
 end
 
@@ -165,13 +165,13 @@ end
         B3 = MaybeHotMatrix(i3, n)
         @test A * B1 == W * onehotbatch(B1)
         @inferred A * B1
-        @test eltype(A * B1) === eltype(W)
+        @test eltype(A * B1) ≡ eltype(W)
         @test all(isequal(ψ), eachcol(A * B2))
         @inferred A * B2
-        @test eltype(A * B2) === eltype(ψ)
+        @test eltype(A * B2) ≡ eltype(ψ)
         C = A * B3
         @inferred A * B3
-        @test eltype(A * B3) === promote_type(eltype(W), eltype(ψ))
+        @test eltype(A * B3) ≡ promote_type(eltype(W), eltype(ψ))
         @test all(isequal(ψ), eachcol(C[:, ismissing.(i3)]))
         @test C[:, .!ismissing.(i3)] == W * onehotbatch(skipmissing(i3), 1:n)
     end
@@ -187,13 +187,13 @@ end
         B = NGramMatrix(S, 3, 256, n)
         @test A * B ≈ W * Matrix(SparseMatrixCSC(B))
         @inferred A * B
-        @test eltype(A * B) === eltype(W)
+        @test eltype(A * B) ≡ eltype(W)
 
         S = fill(missing, k) |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
         @test all(isequal(ψ), eachcol(A * B))
         @inferred A * B
-        @test eltype(A * B) === eltype(ψ)
+        @test eltype(A * B) ≡ eltype(ψ)
 
         if k > 1
             S = [isodd(i) ? missing : randustring(rand(1:10)) for i in 1:k]
@@ -202,7 +202,7 @@ end
             @test all(isequal(ψ), eachcol(C[:, ismissing.(S)]))
             @test C[:, .!ismissing.(S)] ≈ W * NGramMatrix(skipmissing(S) |> collect, 3, 256, n)
             @inferred A * B
-            @test eltype(A * B) === promote_type(eltype(W), eltype(ψ))
+            @test eltype(A * B) ≡ promote_type(eltype(W), eltype(ψ))
         end
     end
 end
@@ -435,7 +435,7 @@ end
     for (m, n) in product(fill((1, 5, 10), 2)...)
         W = randn(m, n)
         ψ = randn(n)
-        b = Vector{Union{Float64, Missing}}(randn(n))
+        b = Vector{Maybe{Float64}}(randn(n))
         b[rand(eachindex(b), rand(1:n))] .= missing
 
         @test @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * b
@@ -446,7 +446,7 @@ end
     for (m, n, k) in product(fill((1, 5, 10), 3)...)
         W = randn(m, n)
         ψ = randn(n)
-        B = Matrix{Union{Float64, Missing}}(randn(n, k))
+        B = Matrix{Maybe{Float64}}(randn(n, k))
         B[rand(eachindex(B), rand(1:n*k))] .= missing
 
         @test @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * B
@@ -459,63 +459,56 @@ end
             for it in 1:3
                 dc = deepcopy(d)
                 Flux.train!(X -> sum(dc(X)), Flux.params(dc), [(X,)], opt)
-                @test any(dc.weight.W .!= d.weight.W) == pW
-                @test any(dc.weight.ψ .!= d.weight.ψ) == pψ
+                @test any(dc.weight.W .≠ d.weight.W) == pW
+                @test any(dc.weight.ψ .≠ d.weight.ψ) == pψ
             end
         end
     end
 
-    for (m, n, k) in product(fill((1, 5, 10), 3)...)
-        # https://github.com/FluxML/Flux.jl/issues/1479
-        if m == 1 || n == 1 || k == 1
-            continue
-        end
-
+    for (m, n, k) in product(fill((2, 5, 10), 3)...)
         d = preimputing_dense(n, m)
 
-        # https://github.com/FluxML/Flux.jl/issues/1479
-        # check(d, randn(n), true, false)
-        # x = Vector{Union{Float64, Missing}}(randn(n))
-        # x[rand(eachindex(x), rand(1:n))] .= missing
-        # check(d, x, true, true)
-        # check(d, fill(missing, n), false, true)
+        x = randn(n)
+        check(d, x, true, false)
+        x = Vector{Maybe{Float64}}(x)
+        x[rand(eachindex(x), rand(1:n-1))] .= missing
+        check(d, x, true, true)
+        check(d, fill(missing, n), false, true)
 
-        check(d, randn(n, k), true, false)
-        X = Matrix{Union{Float64, Missing}}(randn(n, k))
-        X[rand(eachindex(X), rand(1:n*k))] .= missing
+        X = randn(n, k)
+        check(d, X, true, false)
+        X = Matrix{Maybe{Float64}}(X)
+        X[rand(eachindex(X), rand(1:n*k-1))] .= missing
         check(d, X, true, true)
         check(d, fill(missing, n, k), false, true)
 
         d = postimputing_dense(n, m)
 
-        S = [randustring(rand(1:100)) for _ in 1:k]
+        S = [randustring(rand(1:10)) for _ in 1:k]
         X = NGramMatrix(S, 3, 256, n)
         check(d, X, true, false)
-        if k > 1
-            S = [isodd(i) ? missing : randustring(rand(1:10)) for i in 1:k] |> PooledArray
-            X = NGramMatrix(S, 3, 256, n)
-            check(d, X, true, true)
-        end
+        S = Vector{Maybe{AbstractString}}(S)
+        S[rand(eachindex(S), rand(1:k-1))] .= missing
+        X = NGramMatrix(S, 3, 256, n)
+        check(d, X, true, true)
         S = fill(missing, k)
         X = NGramMatrix(S, 3, 256, n)
         check(d, X, false, true)
 
-        # https://github.com/FluxML/Flux.jl/issues/1479
-        # x = maybehot(rand(1:n), 1:n)
-        # check(d, x, true, false)
-        # x = maybehot(missing, 1:n)
-        # check(d, x, false, true)
+        x = maybehot(rand(1:n), 1:n)
+        check(d, x, true, false)
+        x = maybehot(missing, 1:n)
+        check(d, x, false, true)
 
-        S = [rand(1:n) for _ in 1:k]
-        X = maybehotbatch(S, 1:n)
+        I = [rand(1:n) for _ in 1:k]
+        X = maybehotbatch(I, 1:n)
         check(d, X, true, false)
-        if k > 1
-            S = [isodd(i) ? missing : rand(1:n) for i in 1:k]
-            X = maybehotbatch(S, 1:n)
-            check(d, X, true, true)
-        end
-        S = fill(missing, k)
-        X = maybehotbatch(S, 1:n)
+        I = Vector{Maybe{Integer}}(I)
+        I[rand(eachindex(I), rand(1:k-1))] .= missing
+        X = maybehotbatch(I, 1:n)
+        check(d, X, true, true)
+        I = fill(missing, k)
+        X = maybehotbatch(I, 1:n)
         check(d, X, false, true)
     end
 end

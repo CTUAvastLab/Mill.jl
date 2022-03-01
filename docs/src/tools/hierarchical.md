@@ -15,13 +15,13 @@ using HierarchicalUtils
 For instance, `Base.show` with `text/plain` MIME calls `HierarchicalUtils.printtree`:
 
 ```@repl hierarchical
-ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
+ds = BagNode(ProductNode((BagNode(randn(4, 10),
                                   [1:2, 3:4, 5:5, 6:7, 8:10]),
-                          ArrayNode(randn(3, 5)),
-                          BagNode(BagNode(ArrayNode(randn(2, 30)),
+                          randn(3, 5),
+                          BagNode(BagNode(randn(2, 30),
                                           [i:i+1 for i in 1:2:30]),
                                   [1:3, 4:6, 7:9, 10:12, 13:15]),
-                          ArrayNode(randn(2, 5)))),
+                          randn(2, 5))),
              [1:1, 2:3, 4:5])
 printtree(ds; htrunc=3)
 ```
@@ -50,7 +50,7 @@ m["Y"]
 The following two approaches give the same result:
 
 ```@repl hierarchical
-m["Y"] === m.im.ms[1]
+m["Y"] ≡ m.im.ms[1]
 ```
 
 ## Counting functions

@@ -18,7 +18,7 @@ julia> Mill.mapdata(i -> sparsify(i, 0.05), n)
 See also: [`Mill.mapdata`](@ref).
 """
 sparsify(x, nnzrate) = x
-sparsify(x::Matrix, nnzrate) = (mean(x .!= 0) < nnzrate) ? sparse(x) : x
+sparsify(x::Matrix, nnzrate) = (mean(x .≠ 0) < nnzrate) ? sparse(x) : x
 
 # can be removed when https://github.com/FluxML/Flux.jl/issues/1596 is closed
 function Base.reduce(::typeof(hcat), xs::Vector{TV})  where {T, L, TV<:Flux.OneHotLike{T, L}}
@@ -122,7 +122,7 @@ julia> find_lens(n, n.data[1])
 
 See also: [`pred_lens`](@ref), [`list_lens`](@ref), [`findnonempty_lens`](@ref).
 """
-find_lens(n, x) = pred_lens(t -> t === x, n)
+find_lens(n, x) = pred_lens(t -> t ≡ x, n)
 
 _pred_lens(p::Function, n) = p(n) ? [IdentityLens()] : Lens[]
 function _pred_lens(p::Function, n::T) where T <: AbstractMillStruct
@@ -193,15 +193,15 @@ Convert `Setfield.Lens` `l` for a data node to a new lens for accessing the same
 
 # Examples
 ```jldoctest
-julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
+julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode 	# 2 obs, 24 bytes
   ├── BagNode 	# 2 obs, 96 bytes
   │     └── ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
   └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
 julia> m = reflectinmodel(n)
-ProductModel ↦ ArrayModel(Dense(20, 10)) 	# 2 arrays, 210 params, 920 bytes
-  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
+ProductModel ↦ Dense(20, 10) 	# 2 arrays, 210 params, 920 bytes
+  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) 	# 4 arrays, 240 params, 1.094 KiB
   │     └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
   └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
 
@@ -228,15 +228,15 @@ Convert `Setfield.Lens` `l` for a model node to a new lens for accessing the sam
 
 # Examples
 ```jldoctest
-julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
+julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode 	# 2 obs, 24 bytes
   ├── BagNode 	# 2 obs, 96 bytes
   │     └── ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
   └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
 julia> m = reflectinmodel(n)
-ProductModel ↦ ArrayModel(Dense(20, 10)) 	# 2 arrays, 210 params, 920 bytes
-  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
+ProductModel ↦ Dense(20, 10) 	# 2 arrays, 210 params, 920 bytes
+  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) 	# 4 arrays, 240 params, 1.094 KiB
   │     └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
   └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
 
@@ -265,7 +265,7 @@ Short description
 
 # Examples
 ```jldoctest
-julia> n = ProductNode((BagNode(ArrayNode(randn(2, 2)), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
+julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
 ProductNode 	# 2 obs, 24 bytes
   ├── BagNode 	# 2 obs, 96 bytes
   │     └── ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
@@ -282,7 +282,7 @@ replacein(x::Tuple, oldnode, newnode) = tuple([replacein(m, oldnode, newnode) fo
 replacein(x::NamedTuple, oldnode, newnode) = (; [k => replacein(x[k], oldnode, newnode) for k in keys(x)]...)
 
 function replacein(x::T, oldnode, newnode) where T <: AbstractMillStruct
-    x === oldnode && return(newnode)
+    x ≡ oldnode && return(newnode)
     fields = map(f -> replacein(getproperty(x, f), oldnode, newnode), fieldnames(T))
     n = nameof(T)
     p = parentmodule(T)
@@ -290,12 +290,12 @@ function replacein(x::T, oldnode, newnode) where T <: AbstractMillStruct
 end
 
 function replacein(x::LazyNode{N}, oldnode, newnode) where {N}
-    x === oldnode && return newnode
+    x ≡ oldnode && return newnode
     LazyNode{N}(replacein(x.data, oldnode, newnode))
 end
 
 function replacein(x::LazyModel{N}, oldnode, newnode) where {N}
-    x === oldnode && return newnode
+    x ≡ oldnode && return newnode
     LazyModel{N}(replacein(x.m, oldnode, newnode))
 end
 

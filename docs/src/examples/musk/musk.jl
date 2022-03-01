@@ -14,15 +14,15 @@ y_oh = Flux.onehotbatch(y, 1:2)             # one-hot encoding
 
 # create the model
 model = BagModel(
-    ArrayModel(Dense(166, 10, Flux.tanh)),                      # model on the level of Flows
+    Dense(166, 10, Flux.tanh),                      # model on the level of Flows
     BagCount(SegmentedMeanMax(10)),                             # aggregation
-    ArrayModel(Chain(Dense(21, 10, Flux.tanh), Dense(10, 2))))  # model on the level of bags
+    Chain(Dense(21, 10, Flux.tanh), Dense(10, 2)))  # model on the level of bags
 
 # check forward pass
-model(ds).data
+model(ds)
 
 # define loss function
-loss(ds, y_oh) = Flux.logitcrossentropy(Mill.data(model(ds)), y_oh)
+loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)
 
 # the usual way of training
 opt = Flux.ADAM()
@@ -32,4 +32,4 @@ opt = Flux.ADAM()
 end
 
 # calculate the error on the training set (no testing set right now)
-mean(mapslices(argmax, Mill.data(model(ds)), dims=1)' .!= y)
+mean(mapslices(argmax, model(ds), dims=1)' .≠ y)

@@ -177,7 +177,7 @@ gradient((A, X) -> sum(A * X), A, X)
 Model reflection takes `missing` values and types into account and creates appropriate (sub)models to handle them:
 
 ```@repl missing
-ds = ProductNode(ArrayNode.((missing_ngrams, missing_categorical, X)))
+ds = ProductNode((missing_ngrams, missing_categorical, X))
 m = reflectinmodel(ds)
 ```
 
