@@ -41,7 +41,7 @@ function partialeval(m::ProductModel{M}, ds::ProductNode{P}, newnode) where {P<:
     ms = map(f -> f[1], mods)
     dd = map(f -> f[2], mods)
     if any(f[3] for f in mods)
-        return (ProductModel((;zip(ks, ms)...), m.m), ProductNode((;zip(ks, dd)...), ds.metadata), true)
+        return (ProductModel((; zip(ks, ms)...), m.m), ProductNode((; zip(ks, dd)...), ds.metadata), true)
     end
     (identity_model(), m.m(reduce(vcat, dd |> collect)), false)
 end
