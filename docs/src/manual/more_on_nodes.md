@@ -63,7 +63,7 @@ As data and model trees tend to be complex, `Mill` limits the printing. To inspe
 printtree(ds)
 ```
 
-Instead of defining a model manually, we can also make use of [Model Reflection](@ref), another `Mill` functionality, which simplifies model creation:
+Instead of defining a model manually, we can also make use of [Model reflection](@ref), another `Mill` functionality, which simplifies model creation:
 
 ```@repl more_on_nodes
 m = reflectinmodel(ds, d -> Dense(d, 2), SegmentedMean)

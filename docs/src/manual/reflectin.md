@@ -2,7 +2,7 @@
 using Mill, Flux
 ```
 
-# Model Reflection
+# Model reflection
 
 Since constructions of large models can be a tedious and error-prone process, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) provides [`reflectinmodel`](@ref) function that helps to automate it. The simplest definition accepts only one argument, a sample `ds`, and returns a compatible model:
 
