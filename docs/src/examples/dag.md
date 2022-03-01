@@ -1,7 +1,8 @@
 ```@setup dag
 using Mill
 
-using LightGraphs, GraphRecipes, Plots
+using LightGraphs, GraphRecipes, Plots, Random
+Random.seed!(4)
 
 g = SimpleDiGraph(8)
 for e in [(1, 2), (1, 3), (2, 4), (2, 5), (3, 5),

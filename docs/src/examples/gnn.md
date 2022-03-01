@@ -1,7 +1,8 @@
 ```@setup gnn
 using Mill
 
-using LightGraphs, GraphRecipes, Plots
+using LightGraphs, GraphRecipes, Plots, Random
+Random.seed!(1)
 
 g = SimpleGraph(10)
 for e in [(1, 2), (1, 3), (1, 4),
