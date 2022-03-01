@@ -2,16 +2,16 @@
 using Mill
 
 using Graphs, GraphRecipes, Plots, Random
-Random.seed!(1)
+Random.seed!(22)
 
-g = SimpleGraph(10)
+g = SimpleGraph(9)
 for e in [(1, 2), (1, 3), (1, 4),
           (2, 4), (2, 5),
-          (3, 4), (3, 5), (3, 6), (3, 8), (3, 10),
+          (3, 4), (3, 5), (3, 6), (3, 8),
           (4, 5), (4, 6), (4, 9),
           (5, 7), (5, 8),
           (6, 5), (6, 7), (6, 8),
-          (7, 8), (7, 10),
+          (7, 8),
           (8, 9)
 ]
     add_edge!(g, e...)
@@ -22,7 +22,8 @@ gp = graphplot(adjacency_matrix(g); linecolor = :darkgrey,
                                     fontsize=11,
                                     markersize=0.2, nodeshape=:circle,
                                     background_color=:transparent,
-                                    markercolor = range(colorant"yellow", stop=colorant"blue", length=nv(g))
+                                    markercolor = range(colorant"white", stop=colorant"grey", length=nv(g)),
+                                    names=1:nv(g)
                                     )
 savefig(gp, "graph.svg")
 ```
