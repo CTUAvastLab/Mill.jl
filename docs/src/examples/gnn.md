@@ -84,7 +84,7 @@ Y = mp(BagNode(U, b))
 and it is differentiable, which can be verified by executing:
 
 ```@repl gnn
-gradient(() -> sum(sin.(mp(BagNode(U, b)) |> Mill.data)), Flux.params(mp))
+gradient(() -> sum(sin.(mp(BagNode(U, b)))), Flux.params(mp))
 ```
 
 If we put everything together, the GNN implementation is implemented in the following 16 lines:
@@ -107,7 +107,7 @@ function (m::GNN)(g, X, n)
     U = m.lift(X)
     bags = Mill.ScatteredBags(g.fadjlist)
     o = mpstep(m, U, bags, n)
-    m.m(vcat(mean(Mill.data(o), dims = 2), maximum(Mill.data(o), dims = 2)))
+    m.m(vcat(mean(o, dims = 2), maximum(Mill.data(o), dims = 2)))
 end
 
 nothing # hide

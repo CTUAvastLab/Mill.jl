@@ -233,9 +233,9 @@ end
             @inferred a(x, b)
             @inferred a(x, b, w)
             @inferred a(x, b, w_mat)
-            @test eltype(a(x, b)) ===
-                    eltype(a(x, b, w)) ===
-                    eltype(a(x, b, w_mat)) ===
+            @test eltype(a(x, b)) ≡
+                    eltype(a(x, b, w)) ≡
+                    eltype(a(x, b, w_mat)) ≡
                     promote_type(t1, t2)
         end
     end

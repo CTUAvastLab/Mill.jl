@@ -51,7 +51,7 @@ Print summary of parameters of model `m`.
 # Examples
 ```jldoctest
 julia> m = ProductModel(ArrayModel(Dense(2, 3)))
-ProductModel ↦ ArrayModel(identity)
+ProductModel ↦ identity
   └── ArrayModel(Dense(2, 3)) 	# 2 arrays, 9 params, 116 bytes
 
 julia> modelsummary(m)
@@ -82,8 +82,9 @@ function _levelparams(_, m)
     error("Define custom HierarchicalUtils.nodecommshow or Mill._levelparams for $(nameof(typeof(m)))")
 end
 
-# params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
 function nodecommshow(io::IO, @nospecialize(m::AbstractMillModel))
+    # params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
+
     # destructuralize params of special matrices
     destruct(m::AbstractArray{<:Number}) = [m]
     destruct(m) = isempty(m) ? collect(m) : mapreduce(destruct, vcat, collect(m))

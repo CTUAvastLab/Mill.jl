@@ -69,7 +69,7 @@ function AlignedBags(k::Vector{T}) where T <: Integer
     a, v = 1, k[1]
     s = Set{T}(v)
     for (i, x) in enumerate(k[2:end])
-        if x != v
+        if x ≠ v
             !(x in s) || ArgumentError("Scattered bags") |> throw
             push!(b.bags, a:i)
             v = x

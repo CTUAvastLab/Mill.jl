@@ -61,7 +61,7 @@ pm = reflectinmodel(ds, d -> Dense(d, 3))
 We can use the obtained model to perform inference as we would do with any other model.
 
 ```@repl custom
-pm(ds).data
+pm(ds)
 ```
 
 ### Adding custom nodes without [`LazyNode`](@ref)

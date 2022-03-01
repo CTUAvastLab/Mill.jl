@@ -1,5 +1,5 @@
 function _check_mul(A::AbstractMatrix, b::AbstractVector)
-    if size(A, 2) != length(b)
+    if size(A, 2) ≠ length(b)
         DimensionMismatch(
             "Number of columns of A ($(size(A, 2))) must correspond with length of b ($(length(b)))"
         ) |> throw
@@ -7,7 +7,7 @@ function _check_mul(A::AbstractMatrix, b::AbstractVector)
 end
 
 function _check_mul(A::AbstractMatrix, B::AbstractMatrix)
-    if size(A, 2) != size(B, 1)
+    if size(A, 2) ≠ size(B, 1)
         DimensionMismatch(
               "Number of columns of A ($(size(A, 2))) must correspond with number of rows of B ($(size(B, 1)))"
         ) |> throw

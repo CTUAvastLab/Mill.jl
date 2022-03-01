@@ -71,7 +71,7 @@ const BAGS3 = [
 function Mill.unpack2mill(ds::LazyNode{:Sentence})
     s = split.(ds.data, " ")
     x = NGramMatrix(reduce(vcat, s))
-    BagNode(ArrayNode(x), Mill.length2bags(length.(s)))
+    BagNode(x, Mill.length2bags(length.(s)))
 end
 
 _init_agg(t::Type{<:Number}, d) = randn(t, d)
@@ -97,7 +97,7 @@ all_aggregations(t::Type, d) = vcat(nonparam_aggregations(t, d), param_aggregati
 end
 
 for test_f in readdir(".")
-    (endswith(test_f, ".jl") && test_f != "runtests.jl") || continue
+    (endswith(test_f, ".jl") && test_f ≠ "runtests.jl") || continue
     @testset verbose = true "$test_f" begin
         include(test_f)
     end

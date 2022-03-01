@@ -14,8 +14,8 @@ end
     M3 = NGramMatrix([missing, missing])
     @test M1 isa NGramMatrix{String}
     @test M1 isa AbstractMatrix{Int64}
-    @test M2 isa NGramMatrix{Union{String, Missing}}
-    @test M2 isa AbstractMatrix{Union{Int64, Missing}}
+    @test M2 isa NGramMatrix{Maybe{String}}
+    @test M2 isa AbstractMatrix{Maybe{Int64}}
     @test M3 isa NGramMatrix{Missing}
     @test M3 isa AbstractMatrix{Missing}
 
@@ -28,8 +28,8 @@ end
     M3 = NGramMatrix([missing, missing] |> PooledArray)
     @test M1 isa NGramMatrix{<:CodeUnits}
     @test M1 isa AbstractMatrix{Int64}
-    @test M2 isa NGramMatrix{<:Union{CodeUnits, Missing}}
-    @test M2 isa AbstractMatrix{Union{Int64, Missing}}
+    @test M2 isa NGramMatrix{<:Maybe{CodeUnits}}
+    @test M2 isa AbstractMatrix{Maybe{Int64}}
     @test M3 isa NGramMatrix{Missing}
     @test M3 isa AbstractMatrix{Missing}
 
@@ -42,8 +42,8 @@ end
     M3 = NGramMatrix([missing, missing])
     @test M1 isa NGramMatrix{Vector{Int64}}
     @test M1 isa AbstractMatrix{Int64}
-    @test M2 isa NGramMatrix{Union{Vector{Int64}, Missing}}
-    @test M2 isa AbstractMatrix{Union{Int64, Missing}}
+    @test M2 isa NGramMatrix{Maybe{Vector{Int64}}}
+    @test M2 isa AbstractMatrix{Maybe{Int64}}
     @test M3 isa NGramMatrix{Missing}
     @test M3 isa AbstractMatrix{Missing}
 
@@ -78,9 +78,9 @@ end
     @test M1[:, :] == M1
     @test isequal(M2[:, :], M2)
     @test isequal(M3[:, :], M3)
-    @test M1[:, :] !== M1
-    @test M2[:, :] !== M2
-    @test M3[:, :] !== M3
+    @test M1[:, :] ≢ M1
+    @test M2[:, :] ≢ M2
+    @test M3[:, :] ≢ M3
     @test hash(M1[:, :]) == hash(M1)
     @test hash(M2[:, :]) == hash(M2)
     @test hash(M3[:, :]) == hash(M3)
@@ -189,7 +189,7 @@ end
 end
 
 @testset "NGramMatrix multiplication" begin
-    for (n, m) in product([2,3,5], [10, 100, 1000])
+    for (n, m) in product([2,3,5], [10, 100])
         b = 256
         A = randn(10, m)
 
@@ -215,6 +215,41 @@ end
         @test eltype(A * B) == eltype(A)
         @test eltype(A * Bi) == eltype(A)
         @test eltype(A * Bc) == eltype(A)
+    end
+end
+
+@testset "NGramMatrix missing multiplication" begin
+    for (n, m) in product([2,3,5], [10, 100])
+        b = 256
+        A = randn(10, m)
+
+        S1 = [randustring(100) for _ in 1:5]
+        S2 = [missing, S1[2], missing, S1[4], missing]
+        Si = map(i -> ismissing(i) ? i : codeunits(i), S2)
+        Sc = map(i -> ismissing(i) ? i : Int.(i), Si)
+        B1 = NGramMatrix(S1, n, b, m)
+        B2 = NGramMatrix(S2, n, b, m)
+        Bi = NGramMatrix(Si, n, b, m)
+        Bc = NGramMatrix(Sc, n, b, m)
+
+        for c in [1, 3, 5]
+            @test all(ismissing, A * B2[:, c])
+            @test all(ismissing, A * Bi[:, c])
+            @test all(ismissing, A * Bc[:, c])
+        end
+        for c in [2, 4]
+            @test A * B2[:, c] == A * B1[:, c]
+            @test A * Bi[:, c] == A * B1[:, c]
+            @test A * Bc[:, c] == A * B1[:, c]
+        end
+
+        @inferred A * B1
+        @inferred A * Bi
+        @inferred A * Bc
+
+        @test eltype(A * B2) == Maybe{eltype(A)}
+        @test eltype(A * Bi) == Maybe{eltype(A)}
+        @test eltype(A * Bc) == Maybe{eltype(A)}
     end
 end
 
@@ -283,15 +318,15 @@ end
     M3 = NGramMatrix([missing, missing])
     @test M1 == M1
     @test isequal(M1, M1)
-    @test M2 != M2
+    @test M2 ≠ M2
     @test isequal(M2, M2)
-    @test M3 != M3
+    @test M3 ≠ M3
     @test isequal(M3, M3)
-    @test M1 != M2
+    @test M1 ≠ M2
     @test !isequal(M1, M2)
-    @test M1 != M3
+    @test M1 ≠ M3
     @test !isequal(M1, M3)
-    @test M2 != M3
+    @test M2 ≠ M3
     @test !isequal(M2, M3)
 end
 

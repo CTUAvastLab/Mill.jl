@@ -9,7 +9,7 @@ the [`LazyNode`](@ref) after calling [`Mill.unpack2mill`](@ref).
 function Mill.unpack2mill(ds::LazyNode{:Sentence})
     s = split.(ds.data, " ")
     x = NGramMatrix(reduce(vcat, s))
-    BagNode(ArrayNode(x), Mill.length2bags(length.(s)))
+    BagNode(x, Mill.length2bags(length.(s)))
 end
 # output
 ```
@@ -17,28 +17,29 @@ end
 ```jldoctest unpack2mill
 julia> Random.seed!(0);
 
-julia> n = LazyNode{:Sentence}(["foo bar", "baz"])
+julia> n = LazyNode{:Sentence}(["foo", "bar", "baz"])
 LazyNode{:Sentence, Vector{String}, Nothing}:
- "foo bar"
+ "foo"
+ "bar"
  "baz"
 
 julia> m = LazyModel{:Sentence}(BagModel(Dense(2053, 3), SegmentedMean(3), identity))
 LazyModel{Sentence}
-  └── BagModel ↦ SegmentedMean(3) ↦ ArrayModel(identity) 	# 1 arrays, 3 params (all zero), 52 bytes
+  └── BagModel ↦ SegmentedMean(3) ↦ identity 	# 1 arrays, 3 params (all zero), 52 bytes
         └── ArrayModel(Dense(2053, 3)) 	# 2 arrays, 6_162 params, 24.148 KiB
 ```
 
 ```jldoctest unpack2mill; filter=$(DOCTEST_FILTER)
 julia> m(n)
-3×2 ArrayNode{Matrix{Float32}, Nothing}:
- -0.006...  -0.022...
-  0.034...   0.055...
- -0.062...   0.071...
+3×3 Matrix{Float32}:
+ -0.06... -0.03... -0.04...
+  0.02...  0.00... -0.07...
+ -0.00...  0.06... -0.07...
 ```
 
 See also: [`AbstractMillModel`](@ref), [`LazyNode`](@ref), [`Mill.unpack2mill`](@ref).
 """
-struct LazyModel{Name, T <: AbstractMillModel} <: AbstractMillModel
+struct LazyModel{Name,T<:AbstractMillModel} <: AbstractMillModel
     m::T
 end
 
@@ -57,8 +58,8 @@ LazyModel{Sentence}
 
 See also: [`AbstractMillModel`](@ref), [`LazyNode`](@ref), [`Mill.unpack2mill`](@ref).
 """
-LazyModel(Name::Symbol, m::T) where T <: AbstractMillModel = LazyNode{Name, T}(m)
-LazyModel{Name}(m::M) where {Name, M} = LazyModel{Name, M}(m)
+LazyModel(Name::Symbol, m::T) where {T<:AbstractMillModel} = LazyNode{Name,T}(m)
+LazyModel{Name}(m::M) where {Name,M} = LazyModel{Name,M}(m)
 
 Flux.@functor LazyModel
 

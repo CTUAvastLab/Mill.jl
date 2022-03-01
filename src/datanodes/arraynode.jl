@@ -5,7 +5,7 @@ Data node for storing array-like data of type `A` and metadata of type `C`. The 
 
 See also: [`AbstractMillNode`](@ref), [`ArrayModel`](@ref).
 """
-struct ArrayNode{A <: AbstractArray, C} <: AbstractMillNode
+struct ArrayNode{A<:AbstractArray,C} <: AbstractMillNode
     data::A
     metadata::C
 end
@@ -67,7 +67,7 @@ function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::ArrayNode))
     end
 end
 
-function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
+function _show_data(io, n::ArrayNode{T}) where {T<:AbstractArray}
     print(io, "(")
     if ndims(n.data) == 1
         print(io, nameof(T), " of length ", length(n.data))
@@ -76,6 +76,9 @@ function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
     end
     print(io, " with ", eltype(n.data), " elements)")
 end
+
+_arraynode(m) = ArrayNode(m)
+_arraynode(m::AbstractMillNode) = m
 
 Base.hash(e::ArrayNode, h::UInt) = hash((e.data, e.metadata), h)
 (e1::ArrayNode == e2::ArrayNode) = isequal(e1.data == e2.data, true) && e1.metadata == e2.metadata

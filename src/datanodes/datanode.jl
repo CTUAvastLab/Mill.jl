@@ -173,7 +173,7 @@ Recursively apply `f` to data in all leaves of `x`.
 
 # Examples
 ```jldoctest
-julia> n1 = ProductNode(a=ArrayNode(zeros(2,2)), b=ArrayNode(ones(2,2)))
+julia> n1 = ProductNode(a=zeros(2,2), b=ones(2,2))
 ProductNode 	# 2 obs, 16 bytes
   ├── a: ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
   └── b: ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes

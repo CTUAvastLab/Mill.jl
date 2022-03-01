@@ -10,14 +10,12 @@ Pages = ["model_nodes.md"]
 AbstractMillModel
 
 ArrayModel
-identity_model
-IdentityModel
 
 BagModel
 BagModel(::AbstractMillModel, ::Union{AbstractAggregation, BagCount}, ::ArrayModel)
 
 ProductModel
-ProductModel(::Tuple{AbstractMillModel}, ::ArrayModel)
+ProductModel(::Any)
 
 LazyModel
 LazyModel(::Symbol, ::AbstractMillModel)

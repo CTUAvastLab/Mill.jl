@@ -18,12 +18,12 @@ end
     @test MaybeHotVector(missing, 10) isa AbstractVector{Missing}
     @test MaybeHotMatrix([1, 2], 10) isa AbstractMatrix{Bool}
     @test MaybeHotMatrix([missing, missing], 10) isa AbstractMatrix{Missing}
-    @test MaybeHotMatrix([1, missing], 10) isa AbstractMatrix{Union{Bool, Missing}}
+    @test MaybeHotMatrix([1, missing], 10) isa AbstractMatrix{Maybe{Bool}}
 end
 
 @testset "comparisons" begin
     @test MaybeHotVector(2, 10) == MaybeHotVector(2, 10)
-    @test MaybeHotVector(2, 10) != MaybeHotVector(3, 10)
+    @test MaybeHotVector(2, 10) ≠ MaybeHotVector(3, 10)
     @test isequal(MaybeHotVector(1, 10), MaybeHotVector(1, 10))
     @test !isequal(MaybeHotVector(1, 10), MaybeHotVector(2, 10))
 
@@ -31,8 +31,8 @@ end
     @test !isequal(MaybeHotVector(missing, 10), MaybeHotVector(missing, 11))
 
     @test MaybeHotMatrix([7,2], 10) == MaybeHotMatrix([7,2], 10)
-    @test MaybeHotMatrix([7,2], 10) != MaybeHotMatrix([7,3], 10)
-    @test MaybeHotMatrix([7,2], 10) != MaybeHotMatrix([7,2], 11)
+    @test MaybeHotMatrix([7,2], 10) ≠ MaybeHotMatrix([7,3], 10)
+    @test MaybeHotMatrix([7,2], 10) ≠ MaybeHotMatrix([7,2], 11)
     @test isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,3,9], 10))
     @test !isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,4,9], 10))
     @test !isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,4,9], 11))
@@ -147,9 +147,9 @@ end
     @test isequal(W * X2, W * Matrix(X2))
     @test isequal(W * X3, W * Matrix(X3))
 
-    @test eltype(W * x1) === eltype(W * x2) === eltype(W * X1) === eltype(W)
-    @test eltype(W * x3) === eltype(W * X2) === Missing
-    @test eltype(W * X3) === Union{Missing, eltype(W)}
+    @test eltype(W * x1) ≡ eltype(W * x2) ≡ eltype(W * X1) ≡ eltype(W)
+    @test eltype(W * x3) ≡ eltype(W * X2) ≡ Missing
+    @test eltype(W * X3) ≡ Maybe{eltype(W)}
 
     @inferred W * x1
     @inferred W * x2
@@ -172,9 +172,9 @@ end
     mhv4 = MaybeHotVector(missing, 11)
     mhv5 = MaybeHotVector(2, 10)
     @test mhv1 == mhv2
-    @test mhv1 != mhv3
+    @test mhv1 ≠ mhv3
     @test !isequal(mhv1, mhv4)
-    @test mhv1 != mhv5
+    @test mhv1 ≠ mhv5
 
     mhm1 = MaybeHotMatrix([1,2], 10)
     mhm2 = MaybeHotMatrix([1,2], 10)
@@ -182,9 +182,9 @@ end
     mhm4 = MaybeHotMatrix([missing], 10)
     mhm5 = MaybeHotMatrix([1,2], 11)
     @test mhm1 == mhm2
-    @test mhm1 != mhm3
+    @test mhm1 ≠ mhm3
     @test !isequal(mhv1, mhv4)
-    @test mhm1 != mhm5
+    @test mhm1 ≠ mhm5
 end
 
 @testset "onehot and onehotbatch" begin
@@ -263,8 +263,8 @@ end
     mhm = maybehotbatch([1, missing], 1:3)
 
     @test all(isequal.(mhm.I, [1, missing]))
-    @test mhm isa AbstractMatrix{Union{Bool, Missing}}
-    @test mhm isa MaybeHotMatrix{Union{UInt32, Missing}}
+    @test mhm isa AbstractMatrix{Maybe{Bool}}
+    @test mhm isa MaybeHotMatrix{Maybe{UInt32}}
 end
 
 @testset "onecold" begin

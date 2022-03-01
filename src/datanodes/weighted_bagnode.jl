@@ -12,7 +12,7 @@ struct WeightedBagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C} <:
     metadata::C
 
     function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C=nothing) where {T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C}
-        ismissing(d) && any(length.(b.bags) .!= 0) && error("WeightedBagNode with nothing in data cannot have a non-empty bag")
+        ismissing(d) && any(length.(b.bags) .≠ 0) && error("WeightedBagNode with nothing in data cannot have a non-empty bag")
         new{T, B, W, C}(d, b, w, m)
     end
 end
@@ -21,16 +21,20 @@ end
     WeightedBagNode(d::Union{AbstractMillNode, Missing}, b::AbstractBags, w::Vector, m=nothing)
     WeightedBagNode(d::Union{AbstractMillNode, Missing}, b::AbstractVector, w::Vector, m=nothing)
 
-Construct a new [`WeightedBagNode`](@ref) with data `d`, bags `b`, weights `w` and metadata `m`. If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
+Construct a new [`WeightedBagNode`](@ref) with data `d`, bags `b`, weights `w` and metadata `m`.
+
+`d` is either an [`AbstractMillNode`](@ref) or `missing`. Any other type is wrapped in an [`ArrayNode`](@ref).
+
+If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
 
 # Examples
 ```jldoctest
-julia> BagNode(ArrayNode(NGramMatrix(["s1", "s2"])), bags([1:2, 0:-1]), [0.2, 0.8])
-BagNode 	# 2 obs, 184 bytes
+julia> WeightedBagNode(ArrayNode(NGramMatrix(["s1", "s2"])), bags([1:2, 0:-1]), [0.2, 0.8])
+WeightedBagNode 	# 2 obs, 184 bytes
   └── ArrayNode(2053×2 NGramMatrix with Int64 elements) 	# 2 obs, 140 bytes
 
-julia> BagNode(ArrayNode(zeros(2, 2)), [1, 2], [1, 2])
-BagNode 	# 2 obs, 160 bytes
+julia> WeightedBagNode(zeros(2, 2), [1, 2], [1, 2])
+WeightedBagNode 	# 2 obs, 160 bytes
   └── ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
 ```
 
@@ -38,6 +42,7 @@ See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@re
 """
 WeightedBagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, weights::Vector, metadata=nothing) =
     WeightedBagNode(d, bags(b), weights, metadata)
+WeightedBagNode(d, b, w, m=nothing) = WeightedBagNode(_arraynode(d), b, w, m)
 
 
 Flux.@functor WeightedBagNode

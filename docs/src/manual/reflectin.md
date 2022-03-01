@@ -7,13 +7,13 @@ using Mill, Flux
 Since constructions of large models can be a tedious and error-prone process, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) provides [`reflectinmodel`](@ref) function that helps to automate it. The simplest definition accepts only one argument, a sample `ds`, and returns a compatible model:
 
 ```@repl reflection
-ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
+ds = BagNode(ProductNode((BagNode(randn(4, 10),
                                   [1:2, 3:4, 5:5, 6:7, 8:10]),
-                          ArrayNode(randn(3, 5)),
-                          BagNode(BagNode(ArrayNode(randn(2, 30)),
+                          randn(3, 5),
+                          BagNode(BagNode(randn(2, 30),
                                           [i:i+1 for i in 1:2:30]),
                                   [1:3, 4:6, 7:9, 10:12, 13:15]),
-                          ArrayNode(randn(2, 5)))),
+                          randn(2, 5))),
              [1:1, 2:3, 4:5]);
 printtree(ds)
 
