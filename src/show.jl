@@ -1,8 +1,25 @@
 import HierarchicalUtils: nodeshow, nodecommshow
 
+"""
+    datasummary(n::AbstractMillNode)
+
+Print summary of parameters of node `n`.
+
+# Examples
+```jldoctest
+julia> n = ProductNode(ArrayNode(randn(2, 3)))
+ProductNode 	# 3 obs, 8 bytes
+  └── ArrayNode(2×3 Array with Float64 elements) 	# 3 obs, 96 bytes
+
+julia> datasummary(n)
+"Data summary: 3 obs, 112 bytes."
+```
+
+See also: [`modelsummary`](@ref).
+"""
 function datasummary(n::AbstractMillNode)
     bytes = Base.format_bytes(Base.summarysize(n))
-    string("# Summary: ", nobs(n), " obs, ", bytes, ".")
+    string("Data summary: ", nobs(n), " obs, ", bytes, ".")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillNode))
@@ -26,12 +43,29 @@ end
 
 _show_data(io, _) = print(io)
 
-# params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
+"""
+    modelsummary(m::AbstractMillModel)
+
+Print summary of parameters of model `m`.
+
+# Examples
+```jldoctest
+julia> m = ProductModel(ArrayModel(Dense(2, 3)))
+ProductModel ↦ ArrayModel(identity)
+  └── ArrayModel(Dense(2, 3)) 	# 2 arrays, 9 params, 116 bytes
+
+julia> modelsummary(m)
+"Model summary: 2 arrays, 9 params, 116 bytes"
+```
+
+See also: [`datasummary`](@ref).
+"""
 function modelsummary(m::AbstractMillModel)
+    # params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
     ps = Flux.params(m)
     npars = Flux.underscorise(sum(length, ps))
     bytes = Base.format_bytes(sum(Base.summarysize, collect(ps.params)))
-    string("# Summary: ", length(ps), " arrays, ", npars, " params, ", bytes)
+    string("Model summary: ", length(ps), " arrays, ", npars, " params, ", bytes)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(m::AbstractMillModel))
