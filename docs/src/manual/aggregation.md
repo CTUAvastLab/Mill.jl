@@ -186,7 +186,7 @@ a_mean_bc(X, bags)
 
 The matrix now has three rows, the last one storing the size of the bag.
 
-[Model Reflection](@ref) adds [`BagCount`](@ref) after each aggregation operator by default.
+[Model reflection](@ref) adds [`BagCount`](@ref) after each aggregation operator by default.
 
 ```@repl aggregation
 bn = BagNode(n, bags)
