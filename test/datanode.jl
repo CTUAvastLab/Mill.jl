@@ -1,14 +1,14 @@
 md2 = fill("metadata", 2)
 md3 = fill("metadata", 3)
 md4 = fill("metadata", 4)
-a = BagNode(ArrayNode(rand(3, 4)), [1:4], md4)
-b = BagNode(ArrayNode(rand(3, 4)), [1:2, 3:4], md4)
-c = BagNode(ArrayNode(rand(3, 4)), [1:1, 2:2, 3:4], md4)
-d = BagNode(ArrayNode(rand(3, 4)), [1:4, 0:-1], md4)
-wa = WeightedBagNode(ArrayNode(rand(3, 4)), [1:4], rand(1:4, 4) .|> Float64, md4)
-wb = WeightedBagNode(ArrayNode(rand(3, 4)), [1:2, 3:4], rand(1:4, 4) .|> Float64, md4)
-wc = WeightedBagNode(ArrayNode(rand(3, 4)), [1:1, 2:2, 3:4], rand(1:4, 4) .|> Float64, md4)
-wd = WeightedBagNode(ArrayNode(rand(3, 4)), [1:4, 0:-1], rand(1:4, 4) .|> Float64, md4)
+a = BagNode(rand(3, 4), [1:4], md4)
+b = BagNode(rand(3, 4), [1:2, 3:4], md4)
+c = BagNode(rand(3, 4), [1:1, 2:2, 3:4], md4)
+d = BagNode(rand(3, 4), [1:4, 0:-1], md4)
+wa = WeightedBagNode(rand(3, 4), [1:4], rand(1:4, 4) .|> Float64, md4)
+wb = WeightedBagNode(rand(3, 4), [1:2, 3:4], rand(1:4, 4) .|> Float64, md4)
+wc = WeightedBagNode(rand(3, 4), [1:1, 2:2, 3:4], rand(1:4, 4) .|> Float64, md4)
+wd = WeightedBagNode(rand(3, 4), [1:4, 0:-1], rand(1:4, 4) .|> Float64, md4)
 e = ArrayNode(rand(2, 2), md2)
 
 f = ProductNode((wb,b), md2)
@@ -20,7 +20,7 @@ i = ProductNode((
                         b,
                         BagNode(
                                 BagNode(
-                                        ArrayNode(rand(2, 4)),
+                                        rand(2, 4),
                                         [1:1, 2:2, 3:3, 4:4]
                                        ),
                                 [1:3, 4:4]
@@ -228,8 +228,8 @@ end
 end
 
 @testset "nested ragged array" begin
-    x = BagNode(ArrayNode(rand(3,10)),[1:2,3:3,0:-1,4:5,6:6,7:10])
-    y = BagNode(x,[1:2,3:3,4:5,6:6])
+    x = BagNode(rand(3,10),[1:2,3:3,0:-1,4:5,6:6,7:10])
+    y = BagNode(x, [1:2,3:3,4:5,6:6])
     @test y[1].data.data.data == x.data.data[:,1:3]
     @test y[1].data.bags.bags == [1:2,3:3]
     @test y[1:2].data.data.data == x.data.data[:,1:3]
@@ -255,7 +255,8 @@ end
 end
 
 @testset "sparsify and mapdata" begin
-    x = ProductNode((ProductNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))))
+    x = ProductNode((ProductNode((randn(5,5), zeros(5,5))),
+                     zeros(5,5)))
     xs = mapdata(i -> sparsify(i, 0.05), x)
     @test xs.data[2].data isa SparseMatrixCSC
     @test xs.data[1].data[2].data isa SparseMatrixCSC
@@ -263,7 +264,9 @@ end
 end
 
 @testset "missing mapdata" begin
-    x = ProductNode((ProductNode((ArrayNode(randn(5,5)), ArrayNode(zeros(5,5)))), ArrayNode(zeros(5,5))), BagNode(missing, AlignedBags([0:-1]), nothing))
+    x = ProductNode((ProductNode((randn(5,1), zeros(5,1))),
+                     zeros(5,1),
+                     BagNode(missing, [0:-1])))
     xs = mapdata(i -> sparsify(i, 0.05), x)
     @test xs.data[2].data isa SparseMatrixCSC
     @test xs.data[1].data[2].data isa SparseMatrixCSC
@@ -273,74 +276,74 @@ end
 @testset "equals and hash" begin
     a2 = deepcopy(a)
     i2 = deepcopy(i)
-    k2 = ProductNode((a = wb, b = b), md2)
+    k2 = ProductNode((a = wb, b), md2)
     metadata1 = fill("metadata", 4)
     metadata2 = "Oh, Hi Mark"
     r = rand(3,4)
-    x1 = BagNode(ArrayNode(r),[1:4], metadata1)
-    x2 = BagNode(ArrayNode(r),[1:4], metadata1)
-    x3 = BagNode(ArrayNode(r),[1:4], metadata2)
+    x1 = BagNode(r, [1:4], metadata1)
+    x2 = BagNode(r, [1:4], metadata1)
+    x3 = BagNode(r, [1:4], metadata2)
 
-    @test a != b
-    @test a != i
+    @test a ≠ b
+    @test a ≠ i
     @test a == a2
     @test i == i2
-    @test i != k
+    @test i ≠ k
     @test k == k2
     @test x1 == x2
-    @test x1 != x3
-    @test hash(a) !== hash(b)
-    @test hash(a) === hash(a2)
-    @test hash(a) !== hash(i)
-    @test hash(i) === hash(i2)
-    @test hash(i) !== hash(k)
-    @test hash(k) === hash(k2)
-    @test hash(x1) === hash(x2)
-    @test hash(x1) !== hash(x3)
+    @test x1 ≠ x3
+    @test hash(a) ≢ hash(b)
+    @test hash(a) ≡ hash(a2)
+    @test hash(a) ≢ hash(i)
+    @test hash(i) ≡ hash(i2)
+    @test hash(i) ≢ hash(k)
+    @test hash(k) ≡ hash(k2)
+    @test hash(x1) ≡ hash(x2)
+    @test hash(x1) ≢ hash(x3)
 end
 
 @testset "equals with missings" begin
     a = ArrayNode([0.0 missing 0.0 0.0 1.0])
     b = ArrayNode([0.0 missing 0.0 0.0 2.0])
     c = ArrayNode([0.0 missing 0.0 missing 2.0])
-    @test a != a
+    @test a ≠ a
     @test isequal(a, a)
-    @test a != b
+    @test a ≠ b
     @test !isequal(a, b)
-    @test b != b
+    @test b ≠ b
     @test isequal(b, b)
-    @test a != c
+    @test a ≠ c
     @test !isequal(a, c)
-    @test b != c
+    @test b ≠ c
     @test !isequal(b, c)
-    @test c != c
+    @test c ≠ c
     @test isequal(c, c)
 
     d = ProductNode(; a, b)
-    e = ProductNode((; a=a, b=b), [])
+    e = ProductNode((; a, b), [])
     @test isequal(d, d)
     @test !isequal(d, e)
-    @test d != d
-    @test d != e
+    @test d ≠ d
+    @test d ≠ e
 
     f = BagNode(a,[1:4])
     g = BagNode(b,[1:4])
-    @test f != f
-    @test f != g
+    @test f ≠ f
+    @test f ≠ g
     @test isequal(f, f)
     @test !isequal(f, g)
 
     wf = WeightedBagNode(a, [1:4], rand(1:4, 4))
     wg = WeightedBagNode(b, [1:4], rand(1:4, 4))
-    @test wf != wf
-    @test wf != wg
+    @test wf ≠ wf
+    @test wf ≠ wg
     @test isequal(wf, wf)
     @test !isequal(wf, wg)
 
     h = LazyNode(:Test, a.data)
     i = LazyNode(:Test, b.data)
     @test isequal(h == h, missing)
-    @test h != i
+    @test h ≠ i
     @test isequal(h, h)
     @test !isequal(h, i)
 end

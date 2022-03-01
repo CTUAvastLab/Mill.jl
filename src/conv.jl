@@ -65,7 +65,7 @@ function bagconv!(o, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitR
         for ri in b 
             o[:, ri] .= 0
             for (i, k) in enumerate(offsets)
-                if first(b) <= k + ri  <= last(b)
+                if first(b) ≤ k + ri  ≤ last(b)
                     _addmatvec!(o, ri, W[i], x, k + ri)
                 end
             end
@@ -80,7 +80,7 @@ function bagconv!(o, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vect
         for (bi, ri) in enumerate(b) 
             o[:, ri] .= 0
             for (i, k) in enumerate(offsets)
-                if 0 < k + bi  <= length(b)
+                if 0 < k + bi  ≤ length(b)
                     _addmatvec!(o, ri, W[i], x, b[k+bi])
                 end
             end
@@ -105,7 +105,7 @@ function ∇wbagconv!(∇W, Δ, x, bags::T, W...) where {T<:Union{AlignedBags, V
     for b in bags
         for ri in b 
             for (i, k) in enumerate(offsets)
-                if first(b) <= k + ri  <= last(b)
+                if first(b) ≤ k + ri  ≤ last(b)
                     _addvecvect!(∇W[i], Δ, ri, x, k + ri)
                 end
             end
@@ -119,7 +119,7 @@ function ∇wbagconv!(∇W, Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,
     for b in bags
         for (bi, ri) in enumerate(b) 
             for (i, k) in enumerate(offsets)
-                if 0 < k + bi  <= length(b)
+                if 0 < k + bi  ≤ length(b)
                     _addvecvect!(∇W[i], Δ, ri, x, b[k+bi])
                 end
             end
@@ -142,7 +142,7 @@ function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{U
     for b in bags
         for ri in b 
             for (i, k) in enumerate(offsets)
-                if first(b) <= k + ri  <= last(b)
+                if first(b) ≤ k + ri  ≤ last(b)
                     _addmattvec!(∇x, k + ri, W[i], Δ, ri)
                 end
             end
@@ -157,7 +157,7 @@ function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{
     for b in bags
         for (bi, ri) in enumerate(b) 
             for (i, k) in enumerate(offsets)
-                if 0 < k + bi  <= length(b)
+                if 0 < k + bi  ≤ length(b)
                     _addmattvec!(∇x, b[k+bi], W[i], Δ, ri)
                 end
             end
@@ -173,7 +173,7 @@ function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{
     for b in bags
         for ri in b 
             for (i, k) in enumerate(offsets)
-                if first(b) <= k + ri  <= last(b)
+                if first(b) ≤ k + ri  ≤ last(b)
                     _addmattvec!(∇x, k + ri, W[i], Δ, ri)
                     _addvecvect!(∇W[i], Δ, ri, x, k + ri)
                 end
@@ -190,7 +190,7 @@ function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector
     for b in bags
         for (bi, ri) in enumerate(b) 
             for (i, k) in enumerate(offsets)
-                if first(b) <= k + ri  <= last(b)
+                if first(b) ≤ k + ri  ≤ last(b)
                     _addmattvec!(∇x, b[k+bi], W[i], Δ, ri)
                     _addvecvect!(∇W[i], Δ, ri, x, b[k+bi])
                 end
@@ -229,7 +229,7 @@ function convsum(bags, xs...)
     for b in bags
         for ri in b 
             for (i, k) in enumerate(offsets)
-                if first(b) <= k + ri  <= last(b)
+                if first(b) ≤ k + ri  ≤ last(b)
                     @views o[:, ri] .+= xs[i][:, k + ri]
                 end
             end
@@ -244,7 +244,7 @@ function ∇convsum(Δ, bags, n)
     for b in bags
         for ri in b 
             for (i, k) in enumerate(offsets)
-                if first(b) <= k + ri  <= last(b)
+                if first(b) ≤ k + ri  ≤ last(b)
                     @views o[i][:, k + ri] .+= Δ[:, ri]
                 end
             end

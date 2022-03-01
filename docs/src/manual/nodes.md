@@ -44,11 +44,11 @@ We can apply the model now with `AM(AN)` to get another [`ArrayNode`](@ref) and 
 
 ```@repl nodes
 AM(AN)
-f(X) == AM(AN) |> Mill.data
+f(X) == AM(AN)
 ```
 
 !!! ukn "Model outputs"
-    A convenient property of all `Mill` models is that after applying them to a corresponding data node we **always** obtain an [`ArrayNode`](@ref) as output regardless of the type and complexity of the model. This becomes important later.
+    A convenient property of all `Mill` [`AbstractMillModel`] nodes is that after applying them to a corresponding data node we **always** obtain an array as output regardless of the type and complexity of the model. This becomes important later.
 
 The most common interpretation of the data inside [`ArrayNode`](@ref)s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, [`ArrayNode`](@ref)s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any [`AbstractMillNode`](@ref) with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
 
@@ -62,20 +62,23 @@ nobs(AN)
 
 ## [`BagNode`](@ref)
 
-[`BagNode`](@ref) is represents the standard *multiple instance learning* problem, that is, each sample is a *bag* containing an arbitrary number of *instances*. In the simplest case, each instance is a vector:
+[`BagNode`](@ref) represents the standard *multiple instance learning* problem, that is, each sample is a *bag* containing an arbitrary number of *instances*. In the simplest case, each instance is a vector:
 
 ```@repl nodes
-BN = BagNode(AN, [1:3, 4:4])
+BN = BagNode(AN, [1:2, 0:-1, 3:3])
 ```
 
-where for simplicity we used `AN` from the previous example. Each [`BagNode`](@ref) carries `data` and `bags` fields:
+where for simplicity we used `AN` from the previous example. It is also possible to use data
+directly, in such case it is wrapped in an [`ArrayNode`](@ref) automatically.
+
+Each [`BagNode`](@ref) carries `data` and `bags` fields:
 
 ```@repl nodes
 Mill.data(BN)
 BN.bags
 ```
 
-Here, `data` can be an arbitrary [`AbstractMillNode`](@ref) storing representation of instances ([`ArrayNode`](@ref) in this case) and `bags` field contains information, which instances belong to which bag. In this specific case `bn` stores three bags (samples). The first one consists of a single instance `{[1.0, 4.0]}` (first column of `AN`) and the second one of two instances `{[2.0, 5.0], [3.0, 6.0]}`. We can see that we deal with two top-level samples (bags):
+Here, `data` can be an arbitrary [`AbstractMillNode`](@ref) storing representation of instances ([`ArrayNode`](@ref) in this case) and `bags` field contains information, which instances belong to which bag. In this specific case `bn` stores three bags (samples). The first one consists of a two instances `{[1.0, 4.0], [2.0, 5.0]}` (first two columns of `AN`), the second one is empty, and the thirs bag contains one instance `{[3.0, 6.0]}`. We can see that we deal with two top-level samples (bags):
 
 ```@repl nodes
 nobs(BN)
@@ -110,7 +113,7 @@ Each [`BagNode`](@ref) is processed by a [`BagModel`](@ref), which contains two 
 ```@repl nodes
 im = ArrayModel(Dense(2, 3))
 a = SegmentedMax(3)
-bm = ArrayModel(Dense(3, 4))
+bm = Dense(3, 4)
 BM = BagModel(im, a, bm)
 ```
 
@@ -120,7 +123,7 @@ The first network submodel (called instance model `im`) is responsible for conve
 y = im(AN)
 ```
 
-Note that because of the property mentioned above, the output of instance model `im` will always be an [`ArrayNode`](@ref) wrapping a matrix. We get four columns, one for each instance. This result is then used in [`SegmentedMax`](@ref) operator `a` which takes vector representation of all instances and produces a **single** vector per bag:
+Note that because of the property mentioned above, the output of instance model `im` will always be a `Matrix`. We get four columns, one for each instance. This result is then used in [`SegmentedMax`](@ref) operator `a` which takes vector representation of all instances and produces a **single** vector per bag:
 
 ```@repl nodes
 y = a(y, BN.bags)
@@ -165,11 +168,11 @@ Analogically, the [`ProductModel`](@ref) contains a (`Named`)`Tuple` of (sub)mod
 
 ```@repl nodes
 ms = (a=AM, b=BM)
-m = ArrayModel(Dense(7, 2))
+m = Dense(7, 2)
 PM = ProductModel(ms, m)
 ```
 
-Again, since the library is based on the property that the output of each model is an [`ArrayNode`](@ref), the product model applies models from `ms` to appropriate children and vertically concatenates the output, which is then processed by model `m`. An example of model processing the above sample would be:
+Again, since the library is based on the property that the output of each model is an array, the product model applies models from `ms` to appropriate children and vertically concatenates the output, which is then processed by model `m`. An example of model processing the above sample would be:
 
 ```@repl nodes
 y = PM.m(vcat(PM[:a](PN[:a]), PM[:b](PN[:b])))

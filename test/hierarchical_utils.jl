@@ -30,7 +30,7 @@ function Mill.unpack2mill(ds::LazyNode{:Codons})
     s = ds.data
     ss = map(x -> reduce.(*, partition(x, 3)),s)
     x = reduce(hcat, map(x->Flux.onehotbatch(x, possibilities), ss))
-    BagNode(ArrayNode(x), Mill.length2bags(length.(ss)))
+    BagNode(x, Mill.length2bags(length.(ss)))
 end
 
 # specification of printing
@@ -56,21 +56,21 @@ end
 end
 
 @testset "getindex on strings" begin
-    @test n2[""] === n2
-    @test n2["E"] === n1
-    @test n2["I"] === b
-    @test n2["K"] === an1
-    @test n2["M"] === wb
-    @test n2["O"] === an2
-    @test n2["U"] === an3
+    @test n2[""] ≡ n2
+    @test n2["E"] ≡ n1
+    @test n2["I"] ≡ b
+    @test n2["K"] ≡ an1
+    @test n2["M"] ≡ wb
+    @test n2["O"] ≡ an2
+    @test n2["U"] ≡ an3
 
-    @test n2m[""] === n2m
-    @test n2m["E"] === n1m
-    @test n2m["I"] === bm
-    @test n2m["K"] === an1m
-    @test n2m["M"] === wbm
-    @test n2m["O"] === an2m
-    @test n2m["U"] === an3m
+    @test n2m[""] ≡ n2m
+    @test n2m["E"] ≡ n1m
+    @test n2m["I"] ≡ bm
+    @test n2m["K"] ≡ an1m
+    @test n2m["M"] ≡ wbm
+    @test n2m["O"] ≡ an2m
+    @test n2m["U"] ≡ an3m
 end
 
 @testset "children" begin
@@ -159,11 +159,11 @@ end
 
     @test buf_printtree(n2m, trav=true) ==
         """
-        ProductModel ↦ ArrayModel(Dense(20, 10)) [""] 	# 2 arrays, 210 params, 920 bytes
-          ├── ProductModel ↦ ArrayModel(Dense(20, 10)) ["E"] 	# 2 arrays, 210 params, 920 bytes
-          │     ├─── b: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["I"] 	# 4 arrays, 240 params, 1.094 KiB
+        ProductModel ↦ Dense(20, 10) [""] 	# 2 arrays, 210 params, 920 bytes
+          ├── ProductModel ↦ Dense(20, 10) ["E"] 	# 2 arrays, 210 params, 920 bytes
+          │     ├─── b: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) ["I"] 	# 4 arrays, 240 params, 1.094 KiB
           │     │         └── ArrayModel(Dense(3, 10)) ["K"] 	# 2 arrays, 40 params, 240 bytes
-          │     └── wb: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["M"] 	# 4 arrays, 240 params, 1.094 KiB
+          │     └── wb: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) ["M"] 	# 4 arrays, 240 params, 1.094 KiB
           │               └── ArrayModel(Dense(17, 10)) ["O"] 	# 2 arrays, 180 params, 800 bytes
           └── ArrayModel(Dense(10, 10)) ["U"] 	# 2 arrays, 110 params, 520 bytes
         """
@@ -188,7 +188,7 @@ end
     @test buf_printtree(m, trav=true) ==
         """
         LazyModel{Codons} [""]
-          └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) ["U"] 	# 4 arrays, 240 params, 1.094 KiB
+          └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) ["U"] 	# 4 arrays, 240 params, 1.094 KiB
                 └── ArrayModel(Dense(64, 10)) ["k"] 	# 2 arrays, 650 params, 2.617 KiB
         """
 end

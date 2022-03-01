@@ -31,7 +31,7 @@ _typemin(::Type{Maybe{T}}) where T = typemin(T)
 
 function _check_agg(a::AbstractAggregation, X::Missing) end
 function _check_agg(a::AbstractAggregation, X::AbstractMatrix)
-    if size(X, 1) != length(a.ψ)
+    if size(X, 1) ≠ length(a.ψ)
         DimensionMismatch(
             "Different number of rows in input ($(size(X, 2))) and aggregation ($(length(a.ψ)))"
         ) |> throw
@@ -53,8 +53,6 @@ function Base.reduce(::typeof(vcat), as::Vector{<:AbstractAggregation})
 end
 
 include("bagcount.jl")
-
-(a::Union{AbstractAggregation, BagCount})(x::ArrayNode, args...) = ArrayNode(a(x.data, args...))
 
 # definitions for mixed aggregations
 const names = ["Sum", "Mean", "Max", "PNorm", "LSE"]

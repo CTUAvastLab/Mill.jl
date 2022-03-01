@@ -3,7 +3,7 @@ an1 = ArrayNode(rand(3, 4))
 b = BagNode(an1, [1:4, 0:-1], md)
 an2 = ArrayNode(randn(5, 4))
 wb = WeightedBagNode(an2, [1:2, 3:4], rand(4), md)
-pn = ProductNode(b=b, wb=wb)
+pn = ProductNode(; b, wb)
 an3 = ArrayNode(rand(10, 2))
 x = ProductNode((pn, an3))
 m = reflectinmodel(x)
@@ -19,11 +19,8 @@ m = reflectinmodel(x)
 
     ls = list_lens(m)
     all_nodes = NodeIterator(m) |> collect
-    all_fields = vcat(all_nodes, [m.m, m.m.m,
-                      m.ms[1].m, m.ms[1].m.m,
-                      m.ms[1].ms.b.im.m, m.ms[1].ms.b.a, m.ms[1].ms.b.bm, m.ms[1].ms.b.bm.m,
-                      m.ms[1].ms.wb.im.m, m.ms[1].ms.wb.a, m.ms[1].ms.wb.bm, m.ms[1].ms.wb.bm.m,
-                      m.ms[2].m])
+    all_fields = vcat(all_nodes, [m.m, m.ms[1].m, m.ms[1].ms.b.im.m, m.ms[1].ms.b.a, m.ms[1].ms.b.bm,
+                      m.ms[1].ms.wb.im.m, m.ms[1].ms.wb.a, m.ms[1].ms.wb.bm, m.ms[2].m])
 
     @test all(l -> get(m, l) in all_fields, ls)
     @test all(n -> n in all_fields, [walk(m, t) for t in list_traversal(m)])
@@ -36,12 +33,12 @@ end
 @testset "find_lens" begin
     for t in list_traversal(x)
         ls = find_lens(x, x[t])
-        @test all(l -> get(x, l) === x[t], ls)
+        @test all(l -> get(x, l) ≡ x[t], ls)
     end
 
     for t in list_traversal(m)
         ls = find_lens(m, m[t])
-        @test all(l -> get(m, l) === m[t], ls)
+        @test all(l -> get(m, l) ≡ m[t], ls)
     end
 end
 
@@ -51,7 +48,7 @@ end
 
     end
     for t in list_traversal(m)
-        @test all(t .=== vcat([lens2code(m, l) for l in code2lens(m, t)]...))
+        @test all(t .≡ vcat([lens2code(m, l) for l in code2lens(m, t)]...))
     end
 end
 
@@ -70,13 +67,13 @@ end
     for t in list_traversal(x)
         x2 = deepcopy(x)
         x3 = replacein(x2, x2[t], x[t])
-        @test x3[t] === x[t]
+        @test x3[t] ≡ x[t]
     end
 
     for t in list_traversal(m)
         m2 = deepcopy(m)
         m3 = replacein(m2, m2[t], m[t])
-        @test m3[t] === m[t]
+        @test m3[t] ≡ m[t]
     end
 end
 

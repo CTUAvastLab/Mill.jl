@@ -26,11 +26,11 @@
     @test datasummary(bn) == "Data summary: 2 obs, 224 bytes."
 
     bnm = reflectinmodel(bn, d -> Dense(d, 10), SegmentedMean)
-    @test repr(bnm) == "BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))"
+    @test repr(bnm) == "BagModel ↦ SegmentedMean(10) ↦ Dense(10, 10)"
     @test repr(bnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), bnm) == 
         """
-        BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10)) 	# 3 arrays, 120 params, 600 bytes
+        BagModel ↦ SegmentedMean(10) ↦ Dense(10, 10) 	# 3 arrays, 120 params, 600 bytes
           └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes"""
     @test modelsummary(bnm) == "Model summary: 5 arrays, 150 params, 800 bytes"
 
@@ -43,11 +43,11 @@
     @test datasummary(wbn) == "Data summary: 2 obs, 312 bytes."
 
     wbnm = reflectinmodel(wbn)
-    @test repr(wbnm) == "BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))"
+    @test repr(wbnm) == "BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10)"
     @test repr(wbnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), wbnm) == 
         """
-        BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
+        BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) 	# 4 arrays, 240 params, 1.094 KiB
           └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes"""
     @test modelsummary(wbnm) == "Model summary: 6 arrays, 270 params, 1.289 KiB"
 
@@ -63,14 +63,14 @@
     @test datasummary(pn) == "Data summary: 2 obs, 616 bytes."
 
     pnm = reflectinmodel(pn, d -> Dense(d, 10), BagCount ∘ SegmentedMean)
-    @test repr(pnm) == "ProductModel ↦ ArrayModel(Dense(20, 10))"
+    @test repr(pnm) == "ProductModel ↦ Dense(20, 10)"
     @test repr(pnm; context=:compact => true) == "ProductModel"
     @test repr(MIME("text/plain"), pnm) ==
         """
-        ProductModel ↦ ArrayModel(Dense(20, 10)) 	# 2 arrays, 210 params, 920 bytes
-          ├─── bn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ ArrayModel(Dense(11, 10)) 	# 3 arrays, 130 params, 640 bytes
+        ProductModel ↦ Dense(20, 10) 	# 2 arrays, 210 params, 920 bytes
+          ├─── bn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ Dense(11, 10) 	# 3 arrays, 130 params, 640 bytes
           │          └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
-          └── wbn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ ArrayModel(Dense(11, 10)) 	# 3 arrays, 130 params, 640 bytes
+          └── wbn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ Dense(11, 10) 	# 3 arrays, 130 params, 640 bytes
                      └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes"""
     @test modelsummary(pnm) == "Model summary: 12 arrays, 530 params, 2.539 KiB"
 
@@ -92,7 +92,7 @@
     @test repr(MIME("text/plain"), lnm) == 
         """
         LazyModel{Sentence}
-          └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
+          └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) 	# 4 arrays, 240 params, 1.094 KiB
                 └── ArrayModel(Dense(2053, 10)) 	# 2 arrays, 20_540 params, 80.312 KiB"""
     @test modelsummary(lnm) == "Model summary: 6 arrays, 20_780 params, 81.406 KiB"
 end

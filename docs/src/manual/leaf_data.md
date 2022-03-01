@@ -133,7 +133,7 @@ m(ds)
 We now obtain a matrix with three columns, each corresponding to one of the clients. Now we can for example calculate gradients with respect to the model parameters:
 
 ```@repl leafs
-gradient(() -> sum(Mill.data(m(ds))), Flux.params(m))
+gradient(() -> sum(m(ds)), Flux.params(m))
 ```
 
 !!! ukn "Numerical features"

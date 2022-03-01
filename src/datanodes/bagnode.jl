@@ -2,8 +2,8 @@
     BagNode{T <: Union{AbstractMillNode, Missing}, B <: AbstractBags, C} <: AbstractBagNode
 
 Data node that represents a multi-instance learning problem.
-Contains instances stored in a subtree of type `T`,
-bag indices of type `B` and optional metadata of type `C`.
+
+Contains instances stored in a subtree of type `T`, bag indices of type `B` and optional metadata of type `C`.
 
 See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref),
     [`AbstractMillNode`](@ref), [`BagModel`](@ref).
@@ -21,10 +21,13 @@ struct BagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, C} <: AbstractBa
 end
 
 """
-    BagNode(d::Union{AbstractMillNode, Missing}, b::AbstractBags, m=nothing)
-    BagNode(d::Union{AbstractMillNode, Missing}, b::AbstractVector, m=nothing)
+    BagNode(d, b::AbstractBags, m=nothing)
+    BagNode(d, b::AbstractVector, m=nothing)
 
 Construct a new [`BagNode`](@ref) with data `d`, bags `b`, and metadata `m`.
+
+`d` is either an [`AbstractMillNode`](@ref) or `missing`. Any other type is wrapped in an [`ArrayNode`](@ref).
+
 If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
 
 # Examples
@@ -33,7 +36,7 @@ julia> BagNode(ArrayNode(maybehotbatch([1, missing, 2], 1:2)), AlignedBags([1:1,
 BagNode 	# 2 obs, 104 bytes
   └── ArrayNode(2×3 MaybeHotMatrix with Union{Missing, Bool} elements) 	# 3 obs, 87 bytes
 
-julia> BagNode(ArrayNode(randn(2, 5)), [1, 2, 2, 1, 1])
+julia> BagNode(randn(2, 5), [1, 2, 2, 1, 1])
 BagNode 	# 2 obs, 200 bytes
   └── ArrayNode(2×5 Array with Float64 elements) 	# 5 obs, 128 bytes
 ```
@@ -42,6 +45,7 @@ See also: [`WeightedBagNode`](@ref), [`AbstractBagNode`](@ref),
     [`AbstractMillNode`](@ref), [`BagModel`](@ref).
 """
 BagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, m=nothing) = BagNode(d, bags(b), m)
+BagNode(d, b, m=nothing) = BagNode(_arraynode(d), b, m)
 
 Flux.@functor BagNode
 

@@ -21,7 +21,7 @@ WeightedBagNode
 WeightedBagNode(::AbstractMillNode, ::AbstractVector, ::Vector, m)
 
 ProductNode
-ProductNode(; ns...)
+ProductNode(::Any)
 
 LazyNode
 LazyNode(::Symbol, ::Any)

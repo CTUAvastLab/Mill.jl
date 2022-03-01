@@ -9,21 +9,26 @@ struct ProductNode{T, C} <: AbstractProductNode
     data::T
     metadata::C
 
-    function ProductNode{T, C}(data::T, metadata::C) where {T, C}
-        @assert(length(data) >= 1 && all(x -> nobs(x) == nobs(data[1]), data),
-                "All subtrees must have an equal amount of instances!")
-        new{T, C}(data, metadata)
+    function ProductNode(data::Union{Tuple,NamedTuple,AbstractVector}, metadata)
+        @assert length(data) ≥ 1 "Provide at least one subtree!"
+        data = map(_arraynode, data)
+        l = nobs(data[1])
+        @assert all(n -> nobs(n) == l, data) "All subtrees must have an equal amount of instances!"
+        new{typeof(data), typeof(metadata)}(data, metadata)
     end
 end
 
 """
-    ProductNode(ds, m=nothing)
+    ProductNode(dss, m=nothing)
+    ProductNode(; dss...)
 
-Construct a new [`ProductNode`](@ref) with data `ds`, and metadata `m`.
+Construct a new [`ProductNode`](@ref) with data `dss`, and metadata `m`.
 
-`ds` should be a `Tuple` or `NamedTuple` and all its elements must contain
-the same number of observations. If  `ds` is an [`AbstractMillNode`](@ref) a
-one-element `Tuple` is created.
+`dss` should be a `Tuple` or `NamedTuple` and all its elements must contain
+the same number of observations.
+
+If any element of `dss` is not an [`AbstractMillNode`](@ref) it is first wrapped in
+an [`ArrayNode`](@ref).
 
 # Examples
 ```jldoctest
@@ -39,7 +44,7 @@ ProductNode 	# 2 obs, 48 bytes
   └── x2: BagNode 	# 2 obs, 96 bytes
             └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
-julia> ProductNode(ArrayNode([1 2 3]))
+julia> ProductNode([1 2 3])
 ProductNode 	# 3 obs, 8 bytes
   └── ArrayNode(1×3 Array with Int64 elements) 	# 3 obs, 72 bytes
 
@@ -50,11 +55,8 @@ ERROR: AssertionError: All subtrees must have an equal amount of instances!
 
 See also: [`AbstractProductNode`](@ref), [`AbstractMillNode`](@ref), [`ProductModel`](@ref).
 """
+ProductNode(ds, m=nothing) = ProductNode(tuple(ds), m)
 ProductNode(; ns...) = ProductNode(NamedTuple(ns))
-ProductNode(ds::T, m::C=nothing) where {T, C} = ProductNode{T, C}(ds, m)
-function ProductNode(ds::T, m::C=nothing) where {T <: AbstractMillNode, C}
-    ProductNode{Tuple{T}, C}(tuple(ds), m)
-end
 
 Flux.@functor ProductNode
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)

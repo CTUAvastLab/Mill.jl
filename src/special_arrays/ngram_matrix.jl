@@ -100,7 +100,7 @@ end
 
 Base.hash(it::NGramIterator{T}, h::UInt) where {T} = hash((string(T), it.s, it.n, it.b, it.m), h)
 (it1::NGramIterator{T} == it2::NGramIterator{T}) where {T} = it1.s == it2.s &&
-    it1.n === it2.n && it1.b === it2.b && it1.m === it2.m
+    it1.n ≡ it2.n && it1.b ≡ it2.b && it1.m ≡ it2.m
 
 """
     ngrams!(o, x, n=3, b=256)
@@ -360,7 +360,7 @@ _mul(A::AbstractMatrix, B::NGramMatrix{Missing}) = fill(missing, size(A, 1), siz
 _mul(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence} = _mul_ngram(A, B)
 
 _mul_ngram(A, B) = _mul_ngram_forw(A, B)
-function _mul_ngram_forw(A::AbstractMatrix, B::NGramMatrix{<:Maybe{T}}) where T <: Maybe{Sequence}
+function _mul_ngram_forw(A::AbstractMatrix, B::NGramMatrix{T}) where T <: Maybe{Sequence}
     T_res = Missing <: T ? Maybe{eltype(A)} : eltype(A)
     C = zeros(T_res, size(A, 1), length(B.S))
     z = _init_z(B.n, B.b)

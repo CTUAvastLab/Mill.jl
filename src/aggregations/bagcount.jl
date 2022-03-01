@@ -8,8 +8,8 @@ Used as a functor:
 
     (bc::BagCount)(x, bags[, w])
 
-where `x` is either `Missing`, `AbstractMatrix` or [`ArrayNode`](@ref),
-`bags` is [`AbstractBags`](@ref) structure and optionally `w` is an `AbstractVector` of weights.
+where `x` is either `AbstractMatrix` or `missing`, `bags` is [`AbstractBags`](@ref) structure
+and optionally `w` is an `AbstractVector` of weights.
 
 # Examples
 ```jldoctest

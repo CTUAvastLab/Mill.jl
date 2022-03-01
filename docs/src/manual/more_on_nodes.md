@@ -46,13 +46,13 @@ m.im(Mill.data(ds))
 In one final example we demonstrate a complex model consisting of all types of nodes introduced so far:
 
 ```@repl more_on_nodes
-ds = BagNode(ProductNode((BagNode(ArrayNode(randn(4, 10)),
+ds = BagNode(ProductNode((BagNode(randn(4, 10),
                                   [1:2, 3:4, 5:5, 6:7, 8:10]),
-                          ArrayNode(randn(3, 5)),
-                          BagNode(BagNode(ArrayNode(randn(2, 30)),
+                          randn(3, 5),
+                          BagNode(BagNode(randn(2, 30),
                                           [i:i+1 for i in 1:2:30]),
                                   [1:3, 4:6, 7:9, 10:12, 13:15]),
-                          ArrayNode(randn(2, 5)))),
+                          randn(2, 5))),
              [1:1, 2:3, 4:5])
 ```
 
@@ -79,7 +79,7 @@ AN = ArrayNode(Float32.([1 2 3 4; 5 6 7 8]))
 AM = reflectinmodel(AN)
 BN = BagNode(AN, [1:1, 2:3, 4:4])
 BM = reflectinmodel(BN)
-PN = ProductNode(a=ArrayNode(Float32.([1 2 3; 4 5 6])), b=BN)
+PN = ProductNode(a=Float32.([1 2 3; 4 5 6]), b=BN)
 PM = reflectinmodel(PN)
 ```
 
@@ -164,6 +164,6 @@ Metadata is provided upon construction of the node and accessed metadata by [`Mi
 ```@repl more_on_nodes
 n1 = ArrayNode(randn(2, 2), ["metadata"])
 Mill.metadata(n1)
-n2 = ProductNode(tuple(n1), [1 3; 2 4])
+n2 = ProductNode(n1, [1 3; 2 4])
 Mill.metadata(n2)
 ```

@@ -1,5 +1,5 @@
 """
-    ProductModel{T <: Mill.VecOrTupOrNTup{<:AbstractMillModel}, U <: ArrayModel} <: AbstractMillModel
+    ProductModel{T <: Mill.VecOrTupOrNTup{<:AbstractMillModel}, U} <: AbstractMillModel
 
 A model node for processing [`ProductNode`](@ref)s. For each subtree of the data node it applies one
 (sub)model from `ms` and then applies `m` on the concatenation of results.
@@ -13,29 +13,29 @@ ProductNode 	# 2 obs, 16 bytes
   ├── a: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
   └── b: ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
-julia> m1 = ProductModel((a=ArrayModel(Dense(2, 2)), b=ArrayModel(Dense(2, 2))))
-ProductModel ↦ ArrayModel(identity)
+julia> m1 = ProductModel(a=ArrayModel(Dense(2, 2)), b=ArrayModel(Dense(2, 2)))
+ProductModel ↦ identity
   ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
 ```
 
 ```jldoctest product_model; filter=$(DOCTEST_FILTER)
 julia> m1(n)
-4×2 ArrayNode{Matrix{Float32}, Nothing}:
- -1.284...  -1.254...
-  1.802...   3.711...
- -4.036...  -5.013...
-  0.587...   0.372...
+4×2 Matrix{Float32}:
+ -2.36...  -3.58...
+ -2.11...  -3.40...
+ -6.31...  -7.61...
+ -2.54...  -2.66...
 ```
 
 ```jldoctest product_model
-julia> m2 = ProductModel((a=identity, b=identity))
-ProductModel ↦ ArrayModel(identity)
+julia> m2 = ProductModel(a=identity, b=identity)
+ProductModel ↦ identity
   ├── a: ArrayModel(identity)
   └── b: ArrayModel(identity)
 
 julia> m2(n)
-4×2 ArrayNode{Matrix{Int64}, Nothing}:
+4×2 Matrix{Int64}:
  0  1
  2  3
  4  5
@@ -44,13 +44,12 @@ julia> m2(n)
 
 See also: [`AbstractMillModel`](@ref), [`AbstractProductNode`](@ref), [`ProductNode`](@ref).
 """
-struct ProductModel{T <: VecOrTupOrNTup{AbstractMillModel}, U <: ArrayModel} <: AbstractMillModel
+struct ProductModel{T<:VecOrTupOrNTup{AbstractMillModel},U} <: AbstractMillModel
     ms::T
     m::U
 
-    function ProductModel(ms::Union{Tuple, NamedTuple, AbstractVector}, m=identity_model())
-        ms = map(_make_mill_model, ms)
-        m = _make_mill_model(m)
+    function ProductModel(ms::Union{Tuple,NamedTuple,AbstractVector}, m=identity)
+        ms = map(_arraymodel, ms)
         new{typeof(ms), typeof(m)}(ms, m)
     end
 end
@@ -58,38 +57,37 @@ end
 Flux.@functor ProductModel
 
 """
-    ProductModel(ms, m=identity_model())
+    ProductModel(ms, m=identity)
+    ProductModel(; ms...)
 
 Construct a [`ProductModel`](@ref) from the arguments. `ms` should an iterable
-(`Tuple`, `NamedTuple` or `Vector`) of one or more [`AbstractMillModel`](@ref)s, and `m` should be
-an [`ArrayModel`](@ref).
+(`Tuple`, `NamedTuple` or `Vector`) of one or more [`AbstractMillModel`](@ref)s.
 
-It is also possible to pass any function (`Flux.Dense`, `Flux.Chain`, `identity`...) as elements of `ms`
-or as `m`. In that case, they are wrapped into an [`ArrayNode`](@ref).
-
-If `ms` is [`AbstractMillModel`](@ref), a one-element `Tuple` is constructed from it.
+It is also possible to pass any function as elements of `ms`. In that case, it is wrapped into
+an [`ArrayNode`](@ref).
 
 # Examples
 ```jldoctest
-julia> ProductModel((a=ArrayModel(Dense(2, 2)), b=identity))
-ProductModel ↦ ArrayModel(identity)
+julia> ProductModel(a=ArrayModel(Dense(2, 2)), b=identity)
+ProductModel ↦ identity
   ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(identity)
 
-julia> ProductModel((identity_model(), BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
-ProductModel ↦ ArrayModel(identity)
+julia> ProductModel((identity, BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
+ProductModel ↦ identity
   ├── ArrayModel(identity)
-  └── BagModel ↦ SegmentedMean(2) ↦ ArrayModel(identity) 	# 1 arrays, 2 params (all zero), 48 bytes
+  └── BagModel ↦ SegmentedMean(2) ↦ identity 	# 1 arrays, 2 params (all zero), 48 bytes
         └── ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
 
 julia> ProductModel(identity)
-ProductModel ↦ ArrayModel(identity)
+ProductModel ↦ identity
   └── ArrayModel(identity)
 ```
 
 See also: [`AbstractMillModel`](@ref), [`AbstractProductNode`](@ref), [`ProductNode`](@ref).
 """
-ProductModel(ms, m=identity_model()) = ProductModel((ms,), m)
+ProductModel(ms, m = identity) = ProductModel(tuple(ms), m)
+ProductModel(; ns...) = ProductModel(NamedTuple(ns))
 
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
@@ -97,7 +95,7 @@ Base.haskey(m::ProductModel{<:NamedTuple}, k::Symbol) = haskey(m.ms, k)
 
 (m::ProductModel{<:AbstractVector})(x::ProductNode{<:AbstractVector}) = m.m(vcat(map((sm, sx) -> sm(sx), m.ms, x.data)...))
 
-@generated function (m::ProductModel{<:NamedTuple{KM}})(x::ProductNode{<:NamedTuple{KD}}) where {KM, KD}
+@generated function (m::ProductModel{<:NamedTuple{KM}})(x::ProductNode{<:NamedTuple{KD}}) where {KM,KD}
     @assert issubset(KM, KD)
     chs = map(KM) do k
         :(m.ms.$k(x.data.$k))
@@ -107,7 +105,7 @@ Base.haskey(m::ProductModel{<:NamedTuple}, k::Symbol) = haskey(m.ms, k)
     end
 end
 
-@generated function (m::ProductModel{T})(x::ProductNode{U}) where {T <: Tuple, U <: Tuple}
+@generated function (m::ProductModel{T})(x::ProductNode{U}) where {T<:Tuple,U<:Tuple}
     l1 = T.parameters |> length
     l2 = U.parameters |> length
     @assert l1 ≤ l2 "Applied ProductModel{<:Tuple} has more children than ProductNode"

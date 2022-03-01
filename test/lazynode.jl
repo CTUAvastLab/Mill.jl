@@ -14,5 +14,5 @@
 
     ds = LazyNode{:Sentence}(ss)
     m = Mill.reflectinmodel(ds)
-    @test m(ds).data ≈ m.m(Mill.unpack2mill(ds)).data
+    @test m(ds) ≈ m.m(Mill.unpack2mill(ds))
 end
