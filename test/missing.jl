@@ -36,8 +36,8 @@
     @test catobs(a,e,a,e).data.data.data == catobs(a,a).data.data.data
     @test catobs(a,e,a,e).bags.bags == [1:1, 0:-1, 2:2, 0:-1]
 
-    @test_throws ErrorException BagNode(missing, AlignedBags([1:3]), nothing)
-    @test_throws ErrorException BagNode(missing, Mill.ScatteredBags([[1,2,3]]), nothing)
+    @test_throws AssertionError BagNode(missing, AlignedBags([1:3]), nothing)
+    @test_throws AssertionError BagNode(missing, Mill.ScatteredBags([[1,2,3]]), nothing)
 end
 
 @testset "catobs & getindex operations missing values for weighted" begin
