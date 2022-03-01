@@ -1,7 +1,7 @@
 ```@setup gnn
 using Mill
 
-using LightGraphs, GraphRecipes, Plots
+using Graphs, GraphRecipes, Plots
 
 g = SimpleGraph(10)
 for e in [(1, 2), (1, 3), (1, 4),
@@ -31,10 +31,10 @@ savefig(gp, "graph.svg")
 As has been mentioned in [Mandlik2020](@cite), multiple instance learning is an essential piece for implementing message passing inference over graphs, the main concept behind spatial *Graph Neural Networks* (GNNs). It is straightforward and quick to achieve this with [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). We begin with some dependencies:
 
 ```@example gnn
-using Mill, Flux, LightGraphs, Statistics
+using Mill, Flux, Graphs, Statistics
 ```
 
-Let's assume a graph `g`, represented as a `SimpleGraph` from [`LightGraphs.jl`](https://github.com/JuliaGraphs/LightGraphs.jl)
+Let's assume a graph `g`, represented as a `SimpleGraph` from [`Graphs.jl`](https://github.com/JuliaGraphs/Graphs.jl)
 
 ```@repl gnn
 g = SimpleGraph(10)

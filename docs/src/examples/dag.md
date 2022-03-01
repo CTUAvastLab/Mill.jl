@@ -1,7 +1,7 @@
 ```@setup dag
 using Mill
 
-using LightGraphs, GraphRecipes, Plots
+using Graphs, GraphRecipes, Plots
 
 g = SimpleDiGraph(8)
 for e in [(1, 2), (1, 3), (2, 4), (2, 5), (3, 5),
@@ -22,7 +22,7 @@ savefig(gp, "dag.svg")
 # DAGs
 
 ```@example dag
-using Mill, Flux, Zygote, ChainRulesCore, LightGraphs
+using Mill, Flux, Zygote, ChainRulesCore, Graphs
 ```
 Imagine a data/knowledge base represented in a form of a directed acyclic graph (DAG), where a vertex would be modelled based on its parents (and their parents), but not on its descendants. We will make one assumption (common in graphical models) that two children are independent given their parent or, in other words, once we have access to the data or inferred values of the parent, we do not have to inspect its other children.
 
