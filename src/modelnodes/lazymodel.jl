@@ -18,7 +18,9 @@ end
 julia> Random.seed!(0);
 
 julia> n = LazyNode{:Sentence}(["foo bar", "baz"])
-LazyNode{Sentence} 	# 2 obs, 90 bytes
+LazyNode{:Sentence, Vector{String}, Nothing}:
+ "foo bar"
+ "baz"
 
 julia> m = LazyModel{:Sentence}(BagModel(Dense(2053, 3), SegmentedMean(3), identity))
 LazyModel{Sentence}

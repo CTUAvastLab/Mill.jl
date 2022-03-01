@@ -7,7 +7,7 @@
         2×5 ArrayNode{Matrix{Float64}, Nothing}:
          1.0  1.0  1.0  1.0  1.0
          1.0  1.0  1.0  1.0  1.0"""
-    @test datasummary(an) == "# Summary: 5 obs, 128 bytes."
+    @test datasummary(an) == "Data summary: 5 obs, 128 bytes."
 
     anm = reflectinmodel(an)
     @test repr(anm) == "ArrayModel(Dense(2, 10))"
@@ -15,7 +15,7 @@
     @test repr(MIME("text/plain"), anm) ==
         """
         ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes"""
-    @test modelsummary(anm) == "# Summary: 2 arrays, 30 params, 200 bytes"
+    @test modelsummary(anm) == "Model summary: 2 arrays, 30 params, 200 bytes"
 
     bn = BagNode(deepcopy(an), bags([1:2, 3:5]))
     @test repr(bn) == repr(bn; context=:compact => true) == "BagNode"
@@ -23,7 +23,7 @@
         """
         BagNode 	# 2 obs, 96 bytes
           └── ArrayNode(2×5 Array with Float64 elements) 	# 5 obs, 128 bytes"""
-    @test datasummary(bn) == "# Summary: 2 obs, 224 bytes."
+    @test datasummary(bn) == "Data summary: 2 obs, 224 bytes."
 
     bnm = reflectinmodel(bn, d -> Dense(d, 10), SegmentedMean)
     @test repr(bnm) == "BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10))"
@@ -32,7 +32,7 @@
         """
         BagModel ↦ SegmentedMean(10) ↦ ArrayModel(Dense(10, 10)) 	# 3 arrays, 120 params, 600 bytes
           └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes"""
-    @test modelsummary(bnm) == "# Summary: 5 arrays, 150 params, 800 bytes"
+    @test modelsummary(bnm) == "Model summary: 5 arrays, 150 params, 800 bytes"
 
     wbn = WeightedBagNode(deepcopy(an), bags([1:2, 3:5]), rand(5))
     @test repr(wbn) == repr(wbn; context=:compact => true) == "WeightedBagNode"
@@ -40,7 +40,7 @@
         """
         WeightedBagNode 	# 2 obs, 184 bytes
           └── ArrayNode(2×5 Array with Float64 elements) 	# 5 obs, 128 bytes"""
-    @test datasummary(wbn) == "# Summary: 2 obs, 312 bytes."
+    @test datasummary(wbn) == "Data summary: 2 obs, 312 bytes."
 
     wbnm = reflectinmodel(wbn)
     @test repr(wbnm) == "BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10))"
@@ -49,7 +49,7 @@
         """
         BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
           └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes"""
-    @test modelsummary(wbnm) == "# Summary: 6 arrays, 270 params, 1.289 KiB"
+    @test modelsummary(wbnm) == "Model summary: 6 arrays, 270 params, 1.289 KiB"
 
 	pn = ProductNode(bn=deepcopy(bn), wbn=deepcopy(wbn))
     @test repr(pn) == repr(pn; context=:compact => true) == "ProductNode"
@@ -60,7 +60,7 @@
           │          └── ArrayNode(2×5 Array with Float64 elements) 	# 5 obs, 128 bytes
           └── wbn: WeightedBagNode 	# 2 obs, 184 bytes
                      └── ArrayNode(2×5 Array with Float64 elements) 	# 5 obs, 128 bytes"""
-    @test datasummary(pn) == "# Summary: 2 obs, 616 bytes."
+    @test datasummary(pn) == "Data summary: 2 obs, 616 bytes."
 
     pnm = reflectinmodel(pn, d -> Dense(d, 10), BagCount ∘ SegmentedMean)
     @test repr(pnm) == "ProductModel ↦ ArrayModel(Dense(20, 10))"
@@ -72,13 +72,19 @@
           │          └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
           └── wbn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ ArrayModel(Dense(11, 10)) 	# 3 arrays, 130 params, 640 bytes
                      └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes"""
-    @test modelsummary(pnm) == "# Summary: 12 arrays, 530 params, 2.539 KiB"
+    @test modelsummary(pnm) == "Model summary: 12 arrays, 530 params, 2.539 KiB"
 
     ln = LazyNode{:Sentence}(["a", "b", "c", "d"])
-    @test repr(ln) == "LazyNode{Sentence}"
-    @test repr(ln; context=:compact => true) == "LazyNode"
-    @test repr(MIME("text/plain"), ln) == "LazyNode{Sentence} 	# 4 obs, 116 bytes"
-    @test datasummary(ln) == "# Summary: 4 obs, 116 bytes."
+    @test repr(ln) == "LazyNode{Sentence}(String)"
+    @test repr(ln; context=:compact => true) == "LazyNode{Sentence}"
+    @test repr(MIME("text/plain"), ln) ==
+        """
+        LazyNode{:Sentence, Vector{String}, Nothing}:
+         "a"
+         "b"
+         "c"
+         "d\""""
+    @test datasummary(ln) == "Data summary: 4 obs, 116 bytes."
 
     lnm = reflectinmodel(ln)
     @test repr(lnm) == "LazyModel{Sentence}"
@@ -88,19 +94,19 @@
         LazyModel{Sentence}
           └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ ArrayModel(Dense(21, 10)) 	# 4 arrays, 240 params, 1.094 KiB
                 └── ArrayModel(Dense(2053, 10)) 	# 2 arrays, 20_540 params, 80.312 KiB"""
-    @test modelsummary(lnm) == "# Summary: 6 arrays, 20_780 params, 81.406 KiB"
+    @test modelsummary(lnm) == "Model summary: 6 arrays, 20_780 params, 81.406 KiB"
 end
 
 @testset "special parameter values" begin
-	m = reflectinmodel(ArrayNode(ones(2,5)))
+    m = reflectinmodel(ArrayNode(ones(2,5)))
 
-	m.m.weight[1,1] = Inf
-	@test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params (some Inf), 200 bytes"
-	m.m.bias[1] = NaN
-	@test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params (some NaN), 200 bytes"
-	m.m.weight .= 0
-	m.m.bias .= 0
-	@test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params (all zero), 200 bytes"
+    m.m.weight[1,1] = Inf
+    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params (some Inf), 200 bytes"
+    m.m.bias[1] = NaN
+    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params (some NaN), 200 bytes"
+    m.m.weight .= 0
+    m.m.bias .= 0
+    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params (all zero), 200 bytes"
 end
 
 @testset "aggregation io" begin

@@ -11,14 +11,6 @@ AbstractMillNode
 AbstractProductNode
 AbstractBagNode
 
-Mill.data
-Mill.metadata
-dropmeta
-catobs
-Mill.subset
-Mill.mapdata
-removeinstances
-
 ArrayNode
 ArrayNode(::AbstractArray)
 
@@ -35,5 +27,15 @@ LazyNode
 LazyNode(::Symbol, ::Any)
 
 Mill.unpack2mill
+
+Mill.data
+Mill.metadata
+datasummary
+dropmeta
+catobs
+Mill.subset
+Mill.mapdata
+removeinstances
+
 ```
 

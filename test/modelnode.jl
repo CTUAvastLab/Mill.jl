@@ -103,7 +103,7 @@ end
     c = BagNode(ArrayNode(randn(Float32, 2, 4)), [1:1, 2:4])
     x1 = ProductNode((a, b))
     x2 = ProductNode((a, b, c))
-    x3 = ProductNode((a, ))
+    x3 = ProductNode(a)
 
     m = reflectinmodel(x1, LAYERBUILDER)
     @test m isa ProductModel

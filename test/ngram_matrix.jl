@@ -70,11 +70,10 @@ end
         @test isequal(M3[:, i], NGramMatrix(S3[i]))
     end
 
-    @test M1[:, [1,2]] == NGramMatrix(S1[[1,2]])
-    @test M1[1:2] == NGramMatrix(S1[[1,2]])
-    @test M1[1:2] == NGramMatrix(S1[[1,2]])
+    @test M1[:, [1,2]] == M1[:, 1:2] == NGramMatrix(S1[[1,2]])
     @test isequal(M2[:, [3,2]], NGramMatrix(S2[[3,2]]))
-    @test isequal(M3[:, [1]], NGramMatrix(S3[[1]]))
+    @test areequal(M3[:, [1]], M3[:, 1:1], NGramMatrix(S3[1]))
+    @test areequal(M3[:, Int[]], M3[:, 1:0], NGramMatrix(String[]))
 
     @test M1[:, :] == M1
     @test isequal(M2[:, :], M2)
@@ -86,13 +85,19 @@ end
     @test hash(M2[:, :]) == hash(M2)
     @test hash(M3[:, :]) == hash(M3)
 
+    @test_throws MethodError M1[1]
+    @test_throws MethodError M1[[1, 2]]
+    @test_throws MethodError M1[1:2]
+
     @test_throws MethodError M1[1, 2]
     @test_throws MethodError M1[1, :]
     @test_throws MethodError M1[[1,2], 2]
     @test_throws MethodError M1[[2,1], :]
 
     @test_throws BoundsError M1[:, 0]
+    @test_throws BoundsError M1[:, 0:1]
     @test_throws BoundsError M1[:, 3]
+    @test_throws BoundsError M1[:, 2:3]
     @test_throws BoundsError M1[:, [1,0]]
     @test_throws BoundsError M1[:, [1,2,3]]
 end

@@ -35,11 +35,9 @@ end
 
 # specification of printing
 NodeType(::Type{<:LazyNode{:Codons}}) = InnerNode()
-children(n::LazyNode{:Codons}) = (n.data,)
-NodeType(n::Vector{<:AbstractString}) = InnerNode()
-nodeshow(io::IO, n::Vector{<:AbstractString}) = print(io, "Array ", length(n), " items")
-NodeType(n::AbstractString) = LeafNode()
-children(n::Vector{<:AbstractString}) = (n...,)
+children(n::LazyNode{:Codons}) = tuple(n.data...)
+HierarchicalUtils.@hierarchical_vector
+HierarchicalUtils.@primitives
 
 t2 = treemap(n2, n2m) do (k1, k2), chs
     NumberNode(rand(1:10), collect(chs))
@@ -174,17 +172,17 @@ end
 @testset "LazyNode" begin
     ds = LazyNode{:Codons}(ss)
     m = Mill.reflectinmodel(ds)
-    @test nchildren(ds) == 1
+    @test nchildren(ds) == 4
     @test nleafs(ds) == 4
+    @test nnodes(ds) == 5
 
     @test buf_printtree(ds, trav=true) ==
         """
-        LazyNode{Codons} [""] 	# 4 obs, 8 bytes
-          └── Array 4 items ["U"]
-                ├── "GGGCGGCGA" ["Y"]
-                ├── "CCTCGCGGG" ["c"]
-                ├── "TTTTCGCTATTTATGAAAATT" ["g"]
-                └── "TTCCGGTTTAAGGCGTTTCCG" ["k"]
+        LazyNode{Codons}(String) [""] 	# 4 obs, 8 bytes
+          ├── "GGGCGGCGA" ["6"]
+          ├── "CCTCGCGGG" ["E"]
+          ├── "TTTTCGCTATTTATGAAAATT" ["M"]
+          └── "TTCCGGTTTAAGGCGTTTCCG" ["U"]
         """
 
     @test buf_printtree(m, trav=true) ==

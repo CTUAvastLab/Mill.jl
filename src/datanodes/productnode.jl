@@ -19,7 +19,11 @@ end
 """
     ProductNode(ds, m=nothing)
 
-Construct a new [`ProductNode`](@ref) with data `ds`, and metadata `m`. `ds` should be an iterable (preferably `Tuple` or `NamedTuple`) and all its elements must contain the same number of observations.
+Construct a new [`ProductNode`](@ref) with data `ds`, and metadata `m`.
+
+`ds` should be a `Tuple` or `NamedTuple` and all its elements must contain
+the same number of observations. If  `ds` is an [`AbstractMillNode`](@ref) a
+one-element `Tuple` is created.
 
 # Examples
 ```jldoctest
@@ -35,6 +39,10 @@ ProductNode 	# 2 obs, 48 bytes
   └── x2: BagNode 	# 2 obs, 96 bytes
             └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
+julia> ProductNode(ArrayNode([1 2 3]))
+ProductNode 	# 3 obs, 8 bytes
+  └── ArrayNode(1×3 Array with Int64 elements) 	# 3 obs, 72 bytes
+
 julia> ProductNode((ArrayNode([1 2; 3 4]), ArrayNode([1; 3])))
 ERROR: AssertionError: All subtrees must have an equal amount of instances!
 [...]
@@ -42,9 +50,11 @@ ERROR: AssertionError: All subtrees must have an equal amount of instances!
 
 See also: [`AbstractProductNode`](@ref), [`AbstractMillNode`](@ref), [`ProductModel`](@ref).
 """
-ProductNode(ds::T) where {T} = ProductNode{T, Nothing}(ds, nothing)
-ProductNode(ds::T, m::C) where {T, C} = ProductNode{T, C}(ds, m)
 ProductNode(; ns...) = ProductNode(NamedTuple(ns))
+ProductNode(ds::T, m::C=nothing) where {T, C} = ProductNode{T, C}(ds, m)
+function ProductNode(ds::T, m::C=nothing) where {T <: AbstractMillNode, C}
+    ProductNode{Tuple{T}, C}(tuple(ds), m)
+end
 
 Flux.@functor ProductNode
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)

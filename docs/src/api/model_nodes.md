@@ -23,4 +23,5 @@ LazyModel
 LazyModel(::Symbol, ::AbstractMillModel)
 
 reflectinmodel
+modelsummary
 ```
