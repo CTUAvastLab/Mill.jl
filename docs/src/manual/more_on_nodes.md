@@ -26,9 +26,9 @@ m = BagModel(
         BagModel(
             ArrayModel(Dense(4, 3, relu)),
             SegmentedMeanMax(3),
-            ArrayModel(Dense(6, 3, relu))),
+            Dense(6, 3, relu)),
         SegmentedMeanMax(3),
-        ArrayModel(Chain(Dense(6, 3, relu), Dense(3, 2))))
+        Chain(Dense(6, 3, relu), Dense(3, 2)))
 ```
 
 and can be directly applied to obtain a result:

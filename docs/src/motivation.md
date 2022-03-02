@@ -16,7 +16,6 @@ Why are MIL problems relevant? Since the seminal paper from [Fisher1936](@cite),
 <img class="display-dark-only" src="assets/iris-dark.svg" alt="Iris task"/>
 ```
 
-
 where the input sample ``\bm{x}`` is a vector (or generally speaking any tensor) of a fixed dimension containing various measurements of the specimen.
 
 Most of the time, a skilled botanist is able to identify a specimen not by making use of any measuring device, but by visual or tactile inspection of its stem, leaves and blooms. For different species, different parts of the flower may need to be examined for indicators. At the same time, many species may have nearly identical-looking leaves or blooms, therefore, one needs to step back, consider the whole picture, and appropriately combine lower-level observations into high-level conclusions about the given specimen.
@@ -25,7 +24,7 @@ If we want to use such more elaborate description of the Iris flower using fixed
 
 ## Hierarchical Multiple Instance Learning
 
-In *Hierarchical Multiple Instance Learning* (HMIL) the input may consists of not only sets, but also *sets of sets* and [*Cartesian Products*](https://en.wikipedia.org/wiki/Cartesian_product) of these structures. Returning to the previous Iris flower example, a specimen can be represented like this for HMIL:
+In *Hierarchical Multiple Instance Learning* (HMIL) the input may consists of not only sets, but also *sets of sets* and [Cartesian Products](https://en.wikipedia.org/wiki/Cartesian_product) of these structures. Returning to the previous Iris flower example, a specimen can be represented like this for HMIL:
 
 ```@raw html
 <img class="display-light-only" src="assets/iris2.svg" alt="Iris HMIL representation"/>

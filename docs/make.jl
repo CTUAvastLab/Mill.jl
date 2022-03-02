@@ -9,9 +9,22 @@ Useful resources for writing docs:
     Doctests: https://juliadocs.github.io/Documenter.jl/stable/man/doctests/
 =#
 
+# update all envs
+using Pkg
+Pkg.activate(@__DIR__) do
+    Pkg.update("Mill")
+    Pkg.instantiate()
+end
+Pkg.activate(joinpath(@__DIR__, "src", "examples", "musk")) do
+    Pkg.update("Mill")
+    Pkg.instantiate()
+end
+
 DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
     using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
 end; recursive=true)
+
+const STRICT_CHECKS = [:eval_block, :example_block, :meta_block, :setup_block]
 
 makedocs(
          CitationBibliography(joinpath(@__DIR__, "references.bib")),
@@ -20,6 +33,7 @@ makedocs(
                                   collapselevel = 2,
                                   prettyurls=get(ENV, "CI", nothing) == "true",
                                   assets=["assets/favicon.ico", "assets/custom.css"]),
+         strict = STRICT_CHECKS,
          modules = [Mill],
          pages = [
                   "Home" => "index.md",
@@ -54,9 +68,8 @@ makedocs(
                   "References" => "references.md",
                   "Citation" => "citation.md"
                  ],
-
         )
 
 deploydocs(
-           repo = "github.com/CTUAvastLab/Mill.jl.git",
+           repo = "github.com/CTUAvastLab/Mill.jl.git"
           )

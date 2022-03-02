@@ -106,6 +106,12 @@ We also have to define a corresponding model node type which will be a counterpa
 
 The solution using [`LazyNode`](@ref) is sufficient in most scenarios. For other cases, it is recommended to equip custom nodes with the following functionality:
 
+```@example custom
+struct PathModel{T, F} <: AbstractMillModel
+    m::T
+    path2mill::F
+end
+
 Flux.@functor PathModel
 show(io::IO, n::PathModel) = print(io, "PathModel")
 NodeType(::Type{<:PathModel}) = LeafNode()

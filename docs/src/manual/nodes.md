@@ -36,7 +36,7 @@ using Flux: Dense
 ```
 
 ```@repl nodes
-f = Dense(2, 3)
+f = Dense(2, 4)
 AM = ArrayModel(f)
 ```
 
@@ -48,7 +48,7 @@ f(X) == AM(AN)
 ```
 
 !!! ukn "Model outputs"
-    A convenient property of all `Mill` [`AbstractMillModel`] nodes is that after applying them to a corresponding data node we **always** obtain an array as output regardless of the type and complexity of the model. This becomes important later.
+    A convenient property of all `Mill` [`AbstractMillModel`](@ref) nodes is that after applying them to a corresponding data node we **always** obtain an array as output regardless of the type and complexity of the model. This becomes important later.
 
 The most common interpretation of the data inside [`ArrayNode`](@ref)s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, [`ArrayNode`](@ref)s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any [`AbstractMillNode`](@ref) with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
 
@@ -111,9 +111,9 @@ The two examples above are semantically equivalent, as bags are unordered collec
 Each [`BagNode`](@ref) is processed by a [`BagModel`](@ref), which contains two (sub)models and an aggregation operator:
 
 ```@repl nodes
-im = ArrayModel(Dense(2, 3))
-a = SegmentedMax(3)
-bm = Dense(3, 4)
+im = ArrayModel(Dense(2, 5))
+a = SegmentedMax(5)
+bm = Dense(5, 3)
 BM = BagModel(im, a, bm)
 ```
 
@@ -130,7 +130,8 @@ y = a(y, BN.bags)
 ```
 
 !!! unk "More about aggregation"
-    To read more about aggregation operators, see the [Bag aggregation](@ref) section.
+    To read more about aggregation operators, see the [Bag aggregation](@ref) section. For an
+    explanation how empty bags are aggregated, see [Missing data](@ref).
 
 Finally, `y` is then passed to a feed forward model (called bag model `bm`) producing the final output per bag. In our example we therefore get a matrix with three columns:
 
@@ -158,24 +159,32 @@ Three instances of the [`BagNode`](@ref) are represented by red subtrees are fir
 
 ## [`ProductNode`](@ref)s and [`ProductModel`](@ref)s
 
-[`ProductNode`](@ref) can be thought of as a [*Cartesian Product*](https://en.wikipedia.org/wiki/Cartesian_product) or a `Dictionary`. It holds a `Tuple` or `NamedTuple` of nodes (not necessarily of the same type). For example, a [`ProductNode`](@ref) with the [`BagNode`](@ref) and the [`ArrayNode`](@ref) from above as children would look like this:
+[`ProductNode`](@ref) can be thought of as a [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) or a `Dictionary`. It holds a `Tuple` or `NamedTuple` of nodes (not necessarily of the same type). For example, a [`ProductNode`](@ref) with the [`BagNode`](@ref) and the [`ArrayNode`](@ref) from above and two more nodes as children would look like this:
 
 ```@repl nodes
-PN = ProductNode(a=AN, b=BN)
+PN = ProductNode(tuple(
+        ArrayNode(randn(2, 3)),
+        BagNode(ArrayNode(zeros(4, 4)), [1:1, 2:2, 3:4]),
+        BN,
+        AN))
 ```
 
-Analogically, the [`ProductModel`](@ref) contains a (`Named`)`Tuple` of (sub)models processing each of its children (stored in `ms` field standing for models), as well as one more (sub)model `m`:
+Analogically, the [`ProductModel`](@ref) contains a `Tuple` or `NamedTuple` of (sub)models processing each of its children (stored in `ms` field standing for models), as well as one more (sub)model `m`:
 
 ```@repl nodes
-ms = (a=AM, b=BM)
-m = Dense(7, 2)
+ms = tuple(
+        ArrayModel(Dense(2, 2)),
+        BagModel(ArrayModel(Dense(4, 6)), SegmentedMean(6), Dense(6, 5)),
+        BM,
+        AM);
+m = Dense(14, 9);
 PM = ProductModel(ms, m)
 ```
 
 Again, since the library is based on the property that the output of each model is an array, the product model applies models from `ms` to appropriate children and vertically concatenates the output, which is then processed by model `m`. An example of model processing the above sample would be:
 
 ```@repl nodes
-y = PM.m(vcat(PM[:a](PN[:a]), PM[:b](PN[:b])))
+y = PM.m(vcat([PM.ms[i](PN.data[i]) for i in 1:4]...))
 ```
 
 which is equivalent to:
@@ -184,12 +193,9 @@ which is equivalent to:
 PM(PN) == y
 ```
 
-Application of another product model (this time with four subtrees (keys)) can be visualized as follows:
+Application of this product model can be schematically visualized as follows:
 
 ```@raw html
 <img class="display-light-only" src="../assets/productmodel.svg" alt="Product Model"/>
 <img class="display-dark-only" src="../assets/productmodel-dark.svg" alt="Product Model"/>
 ```
-
-!!! unk "Indexing in product nodes"
-    In general, we recommend to use `NamedTuple`s, because the key can be used for indexing both [`ProductNode`](@ref)s and [`ProductModel`](@ref)s.

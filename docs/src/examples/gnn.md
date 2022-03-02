@@ -70,9 +70,9 @@ b = ScatteredBags(g.fadjlist)
 Finally, we create two models. First model called `lift` will pre-process the description of vertices to some latent space for message passing, and the second one will realize the message passing itself, which we will call `mp`:
 
 ```@repl gnn
-lift = reflectinmodel(X, d -> Dense(d, 5), SegmentedMean)
+lift = reflectinmodel(X, d -> Dense(d, 4), SegmentedMean)
 U = lift(X)
-mp = reflectinmodel(BagNode(U, b), d -> Dense(d, 5), SegmentedMean)
+mp = reflectinmodel(BagNode(U, b), d -> Dense(d, 3), SegmentedMean)
 ```
 
 Notice that `BagNode(U, b)` now essentially encodes vertex features as well as the adjacency matrix. This also means that one step of message passing algorithm can be realized as:
@@ -90,7 +90,7 @@ gradient(() -> sum(sin.(mp(BagNode(U, b)))), Flux.params(mp))
 If we put everything together, the GNN implementation is implemented in the following 16 lines:
 
 ```@example gnn
-struct GNN{L,M, R}
+struct GNN{L, M, R}
     lift::L
     mp::M
     m::R
@@ -98,7 +98,7 @@ end
 
 Flux.@functor GNN
 
-function mpstep(m::GNN, U::ArrayNode, bags, n)
+function mpstep(m::GNN, U, bags, n)
     n == 0 && return(U)
     mpstep(m, m.mp(BagNode(U, bags)), bags, n - 1)
 end
@@ -107,7 +107,7 @@ function (m::GNN)(g, X, n)
     U = m.lift(X)
     bags = Mill.ScatteredBags(g.fadjlist)
     o = mpstep(m, U, bags, n)
-    m.m(vcat(mean(o, dims = 2), maximum(Mill.data(o), dims = 2)))
+    m.m(vcat(mean(o, dims = 2), maximum(o, dims = 2)))
 end
 
 nothing # hide

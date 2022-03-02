@@ -11,7 +11,6 @@ Some setup:
 ```@repl aggregation
 d = 2
 X = Float32.([1 2 3 4; 8 7 6 5])
-n = ArrayNode(X)
 bags = AlignedBags([1:1, 2:3, 4:4])
 ```
 
@@ -37,7 +36,6 @@ The application is straightforward:
 
 ```@repl aggregation
 a_max(X, bags)
-a_max(n, bags)
 ```
 
 Since we have three bags, we have three columns in the output, each storing the maximal element over all instances of the given bag.
@@ -55,7 +53,6 @@ and used the same way:
 ```@repl aggregation
 a_mean = SegmentedMean(d)
 a_mean(X, bags)
-a_mean(n, bags)
 ```
 
 !!! ukn "Sufficiency of the mean operator"
@@ -76,7 +73,6 @@ and used the same way:
 ```@repl aggregation
 a_sum = SegmentedSum(d)
 a_sum(X, bags)
-a_sum(n, bags)
 ```
 ## Parametric aggregation
 
@@ -161,7 +157,7 @@ a_max(X, bags, w) == a_max(X, bags)
 [`WeightedBagNode`](@ref) is used to store instance weights into a dataset. It accepts weights in the constructor:
 
 ```@repl aggregation
-wbn = WeightedBagNode(n, bags, w)
+wbn = WeightedBagNode(X, bags, w)
 ```
 
 and passes them to aggregation operators:
@@ -189,7 +185,7 @@ The matrix now has three rows, the last one storing the size of the bag.
 [Model reflection](@ref) adds [`BagCount`](@ref) after each aggregation operator by default.
 
 ```@repl aggregation
-bn = BagNode(n, bags)
+bn = BagNode(X, bags)
 bm = reflectinmodel(bn, d -> Dense(d, 3))
 ```
 
