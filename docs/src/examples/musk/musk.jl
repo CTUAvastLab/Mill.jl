@@ -1,9 +1,9 @@
-using Random; Random.seed!(42)
-
 using FileIO, JLD2, Statistics, Mill, Flux
 using Flux: throttle, @epochs
 using Mill: reflectinmodel
 using Base.Iterators: repeated
+
+using Random; Random.seed!(42)
 
 fMat = load("musk.jld2", "fMat")            # matrix with instances, each column is one sample
 bagids = load("musk.jld2", "bagids")        # ties instances to bags
@@ -15,7 +15,7 @@ y_oh = Flux.onehotbatch(y, 1:2)             # one-hot encoding
 # create the model
 model = BagModel(
     Dense(166, 10, Flux.tanh),                      # model on the level of Flows
-    BagCount(SegmentedMeanMax(10)),                             # aggregation
+    BagCount(SegmentedMeanMax(10)),                 # aggregation
     Chain(Dense(21, 10, Flux.tanh), Dense(10, 2)))  # model on the level of bags
 
 # check forward pass
