@@ -1,8 +1,13 @@
+# Inspect the environment
+pkg"status"
+
+# Import all relevant packages
 using FileIO, JLD2, Statistics, Mill, Flux
 using Flux: throttle, @epochs
 using Mill: reflectinmodel
 using Base.Iterators: repeated
 
+# Fix the seed
 using Random; Random.seed!(42)
 
 fMat = load("musk.jld2", "fMat")            # matrix with instances, each column is one sample
