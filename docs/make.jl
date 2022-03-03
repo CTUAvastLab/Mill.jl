@@ -17,7 +17,7 @@ makedocs(
          CitationBibliography(joinpath(@__DIR__, "references.bib")),
          sitename = "Mill.jl",
          format = Documenter.HTML(sidebar_sitename=false,
-                                  collapselevel = 1,
+                                  collapselevel = 2,
                                   prettyurls=get(ENV, "CI", nothing) == "true",
                                   assets=["assets/favicon.ico", "assets/custom.css"]),
          modules = [Mill],

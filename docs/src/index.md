@@ -10,17 +10,17 @@
 * **fast** 
 * and dependent on only handful of other packages
 
-Watch our [`introductory talk`](https://www.youtube.com/watch?v=Bf0CvltIDbE) from JuliaCon 2021.
+Watch our [introductory talk](https://www.youtube.com/watch?v=Bf0CvltIDbE) from JuliaCon 2021.
 
-Go to
+## Contents
 
-* [Motivation](@ref) for a brief introduction into the philosophy of `Mill`
-* [Manual](@ref Nodes) for a brief tutorial into `Mill`
-* [Examples](@ref Musk) for some examples of `Mill` use
-* [External tools](@ref HierarchicalUtils.jl) to see examples of integration with other packages
-* [Public API](@ref Aggregation) for an extensive API reference
-* [References](@ref) for related literature
-* [Citation](@ref) for preferred citation entries
+* [Motivation](@ref): a brief introduction into the philosophy of `Mill`
+* [Manual](@ref Nodes): a brief tutorial into `Mill`
+* [Examples](@ref Musk): some examples of `Mill` use
+* [External tools](@ref HierarchicalUtils.jl): examples of integration with other packages
+* [Public API](@ref Aggregation): extensive API reference
+* [References](@ref): related literature
+* [Citation](@ref): preferred citation entries
 
 ## Installation
 
