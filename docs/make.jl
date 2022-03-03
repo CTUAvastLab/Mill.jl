@@ -1,4 +1,5 @@
-using Documenter, DocumenterCitations
+using Pkg
+using Documenter, DocumenterCitations, Literate
 using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
 
 #=
@@ -9,16 +10,17 @@ Useful resources for writing docs:
     Doctests: https://juliadocs.github.io/Documenter.jl/stable/man/doctests/
 =#
 
-# update all envs
-using Pkg
-Pkg.activate(@__DIR__) do
+musk_path = joinpath(@__DIR__, "src", "examples", "musk")
+Pkg.activate(musk_path) do
     Pkg.update("Mill")
     Pkg.instantiate()
+    Literate.script(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk", credit=false)
+    Literate.markdown(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk", credit=false)
+    Literate.notebook(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk")
 end
-Pkg.activate(joinpath(@__DIR__, "src", "examples", "musk")) do
-    Pkg.update("Mill")
-    Pkg.instantiate()
-end
+
+Pkg.update("Mill")
+Pkg.instantiate()
 
 DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
     using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils

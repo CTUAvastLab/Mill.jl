@@ -1,92 +1,97 @@
-```@setup musk
-using Pkg
-old_path = Pkg.project().path
-Pkg.activate(pwd())
-Pkg.instantiate()
+```@meta
+EditURL = "<unknown>/src/examples/musk/musk_literate.jl"
 ```
 
 # Musk
-[`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). The full example is also accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/docs/src/examples/musk/), as well as a Julia environment to run it.
 
-For the demo, we load all dependencies and fix the seed:
+[`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
+!!! ukn "Jupyter notebook"
+    This example is also available as a [Jupyter notebook](<unknown>/examples/musk.ipynb)
+    and the environment is accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/examples/musk).
 
-```@example musk
+We load all dependencies and fix the seed:
+
+````@example musk
 using FileIO, JLD2, Statistics, Mill, Flux
 using Flux: throttle, @epochs
 using Mill: reflectinmodel
 using Base.Iterators: repeated
 
-using Random; Random.seed!(42)
-nothing # hide
-```
+using Random;
+Random.seed!(42);
+nothing #hide
+````
 
-and then load the dataset and transform it into a `Mill` structure. The `musk.jld2` file contains:
+Then we load the dataset and transform it into a `Mill` structure. The `musk.jld2` file contains...
+* a matrix with features, each column is one instance:
 
-* a matrix with features `fMat`:
+````@example musk
+fMat = load("musk.jld2", "fMat")
+````
 
-```@repl musk
-fMat = load("musk.jld2", "fMat")          # matrix with instances, each column is one sample
-```
+* the ids of samples (*bags* in MIL terminology) specifying to which each instance (column in `fMat`) belongs to:
 
-* the id of sample (*bag* in MIL terminology) specifying to which each instance (column in `fMat`) belongs to:
+````@example musk
+bagids = load("musk.jld2", "bagids")
+````
 
-```@repl musk
-bagids = load("musk.jld2", "bagids")      # ties instances to bags
-```
+* and labels defined on the level of instances:
 
-The resulting [`BagNode`](@ref) is a structure which holds (i) feature matrix and (ii) ranges identifying which columns in the feature matrix each bag spans. This representation ensures that feed-forward networks do not need to deal with bag boundaries and always process full continuous matrices:
+````@example musk
+y = load("musk.jld2", "y")
+````
 
-```@repl musk
-ds = BagNode(fMat, bagids)     # create a BagNode dataset
-```
+We create a [`BagNode`](@ref) structure which holds:
+1. feature matrix and
+2. ranges identifying which columns in the feature matrix each bag spans.
 
-* the label of each instance in `y`.  The label of a bag is a maximum of labels of its instances, i.e. one positive instance in a bag makes it positive:
+````@example musk
+ds = BagNode(ArrayNode(fMat), bagids)
+````
 
-```@repl musk
-y = load("musk.jld2", "y")                # load labels
-y = map(i -> maximum(y[i]) + 1, ds.bags)  # create labels on bags
-y_oh = Flux.onehotbatch(y, 1:2)           # one-hot encoding
-```
+This representation ensures that feed-forward networks do not need to deal with bag boundaries and always process full continuous matrices:
+
+We also compute labels on the level of bags. In the `Musk` problem, bag label is defined as a maximum of instance labels (i.e. a bag is positive if at least one of its instances is positive):
+
+````@example musk
+y = map(i -> maximum(y[i]) + 1, ds.bags)
+y_oh = Flux.onehotbatch(y, 1:2)
+````
 
 Once the data are in `Mill` internal format, we will manually create a model. [`BagModel`](@ref) is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
 
-```@repl musk
+````@example musk
 model = BagModel(
-    Dense(166, 10, Flux.tanh),                      # model on the level of Flows
-    BagCount(SegmentedMeanMax(10)),                 # aggregation
-    Chain(Dense(21, 10, Flux.tanh), Dense(10, 2)))  # model on the level of bags
-```
+    Dense(166, 10, Flux.tanh),
+    BagCount(SegmentedMeanMax(10)),
+    Chain(Dense(21, 10, Flux.tanh), Dense(10, 2)))
+````
 
-Instances are first passed through a single layer with 10 neurons (input dimension is 166) with `tanh` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `tanh` nonlinearity followed by linear layer with 2 neurons (output dimension).
+Instances are first passed through a single layer with 10 neurons (input dimension is 166) with `tanh` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and `tanh` nonlinearity followed by linear layer with 2 neurons (output dimension). We check that forward pass works
 
-Let's check that forward pass works:
-
-```@repl musk
+````@example musk
 model(ds)
-```
+````
 
-Since `Mill` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:
+Since `Mill` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `cross-entropy` loss function:...
 
-```@repl musk
+````@example musk
 loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)
-```
+````
 
-and run simple training procedure using its tooling:
+...and run simple training procedure using its tooling:
 
-```@repl musk
+````@example musk
 opt = Flux.ADAM()
 @epochs 10 begin
     Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt)
     println(loss(ds, y_oh))
 end
-```
+````
 
-We can also calculate training error, which should be not so surprisingly low:
+Finally, we calculate the (training) error:
 
-```@repl musk
-mean(mapslices(argmax, model(ds), dims=1)' .!= y)
-```
+````@example musk
+mean(mapslices(argmax, model(ds), dims = 1)' .≠ y)
+````
 
-```@setup musk
-Pkg.activate(old_path)
-```

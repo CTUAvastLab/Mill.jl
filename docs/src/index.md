@@ -12,16 +12,6 @@
 
 Watch our [introductory talk](https://www.youtube.com/watch?v=Bf0CvltIDbE) from JuliaCon 2021.
 
-## Contents
-
-* [Motivation](@ref): a brief introduction into the philosophy of `Mill`
-* [Manual](@ref Nodes): a brief tutorial into `Mill`
-* [Examples](@ref Musk): some examples of `Mill` use
-* [External tools](@ref HierarchicalUtils.jl): examples of integration with other packages
-* [Public API](@ref Aggregation): extensive API reference
-* [References](@ref): related literature
-* [Citation](@ref): preferred citation entries
-
 ## Installation
 
 Run the following in REPL:
@@ -31,3 +21,15 @@ Run the following in REPL:
 ```
 
 Julia v1.6 or later is required.
+
+## Getting started
+
+For the quickest start, see the [Musk](@ref) example.
+
+* [Motivation](@ref): a brief introduction into the philosophy of `Mill`
+* [Manual](@ref Nodes): a brief tutorial into `Mill`
+* [Examples](@ref Musk): some examples of `Mill` use
+* [External tools](@ref HierarchicalUtils.jl): examples of integration with other packages
+* [Public API](@ref Aggregation): extensive API reference
+* [References](@ref): related literature
+* [Citation](@ref): preferred citation entries

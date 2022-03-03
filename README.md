@@ -31,6 +31,12 @@ Run the following in REPL:
 
 Julia v1.6 or later is required.
 
+## Getting Started
+
+- [Documentation](https://ctuavastlab.github.io/Mill.jl/stable/)
+- [API Reference](https://ctuavastlab.github.io/Mill.jl/stable/api/aggregation/)
+- [Musk Example](https://ctuavastlab.github.io/Mill.jl/stable/examples/musk/musk/)
+
 ## Citation
 
 For citing, please use the following entry for the [original paper](https://arxiv.org/abs/2105.09107):
