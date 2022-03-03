@@ -1,7 +1,6 @@
 <p align="center">
- <a href="https://github.com/CTUAvastLab/Mill.jl#references">
-  <img src="https://github.com/CTUAvastLab/Mill.jl/raw/master/docs/src/assets/logo.svg" alt="Mill.jl logo"/>
- </a>
+  <img src="https://github.com/CTUAvastLab/Mill.jl/raw/master/docs/src/assets/logo.svg#gh-light-mode-only" alt="Mill.jl logo"/>
+  <img src="https://github.com/CTUAvastLab/Mill.jl/raw/master/docs/src/assets/logo-dark.svg#gh-dark-mode-only" alt="Mill.jl logo"/>
 </p>
 
 ---

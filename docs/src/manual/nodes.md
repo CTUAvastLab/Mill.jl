@@ -143,7 +143,10 @@ BM(BN) == y
 
 The whole procedure is depicted in the following picture:
 
-![](../assets/bagmodel.svg)
+```@raw html
+<img class="display-light-only" src="../assets/bagmodel.svg" alt="Bag Model"/>
+<img class="display-dark-only" src="../assets/bagmodel-dark.svg" alt="Bag Model"/>
+```
 
 Three instances of the [`BagNode`](@ref) are represented by red subtrees are first mapped with instance model `im`, aggregated (aggregation operator here is a concatenation of two different operators ``a_1`` and ``a_2``), and the results of aggregation are transformed with bag model `bm`.
 
@@ -180,7 +183,10 @@ PM(PN) == y
 
 Application of another product model (this time with four subtrees (keys)) can be visualized as follows:
 
-![](../assets/productmodel.svg)
+```@raw html
+<img class="display-light-only" src="../assets/productmodel.svg" alt="Product Model"/>
+<img class="display-dark-only" src="../assets/productmodel-dark.svg" alt="Product Model"/>
+```
 
 !!! unk "Indexing in product nodes"
     In general, we recommend to use `NamedTuple`s, because the key can be used for indexing both [`ProductNode`](@ref)s and [`ProductModel`](@ref)s.

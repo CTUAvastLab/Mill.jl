@@ -3,8 +3,13 @@ article#documenter-page pre {
 }
 
 article#documenter-page img {
-    display: block;
     width: 100%;
+    margin: 1em;
     margin-left: auto;
     margin-right: auto;
 }
+
+.display-light-only {display: block;}
+.display-dark-only {display: none;}
+.theme--documenter-dark .display-light-only {display: none;}
+.theme--documenter-dark .display-dark-only {display: block;}

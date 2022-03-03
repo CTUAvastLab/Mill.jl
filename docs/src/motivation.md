@@ -11,7 +11,11 @@ Why are MIL problems relevant? Since the seminal paper from [Fisher1936](@cite),
 
 [^1]: [*Iris* flower data set](https://en.wikipedia.org/wiki/Iris_flower_data_set)
 
-![](assets/iris.svg)
+```@raw html
+<img class="display-light-only" src="assets/iris.svg" alt="Iris task"/>
+<img class="display-dark-only" src="assets/iris-dark.svg" alt="Iris task"/>
+```
+
 
 where the input sample ``\bm{x}`` is a vector (or generally speaking any tensor) of a fixed dimension containing various measurements of the specimen.
 
@@ -23,7 +27,10 @@ If we want to use such more elaborate description of the Iris flower using fixed
 
 In *Hierarchical Multiple Instance Learning* (HMIL) the input may consists of not only sets, but also *sets of sets* and [*Cartesian Products*](https://en.wikipedia.org/wiki/Cartesian_product) of these structures. Returning to the previous Iris flower example, a specimen can be represented like this for HMIL:
 
-![](assets/iris2.svg)
+```@raw html
+<img class="display-light-only" src="assets/iris2.svg" alt="Iris HMIL representation"/>
+<img class="display-dark-only" src="assets/iris2-dark.svg" alt="Iris HMIL representation"/>
+```
 
 The only stem is represented by vector ``\bm{x}_s`` encoding its distinctive properties such as shape, color, structure or texture. Next, we inspect all blooms. Each of the blooms may have distinctive discriminative signs, therefore, we describe all three in vectors ``\bm{x}_{b_1}, \bm{x}_{b_2}, \bm{x}_{b_3}``, one vector for each bloom, and group them to a set. Finally, ``\bm{x}_u`` represents the only flower which has not blossomed. Likewise, we could describe all leaves of the specimen if any were present. Here we assume that each specimen of the considered species has only one stem, but may have multiple flowers or leaves. Hence, all blooms and buds are represented as unordered sets of vectors as opposed to stem representation, which consists of only one vector.
 
