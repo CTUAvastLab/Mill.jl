@@ -3,8 +3,7 @@ using Flux: throttle, @epochs
 using Mill: reflectinmodel
 using Base.Iterators: repeated
 
-using Random;
-Random.seed!(42);
+using Random; Random.seed!(42);
 
 fMat = load("musk.jld2", "fMat")
 

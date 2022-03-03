@@ -3,7 +3,7 @@
 #md # [`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
 #md # !!! ukn "Jupyter notebook"
 #md #     This example is also available as a [Jupyter notebook](@__NBVIEWER_ROOT_URL__/examples/musk.ipynb)
-#md #     and the environment is accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/examples/musk).
+#md #     and the environment is accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/docs/src/examples/musk).
 
 #nb # [`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Thomas G. Dietterich, Richard H. Lathrop, Tomás Lozano-Pérez (1997)](http://www.sciencedirect.com/science/article/pii/S0004370296000343). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
 #nb # The full environment and the script is accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/docs/src/examples/musk).

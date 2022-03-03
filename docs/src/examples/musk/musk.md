@@ -1,3 +1,9 @@
+```@setup musk
+using Pkg
+old_path = Pkg.project().path
+Pkg.activate(pwd())
+Pkg.instantiate()
+```
 ```@meta
 EditURL = "<unknown>/src/examples/musk/musk_literate.jl"
 ```
@@ -7,7 +13,7 @@ EditURL = "<unknown>/src/examples/musk/musk_literate.jl"
 [`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
 !!! ukn "Jupyter notebook"
     This example is also available as a [Jupyter notebook](<unknown>/examples/musk.ipynb)
-    and the environment is accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/examples/musk).
+    and the environment is accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/docs/src/examples/musk).
 
 We load all dependencies and fix the seed:
 
@@ -17,8 +23,7 @@ using Flux: throttle, @epochs
 using Mill: reflectinmodel
 using Base.Iterators: repeated
 
-using Random;
-Random.seed!(42);
+using Random; Random.seed!(42);
 nothing #hide
 ````
 
@@ -95,3 +100,6 @@ Finally, we calculate the (training) error:
 mean(mapslices(argmax, model(ds), dims = 1)' .≠ y)
 ````
 
+```@setup musk
+Pkg.activate(old_path)
+```

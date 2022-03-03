@@ -1,7 +1,10 @@
 ```@raw html
 <p align="center">
     <a href="https://github.com/CTUAvastLab/JsonGrinder.jl">
-        <img src="https://raw.githubusercontent.com/CTUAvastLab/JsonGrinder.jl/master/docs/src/assets/logo.svg" alt="JsonGrinder.jl logo"/>
+        <img class="display-light-only"
+            src="https://raw.githubusercontent.com/CTUAvastLab/JsonGrinder.jl/master/docs/src/assets/logo.svg" alt="JsonGrinder.jl logo"/>
+        <img class="display-dark-only"
+            src="https://raw.githubusercontent.com/CTUAvastLab/JsonGrinder.jl/master/docs/src/assets/logo-dark.svg" alt="JsonGrinder.jl logo"/>
     </a>
 </p>
 ```

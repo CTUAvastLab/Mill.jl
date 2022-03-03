@@ -14,8 +14,22 @@ musk_path = joinpath(@__DIR__, "src", "examples", "musk")
 Pkg.activate(musk_path) do
     Pkg.update("Mill")
     Pkg.instantiate()
+
+    add_setup(s) = """
+    ```@setup musk
+    using Pkg
+    old_path = Pkg.project().path
+    Pkg.activate(pwd())
+    Pkg.instantiate()
+    ```
+    """ * s * """
+    ```@setup musk
+    Pkg.activate(old_path)
+    ```
+    """
+    Literate.markdown(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk",
+                                                                credit=false, postprocess=add_setup)
     Literate.script(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk", credit=false)
-    Literate.markdown(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk", credit=false)
     Literate.notebook(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk")
 end
 
