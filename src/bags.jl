@@ -180,6 +180,7 @@ See also: [`AlignedBags`](@ref), [`ScatteredBags`](@ref).
 """
 bags(b::AbstractBags) = b
 bags(b::Vector{T}) where T <: UnitRange{<:Integer} = AlignedBags(b)
+bags(b::Vector{<:Vector{<:Integer}}) = ScatteredBags(b)
 function bags(k::Vector{<:Integer})
     try
         return AlignedBags(k)
@@ -234,6 +235,14 @@ AlignedBags{Int64}(UnitRange{Int64}[0:-1, 0:-1, 1:2])
 ```
 """
 adjustbags(b::AlignedBags, mask::AbstractVector{Bool}) = length2bags(map(b -> sum(@view mask[b]), b))
+function adjustbags(b::ScatteredBags, mask::AbstractVector{Bool})
+    ids = cumsum(mask)
+    new_bags = map(b.bags) do bg
+        new_bg = filter(i -> mask[i], bg)
+        map!(i -> ids[i], new_bg, new_bg)
+    end
+    ScatteredBags(new_bags)
+end
 
 Base.vcat(bs::AbstractBags{T}...) where T = _catbags(collect(bs))
 Base.reduce(::typeof(vcat), bs::Vector{T}) where T <: AbstractBags = _catbags(bs)
