@@ -1,7 +1,7 @@
 name = "Mill"
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
 authors = ["Tomas Pevny <pevnak@protonmail.ch>", "Simon Mandlik <simon.mandlik@gmail.com>"]
-version = "2.5.0"
+version = "2.6.0"
 
 [deps]
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
@@ -36,5 +36,5 @@ MacroTools = "0.5"
 Preferences = "1.2"
 Setfield = "~0.6, ~0.7, 0.8"
 StatsBase = "0.30, 0.31, 0.32, 0.33"
-Zygote = "0.6.34"
+Zygote = "0.6.35"
 julia = "1.6"
