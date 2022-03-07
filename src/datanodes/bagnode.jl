@@ -21,8 +21,7 @@ struct BagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, C} <: AbstractBa
 end
 
 """
-    BagNode(d, b::AbstractBags, m=nothing)
-    BagNode(d, b::AbstractVector, m=nothing)
+    BagNode(d, b, m=nothing)
 
 Construct a new [`BagNode`](@ref) with data `d`, bags `b`, and metadata `m`.
 

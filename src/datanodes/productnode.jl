@@ -9,7 +9,7 @@ struct ProductNode{T, C} <: AbstractProductNode
     data::T
     metadata::C
 
-    function ProductNode(data::Union{Tuple,NamedTuple,AbstractVector}, metadata)
+    function ProductNode(data::Union{Tuple,NamedTuple,AbstractVector}, metadata=nothing)
         @assert length(data) ≥ 1 "Provide at least one subtree!"
         data = map(_arraynode, data)
         l = nobs(data[1])
@@ -20,7 +20,7 @@ end
 
 """
     ProductNode(dss, m=nothing)
-    ProductNode(; dss...)
+    ProductNode(m=nothing; dss...)
 
 Construct a new [`ProductNode`](@ref) with data `dss`, and metadata `m`.
 
@@ -55,8 +55,8 @@ ERROR: AssertionError: All subtrees must have an equal amount of instances!
 
 See also: [`AbstractProductNode`](@ref), [`AbstractMillNode`](@ref), [`ProductModel`](@ref).
 """
-ProductNode(ds, m=nothing) = ProductNode(tuple(ds), m)
-ProductNode(; ns...) = ProductNode(NamedTuple(ns))
+ProductNode(ds, args...) = ProductNode(tuple(ds), args...)
+ProductNode(args...; ns...) = ProductNode(NamedTuple(ns), args...)
 
 Flux.@functor ProductNode
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)

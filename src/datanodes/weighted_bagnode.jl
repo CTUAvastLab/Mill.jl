@@ -18,10 +18,9 @@ struct WeightedBagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C} <:
 end
 
 """
-    WeightedBagNode(d::Union{AbstractMillNode, Missing}, b::AbstractBags, w::Vector, m=nothing)
-    WeightedBagNode(d::Union{AbstractMillNode, Missing}, b::AbstractVector, w::Vector, m=nothing)
+    WeightedBagNode(d, b, w::Vector, m=nothing)
 
-Construct a new [`WeightedBagNode`](@ref) with data `d`, bags `b`, weights `w` and metadata `m`.
+Construct a new [`WeightedBagNode`](@ref) with data `d`, bags `b`, vector of weights `w` and metadata `m`.
 
 `d` is either an [`AbstractMillNode`](@ref) or `missing`. Any other type is wrapped in an [`ArrayNode`](@ref).
 

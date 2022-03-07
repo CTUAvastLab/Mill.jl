@@ -58,7 +58,7 @@ Flux.@functor ProductModel
 
 """
     ProductModel(ms, m=identity)
-    ProductModel(; ms...)
+    ProductModel(m=identity; ms...)
 
 Construct a [`ProductModel`](@ref) from the arguments. `ms` should an iterable
 (`Tuple`, `NamedTuple` or `Vector`) of one or more [`AbstractMillModel`](@ref)s.
@@ -73,6 +73,11 @@ ProductModel ↦ identity
   ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(identity)
 
+julia> ProductModel(Dense(4, 2); a=ArrayModel(Dense(2, 2)), b=Dense(2, 2))
+ProductModel ↦ Dense(4, 2) 	# 2 arrays, 10 params, 120 bytes
+  ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
+  └── b: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
+
 julia> ProductModel((identity, BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
 ProductModel ↦ identity
   ├── ArrayModel(identity)
@@ -86,8 +91,8 @@ ProductModel ↦ identity
 
 See also: [`AbstractMillModel`](@ref), [`AbstractProductNode`](@ref), [`ProductNode`](@ref).
 """
-ProductModel(ms, m = identity) = ProductModel(tuple(ms), m)
-ProductModel(; ns...) = ProductModel(NamedTuple(ns))
+ProductModel(ms, args...) = ProductModel(tuple(ms), args...)
+ProductModel(args...; ns...) = ProductModel(NamedTuple(ns), args...)
 
 Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)

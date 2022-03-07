@@ -39,8 +39,13 @@ julia> m(n)
 
 See also: [`AbstractMillModel`](@ref), [`LazyNode`](@ref), [`Mill.unpack2mill`](@ref).
 """
-struct LazyModel{Name,T<:AbstractMillModel} <: AbstractMillModel
+struct LazyModel{Name, T <: AbstractMillModel} <: AbstractMillModel
     m::T
+
+    function LazyModel{Name}(m) where Name
+        m = _arraymodel(m)
+        new{Name, typeof(m)}(m)
+    end
 end
 
 """
@@ -49,21 +54,24 @@ end
 
 Construct a new [`LazyModel`](@ref) with name `Name`, and model `m`.
 
+It is also possible to pass any function as `m` instead of a model node. In that case,
+it is wrapped into an [`ArrayNode`](@ref).
+
 # Examples
 ```jldoctest
 julia> LazyModel{:Sentence}(ArrayModel(Dense(2, 2)))
+LazyModel{Sentence}
+  └── ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
+
+julia> LazyModel(:Sentence, Dense(2, 2))
 LazyModel{Sentence}
   └── ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
 ```
 
 See also: [`AbstractMillModel`](@ref), [`LazyNode`](@ref), [`Mill.unpack2mill`](@ref).
 """
-LazyModel(Name::Symbol, m::T) where {T<:AbstractMillModel} = LazyNode{Name,T}(m)
-LazyModel{Name}(m::M) where {Name,M} = LazyModel{Name,M}(m)
+LazyModel(Name::Symbol, m) = LazyModel{Name}(m)
 
 Flux.@functor LazyModel
 
 (m::LazyModel{Name})(x::LazyNode{Name}) where {Name} = m.m(unpack2mill(x))
-
-# Base.hash(m::LazyModel{T}, h::UInt) where {T} = hash((T, m.m), h)
-# (m1::LazyModel{T} == m2::LazyModel{T}) where {T} = m1.m == m2.m

@@ -10,6 +10,10 @@ See also: [`AbstractMillNode`](@ref), [`LazyModel`](@ref), [`Mill.unpack2mill`](
 struct LazyNode{Name, D, C} <: AbstractMillNode
     data::D
     metadata::C
+
+    function LazyNode{Name}(d::T, m::C=nothing) where {Name, T, C}
+        new{Name, T, C}(d, m)
+    end
 end
 
 """
@@ -28,8 +32,7 @@ LazyNode{:Codons, Vector{String}, Nothing}:
 
 See also: [`AbstractMillNode`](@ref), [`LazyModel`](@ref), [`Mill.unpack2mill`](@ref).
 """
-LazyNode(Name::Symbol, d::T, m::C=nothing) where {T, C} = LazyNode{Name, T, C}(d, m)
-LazyNode{Name}(d::T, m::C=nothing) where {Name, T, C} = LazyNode{Name, T, C}(d, m)
+LazyNode(Name::Symbol, d, m=nothing) = LazyNode{Name}(d, m)
 
 """
     Mill.unpack2mill(x::LazyNode)

@@ -32,6 +32,47 @@ l = ProductNode((a = wc, b = c), md3)
 m = ProductNode((a = wc, c = c), md3)
 n = ProductNode((a = c, c = wc), md3)
 
+@testset "constructor logic" begin
+    x = randn(2, 2)
+    n1 = ArrayNode(x)
+    bs = [1:1, 2:2]
+    b = bags(bs)
+    w = [0.1, 0.2]
+
+    for md in [tuple(), tuple(nothing), tuple("metadata")]
+        n2 = BagNode(n1, b, md...)
+        @test n2 isa BagNode{typeof(n1), typeof(b), isempty(md) ? Nothing : typeof(only(md))}
+        @test n2 == BagNode(x, b, md...) == BagNode(n1, bs, md...) == BagNode(x, bs, md...)
+
+        n2 = WeightedBagNode(n1, b, w, md...)
+        @test n2 isa WeightedBagNode{typeof(n1), typeof(b), eltype(w),
+                isempty(md) ? Nothing : typeof(only(md))}
+        @test n2 == WeightedBagNode(x, b, w, md...) == WeightedBagNode(n1, bs, w, md...) ==
+            WeightedBagNode(x, bs, w, md...)
+
+        n3 = ProductNode(tuple(n2), md...)
+        @test n3 isa ProductNode{Tuple{typeof(n2)}, isempty(md) ? Nothing : typeof(only(md))}
+        @test n3 == ProductNode(n2, md...)
+
+        n4 = ProductNode((n1, n1), md...)
+        @test n4 isa ProductNode{Tuple{typeof(n1), typeof(n1)},
+                isempty(md) ? Nothing : typeof(only(md))}
+        @test n4 == ProductNode((x, x), md...) == ProductNode((n1, x), md...) ==
+                    ProductNode((x, n1), md...)
+
+        n5 = ProductNode((a=n1, b=n2), md...)
+        @test n5 isa ProductNode{NamedTuple{(:a, :b), Tuple{typeof(n1), typeof(n2)}},
+                isempty(md) ? Nothing : typeof(only(md))}
+        @test n5 == ProductNode((a=x, b=n2), md...) ==
+                    ProductNode(md...; a=n1, b=n2) ==
+                    ProductNode(md...; a=x, b=n2)
+
+        n6 = LazyNode{:Test}(n1, md...)
+        @test n6 isa LazyNode{:Test, typeof(n1), isempty(md) ? Nothing : typeof(only(md))}
+        @test n6 == LazyNode(:Test, n1, md...)
+    end
+end
+
 @testset "nobs" begin
     @test nobs(a) == nobs(wa) == 1
     @test nobs(b) == nobs(wb) == 2

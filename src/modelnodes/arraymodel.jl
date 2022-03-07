@@ -40,6 +40,3 @@ Flux.@functor ArrayModel
 
 _arraymodel(m) = ArrayModel(m)
 _arraymodel(m::AbstractMillModel) = m
-
-# Base.hash(m::ArrayModel{T}, h::UInt) where {T} = hash((T, m.m), h)
-# (m1::ArrayModel{T} == m2::ArrayModel{T}) where {T} = m1.m == m2.m

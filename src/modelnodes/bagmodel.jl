@@ -45,7 +45,8 @@ Flux.@functor BagModel
 Construct a [`BagModel`](@ref) from the arguments. `im` should be [`AbstractMillModel`](@ref),
 `a` [`AbstractAggregation`](@ref) or [`BagCount`](@ref), and `bm` [`ArrayModel`](@ref).
 
-It is also possible to pass any function as `im`. In that case, it is wrapped into an [`ArrayNode`](@ref).
+It is also possible to pass any function as `im` instead of a model node. In that case,
+it is wrapped into an [`ArrayNode`](@ref).
 
 # Examples
 ```jldoctest
@@ -67,7 +68,3 @@ BagModel(im, a::Union{AbstractAggregation, BagCount}, bm=identity) = BagModel(_a
 (m::BagModel)(x::BagNode{Missing}) = m.bm(m.a(x.data, x.bags))
 (m::BagModel)(x::WeightedBagNode{<:AbstractMillNode}) = m.bm(m.a(m.im(x.data), x.bags, x.weights))
 (m::BagModel)(x::WeightedBagNode{Missing}) = m.bm(m.a(x.data, x.bags, x.weights))
-
-# Base.hash(m::BagModel{T,A,U}, h::UInt) where {T,A,U} = hash((T, A, U, m.im, m.a, m.bm), h)
-# (m1::BagModel{T,A,U} == m2::BagModel{T,A,U}) where {T,A,U} =
-    # m1.im == m2.im && m1.a == m2.a && m1.bm == m2.bm

@@ -4,6 +4,43 @@ const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, l
 const LAYERBUILDER = k -> Flux.Dense(k, 2, rand(ACTIVATIONS))
 const ABUILDER = d -> BagCount(all_aggregations(Float32, d))
 
+@testset "constructor logic" begin
+    d = Dense(2, 2)
+    a = SegmentedMeanMax(2)
+    m1 = ArrayModel(d)
+
+    for m in [tuple(), tuple(identity), tuple(d)]
+        m2 = BagModel(m1, a, m...)
+        @test m2 isa BagModel{ArrayModel{typeof(d)}, typeof(a),
+                isempty(m) ? typeof(identity) : typeof(only(m))}
+        @test m2 == BagModel(d, a, m...)
+
+        m3 = ProductModel(tuple(m2), m...)
+        @test m3 isa ProductModel{Tuple{typeof(m2)}, isempty(m) ? typeof(identity) : typeof(only(m))}
+        @test m3 == ProductModel(m2, m...)
+
+        m4 = ProductModel((m1, m1), m...)
+        @test m4 isa ProductModel{Tuple{typeof(m1), typeof(m1)},
+                isempty(m) ? typeof(identity) : typeof(only(m))}
+        @test m4 == ProductModel((d, d), m...) == ProductModel((m1, d), m...) ==
+                    ProductModel((d, m1), m...)
+
+        m4 = ProductModel((a=m1, b=m2), m...)
+        @test m4 isa ProductModel{NamedTuple{(:a, :b), Tuple{typeof(m1), typeof(m2)}},
+                isempty(m) ? typeof(identity) : typeof(only(m))}
+        @test m4 == ProductModel((a=d, b=m2), m...) ==
+                    ProductModel(a=m1, b=m2, m...) ==
+                    ProductModel(a=d, b=m2, m...) == 
+                    ProductModel(m...; a=m1, b=m2) ==
+                    ProductModel(m...; a=d, b=m2)
+    end
+
+    m5 = LazyModel{:Test}(m1)
+    @test m5 isa LazyModel{:Test, typeof(m1)}
+    @test m5 == LazyModel{:Test}(d) ==
+                LazyModel(:Test, m1) == LazyModel(:Test, d)
+end
+
 @testset "matrix model" begin
     x = ArrayNode(randn(Float32, 4, 5))
     m = reflectinmodel(x, LAYERBUILDER)
