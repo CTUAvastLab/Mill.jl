@@ -18,7 +18,8 @@ Similarly, if an [`ArrayNode`](@ref) contains data `X` where `size(X, 1)` is `1`
 model is instantiated as `identity` unless `single_scalar_identity` is `false`.
 
 By default, `reflectinmodel` makes first `Dense` layers in leafs imputing only if the datatype suggests
-that missing data is present. If `all_imputing` is true, all such `Dense` layers are replaced by their imputing variants.
+that missing data is present. This applies to `Array`, [`MaybeHotVector`](@ref), [`MaybeHotMatrix`](@ref), 
+and [`NGramMatrix`](@ref) types. If `all_imputing` is true, all such `Dense` layers are replaced by their imputing variants.
 
 # Examples
 ```jldoctest
@@ -142,11 +143,12 @@ end
 
 _make_imputing(x, t::ArrayModel, ai) = _make_imputing(x, t.m, ai) |> ArrayModel
 _make_imputing(x, t::Chain, ai) = Chain(_make_imputing(x, t[1], ai), t[2:end]...)
+_make_imputing(_, t, ai) = t
 
-_make_imputing(x::AbstractArray, t::Dense, ai) = ai ? preimputing_dense(t) : t
-_make_imputing(x::AbstractArray{Maybe{T}}, t::Dense, ai) where T <: Number = preimputing_dense(t)
-_make_imputing(x::AbstractArray, ::typeof(identity), ai) = ai ? preimputing_dense(_identity_dense(x)) : identity
-_make_imputing(x::AbstractArray{Maybe{T}}, ::typeof(identity), ai) where T <: Number = preimputing_dense(_identity_dense(x))
+_make_imputing(x::Array, t::Dense, ai) = ai ? preimputing_dense(t) : t
+_make_imputing(x::Array{Maybe{T}}, t::Dense, ai) where T <: Number = preimputing_dense(t)
+_make_imputing(x::Array, ::typeof(identity), ai) = ai ? preimputing_dense(_identity_dense(x)) : identity
+_make_imputing(x::Array{Maybe{T}}, ::typeof(identity), ai) where T <: Number = preimputing_dense(_identity_dense(x))
 
 _make_imputing(x::NGramMatrix, t::Dense, ai) = ai ? postimputing_dense(t) : t
 _make_imputing(x::NGramMatrix{Maybe{T}}, t::Dense, ai) where T <: Sequence = postimputing_dense(t)

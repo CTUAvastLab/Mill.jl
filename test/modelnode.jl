@@ -203,12 +203,25 @@ end
         @inferred f(x)(x)
     end
 
+    x1 = onehot(2, 1:3) |> ArrayNode
+    for f in [f1, f2, f3]
+        @test _get_first(f(x1)) isa Dense
+        # OneHotVector multiplication not type stable in Flux
+        # @inferred f(x1)(x1)
+    end
+
     x1 = maybehotbatch([1, 2, 3], 1:3) |> ArrayNode
     x2 = maybehotbatch([1, 2, missing], 1:3) |> ArrayNode
     x3 = maybehotbatch(fill(missing, 3), 1:3) |> ArrayNode
     for f in [f1, f2, f3], x in [x1, x2, x3]
         @test _get_first(f(x)) isa PostImputingDense
         @inferred f(x)(x)
+    end
+
+    x1 = onehotbatch([1, 2, 3], 1:3) |> ArrayNode
+    for f in [f1, f2, f3]
+        @test _get_first(f(x1)) isa Dense
+        @inferred f(x1)(x1)
     end
 
     x1 = NGramMatrix(["a", "b", "c"]) |> ArrayNode
