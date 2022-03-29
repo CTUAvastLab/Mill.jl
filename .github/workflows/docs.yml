@@ -8,10 +8,12 @@ on:
     tags: '*'
     paths:
       - 'docs/**'
+      - 'src/**'
       - '.github/workflows/docs.yml'
   pull_request:
     paths:
       - 'docs/**'
+      - 'src/**'
       - '.github/workflows/docs.yml'
 
 env:

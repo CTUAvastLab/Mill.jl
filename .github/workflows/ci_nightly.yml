@@ -7,14 +7,12 @@ on:
     paths:
       - 'src/**'
       - 'test/**'
-      - 'example/**'
       - 'Project.toml'
       - '.github/workflows/ci_nightly.yml'
   pull_request:
     paths:
       - 'src/**'
       - 'test/**'
-      - 'example/**'
       - 'Project.toml'
 
 env:
