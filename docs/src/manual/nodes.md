@@ -148,8 +148,8 @@ BM(BN) == y
 The whole procedure is depicted in the following picture:
 
 ```@raw html
-<img class="display-light-only" src="../assets/bagmodel.svg" alt="Bag Model"/>
-<img class="display-dark-only" src="../assets/bagmodel-dark.svg" alt="Bag Model"/>
+<img class="display-light-only" src="../../assets/bagmodel.svg" alt="Bag Model"/>
+<img class="display-dark-only" src="../../assets/bagmodel-dark.svg" alt="Bag Model"/>
 ```
 
 Three instances of the [`BagNode`](@ref) are represented by red subtrees are first mapped with instance model `im`, aggregated (aggregation operator here is a concatenation of two different operators ``a_1`` and ``a_2``), and the results of aggregation are transformed with bag model `bm`.
@@ -196,6 +196,6 @@ PM(PN) == y
 Application of this product model can be schematically visualized as follows:
 
 ```@raw html
-<img class="display-light-only" src="../assets/productmodel.svg" alt="Product Model"/>
-<img class="display-dark-only" src="../assets/productmodel-dark.svg" alt="Product Model"/>
+<img class="display-light-only" src="../../assets/productmodel.svg" alt="Product Model"/>
+<img class="display-dark-only" src="../../assets/productmodel-dark.svg" alt="Product Model"/>
 ```
