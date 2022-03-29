@@ -12,7 +12,7 @@ EditURL = "<unknown>/src/examples/musk/musk_literate.jl"
 
 [`Musk dataset`](https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)) is a classic MIL problem of the field, introduced in [Dietterich1997](@cite). Below we demonstrate how to solve this problem using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
 !!! ukn "Jupyter notebook"
-    This example is also available as a [Jupyter notebook](<unknown>/examples/musk.ipynb)
+    This example is also available as a [Jupyter notebook](<unknown>/examples/musk/musk.ipynb)
     and the environment is accessible [here](https://github.com/CTUAvastLab/Mill.jl/tree/master/docs/src/examples/musk).
 
 We load all dependencies and fix the seed:

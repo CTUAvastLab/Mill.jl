@@ -40,16 +40,13 @@ DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
     using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
 end; recursive=true)
 
-const STRICT_CHECKS = [:eval_block, :example_block, :meta_block, :setup_block]
-
 makedocs(
          CitationBibliography(joinpath(@__DIR__, "references.bib")),
          sitename = "Mill.jl",
          format = Documenter.HTML(sidebar_sitename=false,
                                   collapselevel = 2,
-                                  prettyurls=get(ENV, "CI", nothing) == "true",
                                   assets=["assets/favicon.ico", "assets/custom.css"]),
-         strict = STRICT_CHECKS,
+         strict = [:eval_block, :example_block, :meta_block, :setup_block],
          modules = [Mill],
          pages = [
                   "Home" => "index.md",
