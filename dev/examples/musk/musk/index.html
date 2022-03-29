@@ -74,27 +74,27 @@ y_oh = Flux.onehotbatch(y, 1:2)</code></pre><pre class="documenter-example-outpu
     Chain(Dense(21, 10, Flux.tanh), Dense(10, 2)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Chain(Dense(21, 10, tanh), Dense(10, 2)) 	# 6 arrays, 262 params, 1.258 KiB
   └── ArrayModel(Dense(166, 10, tanh)) 	# 2 arrays, 1_670 params, 6.602 KiB</code></pre><p>Instances are first passed through a single layer with 10 neurons (input dimension is 166) with <code>tanh</code> non-linearity, then we use <code>mean</code> and <code>max</code> aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and <code>tanh</code> nonlinearity followed by linear layer with 2 neurons (output dimension). We check that forward pass works</p><pre><code class="language-julia hljs">model(ds)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×92 Matrix{Float32}:
  1.00559   0.71191   1.14493   1.19852   …  0.665943  0.016557  0.477948
- 0.800909  0.486771  0.790684  0.714799     0.454411  0.295348  1.42942</code></pre><p>Since <code>Mill</code> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>cross-entropy</code> loss function:...</p><pre><code class="language-julia hljs">loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">loss (generic function with 1 method)</code></pre><p>...and run simple training procedure using its tooling:</p><pre><code class="language-julia hljs">opt = Flux.ADAM()
+ 0.800909  0.486771  0.790684  0.714799     0.45441   0.295348  1.42942</code></pre><p>Since <code>Mill</code> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>cross-entropy</code> loss function:...</p><pre><code class="language-julia hljs">loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">loss (generic function with 1 method)</code></pre><p>...and run simple training procedure using its tooling:</p><pre><code class="language-julia hljs">opt = Flux.ADAM()
 @epochs 10 begin
     Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt)
     println(loss(ds, y_oh))
 end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[ Info: Epoch 1
-0.0073843636
+0.0049828463
 [ Info: Epoch 2
-0.0014511616
+0.0010993883
 [ Info: Epoch 3
-0.0004976825
+0.0004157131
 [ Info: Epoch 4
-0.00022227177
+0.00019144136
 [ Info: Epoch 5
-0.00011456474
+9.724068e-5
 [ Info: Epoch 6
-6.2043655e-5
+5.221715e-5
 [ Info: Epoch 7
-3.4573215e-5
+2.89912e-5
 [ Info: Epoch 8
-1.960734e-5
+1.6431899e-5
 [ Info: Epoch 9
-1.1254481e-5
+9.453533e-6
 [ Info: Epoch 10
-6.516196e-6</code></pre><p>Finally, we calculate the (training) error:</p><pre><code class="language-julia hljs">mean(mapslices(argmax, model(ds), dims = 1)&#39; .≠ y)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../gnn/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.14 on <span class="colophon-date" title="Friday 4 March 2022 08:56">Friday 4 March 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+5.4861225e-6</code></pre><p>Finally, we calculate the (training) error:</p><pre><code class="language-julia hljs">mean(mapslices(argmax, model(ds), dims = 1)&#39; .≠ y)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../gnn/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.14 on <span class="colophon-date" title="Tuesday 29 March 2022 09:20">Tuesday 29 March 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
