@@ -159,13 +159,13 @@ end
 
     @test buf_printtree(n2m, trav=true) ==
         """
-        ProductModel ↦ Dense(20, 10) [""] 	# 2 arrays, 210 params, 920 bytes
-          ├── ProductModel ↦ Dense(20, 10) ["E"] 	# 2 arrays, 210 params, 920 bytes
-          │     ├─── b: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) ["I"] 	# 4 arrays, 240 params, 1.094 KiB
-          │     │         └── ArrayModel(Dense(3, 10)) ["K"] 	# 2 arrays, 40 params, 240 bytes
-          │     └── wb: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) ["M"] 	# 4 arrays, 240 params, 1.094 KiB
-          │               └── ArrayModel(Dense(17, 10)) ["O"] 	# 2 arrays, 180 params, 800 bytes
-          └── ArrayModel(Dense(10, 10)) ["U"] 	# 2 arrays, 110 params, 520 bytes
+        ProductModel ↦ Dense(20 => 10) [""] 	# 2 arrays, 210 params, 920 bytes
+          ├── ProductModel ↦ Dense(20 => 10) ["E"] 	# 2 arrays, 210 params, 920 bytes
+          │     ├─── b: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["I"] 	# 4 arrays, 240 params, 1.094 KiB
+          │     │         └── ArrayModel(Dense(3 => 10)) ["K"] 	# 2 arrays, 40 params, 240 bytes
+          │     └── wb: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["M"] 	# 4 arrays, 240 params, 1.094 KiB
+          │               └── ArrayModel(Dense(17 => 10)) ["O"] 	# 2 arrays, 180 params, 800 bytes
+          └── ArrayModel(Dense(10 => 10)) ["U"] 	# 2 arrays, 110 params, 520 bytes
         """
 end
 
@@ -188,7 +188,7 @@ end
     @test buf_printtree(m, trav=true) ==
         """
         LazyModel{Codons} [""]
-          └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) ["U"] 	# 4 arrays, 240 params, 1.094 KiB
-                └── ArrayModel(Dense(64, 10)) ["k"] 	# 2 arrays, 650 params, 2.617 KiB
+          └── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["U"] 	# 4 arrays, 240 params, 1.094 KiB
+                └── ArrayModel(Dense(64 => 10)) ["k"] 	# 2 arrays, 650 params, 2.617 KiB
         """
 end

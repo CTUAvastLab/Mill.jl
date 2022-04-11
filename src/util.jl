@@ -200,10 +200,10 @@ ProductNode 	# 2 obs, 24 bytes
   └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
 julia> m = reflectinmodel(n)
-ProductModel ↦ Dense(20, 10) 	# 2 arrays, 210 params, 920 bytes
-  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) 	# 4 arrays, 240 params, 1.094 KiB
-  │     └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
-  └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
+ProductModel ↦ Dense(20 => 10) 	# 2 arrays, 210 params, 920 bytes
+  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) 	# 4 arrays, 240 params, 1.094 KiB
+  │     └── ArrayModel(Dense(2 => 10)) 	# 2 arrays, 30 params, 200 bytes
+  └── ArrayModel(Dense(2 => 10)) 	# 2 arrays, 30 params, 200 bytes
 
 julia> model_lens(m, (@lens _.data[2]))
 (@lens _.ms[2])
@@ -235,10 +235,10 @@ ProductNode 	# 2 obs, 24 bytes
   └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
 
 julia> m = reflectinmodel(n)
-ProductModel ↦ Dense(20, 10) 	# 2 arrays, 210 params, 920 bytes
-  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21, 10) 	# 4 arrays, 240 params, 1.094 KiB
-  │     └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
-  └── ArrayModel(Dense(2, 10)) 	# 2 arrays, 30 params, 200 bytes
+ProductModel ↦ Dense(20 => 10) 	# 2 arrays, 210 params, 920 bytes
+  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) 	# 4 arrays, 240 params, 1.094 KiB
+  │     └── ArrayModel(Dense(2 => 10)) 	# 2 arrays, 30 params, 200 bytes
+  └── ArrayModel(Dense(2 => 10)) 	# 2 arrays, 30 params, 200 bytes
 
 julia> data_lens(n, (@lens _.ms[2]))
 (@lens _.data[2])

@@ -1,7 +1,7 @@
 name = "Mill"
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
 authors = ["Tomas Pevny <pevnak@protonmail.ch>", "Simon Mandlik <simon.mandlik@gmail.com>"]
-version = "2.7.1"
+version = "2.7.2"
 
 [deps]
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
@@ -28,7 +28,7 @@ Combinatorics = "1.0"
 DataFrames = "1"
 DataStructures = "0.17, 0.18"
 FiniteDifferences = "0.12"
-Flux = "0.12.9"
+Flux = "0.13"
 HierarchicalUtils = "2"
 LearnBase = "0.4"
 MLDataPattern = "0.5"

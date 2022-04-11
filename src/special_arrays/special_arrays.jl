@@ -97,7 +97,7 @@ function Base.copyto!(A::T, bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) 
     return A
 end
 
-function Flux.update!(opt, x::ImputingMatrix, x̄)
+function Flux.update!(opt::Flux.Optimise.AbstractOptimiser, x::ImputingMatrix, x̄)
     if !isnothing(x̄.W)
         Flux.Optimise.update!(opt, x.W, x̄.W)
     end
@@ -114,7 +114,7 @@ Like `Flux.Dense`, but use a [`PreImputingMatrix`](@ref) instead of a standard m
 # Examples
 ```jldoctest
 julia> d = preimputing_dense(2, 3)
-[preimputing]Dense(2, 3) 	# 3 arrays, 11 params, 164 bytes
+[preimputing]Dense(2 => 3) 	# 3 arrays, 11 params, 164 bytes
 
 julia> typeof(d.weight)
 PreImputingMatrix{Float32, Matrix{Float32}, Vector{Float32}}
@@ -136,7 +136,7 @@ Like `Flux.Dense`, but use a [`PostImputingMatrix`](@ref) instead of a standard 
 # Examples
 ```jldoctest
 julia> d = postimputing_dense(3, 2)
-[postimputing]Dense(3, 2) 	# 3 arrays, 10 params, 160 bytes
+[postimputing]Dense(3 => 2) 	# 3 arrays, 10 params, 160 bytes
 
 julia> typeof(d.weight)
 PostImputingMatrix{Float32, Matrix{Float32}, Vector{Float32}}

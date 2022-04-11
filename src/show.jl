@@ -52,7 +52,7 @@ Print summary of parameters of model `m`.
 ```jldoctest
 julia> m = ProductModel(ArrayModel(Dense(2, 3)))
 ProductModel ↦ identity
-  └── ArrayModel(Dense(2, 3)) 	# 2 arrays, 9 params, 116 bytes
+  └── ArrayModel(Dense(2 => 3)) 	# 2 arrays, 9 params, 116 bytes
 
 julia> modelsummary(m)
 "Model summary: 2 arrays, 9 params, 116 bytes"
@@ -168,9 +168,9 @@ _print_params(io::IO, A::PostImputingMatrix) = Base.print_array(io, A.ψ)
 Base.print_array(io::IO, A::NGramMatrix) = Base.print_array(io, A.S)
 
 function Base.show(io::IO, l::Dense{F,<:ImputingMatrix}) where {F}
-    print(io, _name(l.weight), "Dense(", size(l.weight, 2), ", ", size(l.weight, 1))
+    print(io, _name(l.weight), "Dense(", size(l.weight, 2), " => ", size(l.weight, 1))
     l.σ == identity || print(io, ", ", l.σ)
-    l.bias == Flux.Zeros() && print(io, "; bias=false")
+    l.bias == false && print(io, "; bias=false")
     print(io, ")")
 end
 

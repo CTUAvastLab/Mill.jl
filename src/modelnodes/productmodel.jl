@@ -15,8 +15,8 @@ ProductNode 	# 2 obs, 16 bytes
 
 julia> m1 = ProductModel(a=ArrayModel(Dense(2, 2)), b=ArrayModel(Dense(2, 2)))
 ProductModel ↦ identity
-  ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
-  └── b: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
+  ├── a: ArrayModel(Dense(2 => 2)) 	# 2 arrays, 6 params, 104 bytes
+  └── b: ArrayModel(Dense(2 => 2)) 	# 2 arrays, 6 params, 104 bytes
 ```
 
 ```jldoctest product_model; filter=$(DOCTEST_FILTER)
@@ -70,19 +70,19 @@ an [`ArrayNode`](@ref).
 ```jldoctest
 julia> ProductModel(a=ArrayModel(Dense(2, 2)), b=identity)
 ProductModel ↦ identity
-  ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
+  ├── a: ArrayModel(Dense(2 => 2)) 	# 2 arrays, 6 params, 104 bytes
   └── b: ArrayModel(identity)
 
 julia> ProductModel(Dense(4, 2); a=ArrayModel(Dense(2, 2)), b=Dense(2, 2))
-ProductModel ↦ Dense(4, 2) 	# 2 arrays, 10 params, 120 bytes
-  ├── a: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
-  └── b: ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
+ProductModel ↦ Dense(4 => 2) 	# 2 arrays, 10 params, 120 bytes
+  ├── a: ArrayModel(Dense(2 => 2)) 	# 2 arrays, 6 params, 104 bytes
+  └── b: ArrayModel(Dense(2 => 2)) 	# 2 arrays, 6 params, 104 bytes
 
 julia> ProductModel((identity, BagModel(ArrayModel(Dense(2, 2)), SegmentedMean(2), identity)))
 ProductModel ↦ identity
   ├── ArrayModel(identity)
   └── BagModel ↦ SegmentedMean(2) ↦ identity 	# 1 arrays, 2 params (all zero), 48 bytes
-        └── ArrayModel(Dense(2, 2)) 	# 2 arrays, 6 params, 104 bytes
+        └── ArrayModel(Dense(2 => 2)) 	# 2 arrays, 6 params, 104 bytes
 
 julia> ProductModel(identity)
 ProductModel ↦ identity
