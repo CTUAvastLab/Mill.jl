@@ -56,7 +56,7 @@ loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)
 # ...and run simple training procedure using its tooling:
 opt = Flux.ADAM()
 @epochs 10 begin
-    Flux.train!(loss, params(model), repeated((ds, y_oh), 1000), opt)
+    Flux.train!(loss, Flux.params(model), repeated((ds, y_oh), 1000), opt)
     println(loss(ds, y_oh))
 end
 
