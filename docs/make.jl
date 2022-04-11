@@ -12,7 +12,7 @@ Useful resources for writing docs:
 
 musk_path = joinpath(@__DIR__, "src", "examples", "musk")
 Pkg.activate(musk_path) do
-    Pkg.update("Mill")
+    Pkg.update()
     Pkg.instantiate()
 
     add_setup(s) = """
@@ -33,7 +33,7 @@ Pkg.activate(musk_path) do
     Literate.notebook(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk")
 end
 
-Pkg.update("Mill")
+Pkg.update()
 Pkg.instantiate()
 
 DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
