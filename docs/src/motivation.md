@@ -49,7 +49,7 @@ HMIL problems can be seen as a special subset of general graphs. They differ in 
 * The computational graph of HMIL is a **tree**, which introduces assumption that there exist an efficient inference. Contrary, in general graphs (with loops) there is no efficient inference and one has to resort to message passing (Loopy belief propagation).
 * One update message in **loopy belief propagation** can be viewed as a MIL problem, as it has to produce a vector based on infomation inthe neighborhood, which can contain an arbitrary number of vertices.
 
-## Difference to sequences
+## Differences from sequence-based modeling
 The major difference is that instances in bag are not ordered in any way. This means that if a sequence ``(a,b,c)`` should be treated as a set, then the output of a function `f` should be the same for any permutation, i.e. ``f(abc) = f(cba) = f(bac) = \ldots``.
 
 This property has a dramatic implication on the computational complexity. Sequences are typically modeled using Recurrent Neural Networks (RNNs), where the output is calculated roughly as ``f(abc) = g(a, g(b, g(c)))``. During optimization, a gradient of ``g`` needs to be calculated recursively, giving raise to infamous vanishing / exploding gradient problems. In constrast, (H)MIL models calculate the output as ``f(\frac{1}{3}(g(a) + g(b) + g(c)))`` (slightly abusing notation again), which means that the gradient of ``g`` can be calculated in parallel and not recurrently. 
