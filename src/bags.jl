@@ -59,25 +59,33 @@ Throws `ArgumentError` if this is not possible.
 
 # Examples
 ```jldoctest
-julia> AlignedBags([2, 2, 1, 1, 1, 3])
-AlignedBags{Int64}(UnitRange{Int64}[1:2, 3:5, 6:6])
+julia> AlignedBags([1, 1, 2, 2, 2, 4])
+AlignedBags{Int64}(UnitRange{Int64}[1:2, 3:5, 0:-1, 6:6])
 ```
 """
 function AlignedBags(k::Vector{T}) where T <: Integer
     b = AlignedBags()
     !isempty(k) || return b
-    a, v = 1, k[1]
-    s = Set{T}(v)
+    v = 1
+    while v < k[1]
+        push!(b.bags, _empty_range(T))
+        v += 1
+    end
+    s = 1
     for (i, x) in enumerate(k[2:end])
-        if x ≠ v
-            !(x in s) || ArgumentError("Scattered bags") |> throw
-            push!(b.bags, a:i)
-            v = x
-            a = i+1
-            push!(s, x)
+        if x < v
+            ArgumentError("Bags are scattered") |> throw
+        elseif x > v
+            push!(b.bags, s:i)
+            v += 1
+            while v != x
+                push!(b.bags, _empty_range(T))
+                v += 1
+            end
+            s = i + 1
         end
     end
-    push!(b.bags, a:length(k))
+    push!(b.bags, s:length(k))
     b
 end
 
@@ -163,8 +171,8 @@ Construct an [`AbstractBags`](@ref) structure that is most suitable for the inpu
 
 # Examples
 ```jldoctest
-julia> bags([2, 2, 3, 1])
-AlignedBags{Int64}(UnitRange{Int64}[1:2, 3:3, 4:4])
+julia> bags([1, 1, 3])
+AlignedBags{Int64}(UnitRange{Int64}[1:2, 0:-1, 3:3])
 
 julia> bags([2, 3, 1, 2])
 ScatteredBags{Int64}([[3], [1, 4], [2]])
@@ -246,6 +254,9 @@ end
 
 Base.vcat(bs::AbstractBags{T}...) where T = _catbags(collect(bs))
 Base.reduce(::typeof(vcat), bs::Vector{T}) where T <: AbstractBags = _catbags(bs)
+
+maxindex(x) = isempty(x) ? -1 : maximum(x)
+maxindex(b::AbstractBags) = isempty(b) ? -1 : mapreduce(maxindex, max, b.bags)
 
 function _catbags(bs::Vector{AlignedBags{T}}) where T <: Integer
     nbs = Vector{UnitRange{T}}(undef, sum(length.(bs)))

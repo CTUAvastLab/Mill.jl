@@ -3,9 +3,9 @@
     @test AlignedBags([1]).bags == [1:1]
     @test AlignedBags([1, 1]).bags == [1:2]
     @test AlignedBags([1, 1, 2, 2, 2, 3]).bags == [1:2, 3:5, 6:6]
-    @test AlignedBags([3, 3, 1, 1, 1, 2]).bags == [1:2, 3:5, 6:6]
-    @test AlignedBags([2, 2, 3, 3, 3, 1]).bags == [1:2, 3:5, 6:6]
-    @test AlignedBags(UInt64.([2, 2, 3, 3, 3, 1])).bags == [1:2, 3:5, 6:6]
+    @test AlignedBags([2, 2, 3, 3, 3, 6]).bags == [0:-1, 1:2, 3:5, 0:-1, 0:-1, 6:6]
+    @test_throws ArgumentError AlignedBags([3, 3, 1, 1, 1, 2])
+    @test_throws ArgumentError AlignedBags([2, 2, 3, 3, 3, 1])
     @test_throws ArgumentError AlignedBags([1, 1, 1, 2, 2, 1])
     @test_throws ArgumentError AlignedBags([2, 1, 1, 1, 1, 2])
 
@@ -22,9 +22,9 @@ end
 @testset "bags()" begin
     @test Mill.bags(Int[]) == AlignedBags(Int[])
     @test Mill.bags([1, 1, 1, 2, 2, 3, 3]) == AlignedBags([1:3, 4:5, 6:7])
-    @test Mill.bags([2, 2, 2, 1, 1, 3, 3]) == AlignedBags([1:3, 4:5, 6:7])
+    @test Mill.bags([2, 2, 2, 1, 1, 3, 3]) == ScatteredBags([[4, 5], [1, 2, 3], [6, 7]])
     @test Mill.bags([1, 2, 1]) == ScatteredBags([[1, 3], [2]])
-    @test Mill.bags([2, 2, 2, 1, 1, 3]) == AlignedBags([1:3, 4:5, 6:6])
+    @test Mill.bags([2, 2, 2, 1, 1, 3]) == ScatteredBags([[4, 5], [1, 2, 3], [6]])
 end
 
 @testset "length2bags" begin
@@ -33,6 +33,15 @@ end
     @test length2bags([2]).bags == [1:2]
     @test length2bags([1]).bags == [1:1]
     @test length2bags([0]).bags == [0:-1]
+end
+
+@testset "maxindex" begin
+    @test Mill.maxindex(AlignedBags()) ==
+          Mill.maxindex(AlignedBags([0:-1, 0:-1])) ==
+          Mill.maxindex(ScatteredBags()) ==
+          Mill.maxindex(ScatteredBags([Int[], Int[]])) == -1
+    @test Mill.maxindex(AlignedBags([1:6, 0:-1, 7:9])) == 9
+    @test Mill.maxindex(ScatteredBags([[6,1], Int[], [9,8,7]])) == 9
 end
 
 @testset "aligned hcat" begin

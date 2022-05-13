@@ -31,7 +31,7 @@ julia> Mill.data(ArrayNode([1 2; 3 4], "metadata"))
  1  2
  3  4
 
-julia> Mill.data(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"))
+julia> Mill.data(BagNode(ArrayNode([1 2; 3 4]), [1, 2], "metadata"))
 2×2 ArrayNode{Matrix{Int64}, Nothing}:
  1  2
  3  4
@@ -51,7 +51,7 @@ Return metadata stored in node `n`.
 julia> Mill.metadata(ArrayNode([1 2; 3 4], "metadata"))
 "metadata"
 
-julia> Mill.metadata(BagNode(ArrayNode([1 2; 3 4]), bags([1:3, 4:4]), "metadata"))
+julia> Mill.metadata(BagNode(ArrayNode([1 2; 3 4]), [1, 2], "metadata"))
 "metadata"
 ```
 

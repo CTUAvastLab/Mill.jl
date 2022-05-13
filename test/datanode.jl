@@ -73,6 +73,18 @@ n = ProductNode((a = c, c = wc), md3)
     end
 end
 
+@testset "constructor assertions" begin
+    @test_throws AssertionError BagNode(missing, length2bags([0, 1, 0]))
+    @test_throws AssertionError BagNode(e, length2bags([1, 1, 1]))
+    @test_throws AssertionError BagNode(i, ScatteredBags([[1, 2], [3]]))
+
+    for (x, y) in [(g, i), (f, g), (k, m)]
+        @test_throws AssertionError ProductNode((x, y))
+        @test_throws AssertionError ProductNode(; x, y)
+        @test_throws AssertionError ProductNode((x, x, y))
+    end
+end
+
 @testset "nobs" begin
     @test nobs(a) == nobs(wa) == 1
     @test nobs(b) == nobs(wb) == 2

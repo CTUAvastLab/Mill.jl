@@ -38,7 +38,7 @@ ProductNode 	# 2 obs, 16 bytes
   └── ArrayNode(2×2 OneHotArray with Bool elements) 	# 2 obs, 64 bytes
 
 julia> ProductNode(x1 = ArrayNode(NGramMatrix(["Hello", "world"])),
-                   x2 = BagNode(ArrayNode([1 2; 3 4]), [1:3, 4:4]))
+                   x2 = BagNode(ArrayNode([1 2; 3 4]), [1:2, 0:-1]))
 ProductNode 	# 2 obs, 48 bytes
   ├── x1: ArrayNode(2053×2 NGramMatrix with Int64 elements) 	# 2 obs, 146 bytes
   └── x2: BagNode 	# 2 obs, 96 bytes

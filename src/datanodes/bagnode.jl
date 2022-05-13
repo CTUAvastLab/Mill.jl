@@ -16,6 +16,8 @@ struct BagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, C} <: AbstractBa
     function BagNode(d::T, b::B, m::C=nothing) where {T <: Maybe{AbstractMillNode}, B <: AbstractBags, C}
         @assert(!ismissing(d) || all(length.(b) .== 0),
                 "BagNode with `missing` in data cannot have a non-empty bag")
+        @assert(ismissing(d) || nobs(d) ≥ maxindex(b),
+                "Bag indices range is greater than number of observations")
         new{T, B, C}(d, b, m)
     end
 end
