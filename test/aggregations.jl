@@ -308,10 +308,7 @@ end
         w_mat = abs.(randn(size(x))) .+ 0.1
         agg = all_aggregations(Float64, d)
         for a in tuple(agg.fs..., BagCount.(agg.fs)...)
-            if a isa SegmentedPNorm || a isa BagCount{<:SegmentedPNorm}
-                @test_throws NotImplementedException @gradtest w -> a(x, bags, w) [x]
-                @test_throws NotImplementedException @gradtest w_mat -> a(x, bags, w_mat) [x]
-            else
+            if !(a isa SegmentedPNorm) && !(a isa BagCount{<:SegmentedPNorm})
                 @test @gradtest w -> a(x, bags, w) [x]
                 @test @gradtest w_mat -> a(x, bags, w_mat) [x]
             end
