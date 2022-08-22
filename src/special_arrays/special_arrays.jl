@@ -20,7 +20,7 @@ include("maybe_hot_matrix.jl")
 const MaybeHotArray{T} = Union{MaybeHotVector{T}, MaybeHotMatrix{T}}
 
 # so we error on integers with missings (but not on maybehot which has only integers)
-Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T<:Integer = 
+Flux.onecold(X::MaybeHotArray{Maybe{T}}, labels = 1:size(X, 1)) where T <: Integer = 
     throw(ArgumentError("$(typeof(X)) can't produce `onecold` encoding, use `maybecold` instead."))
 
 """
