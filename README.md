@@ -5,7 +5,7 @@
 
 ---
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/CTUAvastLab/Mill.jl/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/CTUAvastLab/Mill.jl/blob/master/LICENSE.md)
 [![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://CTUAvastLab.github.io/Mill.jl/stable)
 [![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://CTUAvastLab.github.io/Mill.jl/dev)
 [![Build Status](https://github.com/CTUAvastLab/Mill.jl/workflows/CI/badge.svg)](https://github.com/CTUAvastLab/Mill.jl/actions?query=workflow%3ACI)
