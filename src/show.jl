@@ -69,7 +69,7 @@ function modelsummary(m::AbstractMillModel)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(m::AbstractMillModel))
-    HierarchicalUtils.printtree(io, m; htrunc = 5, vtrunc = 10, breakline = false)
+    HierarchicalUtils.printtree(io, m; htrunc=5, vtrunc=10, breakline = false)
 end
 
 _levelparams(m::ArrayModel) = Flux.params(m.m)

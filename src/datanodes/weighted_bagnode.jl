@@ -5,7 +5,7 @@ Structure like [`BagNode`](@ref) but allows to specify weights of type `W` of ea
 
 See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@ref), [`BagModel`](@ref).
 """
-struct WeightedBagNode{T<:Maybe{AbstractMillNode},B<:AbstractBags,W,C} <: AbstractBagNode
+struct WeightedBagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C} <: AbstractBagNode
     data::T
     bags::B
     weights::Vector{W}
@@ -16,7 +16,7 @@ struct WeightedBagNode{T<:Maybe{AbstractMillNode},B<:AbstractBags,W,C} <: Abstra
             "WeightedBagNode with `missing` in data cannot have a non-empty bag")
         @assert(ismissing(d) || nobs(d) ≥ maxindex(b),
             "Bag indices range is greater than number of observations")
-        new{T,B,W,C}(d, b, w, m)
+        new{T, B, W, C}(d, b, w, m)
     end
 end
 
@@ -44,8 +44,7 @@ See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@re
 """
 WeightedBagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, weights::Vector, metadata = nothing) =
     WeightedBagNode(d, bags(b), weights, metadata)
-WeightedBagNode(d, b, w, m = nothing) = WeightedBagNode(_arraynode(d), b, w, m)
-
+WeightedBagNode(d, b, w, m=nothing) = WeightedBagNode(_arraynode(d), b, w, m)
 
 Flux.@functor WeightedBagNode
 
@@ -53,7 +52,7 @@ mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.w
 
 dropmeta(x::WeightedBagNode) = WeightedBagNode(dropmeta(x.data), x.bags, x.weights)
 
-function Base.getindex(x::WeightedBagNode{T,B,W}, i::VecOrRange{<:Int}) where {T,B,W}
+function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Int}) where {T, B, W}
     nb, ii = remapbags(x.bags, i)
     emptyismissing() && isempty(ii) && return (WeightedBagNode(missing, nb, W[], nothing))
     WeightedBagNode(subset(x.data, ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
