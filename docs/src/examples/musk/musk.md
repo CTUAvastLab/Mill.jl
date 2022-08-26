@@ -3,6 +3,9 @@ using Pkg
 old_path = Pkg.project().path
 Pkg.activate(pwd())
 Pkg.instantiate()
+
+ENV["LINES"] = 25
+ENV["COLUMNS"] = 125
 ```
 ```@meta
 EditURL = "<unknown>/src/examples/musk/musk_literate.jl"

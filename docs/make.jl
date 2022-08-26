@@ -21,6 +21,9 @@ Pkg.activate(musk_path) do
     old_path = Pkg.project().path
     Pkg.activate(pwd())
     Pkg.instantiate()
+
+    ENV["LINES"] = 25
+    ENV["COLUMNS"] = 125
     ```
     """ * s * """
     ```@setup musk
@@ -38,13 +41,14 @@ Pkg.instantiate()
 
 DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
     using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
+    ENV["LINES"] = ENV["COLUMNS"] = typemax(Int)
 end; recursive=true)
 
 makedocs(
          CitationBibliography(joinpath(@__DIR__, "references.bib")),
          sitename = "Mill.jl",
          format = Documenter.HTML(sidebar_sitename=false,
-                                  collapselevel = 2,
+                                  collapselevel=2,
                                   assets=["assets/favicon.ico", "assets/custom.css"]),
          strict = [:eval_block, :example_block, :meta_block, :setup_block],
          modules = [Mill],
