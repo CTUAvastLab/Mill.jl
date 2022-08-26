@@ -33,10 +33,10 @@ Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n` con
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode 	# 2 obs, 16 bytes
-  ├── BagNode 	# 2 obs, 88 bytes
-  │     └── ∅
-  └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+ProductNode  # 2 obs, 16 bytes
+  ├── BagNode  # 2 obs, 88 bytes
+  │     ╰── ∅
+  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> pred_lens(x -> x isa ArrayNode, n)
 1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
@@ -55,10 +55,10 @@ Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n`.
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode 	# 2 obs, 16 bytes
-  ├── BagNode 	# 2 obs, 88 bytes
-  │     └── ∅
-  └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+ProductNode  # 2 obs, 16 bytes
+  ├── BagNode  # 2 obs, 88 bytes
+  │     ╰── ∅
+  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> list_lens(n)
 9-element Vector{Lens}:
@@ -85,10 +85,10 @@ Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n` tha
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode 	# 2 obs, 16 bytes
-  ├── BagNode 	# 2 obs, 88 bytes
-  │     └── ∅
-  └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+ProductNode  # 2 obs, 16 bytes
+  ├── BagNode  # 2 obs, 88 bytes
+  │     ╰── ∅
+  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> findnonempty_lens(n)
 3-element Vector{Lens}:
@@ -110,10 +110,10 @@ compared to `x` using `Base.===`.
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode 	# 2 obs, 16 bytes
-  ├── BagNode 	# 2 obs, 88 bytes
-  │     └── ∅
-  └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+ProductNode  # 2 obs, 16 bytes
+  ├── BagNode  # 2 obs, 88 bytes
+  │     ╰── ∅
+  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> find_lens(n, n.data[1])
 1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
@@ -146,10 +146,10 @@ that they access each node in tree egal to `n`.
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])));
 
 julia> printtree(n; trav=true)
-ProductNode [""] 	# 2 obs, 16 bytes
-  ├── BagNode ["E"] 	# 2 obs, 88 bytes
-  │     └── ∅ ["M"]
-  └── ArrayNode(2×2 Array with Int64 elements) ["U"] 	# 2 obs, 80 bytes
+ProductNode [""]  # 2 obs, 16 bytes
+  ├── BagNode ["E"]  # 2 obs, 88 bytes
+  │     ╰── ∅ ["M"]
+  ╰── ArrayNode(2×2 Array with Int64 elements) ["U"]  # 2 obs, 80 bytes
 
 julia> code2lens(n, "U")
 1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
@@ -171,10 +171,10 @@ that they access each node in tree egal to `n`.
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])));
 
 julia> printtree(n; trav=true)
-ProductNode [""] 	# 2 obs, 16 bytes
-  ├── BagNode ["E"] 	# 2 obs, 88 bytes
-  │     └── ∅ ["M"]
-  └── ArrayNode(2×2 Array with Int64 elements) ["U"] 	# 2 obs, 80 bytes
+ProductNode [""]  # 2 obs, 16 bytes
+  ├── BagNode ["E"]  # 2 obs, 88 bytes
+  │     ╰── ∅ ["M"]
+  ╰── ArrayNode(2×2 Array with Int64 elements) ["U"]  # 2 obs, 80 bytes
 
 julia> lens2code(n, (@lens _.data[2]))
 1-element Vector{String}:
@@ -194,16 +194,16 @@ Convert `Setfield.Lens` `l` for a data node to a new lens for accessing the same
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode 	# 2 obs, 24 bytes
-  ├── BagNode 	# 2 obs, 96 bytes
-  │     └── ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
-  └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+ProductNode  # 2 obs, 24 bytes
+  ├── BagNode  # 2 obs, 96 bytes
+  │     ╰── ArrayNode(2×2 Array with Float64 elements)  # 2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> m = reflectinmodel(n)
-ProductModel ↦ Dense(20 => 10) 	# 2 arrays, 210 params, 920 bytes
-  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) 	# 4 arrays, 240 params, 1.094 KiB
-  │     └── ArrayModel(Dense(2 => 10)) 	# 2 arrays, 30 params, 200 bytes
-  └── ArrayModel(Dense(2 => 10)) 	# 2 arrays, 30 params, 200 bytes
+ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes
+  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  # 4 arrays, 240 params, 1.094 KiB
+  │     ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
+  ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
 
 julia> model_lens(m, (@lens _.data[2]))
 (@lens _.ms[2])
@@ -229,16 +229,16 @@ Convert `Setfield.Lens` `l` for a model node to a new lens for accessing the sam
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode 	# 2 obs, 24 bytes
-  ├── BagNode 	# 2 obs, 96 bytes
-  │     └── ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
-  └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+ProductNode  # 2 obs, 24 bytes
+  ├── BagNode  # 2 obs, 96 bytes
+  │     ╰── ArrayNode(2×2 Array with Float64 elements)  # 2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> m = reflectinmodel(n)
-ProductModel ↦ Dense(20 => 10) 	# 2 arrays, 210 params, 920 bytes
-  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) 	# 4 arrays, 240 params, 1.094 KiB
-  │     └── ArrayModel(Dense(2 => 10)) 	# 2 arrays, 30 params, 200 bytes
-  └── ArrayModel(Dense(2 => 10)) 	# 2 arrays, 30 params, 200 bytes
+ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes
+  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  # 4 arrays, 240 params, 1.094 KiB
+  │     ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
+  ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
 
 julia> data_lens(n, (@lens _.ms[2]))
 (@lens _.data[2])
@@ -266,15 +266,15 @@ Short description
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode 	# 2 obs, 24 bytes
-  ├── BagNode 	# 2 obs, 96 bytes
-  │     └── ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
-  └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+ProductNode  # 2 obs, 24 bytes
+  ├── BagNode  # 2 obs, 96 bytes
+  │     ╰── ArrayNode(2×2 Array with Float64 elements)  # 2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> replacein(n, n.data[1], ArrayNode(maybehotbatch([1, 2], 1:2)))
-ProductNode 	# 2 obs, 24 bytes
-  ├── ArrayNode(2×2 MaybeHotMatrix with Bool elements) 	# 2 obs, 80 bytes
-  └── ArrayNode(2×2 Array with Int64 elements) 	# 2 obs, 80 bytes
+ProductNode  # 2 obs, 24 bytes
+  ├── ArrayNode(2×2 MaybeHotMatrix with Bool elements)  # 2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 ```
 """
 replacein(x, oldnode, newnode) = x

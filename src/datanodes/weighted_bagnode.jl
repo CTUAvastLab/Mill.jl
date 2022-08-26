@@ -5,18 +5,18 @@ Structure like [`BagNode`](@ref) but allows to specify weights of type `W` of ea
 
 See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@ref), [`BagModel`](@ref).
 """
-struct WeightedBagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C} <: AbstractBagNode
+struct WeightedBagNode{T<:Maybe{AbstractMillNode},B<:AbstractBags,W,C} <: AbstractBagNode
     data::T
     bags::B
     weights::Vector{W}
     metadata::C
 
-    function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C=nothing) where {T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C}
+    function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C = nothing) where {T<:Maybe{AbstractMillNode},B<:AbstractBags,W,C}
         @assert(!ismissing(d) || all(length.(b) .== 0),
-                "WeightedBagNode with `missing` in data cannot have a non-empty bag")
+            "WeightedBagNode with `missing` in data cannot have a non-empty bag")
         @assert(ismissing(d) || nobs(d) ≥ maxindex(b),
-                "Bag indices range is greater than number of observations")
-        new{T, B, W, C}(d, b, w, m)
+            "Bag indices range is greater than number of observations")
+        new{T,B,W,C}(d, b, w, m)
     end
 end
 
@@ -32,19 +32,19 @@ If `b` is an `AbstractVector`, [`Mill.bags`](@ref) is applied first.
 # Examples
 ```jldoctest
 julia> WeightedBagNode(ArrayNode(NGramMatrix(["s1", "s2"])), bags([1:2, 0:-1]), [0.2, 0.8])
-WeightedBagNode 	# 2 obs, 184 bytes
-  └── ArrayNode(2053×2 NGramMatrix with Int64 elements) 	# 2 obs, 140 bytes
+WeightedBagNode  # 2 obs, 184 bytes
+  ╰── ArrayNode(2053×2 NGramMatrix with Int64 elements)  # 2 obs, 140 bytes
 
 julia> WeightedBagNode(zeros(2, 2), [1, 2], [1, 2])
-WeightedBagNode 	# 2 obs, 160 bytes
-  └── ArrayNode(2×2 Array with Float64 elements) 	# 2 obs, 80 bytes
+WeightedBagNode  # 2 obs, 160 bytes
+  ╰── ArrayNode(2×2 Array with Float64 elements)  # 2 obs, 80 bytes
 ```
 
 See also: [`BagNode`](@ref), [`AbstractBagNode`](@ref), [`AbstractMillNode`](@ref), [`BagModel`](@ref).
 """
-WeightedBagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, weights::Vector, metadata=nothing) =
+WeightedBagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, weights::Vector, metadata = nothing) =
     WeightedBagNode(d, bags(b), weights, metadata)
-WeightedBagNode(d, b, w, m=nothing) = WeightedBagNode(_arraynode(d), b, w, m)
+WeightedBagNode(d, b, w, m = nothing) = WeightedBagNode(_arraynode(d), b, w, m)
 
 
 Flux.@functor WeightedBagNode
@@ -53,10 +53,10 @@ mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.w
 
 dropmeta(x::WeightedBagNode) = WeightedBagNode(dropmeta(x.data), x.bags, x.weights)
 
-function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Int}) where {T, B, W}
+function Base.getindex(x::WeightedBagNode{T,B,W}, i::VecOrRange{<:Int}) where {T,B,W}
     nb, ii = remapbags(x.bags, i)
-    emptyismissing() && isempty(ii) && return(WeightedBagNode(missing, nb, W[], nothing))
-    WeightedBagNode(subset(x.data,ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
+    emptyismissing() && isempty(ii) && return (WeightedBagNode(missing, nb, W[], nothing))
+    WeightedBagNode(subset(x.data, ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
 end
 
 function reduce(::typeof(catobs), as::Vector{<:WeightedBagNode})

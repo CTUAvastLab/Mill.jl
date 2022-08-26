@@ -92,6 +92,8 @@ all_aggregations(t::Type, d) = vcat(nonparam_aggregations(t, d), param_aggregati
 @testset "Doctests" begin
     DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
         using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
+        # do not shorten prints in doctests
+        ENV["LINES"] = ENV["COLUMNS"] = typemax(Int)
     end; recursive=true)
     doctest(Mill)
 end

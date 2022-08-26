@@ -8,8 +8,8 @@ Print summary of parameters of node `n`.
 # Examples
 ```jldoctest
 julia> n = ProductNode(ArrayNode(randn(2, 3)))
-ProductNode 	# 3 obs, 8 bytes
-  └── ArrayNode(2×3 Array with Float64 elements) 	# 3 obs, 96 bytes
+ProductNode  # 3 obs, 8 bytes
+  ╰── ArrayNode(2×3 Array with Float64 elements)  # 3 obs, 96 bytes
 
 julia> datasummary(n)
 "Data summary: 3 obs, 112 bytes."
@@ -23,7 +23,7 @@ function datasummary(n::AbstractMillNode)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillNode))
-    HierarchicalUtils.printtree(io, n; htrunc = 3, vtrunc = 5, breakline = false)
+    HierarchicalUtils.printtree(io, n; htrunc=5, vtrunc=10, breakline=false)
 end
 
 nodeshow(io::IO, ::Missing) = print(io, "∅")
@@ -31,7 +31,7 @@ nodeshow(io::IO, n::LazyNode{N, Nothing}) where {N} = print(io, "LazyNode{$N} �
 
 function nodecommshow(io::IO, @nospecialize(n::AbstractMillNode))
     bytes = Base.format_bytes(Base.summarysize(n) - (isleaf(n) ? 0 : Base.summarysize(data(n))))
-    print(io, "\t# ", nobs(n), " obs, ", bytes)
+    print(io, " # ", nobs(n), " obs, ", bytes)
 end
 
 function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
@@ -52,7 +52,7 @@ Print summary of parameters of model `m`.
 ```jldoctest
 julia> m = ProductModel(ArrayModel(Dense(2, 3)))
 ProductModel ↦ identity
-  └── ArrayModel(Dense(2 => 3)) 	# 2 arrays, 9 params, 116 bytes
+  ╰── ArrayModel(Dense(2 => 3))  # 2 arrays, 9 params, 116 bytes
 
 julia> modelsummary(m)
 "Model summary: 2 arrays, 9 params, 116 bytes"
@@ -69,7 +69,7 @@ function modelsummary(m::AbstractMillModel)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(m::AbstractMillModel))
-    HierarchicalUtils.printtree(io, m; htrunc = 3, vtrunc = 5, breakline = false)
+    HierarchicalUtils.printtree(io, m; htrunc = 5, vtrunc = 10, breakline = false)
 end
 
 _levelparams(m::ArrayModel) = Flux.params(m.m)
@@ -93,7 +93,7 @@ function nodecommshow(io::IO, @nospecialize(m::AbstractMillModel))
     ps = _levelparams(m).params |> destruct
     if !isempty(ps)
         npars = Flux.underscorise(sum(length, ps))
-        print(io, "\t# ", length(ps), " arrays, ", npars, " params")
+        print(io, " # ", length(ps), " arrays, ", npars, " params")
         if !isempty(ps) && Flux._all(iszero, ps)
             print(io, " (all zero)")
         elseif Flux._any(isnan, ps)

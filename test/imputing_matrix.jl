@@ -455,7 +455,7 @@ end
 
 @testset "Parameters get indeed updated with Flux/Zygote" begin
     function check(d, X, pW, pψ)
-        for opt in [Flux.Descent(), Flux.ADAM()]
+        for opt in [Flux.Descent(), Flux.Adam()]
             for _ in 1:3
                 dc = deepcopy(d)
                 Flux.train!(X -> sum(dc(X)), Flux.params(dc), [(X,)], opt)
