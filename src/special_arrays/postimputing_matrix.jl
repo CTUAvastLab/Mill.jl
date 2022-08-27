@@ -32,8 +32,6 @@ struct PostImputingMatrix{T <: Number, U <: AbstractMatrix{T}, V <: AbstractVect
     ψ::V
 end
 
-Flux.@functor PostImputingMatrix
-
 """
     PostImputingMatrix(W::AbstractMatrix{T}, ψ=zeros(T, size(W, 1))) where T
 
@@ -57,6 +55,8 @@ See also: [`PreImputingMatrix`](@ref).
 PostImputingMatrix(W::AbstractMatrix{T}) where T = PostImputingMatrix(W, zeros(T, size(W, 1)))
 
 Flux.@forward PostImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
+
+Flux.Adapt.@adapt_structure PostImputingMatrix
 
 Base.vcat(As::PostImputingMatrix...) = PostImputingMatrix(vcat((A.W for A in As)...), vcat((A.ψ for A in As)...))
 function Base.hcat(As::PostImputingMatrix...)

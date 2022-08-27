@@ -28,8 +28,6 @@ struct PreImputingMatrix{T <: Number, U <: AbstractMatrix{T}, V <: AbstractVecto
     ψ::V
 end
 
-Flux.@functor PreImputingMatrix
-
 """
     PreImputingMatrix(W::AbstractMatrix{T}, ψ=zeros(T, size(W, 2))) where T
 
@@ -52,6 +50,8 @@ See also: [`PostImputingMatrix`](@ref).
 PreImputingMatrix(W::AbstractMatrix{T}) where T = PreImputingMatrix(W, zeros(T, size(W, 2)))
 
 Flux.@forward PreImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
+
+Flux.Adapt.@adapt_structure PreImputingMatrix
 
 Base.hcat(As::PreImputingMatrix...) = PreImputingMatrix(hcat((A.W for A in As)...), vcat((A.ψ for A in As)...))
 function Base.vcat(As::PreImputingMatrix...)

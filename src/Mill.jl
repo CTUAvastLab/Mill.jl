@@ -8,17 +8,17 @@ using Flux
 using HierarchicalUtils
 using LearnBase
 using LinearAlgebra
-using MacroTools
 using MLDataPattern
+using MacroTools
 using Preferences
 using Setfield
 using SparseArrays
 using Statistics
-
 using StatsBase
 using Zygote
 
 using Base: CodeUnits, nameof
+using Flux.Optimise: ArrayInterface
 using ChainRulesCore: NotImplemented, NotImplementedException
 using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 using LearnBase: ObsDim
