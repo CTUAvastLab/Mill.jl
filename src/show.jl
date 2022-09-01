@@ -87,7 +87,7 @@ function nodecommshow(io::IO, @nospecialize(m::AbstractMillModel))
 
     # destructuralize params of special matrices
     destruct(m::AbstractArray{<:Number}) = [m]
-    destruct(m) = isempty(m) ? collect(m) : mapreduce(destruct, vcat, collect(m))
+    destruct(m) = isempty(m) ? collect(m) : reduce(vcat, map(destruct, collect(m)))
     destruct(m::ImputingMatrix) = [m.W, m.ψ]
 
     ps = _levelparams(m).params |> destruct
