@@ -78,8 +78,9 @@ function _mul(A::AbstractMatrix, B::MaybeHotMatrix)
     C
 end
 
+# Seems like Flux has decided to remove _fast_argmax, I will overload Base.argmax instead 
+OneHotArrays._fast_argmax(X::MaybeHotMatrix) = X.I
 # this is a bit shady because we're overloading unexported method not intended for public use
-Flux._fast_argmax(X::MaybeHotMatrix) = X.I
 Flux.onehotbatch(X::MaybeHotMatrix{<:Integer}) = Flux.onehotbatch(X.I, 1:X.l)
 
 """
@@ -108,7 +109,7 @@ See also: [`maybehot`](@ref), [`MaybeHotMatrix`](@ref), [`MaybeHotVector`](@ref)
 maybehotbatch(L, labels) = MaybeHotMatrix([maybehot(l, labels).i for l in L], length(labels))
 
 function maybecold(X::MaybeHotMatrix{<:Maybe{Integer}}, labels=1:size(X, 1))
-    indices = Flux._fast_argmax(X)
+    indices = OneHotArrays._fast_argmax(X)
     xs = isbits(labels) ? indices : collect(indices) # non-bit type cannot be handled by CUDA
     return map(xi -> ismissing(xi) ? xi : labels[xi[1]], xs)
 end

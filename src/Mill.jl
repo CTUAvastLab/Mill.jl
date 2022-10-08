@@ -5,6 +5,7 @@ using Combinatorics
 using DataFrames
 using FiniteDifferences
 using Flux
+using OneHotArrays
 using HierarchicalUtils
 using LearnBase
 using LinearAlgebra
