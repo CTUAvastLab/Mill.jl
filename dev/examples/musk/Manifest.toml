@@ -39,9 +39,9 @@ version = "6.0.23"
 
 [[deps.ArrayInterfaceCore]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "5bb0f8292405a516880a3809954cb832ae7a31c5"
+git-tree-sha1 = "e9f7992287edfc27b3cbe0046c544bace004ca5b"
 uuid = "30b0a656-2188-435a-8636-2ec0e6a096e2"
-version = "0.1.20"
+version = "0.1.22"
 
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -79,9 +79,9 @@ version = "3.12.0"
 
 [[deps.ChainRules]]
 deps = ["Adapt", "ChainRulesCore", "Compat", "Distributed", "GPUArraysCore", "IrrationalConstants", "LinearAlgebra", "Random", "RealDot", "SparseArrays", "Statistics", "StructArrays"]
-git-tree-sha1 = "a5fd229d3569a6600ae47abe8cd48cbeb972e173"
+git-tree-sha1 = "d7d816527558cb8373e8f7a746d88eb8a167b023"
 uuid = "082447d4-558c-5d27-93f4-14fc19e9eca2"
-version = "1.44.6"
+version = "1.44.7"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -220,24 +220,24 @@ version = "0.1.1"
 
 [[deps.FileIO]]
 deps = ["Pkg", "Requires", "UUIDs"]
-git-tree-sha1 = "94f5101b96d2d968ace56f7f2db19d0a5f592e28"
+git-tree-sha1 = "7be5f99f7d15578798f338f5433b6c432ea8037b"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.15.0"
+version = "1.16.0"
 
 [[deps.FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 
 [[deps.FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
-git-tree-sha1 = "87519eb762f85534445f5cda35be12e32759ee14"
+git-tree-sha1 = "802bfc139833d2ba893dd9e62ba1767c88d708ae"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.13.4"
+version = "0.13.5"
 
 [[deps.FiniteDifferences]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Printf", "Random", "Richardson", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "0ee1275eb003b6fc7325cb14301665d1072abda1"
+git-tree-sha1 = "9788a26511ad46afd12197955c2b984d5faf83c8"
 uuid = "26cc04aa-876d-5657-8c51-4c34ba976000"
-version = "0.12.24"
+version = "0.12.25"
 
 [[deps.Flux]]
 deps = ["Adapt", "ArrayInterface", "CUDA", "ChainRulesCore", "Functors", "LinearAlgebra", "MLUtils", "MacroTools", "NNlib", "NNlibCUDA", "OneHotArrays", "Optimisers", "ProgressLogging", "Random", "Reexport", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "Test", "Zygote"]
@@ -304,9 +304,9 @@ version = "2.1.5"
 
 [[deps.IRTools]]
 deps = ["InteractiveUtils", "MacroTools", "Test"]
-git-tree-sha1 = "af14a478780ca78d5eb9908b263023096c2b9d64"
+git-tree-sha1 = "2e99184fca5eb6f075944b04c22edec29beb4778"
 uuid = "7869d1d1-7146-5819-86e3-90919afe41df"
-version = "0.4.6"
+version = "0.4.7"
 
 [[deps.IfElse]]
 git-tree-sha1 = "debdd00ffef04665ccbb3e150747a77560e8fad1"
@@ -470,7 +470,7 @@ version = "0.1.3"
 deps = ["ChainRulesCore", "Combinatorics", "DataFrames", "DataStructures", "FiniteDifferences", "Flux", "HierarchicalUtils", "LearnBase", "LinearAlgebra", "MLDataPattern", "MacroTools", "OneHotArrays", "Preferences", "Setfield", "SparseArrays", "Statistics", "StatsBase", "Zygote"]
 path = "../../../.."
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
-version = "2.8.0"
+version = "2.8.2"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
@@ -537,9 +537,9 @@ version = "0.5.5+0"
 
 [[deps.Optimisers]]
 deps = ["ChainRulesCore", "Functors", "LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "1ef34738708e3f31994b52693286dabcb3d29f6b"
+git-tree-sha1 = "8a9102cb805df46fc3d6effdc2917f09b0215c0b"
 uuid = "3bd65402-5787-11e9-1adc-39752487f4e2"
-version = "0.2.9"
+version = "0.2.10"
 
 [[deps.OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
@@ -736,9 +736,9 @@ version = "1.0.1"
 
 [[deps.Tables]]
 deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "OrderedCollections", "TableTraits", "Test"]
-git-tree-sha1 = "2d7164f7b8a066bcfa6224e67736ce0eb54aef5b"
+git-tree-sha1 = "c79322d36826aa2f4fd8ecfa96ddb47b174ac78d"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "1.9.0"
+version = "1.10.0"
 
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
