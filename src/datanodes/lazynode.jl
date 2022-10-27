@@ -61,8 +61,7 @@ See also: [`LazyNode`](@ref), [`LazyModel`](@ref).
 function unpack2mill end
 
 Base.ndims(x::LazyNode) = Colon()
-StatsBase.nobs(a::LazyNode) = length(a.data)
-StatsBase.nobs(a::LazyNode, ::Type{ObsDim.Last}) = nobs(a.data)
+StatsAPI.nobs(a::LazyNode) = length(a.data)
 
 mapdata(f, x::LazyNode{N}) where N = LazyNode{N}(mapdata(f, x.data), x.metadata)
 

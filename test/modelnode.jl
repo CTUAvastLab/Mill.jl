@@ -467,22 +467,18 @@ end
     @test all(p -> vec_grad[p] == orig_grad[p], ps)
 end
 
-@testset "simple named tuple model with minibatching from MLDataPattern" begin
+@testset "simple named tuple model with minibatching from Flux (MLUtils)" begin
     Random.seed!(0)
     layerbuilder(k) = Dense(k, 2, relu)
-    x = ProductNode(node1 = BagNode(randn(Float32, 3, 4), [1:2, 3:4]),
-                    node2 = BagNode(randn(Float32, 4, 4), [1:1, 2:4]))
+    x = ProductNode(node1 = BagNode(randn(Float32, 3, 6), [1:2, 3:4, 5:5, 6:6]),
+                    node2 = BagNode(randn(Float32, 4, 6), [1:1, 2:4, 5:6, 0:-1]))
     m = reflectinmodel(x, layerbuilder)
     ps = Flux.params(m)
-    mbs = RandomBatches(x, size = 4)
-    mb_grad = gradient(() -> sum(m(first(mbs))), ps)
+    mbs = Flux.Data.DataLoader(x, batchsize=4, shuffle=true)
+    mb = first(mbs)
+    mb_grad = gradient(() -> sum(m(mb)), ps)
     @test mb_grad isa Grads
-    # conditioned by the random seed
-    if VERSION ≥ v"1.7"
-        reduced = reduce(catobs, [x[1], x[1], x[2], x[2]])
-    else
-        reduced = reduce(catobs, [x[1], x[1], x[2], x[1]])
-    end
-    orig_grad = gradient(() -> sum(m(reduced)), ps)
+    reduced = reduce(catobs, [x[3], x[2], x[1], x[4]])
+    orig_grad = gradient(() -> sum(m(mb)), ps)
     @test all(p -> mb_grad[p] == orig_grad[p], ps)
 end

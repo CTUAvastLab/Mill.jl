@@ -300,4 +300,3 @@ function replacein(x::LazyModel{N}, oldnode, newnode) where {N}
 end
 
 (m::AbstractMillModel)(x::AbstractVector{<:AbstractMillNode}) = m(Zygote.@ignore(reduce(catobs, x)))
-(m::AbstractMillModel)(x::DataSubset) = m(Zygote.@ignore(getobs(x)))

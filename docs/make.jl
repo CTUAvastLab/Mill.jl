@@ -8,6 +8,12 @@ Useful resources for writing docs:
     Documenter syntax: https://juliadocs.github.io/Documenter.jl/stable/man/syntax/ 
     Showcase: https://juliadocs.github.io/Documenter.jl/stable/showcase/
     Doctests: https://juliadocs.github.io/Documenter.jl/stable/man/doctests/
+
+To locally browse the docs, use
+
+python3 -m http.server --bind localhost
+
+in the build directory.
 =#
 
 musk_path = joinpath(@__DIR__, "src", "examples", "musk")

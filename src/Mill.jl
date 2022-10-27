@@ -5,27 +5,25 @@ using Combinatorics
 using DataFrames
 using FiniteDifferences
 using Flux
-using OneHotArrays
 using HierarchicalUtils
-using LearnBase
 using LinearAlgebra
-using MLDataPattern
+using MLUtils
 using MacroTools
+using OneHotArrays
 using Preferences
 using Setfield
 using SparseArrays
 using Statistics
-using StatsBase
 using Zygote
 
 using Base: CodeUnits, nameof
-using Flux.Optimise: ArrayInterface
 using ChainRulesCore: NotImplemented, NotImplementedException
-using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
-using LearnBase: ObsDim
+using Flux.Optimise: ArrayInterface
 using HierarchicalUtils: encode, stringify
+using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
+using StatsAPI: nobs
 
-import Flux, ChainRulesCore
+import ChainRulesCore, StatsAPI
 import Base: *, ==, reduce
 
 # COMMON ALIASES

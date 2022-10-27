@@ -98,7 +98,7 @@ function catobs end
 
 Extract a subset `i` of samples (observations) stored in node `n`.
 
-Similar to `Base.getindex` or `MLDataPattern.getobs` but defined for all `Mill.jl` compatible data as well.
+Similar to `Base.getindex` or `MLUtils.getobs` but defined for all `Mill.jl` compatible data as well.
 
 # Examples
 ```jldoctest
@@ -196,14 +196,13 @@ julia> Mill.data(n2).b
 """
 mapdata(f, x) = f(x)
 
-# functions to make datanodes compatible with getindex and with MLDataPattern
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractMillNode = x[findall(i)]
 Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractMillNode = x[findall(i)]
 Base.getindex(x::AbstractMillNode, i::Int) = x[i:i]
 Base.lastindex(ds::AbstractMillNode) = nobs(ds)
-MLDataPattern.getobs(x::AbstractMillNode, i) = x[i]
-MLDataPattern.getobs(x::AbstractMillNode, i, ::ObsDim.Undefined) = x[i]
-MLDataPattern.getobs(x::AbstractMillNode, i, ::ObsDim.Last) = x[i]
+MLUtils.getobs(x::AbstractMillNode) = x
+MLUtils.getobs(x::AbstractMillNode, i) = x[i]
+MLUtils.numobs(x::AbstractMillNode) = StatsAPI.nobs(x)
 
 subset(x::AbstractMatrix, i) = x[:, i]
 subset(x::AbstractVector, i) = x[i]
@@ -215,19 +214,16 @@ subset(xs::Union{Tuple, NamedTuple}, i) = map(x -> x[i], xs)
 
 include("arraynode.jl")
 
-StatsBase.nobs(::Missing) = nothing
+StatsAPI.nobs(::Missing) = nothing
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")
-StatsBase.nobs(a::AbstractBagNode) = length(a.bags)
-StatsBase.nobs(a::AbstractBagNode, ::Type{ObsDim.Last}) = nobs(a)
-Base.ndims(x::AbstractBagNode) = Colon()
+Base.ndims(::AbstractBagNode) = Colon()
+StatsAPI.nobs(a::AbstractBagNode) = length(a.bags)
 
 include("productnode.jl")
-
-Base.ndims(x::AbstractProductNode) = Colon()
-StatsBase.nobs(a::AbstractProductNode) = nobs(a.data[1], ObsDim.Last)
-StatsBase.nobs(a::AbstractProductNode, ::Type{ObsDim.Last}) = nobs(a)
+Base.ndims(::AbstractProductNode) = Colon()
+StatsAPI.nobs(a::AbstractProductNode) = nobs(a.data[1])
 
 include("lazynode.jl")
 
@@ -237,7 +233,7 @@ catobs(as::Maybe{WeightedBagNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{ProductNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{LazyNode}...) = reduce(catobs, collect(as))
 
-Base.cat(as::AbstractMillNode...; dims=:) = catobs(as...)
+Base.cat(as::AbstractMillNode...; dims::Colon) = catobs(as...)
 
 # reduction of common datatypes the way we like it
 Base.reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
@@ -252,5 +248,3 @@ function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: Abstract
 end
 
 catobs(as::AbstractVector{<:AbstractMillNode}) = reduce(catobs, as)
-
-ChainRulesCore.@non_differentiable MLDataPattern.getobs(x::DataSubset{<:AbstractMillNode})
