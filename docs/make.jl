@@ -11,9 +11,11 @@ Useful resources for writing docs:
 
 To locally browse the docs, use
 
-python3 -m http.server --bind localhost
+python3 -m http.server --bind localhost in the build directory.
 
-in the build directory.
+or
+
+julia -e 'using LiveServer; serve(dir="build")'
 =#
 
 musk_path = joinpath(@__DIR__, "src", "examples", "musk")
