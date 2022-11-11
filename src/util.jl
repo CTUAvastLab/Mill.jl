@@ -299,4 +299,6 @@ function replacein(x::LazyModel{N}, oldnode, newnode) where {N}
     LazyModel{N}(replacein(x.m, oldnode, newnode))
 end
 
-(m::AbstractMillModel)(x::AbstractVector{<:AbstractMillNode}) = m(Zygote.@ignore(reduce(catobs, x)))
+(m::AbstractMillModel)(x::AbstractVector{<:AbstractMillNode}) = ChainRulesCore.ignore_derivatives() do
+    reduce(catobs, x)
+end |> m
