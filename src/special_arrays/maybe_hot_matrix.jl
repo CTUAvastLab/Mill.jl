@@ -115,6 +115,6 @@ function maybecold(X::MaybeHotMatrix{<:Maybe{Integer}}, labels=1:size(X, 1))
 end
 maybecold(X::MaybeHotMatrix{<:Integer}, labels=1:size(X, 1)) = Flux.onecold(X, labels)
 
-Base.hash(X::MaybeHotMatrix, h::UInt) where {T, U, V, W} = hash((X.I, X.l), h)
+Base.hash(X::MaybeHotMatrix, h::UInt) = hash((X.I, X.l), h)
 (X1::MaybeHotMatrix == X2::MaybeHotMatrix) = X1.I == X2.I && X1.l == X2.l
 Base.isequal(X1::MaybeHotMatrix, X2::MaybeHotMatrix) = isequal(X1.I, X2.I) && X1.l == X2.l

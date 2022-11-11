@@ -290,7 +290,7 @@ function _catbags(bs::Vector{ScatteredBags{T}}) where T <: Integer
     ScatteredBags(nbs)
 end
 
-Base.hash(e::AlignedBags, h::UInt) where {A,C} = hash(e.bags, h)
+Base.hash(e::AlignedBags, h::UInt) = hash(e.bags, h)
 e1::AlignedBags == e2::AlignedBags = e1.bags == e2.bags
-Base.hash(e::ScatteredBags, h::UInt) where {A,C} = hash(e.bags, h)
+Base.hash(e::ScatteredBags, h::UInt) = hash(e.bags, h)
 e1::ScatteredBags == e2::ScatteredBags = e1.bags == e2.bags
