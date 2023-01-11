@@ -18,7 +18,6 @@ using Zygote
 
 using Base: CodeUnits, nameof
 using ChainRulesCore: NotImplemented, NotImplementedException
-using Flux.Optimise: ArrayInterface
 using HierarchicalUtils: encode, stringify
 using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 using StatsAPI: nobs
