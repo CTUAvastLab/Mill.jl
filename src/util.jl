@@ -21,8 +21,9 @@ sparsify(x, nnzrate) = x
 sparsify(x::Matrix, nnzrate) = (mean(x .≠ 0) < nnzrate) ? sparse(x) : x
 
 # can be removed when https://github.com/FluxML/Flux.jl/issues/1596 is closed
-function Base.reduce(::typeof(hcat), xs::Vector{TV})  where {T, L, TV <: OneHotLike{T, L}}
-    OneHotMatrix(reduce(vcat, map(OneHotArrays._indices, xs)), L)
+function Base.reduce(::typeof(hcat), xs::Vector{T})  where T <: OneHotLike
+    L = OneHotArrays._nlabels(xs...)
+    OneHotArray(reduce(vcat, map(OneHotArrays._indices, xs)), L)
 end
 
 """

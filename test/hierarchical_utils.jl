@@ -15,7 +15,7 @@ an2m = wbm.im
 
 ss = ["GGGCGGCGA", "CCTCGCGGG", "TTTTCGCTATTTATGAAAATT", "TTCCGGTTTAAGGCGTTTCCG"]
 base_arr = collect("ACGT")
-possibilities = product(base_arr, base_arr, base_arr) |> collect |> x->reshape(x, 1, :) .|> (x->reduce(*, x)) |> x->x[:]
+possibilities = product(base_arr, base_arr, base_arr) |> collect |> x -> reshape(x, 1, :) .|> (x -> reduce(*, x)) |> x -> x[:]
 
 struct NumberNode
     n::Int
@@ -28,8 +28,8 @@ children(n::NumberNode) = n.chs
 
 function Mill.unpack2mill(ds::LazyNode{:Codons})
     s = ds.data
-    ss = map(x -> reduce.(*, partition(x, 3)),s)
-    x = reduce(hcat, map(x->Flux.onehotbatch(x, possibilities), ss))
+    ss = map(x -> reduce.(*, partition(x, 3)), s)
+    x = reduce(hcat, map(x -> Flux.onehotbatch(x, possibilities), ss))
     BagNode(x, Mill.length2bags(length.(ss)))
 end
 
