@@ -33,9 +33,9 @@ an [`ArrayNode`](@ref).
 # Examples
 ```jldoctest
 julia> ProductNode((ArrayNode(zeros(2, 2)), ArrayNode(Flux.onehotbatch([1, 2], 1:2))))
-ProductNode  # 2 obs, 16 bytes
+ProductNode  # 2 obs, 24 bytes
   ├── ArrayNode(2×2 Array with Float64 elements)  # 2 obs, 80 bytes
-  ╰── ArrayNode(2×2 OneHotArray with Bool elements)  # 2 obs, 64 bytes
+  ╰── ArrayNode(2×2 OneHotArray with Bool elements)  # 2 obs, 80 bytes
 
 julia> ProductNode(x1 = ArrayNode(NGramMatrix(["Hello", "world"])),
                    x2 = BagNode(ArrayNode([1 2; 3 4]), [1:2, 0:-1]))

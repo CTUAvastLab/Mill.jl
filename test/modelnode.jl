@@ -206,8 +206,7 @@ end
     x1 = onehot(2, 1:3) |> ArrayNode
     for f in [f1, f2, f3]
         @test _get_first(f(x1)) isa Dense
-        # OneHotVector multiplication not type stable in Flux
-        # @inferred f(x1)(x1)
+        @inferred f(x1)(x1)
     end
 
     x1 = maybehotbatch([1, 2, 3], 1:3) |> ArrayNode
