@@ -473,7 +473,7 @@ end
                     node2 = BagNode(randn(Float32, 4, 6), [1:1, 2:4, 5:6, 0:-1]))
     m = reflectinmodel(x, layerbuilder)
     ps = Flux.params(m)
-    mbs = Flux.Data.DataLoader(x, batchsize=4, shuffle=true)
+    mbs = Flux.DataLoader(x, batchsize=4, shuffle=true)
     mb = first(mbs)
     mb_grad = gradient(() -> sum(m(mb)), ps)
     @test mb_grad isa Grads
