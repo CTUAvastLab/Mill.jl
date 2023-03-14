@@ -194,11 +194,12 @@ Convert `Setfield.Lens` `l` for a data node to a new lens for accessing the same
 
 # Examples
 ```jldoctest
-julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
+julia> n = ProductNode((BagNode(randn(Float32, 2, 2), bags([0:-1, 0:-1])),
+                        ArrayNode(Float32[1 2; 3 4])))
 ProductNode  # 2 obs, 24 bytes
   ├── BagNode  # 2 obs, 96 bytes
-  │     ╰── ArrayNode(2×2 Array with Float64 elements)  # 2 obs, 80 bytes
-  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
+  │     ╰── ArrayNode(2×2 Array with Float32 elements)  # 2 obs, 64 bytes
+  ╰── ArrayNode(2×2 Array with Float32 elements)  # 2 obs, 64 bytes
 
 julia> m = reflectinmodel(n)
 ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes
@@ -229,11 +230,11 @@ Convert `Setfield.Lens` `l` for a model node to a new lens for accessing the sam
 
 # Examples
 ```jldoctest
-julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
+julia> n = ProductNode((BagNode(randn(Float32, 2, 2), bags([0:-1, 0:-1])), ArrayNode(Float32[1 2; 3 4])))
 ProductNode  # 2 obs, 24 bytes
   ├── BagNode  # 2 obs, 96 bytes
-  │     ╰── ArrayNode(2×2 Array with Float64 elements)  # 2 obs, 80 bytes
-  ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
+  │     ╰── ArrayNode(2×2 Array with Float32 elements)  # 2 obs, 64 bytes
+  ╰── ArrayNode(2×2 Array with Float32 elements)  # 2 obs, 64 bytes
 
 julia> m = reflectinmodel(n)
 ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes

@@ -102,7 +102,6 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
     dps1 = zero(p)
     dps2 = zero(p)
     dψ = zero(ψ)
-    dw = isnothing(w) ? nothing : zero(w)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)
@@ -141,10 +140,6 @@ function segmented_pnorm_back(Δ, y, ψ, bags)
     end
     ZeroTangent(), dψ, ZeroTangent(), NoTangent(), @not_implemented("Not implemented yet!")
 end
-
-∇dw_segmented_pnorm!(dw::ZeroTangent, Δ, a, y, w::Nothing, i, j, bi) = error("Not implemented yet!")
-∇dw_segmented_pnorm!(dw::AbstractVector, Δ, a, y, w::AbstractVector, i, j, bi) = error("Not implemented yet!")
-∇dw_segmented_pnorm!(dw::AbstractMatrix, Δ, a, y, w::AbstractMatrix, i, j, bi) = error("Not implemented yet!")
 
 function ChainRulesCore.rrule(::typeof(segmented_pnorm_forw), a::AbstractMatrix, ψ, p, bags, w)
     M = _pnorm_precomp(a, bags)

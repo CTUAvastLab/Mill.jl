@@ -43,7 +43,7 @@ mf64(x) = Flux.f64(x)
 # suffers from insufficient numerical precision
 macro gradtest(gf, cvars=:[], atol=1e-5, rtol=1e-5)
     args = splitdef(gf)[:args]
-    @assert cvars isa Expr && cvars.head == :vect "@gradient accepts an array of closured variables as a second argument"
+    @assert cvars isa Expr && cvars.head == :vect "@gradtest accepts an array of closured variables as a second argument"
     cvars = cvars.args
     args32 = Symbol.(string.(args) .* "32")
     args64 = Symbol.(string.(args) .* "64")
@@ -69,9 +69,9 @@ end
 
 macro pgradtest(gf, cvars=:[], atol=1e-5, rtol=1e-5)
     m = splitdef(gf)[:args]
-    @assert length(m) == 1 "@pgradient accepts a function with only one argument"
+    @assert length(m) == 1 "@pgradtest accepts a function with only one argument"
     m = only(m)
-    @assert cvars isa Expr && cvars.head == :vect "@pgradient accepts an array of closured variables as a second argument"
+    @assert cvars isa Expr && cvars.head == :vect "@pgradtest accepts an array of closured variables as a second argument"
     cvars = cvars.args
     cvars32 = Symbol.(string.(cvars) .* "32")
     cvars64 = Symbol.(string.(cvars) .* "64")

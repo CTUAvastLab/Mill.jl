@@ -10,16 +10,16 @@ model `bm` on the aggregated representation of every bag in the data node.
 ```jldoctest; filter=$(DOCTEST_FILTER)
 julia> Random.seed!(0);
 
-julia> n = BagNode(ArrayNode(randn(3, 2)), bags([0:-1, 1:2]))
+julia> n = BagNode(ArrayNode(randn(Float32, 3, 2)), bags([0:-1, 1:2]))
 BagNode  # 2 obs, 96 bytes
-  ╰── ArrayNode(3×2 Array with Float64 elements)  # 2 obs, 96 bytes
+  ╰── ArrayNode(3×2 Array with Float32 elements)  # 2 obs, 72 bytes
 
 julia> m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMeanMax(2), Dense(4, 2))
 BagModel ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ Dense(4 => 2)  # 4 arrays, 14 params, 216 bytes
   ╰── ArrayModel(Dense(3 => 2))  # 2 arrays, 8 params, 112 bytes
 
 julia> m(n)
-2×2 Matrix{Float64}:
+2×2 Matrix{Float32}:
  0.0  1.05...
  0.0  0.49...
 

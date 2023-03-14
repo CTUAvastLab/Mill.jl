@@ -1,13 +1,14 @@
 @testset "partialeval" begin
     metadata = fill("metadata", 4)
-    an1 = ArrayNode(rand(3,4))
+    an1 = ArrayNode(rand(3, 4))
     b = BagNode(an1, [1:4, 0:-1], metadata)
     an2 = ArrayNode(randn(5, 4))
-    wb = WeightedBagNode(an2, [1:2,3:4], rand(4), metadata)
+    wb = WeightedBagNode(an2, [1:2, 3:4], rand(4), metadata)
     pn = ProductNode(; b, wb)
     an3 = ArrayNode(rand(10, 2))
     ds = ProductNode((pn, an3))
-    m = reflectinmodel(ds, d -> Chain(Dense(d, 4, relu), Dense(4,3)), SegmentedMeanMax)
+    m = reflectinmodel(ds, d -> f64(Chain(Dense(d, 4, relu), Dense(4, 3))),
+                            d -> f64(SegmentedMeanMax(d)))
 
     mm = m.ms[2]
     dd = ds.data[2]

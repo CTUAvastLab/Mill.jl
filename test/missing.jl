@@ -75,7 +75,7 @@ end
 @testset "model operations missing values" begin
     a = BagNode(rand(3, 4), [1:4], nothing)
     e = BagNode(missing, AlignedBags([0:-1]), nothing)
-    m = BagModel(Dense(3, 2), SegmentedMean(2), Dense(2, 2))
+    m = BagModel(Dense(3, 2), SegmentedMean(2), Dense(2, 2)) |> f64
 
     @testset "BagNode" begin
         x = reduce(catobs, [a, e])
@@ -103,14 +103,14 @@ end
 end
 
 @testset "reduction with missing values" begin
-    a = ProductNode(x=rand(3,4), y=rand(3,4))
-    b = ProductNode(x=rand(3,4), y=rand(3,4))
+    a = ProductNode(x=rand(3, 4), y=rand(3, 4))
+    b = ProductNode(x=rand(3, 4), y=rand(3, 4))
 
     c = ProductNode(
-        x=BagNode(missing, AlignedBags([0:-1]), nothing), y=ArrayNode(rand(3,1)),
+        x=BagNode(missing, AlignedBags([0:-1]), nothing), y=ArrayNode(rand(3, 1)),
     )
     d = ProductNode(
-        x=BagNode(a, [1:4], nothing), y=ArrayNode(rand(3,1)),
+        x=BagNode(a, [1:4], nothing), y=ArrayNode(rand(3, 1)),
     )
 
     ba = BagNode(a, [1:4], nothing)
@@ -125,9 +125,9 @@ end
     y = reduce(catobs, [ba, bb, bc])
     z = reduce(catobs, [bba, bbb, bbc])
 
-    mx = reflectinmodel(x, d -> Dense(d, 2, relu))
-    my = reflectinmodel(y, d -> Dense(d, 2, relu))
-    mz = reflectinmodel(z, d -> Dense(d, 2, relu))
+    mx = reflectinmodel(x, d -> f64(Dense(d, 2, relu)))
+    my = reflectinmodel(y, d -> f64(Dense(d, 2, relu)))
+    mz = reflectinmodel(z, d -> f64(Dense(d, 2, relu)))
 
     @test mx(x)[:, 1] ≈ mx(c)
     @test mx(x)[:, 2] ≈ mx(d)

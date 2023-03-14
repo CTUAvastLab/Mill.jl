@@ -1,13 +1,13 @@
 @testset "data and model node io" begin
-    an = ArrayNode(ones(2,5))
-    @test repr(an) == "ArrayNode(2×5 Array with Float64 elements)"
+    an = ArrayNode(ones(Float32, 2,5))
+    @test repr(an) == "ArrayNode(2×5 Array with Float32 elements)"
     @test repr(an; context=:compact => true) == "ArrayNode"
     @test repr(MIME("text/plain"), an) == 
         """
-        2×5 ArrayNode{Matrix{Float64}, Nothing}:
+        2×5 ArrayNode{Matrix{Float32}, Nothing}:
          1.0  1.0  1.0  1.0  1.0
          1.0  1.0  1.0  1.0  1.0"""
-    @test datasummary(an) == "Data summary: 5 obs, 128 bytes."
+    @test datasummary(an) == "Data summary: 5 obs, 88 bytes."
 
     anm = reflectinmodel(an)
     @test repr(anm) == "ArrayModel(Dense(2 => 10))"
@@ -19,28 +19,28 @@
 
     bn = BagNode(deepcopy(an), bags([1:2, 3:5]))
     @test repr(bn) == repr(bn; context=:compact => true) == "BagNode"
-    @test repr(MIME("text/plain"), bn) == 
+    @test repr(MIME("text/plain"), bn) ==
         """
         BagNode  # 2 obs, 96 bytes
-          ╰── ArrayNode(2×5 Array with Float64 elements)  # 5 obs, 128 bytes"""
-    @test datasummary(bn) == "Data summary: 2 obs, 224 bytes."
+          ╰── ArrayNode(2×5 Array with Float32 elements)  # 5 obs, 88 bytes"""
+    @test datasummary(bn) == "Data summary: 2 obs, 184 bytes."
 
     bnm = reflectinmodel(bn, d -> Dense(d, 10), SegmentedMean)
     @test repr(bnm) == "BagModel ↦ SegmentedMean(10) ↦ Dense(10 => 10)"
     @test repr(bnm; context=:compact => true) == "BagModel"
-    @test repr(MIME("text/plain"), bnm) == 
+    @test repr(MIME("text/plain"), bnm) ==
         """
         BagModel ↦ SegmentedMean(10) ↦ Dense(10 => 10)  # 3 arrays, 120 params, 600 bytes
           ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes"""
     @test modelsummary(bnm) == "Model summary: 5 arrays, 150 params, 800 bytes"
 
-    wbn = WeightedBagNode(deepcopy(an), bags([1:2, 3:5]), rand(5))
+    wbn = WeightedBagNode(deepcopy(an), bags([1:2, 3:5]), rand(Float32, 5))
     @test repr(wbn) == repr(wbn; context=:compact => true) == "WeightedBagNode"
-    @test repr(MIME("text/plain"), wbn) == 
+    @test repr(MIME("text/plain"), wbn) ==
         """
-        WeightedBagNode  # 2 obs, 184 bytes
-          ╰── ArrayNode(2×5 Array with Float64 elements)  # 5 obs, 128 bytes"""
-    @test datasummary(wbn) == "Data summary: 2 obs, 312 bytes."
+        WeightedBagNode  # 2 obs, 164 bytes
+          ╰── ArrayNode(2×5 Array with Float32 elements)  # 5 obs, 88 bytes"""
+    @test datasummary(wbn) == "Data summary: 2 obs, 252 bytes."
 
     wbnm = reflectinmodel(wbn)
     @test repr(wbnm) == "BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)"
@@ -57,10 +57,10 @@
         """
         ProductNode  # 2 obs, 40 bytes
           ├─── bn: BagNode  # 2 obs, 96 bytes
-          │          ╰── ArrayNode(2×5 Array with Float64 elements)  # 5 obs, 128 bytes
-          ╰── wbn: WeightedBagNode  # 2 obs, 184 bytes
-                     ╰── ArrayNode(2×5 Array with Float64 elements)  # 5 obs, 128 bytes"""
-    @test datasummary(pn) == "Data summary: 2 obs, 616 bytes."
+          │          ╰── ArrayNode(2×5 Array with Float32 elements)  # 5 obs, 88 bytes
+          ╰── wbn: WeightedBagNode  # 2 obs, 164 bytes
+                     ╰── ArrayNode(2×5 Array with Float32 elements)  # 5 obs, 88 bytes"""
+    @test datasummary(pn) == "Data summary: 2 obs, 516 bytes."
 
     pnm = reflectinmodel(pn, d -> Dense(d, 10), BagCount ∘ SegmentedMean)
     @test repr(pnm) == "ProductModel ↦ Dense(20 => 10)"
@@ -98,7 +98,7 @@
 end
 
 @testset "special parameter values" begin
-    m = reflectinmodel(ArrayNode(ones(2,5)))
+    m = reflectinmodel(ArrayNode(ones(Float32, 2, 5)))
 
     m.m.weight[1,1] = Inf
     @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params (some Inf), 200 bytes"
@@ -118,9 +118,9 @@ end
     a = AggregationStack(
                     SegmentedMean(2),
                     SegmentedMax(2),
-                    AggregationStack(SegmentedPNorm(zeros(2) |> f32, ones(2) |> f32, -ones(2) |> f32)),
-                    AggregationStack(SegmentedLSE(zeros(2) |> f32, ones(2) |> f32))
-                   )
+                    AggregationStack(SegmentedPNorm(zeros(2), ones(2), -ones(2))),
+                    AggregationStack(SegmentedLSE(zeros(2), ones(2)))
+                   ) |> f32
     @test repr(a) == "[SegmentedMean(2); SegmentedMax(2); SegmentedPNorm(2); SegmentedLSE(2)]"
     @test repr(a; context=:compact => true) == "AggregationStack"
     @test repr(MIME("text/plain"), a) == 

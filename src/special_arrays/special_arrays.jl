@@ -63,6 +63,8 @@ function maybecold end
 include("ngram_matrix.jl")
 
 ChainRulesCore.ProjectTo(X::NGramMatrix) = ProjectTo{typeof(X)}()
+# Allow NGramMatrix to reach specialisation of * etc:
+Flux._match_eltype(_, ::Type, x::NGramMatrix) = x
 
 include("preimputing_matrix.jl")
 include("postimputing_matrix.jl")

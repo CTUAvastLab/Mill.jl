@@ -20,27 +20,6 @@
     end
 end
 
-@testset "correct pre imputing behavior for standard vector (maybe missing)" begin
-    function _test_imput(W, ob::Vector, b::Vector)
-        A = PreImputingMatrix(W, ob)
-        @test A * b == W * ob
-        @test eltype(A * b) ≡ promote_type(eltype(W), eltype(ob))
-        @inferred A * b
-    end
-
-    function _test_imput(W, ob::Vector, t=10, p=0.2)
-        for _ in 1:t
-            b = [rand() < 0.2 ? missing : x for x in ob]
-            idcs = rand([true, false], length(ob))
-            _test_imput(W, ob, b)
-        end
-    end
-    _test_imput(randn(3,3), randn(3))
-    _test_imput(reshape(1:9 |> collect, (3,3)), rand(1:3, 3))
-    _test_imput(randn(3,3), randn(3), fill(missing, 3))
-    _test_imput(reshape(1:9 |> collect, (3,3)), rand(1:3, 3), fill(missing, 3))
-end
-
 @testset "Wrong dimensions" begin
     A = PreImputingMatrix(rand(2,3), rand(3))
     @test_throws DimensionMismatch A * []
@@ -57,6 +36,29 @@ end
     @test_throws DimensionMismatch A * MaybeHotMatrix([1, 2], 5)
     @test_throws DimensionMismatch A * MaybeHotMatrix([missing, 5, 8], 10)
     @test_throws DimensionMismatch A * MaybeHotMatrix([missing, missing], 2)
+end
+
+
+@testset "correct pre imputing behavior for standard vector (maybe missing)" begin
+    function _test_imput(W, ob::Vector, b::Vector)
+        A = PreImputingMatrix(W, ob)
+        @test A * b == W * ob
+        @test eltype(A * b) ≡ promote_type(eltype(W), eltype(ob))
+        @inferred A * b
+    end
+
+    function _test_imput(W, ob::Vector, t=10, p=0.2)
+        for _ in 1:t
+            b = [rand() < 0.2 ? missing : x for x in ob]
+            _test_imput(W, ob, b)
+        end
+    end
+
+    _test_imput(randn(3, 3), randn(3))
+    _test_imput(reshape(1:9 |> collect, (3, 3)), rand(1:3, 3))
+
+    _test_imput(randn(3, 3), randn(3), fill(missing, 3))
+    _test_imput(reshape(1:9 |> collect, (3, 3)), rand(1:3, 3), fill(missing, 3))
 end
 
 @testset "correct pre imputing behavior for standard matrix (maybe missing)" begin
@@ -468,16 +470,16 @@ end
     for (m, n, k) in product(fill((2, 5, 10), 3)...)
         d = preimputing_dense(n, m)
 
-        x = randn(n)
+        x = randn(Float32, n)
         check(d, x, true, false)
-        x = Vector{Maybe{Float64}}(x)
+        x = Vector{Maybe{Float32}}(x)
         x[rand(eachindex(x), rand(1:n-1))] .= missing
         check(d, x, true, true)
         check(d, fill(missing, n), false, true)
 
-        X = randn(n, k)
+        X = randn(Float32, n, k)
         check(d, X, true, false)
-        X = Matrix{Maybe{Float64}}(X)
+        X = Matrix{Maybe{Float32}}(X)
         X[rand(eachindex(X), rand(1:n*k-1))] .= missing
         check(d, X, true, true)
         check(d, fill(missing, n, k), false, true)
@@ -487,7 +489,7 @@ end
         S = [randustring(rand(1:10)) for _ in 1:k]
         X = NGramMatrix(S, 3, 256, n)
         check(d, X, true, false)
-        S = Vector{Maybe{AbstractString}}(S)
+        S = Vector{Maybe{String}}(S)
         S[rand(eachindex(S), rand(1:k-1))] .= missing
         X = NGramMatrix(S, 3, 256, n)
         check(d, X, true, true)

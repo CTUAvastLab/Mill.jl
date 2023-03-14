@@ -74,20 +74,19 @@ end
 end
 
 @testset "parameter gradients" begin
-    m = Dense(2, 2)
+    m = Dense(2, 2) |> f64
     b = randn(2, 2)
     for x in [randn(2), randn(2, 2)]
-        @test @pgradtest m -> m(x)
+        @test @pgradtest m -> m(x) [x]
         # closured variables
         @test @pgradtest m -> begin
             eltype(m.weight) == eltype(m.bias) == eltype(x) || error()
-            m(x)
         end [x]
+        # unclosured variables
         @test @pgradtest m -> begin
             eltype(x) == Float64 || error()
             eltype(m.weight) == eltype(m.bias) && eltype(m.weight) <: AbstractFloat || error()
-            m(x)
-        end 
+        end
     end
 end
 
@@ -95,7 +94,7 @@ end
     gf = a -> 2a + 1 + sin(a)
     A, f = gradf(gf, 1)
     for i in [1,2,3]
-        @test A*gf(i) == f(i)
+        @test A * gf(i) == f(i)
     end
     # outputs are not constant
     @test f(1) ≠ f(2)
@@ -122,8 +121,8 @@ end
     @test df(A1) ≠ df(A2)
     @test gradient(df, A1) ≠ gradient(df, A2)
 
-    m1 = Dense(2, 2, relu)
-    m2 = Dense(2, 2, relu)
+    m1 = Dense(2, 2, relu) |> f64
+    m2 = Dense(2, 2, relu) |> f64
     x = randn(2, 10)
     gf1 = () -> m1(x)
     gf2 = () -> m2(x)
@@ -144,6 +143,7 @@ end
     end
     x = y = 1.0
     @test @gradtest x -> f(x, 1)
+    # https://github.com/FluxML/Zygote.jl/issues/1227
     # @test_throws NotImplementedException @gradtest (x, y) -> f(x, y)
     # @test_throws NotImplementedException @gradtest y -> f(1, y)
 end

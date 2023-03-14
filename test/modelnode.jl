@@ -1,8 +1,8 @@
 # use only activations without "kinks" for numerical gradient checking
 # see e.g. https://stackoverflow.com/questions/40623512/how-to-check-relu-gradient
 const ACTIVATIONS = [identity, σ, swish, softplus, logcosh, mish, tanhshrink, lisht]
-const LAYERBUILDER = k -> Flux.Dense(k, 2, rand(ACTIVATIONS))
-const ABUILDER = d -> BagCount(all_aggregations(Float32, d))
+const LAYERBUILDER = k -> f64(Flux.Dense(k, 2, rand(ACTIVATIONS)))
+const ABUILDER = d -> BagCount(all_aggregations(Float64, d))
 
 @testset "constructor logic" begin
     d = Dense(2, 2)
@@ -42,32 +42,32 @@ const ABUILDER = d -> BagCount(all_aggregations(Float32, d))
 end
 
 @testset "matrix model" begin
-    x = ArrayNode(randn(Float32, 4, 5))
+    x = ArrayNode(randn(4, 5))
     m = reflectinmodel(x, LAYERBUILDER)
     @test m isa ArrayModel
 
     @test size(m(x)) == (2, 5)
-    @test eltype(m(x)) == Float32
+    @test eltype(m(x)) == Float64
 
     @test m(x) == m.m(x.data)
     @inferred m(x)
 end
 
 @testset "bag model" begin
-    x = BagNode(randn(Float32, 4, 4), [1:2, 3:4])
+    x = BagNode(randn(4, 4), [1:2, 3:4])
     m = reflectinmodel(x, LAYERBUILDER)
     @test m isa BagModel
     @test m.im isa ArrayModel
 
     @test size(m(x)) == (2, 2)
-    @test eltype(m(x)) == Float32
+    @test eltype(m(x)) == Float64
 
     @test m(x) == m.bm(m.a(m.im.m(x.data.data), x.bags))
     @inferred m(x)
 end
 
 @testset "nested bag model" begin
-    bn = BagNode(randn(Float32, 2, 8), [1:1, 2:2, 3:6, 7:8])
+    bn = BagNode(randn(2, 8), [1:1, 2:2, 3:6, 7:8])
     x = BagNode(bn, [1:2, 3:4])
 
     m = reflectinmodel(x, LAYERBUILDER)
@@ -78,15 +78,15 @@ end
     @test m.bm isa Dense
 
     @test size(m(x)) == (2, 2)
-    @test eltype(m(x)) == Float32
+    @test eltype(m(x)) == Float64
 
     @test m(x) == m.bm(m.a(m.im.bm(m.im.a(m.im.im.m(bn.data.data), bn.bags)), x.bags))
     @inferred m(x)
 
-    a = BagNode(BagNode(randn(Float32, 2, 2),[1:2]),[1:1])
-    b = BagNode(missing,[0:-1])
+    a = BagNode(BagNode(randn(Float64, 2, 2), [1:2]), [1:1])
+    b = BagNode(missing, [0:-1])
     c = BagNode(a.data[1:0], [0:-1])
-    m = reflectinmodel(a)
+    m = reflectinmodel(a, LAYERBUILDER)
     abc = catobs(a, b, c)
     bca = catobs(b, c, a)
     ma = m(a)
@@ -103,19 +103,19 @@ end
     @test mbca[:, 3] ≈ ma
 
     @test m(b) == m.bm(m.a(b.data, b.bags))
-    @test eltype(m(b)) == Float32
+    @test eltype(m(b)) == Float64
     @inferred m(b)
     for ds in [a, c, abc, bca]
         @test m(ds) == m.bm(m.a(m.im.bm(m.im.a(m.im.im.m(ds.data.data.data), ds.data.bags)), ds.bags))
-        @test eltype(m(ds)) == Float32
+        @test eltype(m(ds)) == Float64
         @inferred m(ds)
     end
 end
 
 @testset "product models" begin
-    a = randn(Float32, 3, 4)
-    b = randn(Float32, 4, 4)
-    c = randn(Float32, 3, 4)
+    a = randn(3, 4)
+    b = randn(4, 4)
+    c = randn(3, 4)
     x1 = ProductNode(; a, b)
     x2 = ProductNode(; b, a)
     x3 = ProductNode(; a, b, c)
@@ -130,14 +130,14 @@ end
     for x in [x1, x2, x3]
         @test m(x) == m.m(vcat(m.ms[:a].m(a),
                                m.ms[:b].m(b)))
-        @test eltype(m(x)) == Float32
+        @test eltype(m(x)) == Float64
         @test size(m(x)) == (2, 4)
         @inferred m(x)
     end
 
-    a = BagNode(randn(Float32, 3, 4), [1:2, 3:4])
-    b = BagNode(randn(Float32, 4, 4), [1:1, 2:4])
-    c = BagNode(randn(Float32, 2, 4), [1:1, 2:4])
+    a = BagNode(randn(3, 4), [1:2, 3:4])
+    b = BagNode(randn(4, 4), [1:1, 2:4])
+    c = BagNode(randn(2, 4), [1:1, 2:4])
     x1 = ProductNode((a, b))
     x2 = ProductNode((a, b, c))
     x3 = ProductNode(a)
@@ -157,18 +157,18 @@ end
         @test m(x) == m.m(vcat(ma.bm(ma.a(ma.im.m(a.data.data), a.bags)),
                                mb.bm(mb.a(mb.im.m(b.data.data), b.bags))))
         @test size(m(x)) == (2, 2)
-        @test eltype(m(x)) == Float32
+        @test eltype(m(x)) == Float64
         @inferred m(x)
     end
     @test_throws AssertionError m(x3)
 
-    x = ProductNode([randn(Float32, 3, 4)])
+    x = ProductNode([randn(3, 4)])
     m = reflectinmodel(x, LAYERBUILDER)
     @test m isa ProductModel
     @test m.ms[1] isa ArrayModel
 
     @test size(m(x)) == (2, 4)
-    @test eltype(m(x)) == Float32
+    @test eltype(m(x)) == Float64
 
     @test m(x) == m.m(m.ms[1].m(x.data[1].data))
     # ProductNodes with arrays are unstable because of vcat()
@@ -252,9 +252,9 @@ end
     end
 
     # BagNode and ProductNode submodels are not mapped
-    n = BagNode(zeros(2, 2), [1:1, 2:2])
+    n = BagNode(zeros(Float32, 2, 2), [1:1, 2:2])
     @test f3(n).bm isa Flux.Dense{T, <:Matrix} where T
-    n = ProductNode(a = zeros(2, 2), b = zeros(2, 2))
+    n = ProductNode(a = zeros(Float32, 2, 2), b = zeros(Float32, 2, 2))
     @test f3(n).m isa Flux.Dense{T, <:Matrix} where T
 end
 
@@ -262,9 +262,9 @@ end
 @testset "single key dictionary reflect in model" begin
     fsm = Dict("" => LAYERBUILDER)
 
-    x1 = (ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
-    x2 = (a = ArrayNode(randn(Float32, 3, 4)),) |> ProductNode
-    x3 = (a = ArrayNode(randn(Float32, 3, 4)), b = ArrayNode(randn(Float32, 3, 4))) |> ProductNode
+    x1 = (ArrayNode(randn(3, 4)),) |> ProductNode
+    x2 = (a = ArrayNode(randn(3, 4)),) |> ProductNode
+    x3 = (a = ArrayNode(randn(3, 4)), b = ArrayNode(randn(3, 4))) |> ProductNode
 
     m1 = reflectinmodel(x1, LAYERBUILDER; single_key_identity=false)
     m1_ski = reflectinmodel(x1, LAYERBUILDER; single_key_identity=true)
@@ -277,7 +277,7 @@ end
     m3_ski_fsm = reflectinmodel(x3, LAYERBUILDER; fsm=fsm, single_key_identity=true)
 
     for m in [m1, m1_ski, m1_ski_fsm]
-        @test eltype(m(x1)) == Float32
+        @test eltype(m(x1)) == Float64
         @test size(m(x1)) == (2, 4)
         @inferred m(x1)
         @test m isa ProductModel
@@ -285,7 +285,7 @@ end
     end
 
     for m in [m2, m2_ski, m2_ski_fsm]
-        @test eltype(m(x2)) == Float32
+        @test eltype(m(x2)) == Float64
         @test size(m(x2)) == (2, 4)
         @inferred m(x2)
         @test m isa ProductModel
@@ -293,7 +293,7 @@ end
     end
 
     for m in [m3, m3_ski, m3_ski_fsm]
-        @test eltype(m(x3)) == Float32
+        @test eltype(m(x3)) == Float64
         @test size(m(x3)) == (2, 4)
         @inferred m(x3)
         @test m isa ProductModel
@@ -315,9 +315,9 @@ end
 
 # array model for matrices with one row should implement identity
 @testset "single scalar as identity" begin
-    x1 = ArrayNode(randn(Float32, 1, 3))
-    x2 = BagNode(randn(Float32, 1, 5), [1:2, 3:5])
-    x3 = (a = ArrayNode(randn(Float32, 1, 4)), b = ArrayNode(randn(Float32, 2, 4))) |> ProductNode
+    x1 = ArrayNode(randn(1, 3))
+    x2 = BagNode(randn(1, 5), [1:2, 3:5])
+    x3 = (a = ArrayNode(randn(1, 4)), b = ArrayNode(randn(2, 4))) |> ProductNode
 
     m1 = reflectinmodel(x1, LAYERBUILDER; single_scalar_identity=false)
     m1_sci = reflectinmodel(x1, LAYERBUILDER; single_scalar_identity=true)
@@ -327,30 +327,30 @@ end
     m3_sci = reflectinmodel(x3, LAYERBUILDER; single_scalar_identity=true)
 
     @test size(m1(x1)) == (2, 3)
-    @test eltype(m1(x1)) == Float32
+    @test eltype(m1(x1)) == Float64
     @test m1 isa ArrayModel
     @test size(m1_sci(x1)) == (1, 3)
-    @test eltype(m1_sci(x1)) == Float32
+    @test eltype(m1_sci(x1)) == Float64
     @test m1_sci isa ArrayModel
     @inferred m1(x1)
 
     @test size(m2(x2)) == (2, 2)
-    @test eltype(m2(x2)) == Float32
+    @test eltype(m2(x2)) == Float64
     @test m2 isa BagModel
     @test m2.im isa ArrayModel{<:Dense}
     @test size(m2_sci(x2)) == (2, 2)
-    @test eltype(m2_sci(x2)) == Float32
+    @test eltype(m2_sci(x2)) == Float64
     @test m2_sci isa BagModel
     @test m2_sci.im isa ArrayModel{typeof(identity)}
     @inferred m2(x2)
 
     @test size(m3(x3)) == (2, 4)
-    @test eltype(m3(x3)) == Float32
+    @test eltype(m3(x3)) == Float64
     @test m3 isa ProductModel
     @test m3.ms[1] isa ArrayModel{<:Dense}
     @test m3.ms[2] isa ArrayModel{<:Dense}
     @test size(m3_sci(x3)) == (2, 4)
-    @test eltype(m3_sci(x3)) == Float32
+    @test eltype(m3_sci(x3)) == Float64
     @test m3_sci isa ProductModel
     @test m3_sci.ms[1] isa ArrayModel{typeof(identity)}
     @test m3_sci.ms[2] isa ArrayModel{<:Dense}
@@ -365,22 +365,22 @@ end
 
         for ds in [x -> ArrayNode(x),
                    x -> BagNode(x, bags1)]
-            m = reflectinmodel(ds(x), LAYERBUILDER, ABUILDER) |> f64
+            m = reflectinmodel(ds(x), LAYERBUILDER, ABUILDER)
             @inferred m(ds(x))
-            @test @gradtest x -> m(ds(x))
+            @test @gradtest x -> m(ds(x)) [m]
         end
 
         for ds in [(x, y) -> ProductNode((x, y)),
                    (x, y) -> ProductNode(a=BagNode(x, bags1), b=BagNode(y, bags2))]
-            m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER) |> f64
+            m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER)
             @inferred m(ds(x, y))
-            @test @gradtest (x, y) -> m(ds(x, y))
+            @test @gradtest (x, y) -> m(ds(x, y)) [m]
         end
 
         ds = z -> BagNode(BagNode(z, bags3), bags1)
-        m = reflectinmodel(ds(z), LAYERBUILDER, ABUILDER) |> f64
+        m = reflectinmodel(ds(z), LAYERBUILDER, ABUILDER)
         @inferred m(ds(z))
-        @test @gradtest z -> m(ds(z))
+        @test @gradtest z -> m(ds(z)) [m]
     end
 end
 
@@ -394,20 +394,20 @@ end
         w3 = abs.(randn(8)) .+ 0.1
 
         ds = (x, w1) -> WeightedBagNode(x, bags1, w1)
-        m = reflectinmodel(ds(x, w1), LAYERBUILDER, ABUILDER) |> f64
+        m = reflectinmodel(ds(x, w1), LAYERBUILDER, ABUILDER)
         @inferred m(ds(x, w1))
-        @test @gradtest x -> m(ds(x, w1))
+        @test @gradtest x -> m(ds(x, w1)) [m, w1]
 
         ds = (x, y, w1, w2) -> ProductNode((WeightedBagNode(x, bags1, w1),
                                             WeightedBagNode(y, bags2, w2)))
-        m = reflectinmodel(ds(x, y, w1, w2), LAYERBUILDER, ABUILDER) |> f64
+        m = reflectinmodel(ds(x, y, w1, w2), LAYERBUILDER, ABUILDER)
         @inferred m(ds(x, y, w1, w2))
-        @test @gradtest (x, y) -> m(ds(x, y, w1, w2))
-        #
+        @test @gradtest (x, y) -> m(ds(x, y, w1, w2)) [m, w1, w2]
+
         ds = (z, w3, w1) -> WeightedBagNode(WeightedBagNode(z, bags3, w3), bags1, w1)
-        m = reflectinmodel(ds(z, w3, w1), LAYERBUILDER, ABUILDER) |> f64
+        m = reflectinmodel(ds(z, w3, w1), LAYERBUILDER, ABUILDER)
         @inferred m(ds(z, w3, w1))
-        @test @gradtest z -> m(ds(z, w3, w1))
+        @test @gradtest z -> m(ds(z, w3, w1)) [m, w1, w3]
     end
 end
 
@@ -424,9 +424,9 @@ end
                    ProductNode(a=BagNode(y, bags1), b=BagNode(x, bags2)),
                    BagNode(BagNode(z, bags3), bags1)
                   ]
-            m = reflectinmodel(ds, LAYERBUILDER, ABUILDER) |> f64
+            m = reflectinmodel(ds, LAYERBUILDER, ABUILDER)
             @inferred m(ds)
-            @test @pgradtest m -> m(ds)
+            @test @pgradtest m -> m(ds) [ds]
         end
     end
 end
@@ -446,9 +446,9 @@ end
                                 WeightedBagNode(y, bags2, w2))) ,
                    WeightedBagNode(WeightedBagNode(z, bags3, w3), bags1, w1)
                   ]
-            m = reflectinmodel(ds, LAYERBUILDER, ABUILDER) |> f64
+            m = reflectinmodel(ds, LAYERBUILDER, ABUILDER)
             @inferred m(ds)
-            @test @pgradtest m -> m(ds)
+            @test @pgradtest m -> m(ds) [ds, w1, w2, w3]
         end
     end
 end
