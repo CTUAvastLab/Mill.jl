@@ -26,7 +26,7 @@
  &quot;POST&quot;
  &quot;HEAD&quot;
  &quot;HEAD&quot;
- &quot;PUT&quot;</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; verb_node = ArrayNode(Flux.onehotbatch(verbs, ALL_VERBS))</code><code class="nohighlight hljs ansi" style="display:block;">5×6 ArrayNode{OneHotArrays.OneHotMatrix{UInt32, 5, Vector{UInt32}}, Nothing}:
+ &quot;PUT&quot;</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; verb_node = ArrayNode(Flux.onehotbatch(verbs, ALL_VERBS))</code><code class="nohighlight hljs ansi" style="display:block;">5×6 ArrayNode{OneHotArrays.OneHotMatrix{UInt32, Vector{UInt32}}, Nothing}:
  1  1  ⋅  ⋅  ⋅  ⋅
  ⋅  ⋅  ⋅  1  1  ⋅
  ⋅  ⋅  1  ⋅  ⋅  ⋅
@@ -41,7 +41,7 @@
  &quot;bzip2&quot;
  &quot;xz&quot;
  &quot;identity&quot;
- &quot;bzip2&quot;</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; encoding_node = ArrayNode(Flux.onehotbatch(encodings, ALL_ENCODINGS))</code><code class="nohighlight hljs ansi" style="display:block;">4×6 ArrayNode{OneHotArrays.OneHotMatrix{UInt32, 4, Vector{UInt32}}, Nothing}:
+ &quot;bzip2&quot;</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; encoding_node = ArrayNode(Flux.onehotbatch(encodings, ALL_ENCODINGS))</code><code class="nohighlight hljs ansi" style="display:block;">4×6 ArrayNode{OneHotArrays.OneHotMatrix{UInt32, Vector{UInt32}}, Nothing}:
  ⋅  ⋅  1  ⋅  ⋅  1
  ⋅  1  ⋅  ⋅  ⋅  ⋅
  1  ⋅  ⋅  1  ⋅  ⋅
@@ -88,24 +88,24 @@
            verb=verb_node,
            encoding=encoding_node,
            hosts=host_node
-       ), connections)</code><code class="nohighlight hljs ansi" style="display:block;">BagNode  # 3 obs, 160 bytes
-  ╰── ProductNode  # 6 obs, 56 bytes
+       ), connections)</code><code class="nohighlight hljs ansi" style="display:block;">BagNode  # 3 obs, 176 bytes
+  ╰── ProductNode  # 6 obs, 72 bytes
         ├── numerical: ArrayNode(2×6 Array with Int64 elements)  # 6 obs, 144 bytes
-        ├─────── verb: ArrayNode(5×6 OneHotArray with Bool elements)  # 6 obs, 80 bytes
-        ├─── encoding: ArrayNode(4×6 OneHotArray with Bool elements)  # 6 obs, 80 bytes
+        ├─────── verb: ArrayNode(5×6 OneHotArray with Bool elements)  # 6 obs, 96 bytes
+        ├─── encoding: ArrayNode(4×6 OneHotArray with Bool elements)  # 6 obs, 96 bytes
         ╰────── hosts: ArrayNode(7×6 NGramMatrix with Int64 elements)  # 6 obs, 266 bytes</code></pre><p>create a model for training and run one forward pass:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; m = reflectinmodel(ds)</code><code class="nohighlight hljs ansi" style="display:block;">BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 =&gt; 10)  # 4 arrays, 240 params, 1.094 KiB
   ╰── ProductModel ↦ Dense(40 =&gt; 10)  # 2 arrays, 410 params, 1.680 KiB
         ├── numerical: ArrayModel(Dense(2 =&gt; 10))  # 2 arrays, 30 params, 200 bytes
         ├─────── verb: ArrayModel(Dense(5 =&gt; 10))  # 2 arrays, 60 params, 320 bytes
         ├─── encoding: ArrayModel(Dense(4 =&gt; 10))  # 2 arrays, 50 params, 280 bytes
         ╰────── hosts: ArrayModel(Dense(7 =&gt; 10))  # 2 arrays, 80 params, 400 bytes</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; m(ds)</code><code class="nohighlight hljs ansi" style="display:block;">10×3 Matrix{Float32}:
- -2.64144f8  -2.46271f8  -2.83505f8
-  5.26498f7   5.21077f7   3.97803f7
-  1.45163f8   1.3826f8    1.3855f8
-  6.78984f8   6.4458f8    6.70544f8
-  5.54593f7   5.63648f7   3.66820f7
- -2.76336f7  -2.72885f7  -2.22036f7
-  6.0371f8    5.73785f8   5.92931f8
-  3.99394f8   3.83963f8   3.67499f8
-  3.21673f8   2.97678f8   3.56969f8
- -2.87234f8  -2.71299f8  -2.88443f8</code></pre><p>We now obtain a matrix with three columns, each corresponding to one of the clients. Now we can for example calculate gradients with respect to the model parameters:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; gradient(() -&gt; sum(m(ds)), Flux.params(m))</code><code class="nohighlight hljs ansi" style="display:block;">Grads(...)</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">Numerical features</header><div class="admonition-body"><p>To put all numerical features into one <a href="../../api/data_nodes/#Mill.ArrayNode"><code>ArrayNode</code></a> is a design choice. We could as well introduce more keys in the final <a href="../../api/data_nodes/#Mill.ProductNode"><code>ProductNode</code></a>. The model treats these two cases slightly differently (see <a href="../nodes/#Nodes">Nodes</a> section).</p></div></div><p>This dummy example illustrates the versatility of <code>Mill</code>. With little to no preprocessing we are able to process complex hierarchical structures and avoid manually designing feature extraction procedures. For a more involved study on processing Internet traffic with <code>Mill</code>, see for example <a href="../../references/#Pevny2020">Tomáš Pevný, Marek Dědič (2020)</a>.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-1"><a class="tag is-link" href="#citeref-1">1</a>One appropriate value for modulo <code>m</code> for real problems is <code>2053</code></li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../aggregation/">« Bag aggregation</a><a class="docs-footer-nextpage" href="../missing/">Missing data »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Friday 13 January 2023 08:25">Friday 13 January 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ -2.3597f8   -2.23607f8  -2.28506f8
+  2.92492f8   2.69366f8   3.2862f8
+  5.83102f8   5.50168f8   5.83837f8
+ -4.20414f8  -3.99971f8  -4.17768f8
+  4.92941f8   4.63424f8   5.06506f8
+ -4.76729f8  -4.49115f8  -4.91051f8
+ -5.70756f8  -5.44469f8  -5.43648f8
+  3.56946f8   3.40604f8   3.47486f8
+  4.16109f8   3.89695f8   4.35831f8
+ -2.78473f8  -2.6632f8   -2.66878f8</code></pre><p>We now obtain a matrix with three columns, each corresponding to one of the clients. Now we can for example calculate gradients with respect to the model parameters:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; gradient(() -&gt; sum(m(ds)), Flux.params(m))</code><code class="nohighlight hljs ansi" style="display:block;">Grads(...)</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">Numerical features</header><div class="admonition-body"><p>To put all numerical features into one <a href="../../api/data_nodes/#Mill.ArrayNode"><code>ArrayNode</code></a> is a design choice. We could as well introduce more keys in the final <a href="../../api/data_nodes/#Mill.ProductNode"><code>ProductNode</code></a>. The model treats these two cases slightly differently (see <a href="../nodes/#Nodes">Nodes</a> section).</p></div></div><p>This dummy example illustrates the versatility of <code>Mill</code>. With little to no preprocessing we are able to process complex hierarchical structures and avoid manually designing feature extraction procedures. For a more involved study on processing Internet traffic with <code>Mill</code>, see for example <a href="../../references/#Pevny2020">Tomáš Pevný, Marek Dědič (2020)</a>.</p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-1"><a class="tag is-link" href="#citeref-1">1</a>One appropriate value for modulo <code>m</code> for real problems is <code>2053</code></li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../aggregation/">« Bag aggregation</a><a class="docs-footer-nextpage" href="../missing/">Missing data »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Monday 27 March 2023 13:32">Monday 27 March 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
