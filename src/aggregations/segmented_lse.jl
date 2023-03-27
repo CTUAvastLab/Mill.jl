@@ -112,11 +112,11 @@ function segmented_lse_back(Δ, y, x, ψ, r, bags, M)
             end
             for j in b
                 for i in eachindex(r)
-                    dx[i, j] = Δ[i, bi] * exp(r[i] * x[i, j] - M[i, bi]) / s1[i]
+                    dx[i, j] += Δ[i, bi] * exp(r[i] * x[i, j] - M[i, bi]) / s1[i]
                 end
             end
             for i in eachindex(r)
-                dr[i] += Δ[i, bi] * (s2[i]/s1[i] - y[i, bi]) / r[i]
+                dr[i] += Δ[i, bi] * (s2[i] / s1[i] - y[i, bi]) / r[i]
             end
         end
     end

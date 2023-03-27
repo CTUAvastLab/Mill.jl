@@ -202,6 +202,21 @@ end
     end
 end
 
+@testset "one-instance bags" begin
+    X = randn(10, 1) |> f32
+    bags1 = length2bags([1])
+    bags2 = ScatteredBags([[1, 1, 1]])
+
+    @test X ≈ SegmentedSum(10)(X, bags1)
+    @test 3 * X ≈ SegmentedSum(10)(X, bags2)
+    for bags in [bags1, bags2]
+        @test X ≈ SegmentedMean(10)(X, bags)
+        @test X ≈ SegmentedMax(10)(X, bags)
+        @test X ≈ SegmentedLSE(10)(X, bags)
+        @test abs.(X) ≈ SegmentedPNorm(10)(X, bags)
+    end
+end
+
 @testset "bagcount" begin
     X = reshape(1:12, 2, 6) |> f32
     d = 2
@@ -294,8 +309,8 @@ end
         agg = all_aggregations(Float64, d)
         for a in [agg, BagCount(agg)]
             @test @gradtest x -> a(x, bags)
-            @test @gradtest x -> a(x, bags, w) [w]
-            @test @gradtest x -> a(x, bags, w_mat) [w_mat]
+            @test @gradtest x -> a(x, bags, w) [a, w]
+            @test @gradtest x -> a(x, bags, w_mat) [a, w_mat]
         end
     end
 end
@@ -308,9 +323,10 @@ end
         w_mat = abs.(randn(size(x))) .+ 0.1
         agg = all_aggregations(Float64, d)
         for a in tuple(agg.fs..., BagCount.(agg.fs)...)
+            # missing implementation for SegmentedPNorm
             if !(a isa SegmentedPNorm) && !(a isa BagCount{<:SegmentedPNorm})
-                @test @gradtest w -> a(x, bags, w) [x]
-                @test @gradtest w_mat -> a(x, bags, w_mat) [x]
+                @test @gradtest w -> a(x, bags, w) [a, x]
+                @test @gradtest w_mat -> a(x, bags, w_mat) [a, x]
             end
         end
     end

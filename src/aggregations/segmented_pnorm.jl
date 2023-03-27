@@ -21,7 +21,7 @@ end
 
 Flux.@functor SegmentedPNorm
 
-SegmentedPNorm(T::Type, d::Int) = SegmentedPNorm(zeros(T, d), randn(T, d), randn(T, d))
+SegmentedPNorm(T::Type, d::Int) = SegmentedPNorm(zeros(T, d), randn(T, d), zeros(T, d))
 SegmentedPNorm(d::Int) = SegmentedPNorm(Float32, d)
 
 Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
@@ -69,7 +69,6 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
     isnothing(w) || @assert all(w .> 0)
     t = promote_type(eltype(a), eltype(ψ))
     y = zeros(t, size(a, 1), length(bags))
-    M = _pnorm_precomp(a, bags)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
             for i in eachindex(ψ)
@@ -79,11 +78,11 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
             ws = _bagnorm(w, b)
             for j in b
                 for i in 1:size(a, 1)
-                    y[i, bi] += _weight(w, i, j, t) * abs(a[i, j]/M[i, bi])^p[i]
+                    y[i, bi] += _weight(w, i, j, t) * abs(a[i, j] / M[i, bi]) ^ p[i]
                 end
             end
             for i in 1:size(a, 1)
-                y[i, bi] = M[i, bi] * (y[i, bi] / _weightsum(ws, i)) ^ (one(t)/p[i])
+                y[i, bi] = M[i, bi] * (y[i, bi] / _weightsum(ws, i)) ^ (one(t) / p[i])
             end
         end
     end
@@ -97,7 +96,7 @@ function segmented_pnorm_forw(a::Maybe{AbstractMatrix}, ψ::AbstractVector, p::A
 end
 
 function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
-    da = similar(a)
+    da = zero(a)
     dp = zero(p)
     dps1 = zero(p)
     dps2 = zero(p)
@@ -114,8 +113,8 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
             for j in b
                 for i in 1:size(a, 1)
                     ab = abs(a[i, j])
-                    da[i, j] = Δ[i, bi] * _weight(w, i, j, eltype(p)) * sign(a[i, j]) / _weightsum(ws, i) 
-                    da[i, j] *= (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
+                    da[i, j] += Δ[i, bi] * _weight(w, i, j, eltype(p)) *
+                        sign(a[i, j]) / _weightsum(ws, i) * (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
                     ww = _weight(w, i, j, eltype(p)) * (ab / M[i, bi]) ^ p[i]
                     dps1[i] += ww * log(ab)
                     dps2[i] += ww
