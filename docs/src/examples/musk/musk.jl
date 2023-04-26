@@ -26,7 +26,8 @@ model(ds)
 loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)
 
 opt = Flux.ADAM()
-@epochs 10 begin
+for i in 1:10
+    @info "Epoch $i"
     Flux.train!(loss, Flux.params(model), repeated((ds, y_oh), 1000), opt)
     println(loss(ds, y_oh))
 end

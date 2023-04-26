@@ -24,7 +24,8 @@ opt = ADAM()
 loss(x, y) = Flux.logitcrossentropy(m(x).data, y)
 acc(x, y) = mean(Flux.onecold(m(x).data) .== Flux.onecold(y))
 
-Flux.@epochs 10 begin
+for i in 1:10
+    @info "Epoch $i"
     Flux.train!(loss, ps, [ds() for _ in 1:1000], opt)
     val = ds()
     println(acc(val...))
