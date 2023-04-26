@@ -46,14 +46,17 @@ end
 
 @testset "forward convolution & gradient" begin
     x = [1 10  100  1000  10000]
+    xf = float.(x)
     y = 2 .* x
+    yf = 2 .* xf
     z = 4 .* x
+    zf = 4 .* xf
     Δ = ones(1, 5)
-    for bags in [AlignedBags([1:2,3:5]), ScatteredBags([[1,2],[3,4,5]])]
+    for bags in [AlignedBags([1:2, 3:5]), ScatteredBags([[1, 2], [3, 4, 5]])]
         @test convsum(bags, x) == x
         @test convsum(bags, x, y) == [21  10  2100  21000  10000]
         @test convsum(bags, x, y, z) == [42  21  4200  42100  21000]
-        @test @gradtest (x, y, z) -> convsum(bags, x, y, z)
+        @test @gradtest (xf, yf, zf) -> convsum(bags, xf, yf, zf)
     end
 end
 
@@ -61,7 +64,7 @@ end
     xs = sprand(3, 15, 0.5)
     x = Matrix(xs)
     filters = randn(4, 3, 3)
-    fs = [filters[:,:,i] for i in 1:3]
+    fs = [filters[:, :, i] for i in 1:3]
     for bags in [AlignedBags([1:1, 2:3, 4:6, 7:15]), ScatteredBags(collect.([1:1, 2:3, 4:6, 7:15]))]
         @test bagconv(x, bags, fs...) ≈ legacy_bagconv(x, bags, filters)
         @test bagconv(x, bags, fs...) ≈ bagconv(xs, bags, fs...)
@@ -78,11 +81,11 @@ end
     xs = sprand(3, 7, 0.5)
     x = Matrix(xs)
     filters = randn(4, 3, 3)
-    fs = [filters[:,:,i] for i in 1:3]
+    fs = [filters[:, :, i] for i in 1:3]
     baga = AlignedBags([1:3, 4:7])
-    bags = ScatteredBags([[1,2,3],[4,5,6,7]])
-    bagsp = ScatteredBags([[1,4,7],[2,3,5,6]])
-    xp = x[:, [1,4,5,2,6,7,3]]
+    bags = ScatteredBags([[1, 2, 3], [4, 5, 6, 7]])
+    bagsp = ScatteredBags([[1, 4, 7], [2, 3, 5, 6]])
+    xp = x[:, [1, 4, 5, 2, 6, 7, 3]]
 
     @testset "Test that all versions of convolutions are equal" begin
         @test bagconv(x, baga, fs...) == bagconv(x, bags, fs...)

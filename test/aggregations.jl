@@ -76,7 +76,7 @@ end
 
 @testset "basic aggregation functionality" begin
     W = [1, 1/2, 1/2, 1/8, 1/3, 13/24] |> f32
-    X = reshape(1:12, 2, 6) |> f32
+    X = reshape(1:12, 2, 6) .|> float |> f32
     bags = BAGS[1]
     @test SegmentedMean(2)(X, bags) ≈ [1.0 4.0 9.0; 2.0 5.0 10.0]
     @test SegmentedSum(2)(X, bags) ≈ length.(bags)' .* SegmentedMean(2)(X, bags)
@@ -92,7 +92,7 @@ end
 @testset "matrix weights" begin
     W = abs.(rand(Float32, 6))
     W_mat = vcat(W, 2*W)
-    X = reshape(1:12, 2, 6) |> f32
+    X = reshape(1:12, 2, 6) .|> float |> f32
     for bags in BAGS
         @test SegmentedSum(2)(X, bags, W_mat) ≈ SegmentedSum(2)(X, bags, W)
         @test SegmentedMean(2)(X, bags, W_mat) ≈ SegmentedMean(2)(X, bags, W)
@@ -218,7 +218,7 @@ end
 end
 
 @testset "bagcount" begin
-    X = reshape(1:12, 2, 6) |> f32
+    X = reshape(1:12, 2, 6) .|> float |> f32
     d = 2
     bags = BAGS[1]
     baglengths = log.(1 .+ [1.0 2.0 3.0]) |> f32

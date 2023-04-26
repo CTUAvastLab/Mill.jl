@@ -30,23 +30,23 @@ end
     @test isequal(MaybeHotVector(missing, 10), MaybeHotVector(missing, 10))
     @test !isequal(MaybeHotVector(missing, 10), MaybeHotVector(missing, 11))
 
-    @test MaybeHotMatrix([7,2], 10) == MaybeHotMatrix([7,2], 10)
-    @test MaybeHotMatrix([7,2], 10) ≠ MaybeHotMatrix([7,3], 10)
-    @test MaybeHotMatrix([7,2], 10) ≠ MaybeHotMatrix([7,2], 11)
-    @test isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,3,9], 10))
-    @test !isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,4,9], 10))
-    @test !isequal(MaybeHotMatrix([1,3,9], 10), MaybeHotMatrix([1,4,9], 11))
+    @test MaybeHotMatrix([7, 2], 10) == MaybeHotMatrix([7, 2], 10)
+    @test MaybeHotMatrix([7, 2], 10) ≠ MaybeHotMatrix([7, 3], 10)
+    @test MaybeHotMatrix([7, 2], 10) ≠ MaybeHotMatrix([7, 2], 11)
+    @test isequal(MaybeHotMatrix([1, 3, 9], 10), MaybeHotMatrix([1, 3, 9], 10))
+    @test !isequal(MaybeHotMatrix([1, 3, 9], 10), MaybeHotMatrix([1, 4, 9], 10))
+    @test !isequal(MaybeHotMatrix([1, 3, 9], 10), MaybeHotMatrix([1, 4, 9], 11))
 
-    @test isequal(MaybeHotMatrix([1,2,missing], 10), MaybeHotMatrix([1,2,missing], 10))
-    @test !isequal(MaybeHotMatrix([1,2,missing,3], 10), MaybeHotMatrix([1,2,missing,4], 10))
-    @test !isequal(MaybeHotMatrix([1,2,missing,3], 10), MaybeHotMatrix([1,2,missing,3], 11))
+    @test isequal(MaybeHotMatrix([1, 2, missing], 10), MaybeHotMatrix([1, 2, missing], 10))
+    @test !isequal(MaybeHotMatrix([1, 2, missing,3], 10), MaybeHotMatrix([1, 2, missing, 4], 10))
+    @test !isequal(MaybeHotMatrix([1, 2, missing,3], 10), MaybeHotMatrix([1, 2, missing, 3], 11))
 end
 
 @testset "hcat" begin
     l = 10
     I = [1, missing, 3, missing, 5]
     mhm = MaybeHotMatrix(I, l)
-    mhm2 = MaybeHotMatrix([1,5,3], l)
+    mhm2 = MaybeHotMatrix([1, 5, 3], l)
     mhm3 = MaybeHotMatrix(fill(missing, 4), l)
     mhvs = [MaybeHotVector.(I, l)...]
 
@@ -114,7 +114,7 @@ end
             @test mhm[:, k] == m[:, k] == onehot(i, 1:l)
         end
     end
-    @test isequal(mhm[[1,2,7], 3], m[[1,2,7], 3])
+    @test isequal(mhm[[1, 2, 7], 3], m[[1,2,7], 3])
     @test isequal(mhm[CartesianIndex(2, 4)], m[2,4])
     for k in eachindex(I)
         @test isequal(mhm[:, k], MaybeHotVector(I[k], l))
@@ -123,7 +123,7 @@ end
     @test isequal(mhm, mhm[:, eachindex(I) |> collect])
     @test isequal(mhm, mhm[:, :])
     @test isequal(mhm, hcat(MaybeHotVector.(I, l)...))
-    @test isequal(mhm[:, [1,2,5]], hcat(MaybeHotVector.(I[[1,2,5]], l)...))
+    @test isequal(mhm[:, [1, 2, 5]], hcat(MaybeHotVector.(I[[1, 2, 5]], l)...))
 
     @test_throws BoundsError mhm[0, 1]
     @test_throws BoundsError mhm[2, -1]
@@ -176,11 +176,11 @@ end
     @test !isequal(mhv1, mhv4)
     @test mhv1 ≠ mhv5
 
-    mhm1 = MaybeHotMatrix([1,2], 10)
-    mhm2 = MaybeHotMatrix([1,2], 10)
+    mhm1 = MaybeHotMatrix([1, 2], 10)
+    mhm2 = MaybeHotMatrix([1, 2], 10)
     mhm3 = MaybeHotMatrix([1], 10)
     mhm4 = MaybeHotMatrix([missing], 10)
-    mhm5 = MaybeHotMatrix([1,2], 11)
+    mhm5 = MaybeHotMatrix([1, 2], 11)
     @test mhm1 == mhm2
     @test mhm1 ≠ mhm3
     @test !isequal(mhv1, mhv4)
