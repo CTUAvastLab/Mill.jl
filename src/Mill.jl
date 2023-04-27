@@ -36,6 +36,9 @@ const DOCTEST_FILTER = r"\s*-?[0-9]+\.[0-9]+[\.]*\s*"
 _promote_types(x) = typeof(x)
 _promote_types(x, y...) = promote_type(typeof(x), _promote_types(y...))
 
+promote_maybe_type(::Type{<:Maybe{T}}, ::Type{<:Maybe{U}}) where {T, U} = promote_type(T, U)
+promote_maybe_type(t1, t2) = promote_type(t1, t2)
+
 include("switches.jl")
 
 include("bags.jl")

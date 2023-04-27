@@ -21,7 +21,7 @@
 end
 
 @testset "Wrong dimensions" begin
-    A = PreImputingMatrix(rand(2,3), rand(3))
+    A = PreImputingMatrix(rand(2, 3), rand(3))
     @test_throws DimensionMismatch A * []
     @test_throws DimensionMismatch A * [[]]
     @test_throws DimensionMismatch A * [1, 2]
@@ -29,7 +29,7 @@ end
     @test_throws DimensionMismatch A * [1, 2, 3, 4]
     @test_throws DimensionMismatch A * [1, 2, 3, missing]
 
-    A = PostImputingMatrix(rand(2,3), rand(2))
+    A = PostImputingMatrix(rand(2, 3), rand(2))
     @test_throws DimensionMismatch A * MaybeHotVector(2, 2)
     @test_throws DimensionMismatch A * MaybeHotVector(missing, 4)
     @test_throws DimensionMismatch A * MaybeHotMatrix(Int[], 1)
@@ -37,7 +37,6 @@ end
     @test_throws DimensionMismatch A * MaybeHotMatrix([missing, 5, 8], 10)
     @test_throws DimensionMismatch A * MaybeHotMatrix([missing, missing], 2)
 end
-
 
 @testset "correct pre imputing behavior for standard vector (maybe missing)" begin
     function _test_imput(W, ob::Vector, b::Vector)
@@ -49,7 +48,7 @@ end
 
     function _test_imput(W, ob::Vector, t=10, p=0.2)
         for _ in 1:t
-            b = [rand() < 0.2 ? missing : x for x in ob]
+            b = [rand() < p ? missing : x for x in ob]
             _test_imput(W, ob, b)
         end
     end
@@ -59,6 +58,35 @@ end
 
     _test_imput(randn(3, 3), randn(3), fill(missing, 3))
     _test_imput(reshape(1:9 |> collect, (3, 3)), rand(1:3, 3), fill(missing, 3))
+end
+
+@testset "correct type promotion for pre imputing of standard vector" begin
+    A = PreImputingMatrix(rand(1:3, 2, 3), rand(1:3, 3))
+    @test eltype(A * rand(1:3, 3)) ≡ Int
+    @test eltype(A * [1, missing, 3]) ≡ Int
+    @test eltype(A * rand(3)) ≡ Float64
+    @test eltype(A * [1.0, missing, 3]) ≡ Float64
+    @test eltype(A * rand(Float32, 3)) ≡ Float32
+    @test eltype(A * Vector{Maybe{Float32}}(rand(3))) ≡ Float32
+    @test eltype(A * fill(missing, 3)) ≡ Int
+
+    A = PreImputingMatrix(rand(2, 3), rand(3))
+    @test eltype(A * rand(1:3, 3)) ≡ Float64
+    @test eltype(A * [1, missing, 3]) ≡ Float64
+    @test eltype(A * rand(3)) ≡ Float64
+    @test eltype(A * [1.0, missing, 3]) ≡ Float64
+    @test eltype(A * rand(Float32, 3)) ≡ Float64
+    @test eltype(A * Vector{Maybe{Float32}}(rand(3))) ≡ Float64
+    @test eltype(A * fill(missing, 3)) ≡ Float64
+
+    A = PreImputingMatrix(rand(Float32, 2, 3), rand(Float32, 3))
+    @test eltype(A * rand(1:3, 3)) ≡ Float32
+    @test eltype(A * [1, missing, 3]) ≡ Float32
+    @test eltype(A * rand(3)) ≡ Float64
+    @test eltype(A * [1.0, missing, 3]) ≡ Float64
+    @test eltype(A * rand(Float32, 3)) ≡ Float32
+    @test eltype(A * Vector{Maybe{Float32}}(rand(3))) ≡ Float32
+    @test eltype(A * fill(missing, 3)) ≡ Float32
 end
 
 @testset "correct pre imputing behavior for standard matrix (maybe missing)" begin
@@ -81,6 +109,35 @@ end
     @inferred A * B4
 
     @test eltype(A * B1) ≡ eltype(A * B2) ≡ eltype(A * B3) ≡ eltype(A * B4) ≡ Int64
+end
+
+@testset "correct type promotion for pre imputing of standard matrix" begin
+    A = PreImputingMatrix(rand(1:3, 2, 3), rand(1:3, 3))
+    @test eltype(A * rand(1:3, 3, 2)) ≡ Int
+    @test eltype(A * [1 missing; 3 missing; 5 6]) ≡ Int
+    @test eltype(A * rand(3, 2)) ≡ Float64
+    @test eltype(A * [1.0 missing; 3 missing; 5 6]) ≡ Float64
+    @test eltype(A * rand(Float32, 3, 2)) ≡ Float32
+    @test eltype(A * Matrix{Maybe{Float32}}(rand(3, 2))) ≡ Float32
+    @test eltype(A * fill(missing, 3, 2)) ≡ Int
+
+    A = PreImputingMatrix(rand(2, 3), rand(3))
+    @test eltype(A * rand(1:3, 3, 2)) ≡ Float64
+    @test eltype(A * [1 missing; 3 missing; 5 6]) ≡ Float64
+    @test eltype(A * rand(3, 2)) ≡ Float64
+    @test eltype(A * [1.0 missing; 3 missing; 5 6]) ≡ Float64
+    @test eltype(A * rand(Float32, 3, 2)) ≡ Float64
+    @test eltype(A * Matrix{Maybe{Float32}}(rand(3, 2))) ≡ Float64
+    @test eltype(A * fill(missing, 3, 2)) ≡ Float64
+
+    A = PreImputingMatrix(rand(Float32, 2, 3), rand(Float32, 3))
+    @test eltype(A * rand(1:3, 3, 2)) ≡ Float32
+    @test eltype(A * [1 missing; 3 missing; 5 6]) ≡ Float32
+    @test eltype(A * rand(3, 2)) ≡ Float64
+    @test eltype(A * [1.0 missing; 3 missing; 5 6]) ≡ Float64
+    @test eltype(A * rand(Float32, 3, 2)) ≡ Float32
+    @test eltype(A * Matrix{Maybe{Float32}}(rand(3, 2))) ≡ Float32
+    @test eltype(A * fill(missing, 3, 2)) ≡ Float32
 end
 
 @testset "correct post imputing behavior for full standard arrays" begin
@@ -207,6 +264,35 @@ end
             @test eltype(A * B) ≡ promote_type(eltype(W), eltype(ψ))
         end
     end
+end
+
+@testset "correct type promotion for post imputing" for A in [
+        PostImputingMatrix(rand(1:3, 3, 2), rand(1:3, 3)),
+        PostImputingMatrix(rand(3, 2), rand(3)),
+        PostImputingMatrix(rand(Float32, 3, 2), rand(Float32, 3))
+    ]
+
+    S = [randustring(rand(1:100)) for _ in 1:4]
+    B = NGramMatrix(S, 3, 256, 2)
+    @test eltype(A * B) ≡ eltype(A)
+    S = [isodd(i) ? missing : randustring(rand(1:10)) for i in 1:4] |> PooledArray
+    B = NGramMatrix(S, 3, 256, 2)
+    @test eltype(A * B) ≡ eltype(A)
+    S = fill(missing, 4)
+    B = NGramMatrix(S, 3, 256, 2)
+    @test eltype(A * B) ≡ eltype(A)
+
+    B = maybehot(1, 1:2)
+    @test eltype(A * B) ≡ eltype(A)
+    B = maybehot(missing, 1:2)
+    @test eltype(A * B) ≡ eltype(A)
+
+    B = maybehotbatch([1, 2], 1:2)
+    @test eltype(A * B) ≡ eltype(A)
+    B = maybehotbatch([1, missing], 1:2)
+    @test eltype(A * B) ≡ eltype(A)
+    B = maybehotbatch(fill(missing, 2), 1:2)
+    @test eltype(A * B) ≡ eltype(A)
 end
 
 @testset "imputing matrix * full vector gradient testing" begin
