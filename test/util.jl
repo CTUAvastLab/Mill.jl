@@ -27,7 +27,7 @@ m = reflectinmodel(x)
 end
 
 @testset "findnonempty_lens" begin
-    @test all(nobs.([get(x, l) for l in findnonempty_lens(x)]) .> 0)
+    @test all(numobs.([get(x, l) for l in findnonempty_lens(x)]) .> 0)
 end
 
 @testset "find_lens" begin

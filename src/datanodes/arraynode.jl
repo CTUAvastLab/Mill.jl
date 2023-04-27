@@ -35,14 +35,12 @@ mapdata(f, x::ArrayNode) = ArrayNode(mapdata(f, x.data), x.metadata)
 dropmeta(x::ArrayNode) = ArrayNode(x.data)
 
 Base.size(x::ArrayNode) = size(x.data)
-Base.ndims(x::ArrayNode) = Colon()
-StatsAPI.nobs(a::ArrayNode) = size(a.data, 2)
 
 function reduce(::typeof(catobs), as::Vector{<:ArrayNode})
     ArrayNode(reduce(catobs, data.(as)), reduce(catobs, metadata.(as)))
 end
 
-_cat_meta(f, m::Vector{Nothing}) = nothing
+_cat_meta(f, ::Vector{Nothing}) = nothing
 _cat_meta(f, m) = reduce(f, m)
 
 Base.vcat(as::ArrayNode...) = reduce(vcat, collect(as))
@@ -65,7 +63,7 @@ function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::ArrayNode))
     end
 end
 
-function _show_data(io, n::ArrayNode{T}) where {T<:AbstractArray}
+function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
     print(io, "(")
     if ndims(n.data) == 1
         print(io, nameof(T), " of length ", length(n.data))

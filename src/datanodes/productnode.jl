@@ -12,8 +12,8 @@ struct ProductNode{T, C} <: AbstractProductNode
     function ProductNode(data::Union{Tuple,NamedTuple,AbstractVector}, metadata=nothing)
         @assert length(data) ≥ 1 "Provide at least one subtree!"
         data = map(_arraynode, data)
-        l = nobs(data[1])
-        @assert all(n -> nobs(n) == l, data) "All subtrees must have an equal amount of instances!"
+        l = numobs(data[1])
+        @assert all(n -> numobs(n) == l, data) "All subtrees must have an equal amount of instances!"
         new{typeof(data), typeof(metadata)}(data, metadata)
     end
 end
@@ -48,7 +48,7 @@ julia> ProductNode([1 2 3])
 ProductNode  # 3 obs, 8 bytes
   ╰── ArrayNode(1×3 Array with Int64 elements)  # 3 obs, 72 bytes
 
-julia> ProductNode((ArrayNode([1 2; 3 4]), ArrayNode([1; 3])))
+julia> ProductNode((ArrayNode([1 2; 3 4]), ArrayNode([1 2 3; 4 5 6])))
 ERROR: AssertionError: All subtrees must have an equal amount of instances!
 [...]
 ```

@@ -85,16 +85,16 @@ end
     end
 end
 
-@testset "nobs" begin
-    @test nobs(a) == nobs(wa) == 1
-    @test nobs(b) == nobs(wb) == 2
-    @test nobs(c) == nobs(wc) == 3
-    @test nobs(d) == nobs(wd) == 2
-    @test nobs(e) == 2
-    @test nobs(f) == nobs(wb) == nobs(b) == nobs(k)
-    @test nobs(g) == nobs(c) == nobs(wc) == nobs(l)
-    @test nobs(h) == nobs(wc) == nobs(c)
-    @test nobs(i) == nobs(b)
+@testset "numobs" begin
+    @test numobs(a) == numobs(wa) == 1
+    @test numobs(b) == numobs(wb) == 2
+    @test numobs(c) == numobs(wc) == 3
+    @test numobs(d) == numobs(wd) == 2
+    @test numobs(e) == 2
+    @test numobs(f) == numobs(wb) == numobs(b) == numobs(k)
+    @test numobs(g) == numobs(c) == numobs(wc) == numobs(l)
+    @test numobs(h) == numobs(wc) == numobs(c)
+    @test numobs(i) == numobs(b)
 end
 
 @testset "ArrayNode hcat and vcat" begin
@@ -171,7 +171,7 @@ end
         hcat(b.data.data, c.data.data)
     @test catobs(f, h, f).data[1].data.data == reduce(catobs, [f, h, f]).data[1].data.data ==
         hcat(wb.data.data, wc.data.data, wb.data.data)
-    @test nobs(catobs(f,h)) == nobs(f) + nobs(h)
+    @test numobs(catobs(f,h)) == numobs(f) + numobs(h)
 
     @test catobs(g, g).data[1].data.data == reduce(catobs, [g, g]).data[1].data.data ==
         hcat(c.data.data, c.data.data)
@@ -179,11 +179,11 @@ end
         hcat(wc.data.data, wc.data.data)
     @test catobs(g, g, g).data[1].data.data == reduce(catobs, [g, g, g]).data[1].data.data ==
         hcat(c.data.data, c.data.data, c.data.data)
-    @test nobs(catobs(g, g)) == 2nobs(g)
+    @test numobs(catobs(g, g)) == 2numobs(g)
 
     @test catobs(k, l).data[1].data.data == hcat(wb.data.data, wc.data.data)
     @test catobs(k, l).data[2].data.data == hcat(b.data.data, c.data.data)
-    @test nobs(catobs(k,l)) == nobs(k) + nobs(l)
+    @test numobs(catobs(k,l)) == numobs(k) + numobs(l)
 
     # correct length/keyset but different subtrees
     @test_throws MethodError catobs(f, i)
@@ -236,10 +236,10 @@ end
     @test d[[2,1]].bags.bags == [0:-1,1:4]
     @test d[1:2].data.data == d.data.data
     @test d[1:2].bags.bags == [1:4,0:-1]
-    @test nobs(d[2].data) == 0
+    @test numobs(d[2].data) == 0
     @test d[2].bags.bags == [0:-1]
     @test isempty(a[2:1].bags.bags)
-    @test nobs(a[2:1].data) == 0
+    @test numobs(a[2:1].data) == 0
 end
 
 @testset "WeightedBagNode indexing" begin
@@ -261,7 +261,7 @@ end
     @test wd[[2,1]].bags.bags == [0:-1,1:4]
     @test wd[1:2].data.data == wd.data.data
     @test wd[1:2].bags.bags == [1:4,0:-1]
-    @test nobs(wd[2].data) == 0
+    @test numobs(wd[2].data) == 0
     @test wd[2].bags.bags == [0:-1]
 end
 

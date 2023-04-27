@@ -19,7 +19,7 @@ See also: [`modelsummary`](@ref).
 """
 function datasummary(n::AbstractMillNode)
     bytes = Base.format_bytes(Base.summarysize(n))
-    string("Data summary: ", nobs(n), " obs, ", bytes, ".")
+    string("Data summary: ", numobs(n), " obs, ", bytes, ".")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillNode))
@@ -27,11 +27,11 @@ function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillNode
 end
 
 nodeshow(io::IO, ::Missing) = print(io, "∅")
-nodeshow(io::IO, n::LazyNode{N, Nothing}) where {N} = print(io, "LazyNode{$N} ∅")
+nodeshow(io::IO, ::LazyNode{N, Nothing}) where {N} = print(io, "LazyNode{$N} ∅")
 
 function nodecommshow(io::IO, @nospecialize(n::AbstractMillNode))
     bytes = Base.format_bytes(Base.summarysize(n) - (isleaf(n) ? 0 : Base.summarysize(data(n))))
-    print(io, " # ", nobs(n), " obs, ", bytes)
+    print(io, " # ", numobs(n), " obs, ", bytes)
 end
 
 function Base.show(io::IO, @nospecialize(n::AbstractMillNode))

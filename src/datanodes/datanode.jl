@@ -199,10 +199,9 @@ mapdata(f, x) = f(x)
 Base.getindex(x::T, i::BitArray{1}) where T <: AbstractMillNode = x[findall(i)]
 Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractMillNode = x[findall(i)]
 Base.getindex(x::AbstractMillNode, i::Int) = x[i:i]
-Base.lastindex(ds::AbstractMillNode) = nobs(ds)
+Base.lastindex(ds::AbstractMillNode) = numobs(ds)
 MLUtils.getobs(x::AbstractMillNode) = x
 MLUtils.getobs(x::AbstractMillNode, i) = x[i]
-MLUtils.numobs(x::AbstractMillNode) = StatsAPI.nobs(x)
 
 subset(x::AbstractMatrix, i) = x[:, i]
 subset(x::AbstractVector, i) = x[i]
@@ -213,19 +212,21 @@ subset(::Nothing, i) = nothing
 subset(xs::Union{Tuple, NamedTuple}, i) = map(x -> x[i], xs)
 
 include("arraynode.jl")
-
-StatsAPI.nobs(::Missing) = nothing
+Base.ndims(::ArrayNode) = Colon()
+MLUtils.numobs(x::ArrayNode) = numobs(x.data)
 
 include("bagnode.jl")
 include("weighted_bagnode.jl")
 Base.ndims(::AbstractBagNode) = Colon()
-StatsAPI.nobs(a::AbstractBagNode) = length(a.bags)
+MLUtils.numobs(x::AbstractBagNode) = length(x.bags)
 
 include("productnode.jl")
 Base.ndims(::AbstractProductNode) = Colon()
-StatsAPI.nobs(a::AbstractProductNode) = nobs(a.data[1])
+MLUtils.numobs(x::AbstractProductNode) = numobs(x.data[1])
 
 include("lazynode.jl")
+Base.ndims(::LazyNode) = Colon()
+MLUtils.numobs(x::LazyNode) = numobs(x.data)
 
 catobs(as::Maybe{ArrayNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{BagNode}...) = reduce(catobs, collect(as))
