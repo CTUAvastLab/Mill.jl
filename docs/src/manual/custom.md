@@ -136,5 +136,5 @@ Example of usage:
 ```@repl custom
 ds = PathNode(["/etc/passwd", "/home/tonda/.bashrc"])
 pm = reflectinmodel(ds, d -> Dense(d, 3))
-pm(ds).data
+pm(ds)
 ```

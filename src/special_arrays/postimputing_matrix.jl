@@ -72,7 +72,7 @@ A::PostImputingMatrix * B::NGramMatrix = (_check_mul(A, B); _mul(A, B))
 @opt_out rrule(::typeof(*), ::PostImputingMatrix, ::NGramMatrix)
 
 _mul(A::PostImputingMatrix, B::AbstractVecOrMat) = A.W * B
-_mul(A::PostImputingMatrix, b::MaybeHotVector{Missing}) = A.ψ
+_mul(A::PostImputingMatrix, ::MaybeHotVector{Missing}) = A.ψ
 _mul(A::PostImputingMatrix, b::MaybeHotVector{<:Integer}) = A.W * b
 _mul(A::PostImputingMatrix, B::MaybeHotMatrix{Missing}) = repeat(A.ψ, 1, size(B, 2))
 _mul(A::PostImputingMatrix, B::MaybeHotMatrix{<:Integer}) = A.W * B
@@ -84,7 +84,7 @@ _mul(A::PostImputingMatrix, B::NGramMatrix{Maybe{T}}) where {T <: Sequence} = _m
 _mul_pi_maybe_hot(A, B) = _postimpute_maybe_hot(A, B)[1]
 function _postimpute_maybe_hot(A, B)
     m = trues(length(B.I))
-    C = similar(A.ψ, size(A.W, 1), length(B.I))
+    C = similar(A.ψ, promote_maybe_type(eltype(A), eltype(B)), size(A.W, 1), length(B.I))
     C .= A.ψ
     @inbounds for (j, k) in enumerate(B.I)
         if !ismissing(k)
@@ -120,7 +120,7 @@ end
 
 _mul_pi_ngram(A, B) = _postimpute_ngram(A, B)
 function _postimpute_ngram(A, B)
-    C = zeros(eltype(A.ψ), size(A.W, 1), length(B.S))
+    C = zeros(promote_maybe_type(eltype(A), eltype(B)), size(A.W, 1), length(B.S))
     z = _init_z(B.n, B.b)
     bn = B.b^B.n
     for (k, s) in enumerate(B.S)

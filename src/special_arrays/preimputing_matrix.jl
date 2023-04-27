@@ -74,7 +74,7 @@ function ChainRulesCore.rrule(::typeof(_mul_pi_maybe), ψ, B)
 end
 function _preimpute(ψ, B)
     m = .!ismissing.(B)
-    X = similar(ψ, size(B))
+    X = similar(ψ, promote_maybe_type(eltype(ψ), eltype(B)), size(B))
     X .= ψ
     X[m] = @view B[m]
     X, m

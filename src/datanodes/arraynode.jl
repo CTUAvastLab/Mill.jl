@@ -63,7 +63,7 @@ function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::ArrayNode))
     end
 end
 
-function _show_data(io, n::ArrayNode{T}) where T <: AbstractArray
+function _show_data(io, n::ArrayNode{T}) where {T <: AbstractArray}
     print(io, "(")
     if ndims(n.data) == 1
         print(io, nameof(T), " of length ", length(n.data))
