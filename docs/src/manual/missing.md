@@ -184,7 +184,7 @@ m = reflectinmodel(ds)
 Here, `[pre_imputing]Dense` and `[post_imputing]Dense` are standard dense layers with a special matrix inside:
 
 ```@repl missing
-dense = m.ms[1].m; typeof(dense.W)
+dense = m.ms[1].m; typeof(dense.weight)
 ```
 
 Inside `Mill` we add a special definition `Base.show` for these types for compact printing.
@@ -192,9 +192,9 @@ Inside `Mill` we add a special definition `Base.show` for these types for compac
 The [`reflectinmodel`](@ref) method use types to determine whether imputing is needed or not. Compare the following:
 
 ```@repl missing
-reflectinmodel(ArrayNode(randn(2, 3)))
-reflectinmodel(ArrayNode([1.0 2.0 missing; 4.0 missing missing]))
-reflectinmodel(ArrayNode(Matrix{Union{Missing, Float64}}(randn(2, 3))))
+reflectinmodel(ArrayNode(randn(Float32, 2, 3)))
+reflectinmodel(ArrayNode([1.0f0 2.0f0 missing; 4.0f0 missing missing]))
+reflectinmodel(ArrayNode(Matrix{Union{Missing, Float32}}(randn(2, 3))))
 ```
 
 In the last case, the imputing type is returned even though there is no `missing` element in the matrix. Of course, the same applies to [`MaybeHotVector`](@ref), [`MaybeHotMatrix`](@ref) and [`NGramMatrix`](@ref). This way, we can signify that even though there are no missing values in the available sample, we expect them to appear in the future and want our model compatible. If it is hard to determine this in advance a safe bet is to make all leaves in the model. The performance will not suffer because imputing types are as fast as their non-imputing counterparts on data not containing `missing` values and the only tradeoff is a slight increase in the number of parameters, some of which may never be used.
