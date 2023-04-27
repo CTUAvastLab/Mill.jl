@@ -14,7 +14,7 @@ struct WeightedBagNode{T <: Maybe{AbstractMillNode}, B <: AbstractBags, W, C} <:
     function WeightedBagNode(d::T, b::B, w::Vector{W}, m::C = nothing) where {T<:Maybe{AbstractMillNode},B<:AbstractBags,W,C}
         @assert(!ismissing(d) || all(length.(b) .== 0),
             "WeightedBagNode with `missing` in data cannot have a non-empty bag")
-        @assert(ismissing(d) || nobs(d) ≥ maxindex(b),
+        @assert(ismissing(d) || numobs(d) ≥ maxindex(b),
             "Bag indices range is greater than number of observations")
         new{T, B, W, C}(d, b, w, m)
     end

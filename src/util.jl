@@ -100,7 +100,7 @@ julia> findnonempty_lens(n)
 
 See also: [`pred_lens`](@ref), [`list_lens`](@ref), [`find_lens`](@ref).
 """
-findnonempty_lens(n) = pred_lens(t -> t isa AbstractMillNode && nobs(t) > 0, n)
+findnonempty_lens(n) = pred_lens(t -> t isa AbstractMillNode && numobs(t) > 0, n)
 
 """
     find_lens(n, x)

@@ -50,14 +50,10 @@ f(X) == AM(AN)
 !!! ukn "Model outputs"
     A convenient property of all `Mill` [`AbstractMillModel`](@ref) nodes is that after applying them to a corresponding data node we **always** obtain an array as output regardless of the type and complexity of the model. This becomes important later.
 
-The most common interpretation of the data inside [`ArrayNode`](@ref)s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, [`ArrayNode`](@ref)s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any [`AbstractMillNode`](@ref) with `nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) package:
-
-```@example nodes
-using StatsBase: nobs
-```
+The most common interpretation of the data inside [`ArrayNode`](@ref)s is that each column contains features of one sample and therefore the node `AN` carries `size(Mill.data(AN), 2)` samples. In this sense, [`ArrayNode`](@ref)s wrap the standard *machine learning* problem, where each sample is represented with a vector, a matrix or a more general tensor of features. Alternatively, one can obtain a number of samples of any [`AbstractMillNode`](@ref) with `numobs` function from [`MLUtils.jl`](https://github.com/JuliaML/MLUtils.jl) package, which `Mill` also exports:
 
 ```@repl nodes
-nobs(AN)
+numobs(AN)
 ```
 
 ## [`BagNode`](@ref)
@@ -81,13 +77,13 @@ BN.bags
 Here, `data` can be an arbitrary [`AbstractMillNode`](@ref) storing representation of instances ([`ArrayNode`](@ref) in this case) and `bags` field contains information, which instances belong to which bag. In this specific case `bn` stores three bags (samples). The first one consists of a two instances `{[1.0, 4.0], [2.0, 5.0]}` (first two columns of `AN`), the second one is empty, and the thirs bag contains one instance `{[3.0, 6.0]}`. We can see that we deal with two top-level samples (bags):
 
 ```@repl nodes
-nobs(BN)
+numobs(BN)
 ```
 
 whereas they are formed using three instances:
 
 ```@repl nodes
-nobs(AN)
+numobs(AN)
 ```
 
 In `Mill`, there are two ways to store indices of the bag's instances:

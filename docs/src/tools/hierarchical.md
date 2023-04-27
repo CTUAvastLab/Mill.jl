@@ -1,6 +1,5 @@
 ```@setup hierarchical 
 using Mill
-using StatsBase: nobs
 ```
 
 # HierarchicalUtils.jl
@@ -64,7 +63,7 @@ NodeIterator(ds) |> collect
 NodeIterator(ds, m) |> collect
 LeafIterator(ds) |> collect
 TypeIterator(BagModel, m) |> collect
-PredicateIterator(x -> nobs(x) ≥ 10, ds) |> collect
+PredicateIterator(x -> numobs(x) ≥ 10, ds) |> collect
 ```
 
 For the complete showcase of possibilites, refer to [HierarchicalUtils.jl](https://github.com/CTUAvastLab/HierarchicalUtils.jl) and [this notebook](https://github.com/CTUAvastLab/HierarchicalUtils.jl/blob/master/examples/mill_integration.ipynb)

@@ -71,7 +71,7 @@ The solution using [`LazyNode`](@ref) is sufficient in most scenarios. For other
 * allow nesting (if needed)
 * implement [`Mill.subset`](@ref) and optionally `Base.getindex` to obtain subsets of observations. `Mill` already defines [`Mill.subset`](@ref) for common datatypes, which can be used.
 * allow concatenation of nodes with [`catobs`](@ref). Optionally, implement `reduce(catobs, ...)` as well to avoid excessive compilations if a number of arguments will vary a lot
-* define a specialized method for `StatsBase.nobs`
+* define a specialized method for `MLUtils.numobs`, which we can however import directly from `Mill`.
 * register the custom node with [HierarchicalUtils.jl](@ref) to obtain pretty printing, iterators and other functionality
 
 Here is an example of a custom node with the same functionality as in the [Unix path example](@ref)
@@ -81,9 +81,8 @@ section:
 using Mill
 
 import Base: getindex, show
-import Mill: catobs, data, metadata, VecOrRange, AbstractMillNode, reflectinmodel
+import Mill: catobs, numobs, data, metadata, VecOrRange, AbstractMillNode, reflectinmodel
 import Flux
-import StatsBase: nobs
 import HierarchicalUtils: NodeType, LeafNode
 
 struct PathNode{S <: AbstractString, C} <: AbstractMillNode
@@ -92,10 +91,10 @@ struct PathNode{S <: AbstractString, C} <: AbstractMillNode
 end
 
 PathNode(data::Vector{S}) where {S <: AbstractString} = PathNode(data, nothing)
-Base.show(io::IO, n::PathNode) = print(io, "PathNode ($(nobs(n)) obs)")
+Base.show(io::IO, n::PathNode) = print(io, "PathNode ($(numobs(n)) obs)")
 
 Base.ndims(n::PathNode) = Colon()
-nobs(n::PathNode) = length(n.data)
+numobs(n::PathNode) = length(n.data)
 catobs(ns::PathNode) = PathNode(vcat(data.(ns)...), catobs(metadata.(as)...))
 Base.getindex(n::PathNode, i::VecOrRange{<:Int}) = PathNode(subset(data(x), i),
                                                             subset(metadata(x), i))

@@ -83,15 +83,14 @@ PN = ProductNode(a=Float32.([1 2 3; 4 5 6]), b=BN)
 PM = reflectinmodel(PN)
 ```
 
-### Function: `nobs`
+### Function: `numobs`
 
-`nobs` function from [`StatsBase.jl`](https://github.com/JuliaStats/StatsBase.jl) returns a number of samples from the current level point of view. This number usually increases as we go down the tree when [`BagNode`](@ref)s are involved, as each bag may contain more than one instance.
+`numobs` function from [`MLUtils.jl`](https://github.com/JuliaML/MLUtils.jl) returns a number of samples from the current level point of view. This number usually increases as we go down the tree when [`BagNode`](@ref)s are involved, as each bag may contain more than one instance.
 
 ```@repl more_on_nodes
-using StatsBase: nobs
-nobs(AN)
-nobs(BN)
-nobs(PN)
+numobs(AN)
+numobs(BN)
+numobs(PN)
 ```
 
 ### Indexing and Slicing
@@ -100,19 +99,19 @@ Indexing in [`Mill`] operates **on the level of observations**:
 
 ```@repl more_on_nodes
 AN[1]
-nobs(ans)
+numobs(ans)
 BN[2]
-nobs(ans)
+numobs(ans)
 PN[3]
-nobs(ans)
+numobs(ans)
 AN[[1, 4]]
-nobs(ans)
+numobs(ans)
 BN[1:2]
-nobs(ans)
+numobs(ans)
 PN[[2, 3]]
-nobs(ans)
+numobs(ans)
 PN[Int[]]
-nobs(ans)
+numobs(ans)
 ```
 
 This may be useful for creating minibatches and their permutations.

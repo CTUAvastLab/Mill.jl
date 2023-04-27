@@ -20,9 +20,8 @@ using Base: CodeUnits, nameof
 using ChainRulesCore: NotImplemented, NotImplementedException
 using HierarchicalUtils: encode, stringify
 using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
-using StatsAPI: nobs
 
-import ChainRulesCore, StatsAPI
+import ChainRulesCore
 import Base: *, ==, reduce
 
 # COMMON ALIASES
@@ -45,7 +44,7 @@ export AbstractBags, AlignedBags, ScatteredBags, length2bags, remapbags, bags, a
 include("datanodes/datanode.jl")
 export AbstractMillNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
-export catobs, removeinstances, dropmeta
+export numobs, getobs, catobs, removeinstances, dropmeta
 
 include("special_arrays/special_arrays.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch, maybecold
