@@ -41,7 +41,7 @@ Julia v1.6 or later is required.
 
 For citing, please use the following entry for the [original paper](https://arxiv.org/abs/2105.09107):
 ```
-@misc{mandlik2021milljl,
+@misc{MandlikMill,
       title={Mill.jl and JsonGrinder.jl: automated differentiable feature extraction for learning from raw JSON data}, 
       author={Simon Mandlik and Matej Racinsky and Viliam Lisy and Tomas Pevny},
       year={2021},
@@ -53,7 +53,7 @@ For citing, please use the following entry for the [original paper](https://arxi
 
 and the following for this implementation (fill in the used `version`):
 ```
-@software{mill2018,
+@software{Mill,
   author = {Tomas Pevny and Simon Mandlik},
   title = {Mill.jl framework: a flexible library for (hierarchical) multi-instance learning},
   url = {https://github.com/CTUAvastLab/Mill.jl},
