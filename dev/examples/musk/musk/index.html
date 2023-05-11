@@ -78,30 +78,27 @@ y_oh = Flux.onehotbatch(y, 1:2)</code></pre><pre class="documenter-example-outpu
   ╰── ArrayModel(Dense(166 =&gt; 10, tanh))  # 2 arrays, 1_670 params, 6.602 KiB</code></pre><p>Instances are first passed through a single layer with 10 neurons (input dimension is 166) with <code>tanh</code> non-linearity, then we use <code>mean</code> and <code>max</code> aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 10 neurons and <code>tanh</code> nonlinearity followed by linear layer with 2 neurons (output dimension). We check that forward pass works</p><pre><code class="language-julia hljs">model(ds)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×92 Matrix{Float32}:
  1.00559   0.71191   1.14493   1.19852   1.43657  -0.316395  …  0.958057  0.585202  0.630445  0.665943  0.016557  0.477948
  0.800909  0.486771  0.790684  0.714799  1.06432   1.41814      0.709073  1.22163   0.796868  0.45441   0.295348  1.42942</code></pre><p>Since <code>Mill</code> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>cross-entropy</code> loss function:...</p><pre><code class="language-julia hljs">loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">loss (generic function with 1 method)</code></pre><p>...and run simple training procedure using its tooling:</p><pre><code class="language-julia hljs">opt = Flux.ADAM()
-@epochs 10 begin
+for i in 1:10
+    @info &quot;Epoch $i&quot;
     Flux.train!(loss, Flux.params(model), repeated((ds, y_oh), 1000), opt)
     println(loss(ds, y_oh))
-end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Warning: The macro `@epochs` will be removed from Flux 0.14.
-│ As an alternative, you can write a simple `for i in 1:epochs` loop.
-│   caller = eval at boot.jl:368 [inlined]
-└ @ Core ./boot.jl:368
-[ Info: Epoch 1
-0.018946962
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">[ Info: Epoch 1
+0.01359662
 [ Info: Epoch 2
-0.0037844975
+0.0026905711
 [ Info: Epoch 3
-0.0013878477
+0.00095440156
 [ Info: Epoch 4
-0.00063628616
+0.00043156432
 [ Info: Epoch 5
-0.00032373675
+0.00021567987
 [ Info: Epoch 6
-0.00017440894
+0.000114219416
 [ Info: Epoch 7
-9.721945e-5
+6.277587e-5
 [ Info: Epoch 8
-5.539199e-5
+3.5352787e-5
 [ Info: Epoch 9
-3.2017975e-5
+2.0239933e-5
 [ Info: Epoch 10
-1.8711045e-5</code></pre><p>Finally, we calculate the (training) error:</p><pre><code class="language-julia hljs">mean(mapslices(argmax, model(ds), dims = 1)&#39; .≠ y)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../gnn/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Monday 27 March 2023 13:32">Monday 27 March 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+1.1721038e-5</code></pre><p>Finally, we calculate the (training) error:</p><pre><code class="language-julia hljs">mean(mapslices(argmax, model(ds), dims = 1)&#39; .≠ y)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../gnn/">GNNs in 16 lines »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Thursday 11 May 2023 13:08">Thursday 11 May 2023</span>. Using Julia version 1.9.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
