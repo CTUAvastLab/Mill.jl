@@ -21,13 +21,12 @@ using ChainRulesCore: NotImplemented, NotImplementedException
 using HierarchicalUtils: encode, stringify
 using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
 
-import ChainRulesCore
-import Base: *, ==, reduce
+import Base: *, ==
 
 # COMMON ALIASES
+using Base: AbstractVecOrMat, AbstractVecOrTuple
 const VecOrRange{T} = Union{UnitRange{T}, AbstractVector{T}}
 const VecOrTupOrNTup{T} = Union{Vector{<:T}, Tuple{Vararg{T}}, NamedTuple{K, <:Tuple{Vararg{T}}} where K}
-using Base: AbstractVecOrMat, AbstractVecOrTuple
 const Maybe{T} = Union{T, Missing}
 const Optional{T} = Union{T, Nothing}
 

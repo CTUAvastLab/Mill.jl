@@ -60,7 +60,7 @@ function Base.getindex(x::BagNode, i::VecOrRange{<:Int})
     BagNode(subset(x.data,ii), nb, subset(x.metadata, i))
 end
 
-function reduce(::typeof(catobs), as::Vector{<:BagNode})
+function Base.reduce(::typeof(catobs), as::Vector{<:BagNode})
     d = filter(!ismissing, data.(as))
     md = filter(!isnothing, metadata.(as))
     bags = reduce(vcat, [n.bags for n in as])

@@ -83,7 +83,7 @@ _cattrees(as::Vector{T}) where T <: NamedTuple = T(reduce(catobs, [a[i] for a in
     end
 end
 
-function reduce(::typeof(catobs), as::Vector{<:ProductNode})
+function Base.reduce(::typeof(catobs), as::Vector{<:ProductNode})
     ds = data.(as)
     if !_check_idxs(ds)
         ArgumentError("Trying to `catobs` `ProductNode`s with different subtrees") |> throw

@@ -29,7 +29,7 @@ _typemin(t::Type) = typemin(t)
 _typemin(::Type{Missing}) = missing
 _typemin(::Type{Maybe{T}}) where T = typemin(T)
 
-function _check_agg(a::AbstractAggregation, X::Missing) end
+function _check_agg(::AbstractAggregation, ::Missing) end
 function _check_agg(a::AbstractAggregation, X::AbstractMatrix)
     if size(X, 1) ≠ length(a.ψ)
         DimensionMismatch(
@@ -43,7 +43,6 @@ include("segmented_mean.jl")
 include("segmented_max.jl")
 include("segmented_pnorm.jl")
 include("segmented_lse.jl")
-# include("transformer.jl")
 
 include("aggregation_stack.jl")
 

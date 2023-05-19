@@ -58,7 +58,7 @@ function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Int}) where 
     WeightedBagNode(subset(x.data, ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
 end
 
-function reduce(::typeof(catobs), as::Vector{<:WeightedBagNode})
+function Base.reduce(::typeof(catobs), as::Vector{<:WeightedBagNode})
     d = filter(!ismissing, data.(as))
     md = filter(!isnothing, metadata.(as))
     bags = reduce(vcat, [n.bags for n in as])

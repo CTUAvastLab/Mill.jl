@@ -56,7 +56,7 @@ function _typed_hcat(::Type{MaybeHotVector{T, U, V}}, xs::AbstractVector{<:Maybe
     MaybeHotMatrix{T, U, V}([x.i for x in xs], _check_l(xs))
 end
 
-reduce(::typeof(catobs), as::Vector{<:MaybeHotVector}) = reduce(hcat, as)
+Base.reduce(::typeof(catobs), as::Vector{<:MaybeHotVector}) = reduce(hcat, as)
 
 A::AbstractMatrix * b::MaybeHotVector = (_check_mul(A, b); _mul(A, b))
 

@@ -36,7 +36,7 @@ dropmeta(x::ArrayNode) = ArrayNode(x.data)
 
 Base.size(x::ArrayNode) = size(x.data)
 
-function reduce(::typeof(catobs), as::Vector{<:ArrayNode})
+function Base.reduce(::typeof(catobs), as::Vector{<:ArrayNode})
     ArrayNode(reduce(catobs, data.(as)), reduce(catobs, metadata.(as)))
 end
 
