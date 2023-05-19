@@ -84,7 +84,7 @@ Y = mp(BagNode(U, b))
 and it is differentiable, which can be verified by executing:
 
 ```@repl gnn
-gradient(() -> sum(sin.(mp(BagNode(U, b)))), Flux.params(mp))
+gradient(m -> sum(sin.(m(BagNode(U, b)))), mp)
 ```
 
 If we put everything together, the GNN implementation is implemented in the following 16 lines:
@@ -127,7 +127,7 @@ nothing # hide
 
 ```@repl gnn
 gnn(g, X, 5)
-gradient(() -> gnn(g, X, 5) |> sum, Flux.params(gnn))
+gradient(m -> m(g, X, 5) |> sum, gnn)
 ```
 
 The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in `X`, however, any `Mill` hierarchy is applicable.
