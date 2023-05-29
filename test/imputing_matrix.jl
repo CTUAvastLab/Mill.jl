@@ -541,15 +541,14 @@ end
     end
 end
 
-@testset "Parameters get indeed updated with Flux/Zygote" begin
+@testset "Parameters get indeed updated with Flux" begin
     function check(d, X, pW, pψ)
-        for opt in [Flux.Descent(), Flux.Adam()]
-            for _ in 1:3
-                dc = deepcopy(d)
-                Flux.train!(X -> sum(dc(X)), Flux.params(dc), [(X,)], opt)
-                @test any(dc.weight.W .≠ d.weight.W) == pW
-                @test any(dc.weight.ψ .≠ d.weight.ψ) == pψ
-            end
+        for opt_rule in [Flux.Descent(), Flux.Adam()]
+            dc = deepcopy(d)
+            opt_state = Flux.setup(opt_rule, dc)
+            Flux.train!((dc, X) -> sum(dc(X)), dc, [(X,)], opt_state)
+            @test any(dc.weight.W .≠ d.weight.W) == pW
+            @test any(dc.weight.ψ .≠ d.weight.ψ) == pψ
         end
     end
 

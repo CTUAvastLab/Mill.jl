@@ -99,15 +99,6 @@ function Base.copyto!(A::T, bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{T}}) 
     return A
 end
 
-function Flux.update!(opt::Flux.Optimise.AbstractOptimiser, x::ImputingMatrix, x̄)
-    if !isnothing(x̄.W)
-        Flux.Optimise.update!(opt, x.W, x̄.W)
-    end
-    if !isnothing(x̄.ψ)
-        Flux.Optimise.update!(opt, x.ψ, x̄.ψ)
-    end
-end
-
 """
     preimputing_dense(in, out, σ)
 

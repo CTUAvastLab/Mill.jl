@@ -14,7 +14,6 @@ using Preferences
 using Setfield
 using SparseArrays
 using Statistics
-using Zygote
 
 using Base: CodeUnits, nameof
 using ChainRulesCore: NotImplemented, NotImplementedException

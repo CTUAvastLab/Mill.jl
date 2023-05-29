@@ -16,7 +16,7 @@ using Combinatorics
 using DataFrames
 using Documenter
 using Flux
-using Flux: Zygote.Grads, onehot, onehotbatch
+using Flux: onehot, onehotbatch
 using HierarchicalUtils
 using PooledArrays
 using Random
