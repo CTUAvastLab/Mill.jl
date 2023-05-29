@@ -93,7 +93,7 @@ end
 @testset "gradf" begin
     gf = a -> 2a + 1 + sin(a)
     A, f = gradf(gf, 1)
-    for i in [1,2,3]
+    for i in [1, 2, 3]
         @test A * gf(i) == f(i)
     end
     # outputs are not constant

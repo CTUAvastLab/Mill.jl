@@ -1,5 +1,7 @@
 using MacroTools: splitdef
 
+# using FiniteDifferences on a struct instead of the result of Flux.params(m) leads to painfully
+# slow computation, we need to stay with implicit parametrization for numeric gradcheck
 numgrad(m, f, xs...) = FiniteDifferences.grad(m, f, xs...)
 function numgrad(m, f, ps::Flux.Params)
     function gp(p)
@@ -21,9 +23,9 @@ end
 
 gradcomp(ag1::Nothing, ag2::Nothing, args...) = true
 gradcomp(ag, ng, atol, rtol) = isapprox(ag, ng; atol, rtol)
-gradcomp(ag1::Nothing, ng, atol, rtol) = isapprox(ng, 0; atol, rtol)
-gradcomp(ag, ngs::Tuple, atol, rtol) = all(.|(map(ng -> isapprox.(ag, ng; atol, rtol), ngs)...))
-gradcomp(ag::Nothing, ngs::Tuple, atol, rtol) = all(.|(map(ng -> isapprox.(ng, 0; atol, rtol), ngs)...))
+gradcomp(::Nothing, ng, atol, rtol) = isapprox(ng, 0; atol, rtol)
+gradcomp(ag, ngs::Tuple, atol, rtol) = mapreduce(ng -> isapprox.(ag, ng; atol, rtol), .|, ngs) |> all
+gradcomp(::Nothing, ngs::Tuple, atol, rtol) = mapreduce(ng -> isapprox.(ng, 0; atol, rtol), .|, ngs) |> all
 gradcomp(ag::NotImplemented, ngs, atol, rtol) = NotImplementedException(ag) |> throw
 gradcomp(ag::NotImplemented, ngs::Tuple, atol, rtol) = NotImplementedException(ag) |> throw
 
@@ -32,7 +34,7 @@ gradf(f::Function, xs...) = gradf(rand(Float32, size(f(xs...))...), f)
 gradf(f::Function, ::Flux.Params) = gradf(rand(Float32, size(f())...), f)
 gradf(A, f::Function) = A, (xs...) -> sum(A .* f(xs...))
 
-# extend f32 and f64 definitions from Flux to plain numbers for gradient testing
+# extend f32 and f64 definitions from Flux to all numbers for gradient testing
 mf32(x::Number) = Float32(x)
 mf32(x) = Flux.f32(x)
 mf64(x::Number) = Float64(x)
@@ -61,8 +63,8 @@ macro gradtest(gf, cvars=:[], atol=1e-5, rtol=1e-5)
         ag32 = Flux.gradient(gf32, $(args32...))
         ag64 = Flux.gradient(gf64, $(args64...))
         ngs = numgrads(gf64, $(args64...))
-        all(1:$(length(args))) do i
-            gradcomp(ag32[i], ngs[i], $atol, $rtol) && gradcomp(ag32[i], ag64[i], $atol, $rtol)
+        all(zip(ag32, ag64, ngs)) do (x, y, z)
+            gradcomp(x, y, $atol, $rtol) && gradcomp(x, z, $atol, $rtol)
         end
     end
 end
@@ -97,7 +99,7 @@ macro pgradtest(gf, cvars=:[], atol=1e-5, rtol=1e-5)
         ag64 = Flux.gradient(gf64, ps64)
         ngs = numgrads(gf64, ps64)
         all(1:length(ps32)) do i
-            gradcomp(ag32[ps32[i]], ngs[i], $atol, $rtol) && gradcomp(ag32[ps32[i]], ag64[ps64[i]], $atol, $rtol)
+            gradcomp(ag32[ps32[i]], ag64[ps64[i]], $atol, $rtol) && gradcomp(ag32[ps32[i]], ngs[i], $atol, $rtol)
         end
     end
 end

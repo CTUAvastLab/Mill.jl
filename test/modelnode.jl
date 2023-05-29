@@ -404,10 +404,10 @@ end
         @inferred m(ds(x, y, w1, w2))
         @test @gradtest (x, y) -> m(ds(x, y, w1, w2)) [m, w1, w2]
 
-        ds = (z, w3, w1) -> WeightedBagNode(WeightedBagNode(z, bags3, w3), bags1, w1)
-        m = reflectinmodel(ds(z, w3, w1), LAYERBUILDER, ABUILDER)
-        @inferred m(ds(z, w3, w1))
-        @test @gradtest z -> m(ds(z, w3, w1)) [m, w1, w3]
+        ds = (z, w1, w3) -> WeightedBagNode(WeightedBagNode(z, bags3, w3), bags1, w1)
+        m = reflectinmodel(ds(z, w1, w3), LAYERBUILDER, ABUILDER)
+        @inferred m(ds(z, w1, w3))
+        @test @gradtest z -> m(ds(z, w1, w3)) [m, w3, w1]
     end
 end
 
@@ -458,12 +458,10 @@ end
     x = ProductNode(node1 = BagNode(randn(Float32, 3, 4), [1:2, 3:4]),
                     node2 = BagNode(randn(Float32, 4, 4), [1:1, 2:4]))
     m = reflectinmodel(x, layerbuilder)
-    ps = Flux.params(m)
-    vec_grad = gradient(() -> sum(m([x, x])), ps)
-    @test vec_grad isa Grads
+    vec_grad = gradient(m -> sum(m([x, x])), m)
     reduced = reduce(catobs, [x, x])
-    orig_grad = gradient(() -> sum(m(reduced)), ps)
-    @test all(p -> vec_grad[p] == orig_grad[p], ps)
+    orig_grad = gradient(m -> sum(m(reduced)), m)
+    @test vec_grad == orig_grad
 end
 
 @testset "simple named tuple model with minibatching from Flux (MLUtils)" begin
@@ -472,12 +470,10 @@ end
     x = ProductNode(node1 = BagNode(randn(Float32, 3, 6), [1:2, 3:4, 5:5, 6:6]),
                     node2 = BagNode(randn(Float32, 4, 6), [1:1, 2:4, 5:6, 0:-1]))
     m = reflectinmodel(x, layerbuilder)
-    ps = Flux.params(m)
     mbs = Flux.DataLoader(x, batchsize=4, shuffle=true)
     mb = first(mbs)
-    mb_grad = gradient(() -> sum(m(mb)), ps)
-    @test mb_grad isa Grads
+    mb_grad = gradient(m -> sum(m(mb)), m)
     reduced = reduce(catobs, [x[3], x[2], x[1], x[4]])
-    orig_grad = gradient(() -> sum(m(mb)), ps)
-    @test all(p -> mb_grad[p] == orig_grad[p], ps)
+    orig_grad = gradient(m -> sum(m(mb)), m)
+    @test mb_grad == orig_grad
 end
