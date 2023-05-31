@@ -76,7 +76,7 @@ export BagChain
 # export MillString, @mill_str
 
 include("util.jl")
-export sparsify, pred_lens, list_lens, find_lens, findnonempty_lens
+export pred_lens, list_lens, find_lens, findnonempty_lens
 export replacein, code2lens, lens2code, model_lens, data_lens
 
 include("gradients.jl")

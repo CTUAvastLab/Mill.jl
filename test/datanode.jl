@@ -301,31 +301,6 @@ end
     @test !haskey(k, :c)
 end
 
-@testset "sparsify" begin
-    @test sparsify(zeros(10, 10), 0.05) isa SparseMatrixCSC
-    @test sparsify(randn(10, 10), 0.05) isa Matrix
-    @test sparsify(randn(10), 0.05) isa Vector
-end
-
-@testset "sparsify and mapdata" begin
-    x = ProductNode((ProductNode((randn(5,5), zeros(5,5))),
-                     zeros(5,5)))
-    xs = mapdata(i -> sparsify(i, 0.05), x)
-    @test xs.data[2].data isa SparseMatrixCSC
-    @test xs.data[1].data[2].data isa SparseMatrixCSC
-    @test xs.data[1].data[1].data == x.data[1].data[1].data
-end
-
-@testset "missing mapdata" begin
-    x = ProductNode((ProductNode((randn(5,1), zeros(5,1))),
-                     zeros(5,1),
-                     BagNode(missing, [0:-1])))
-    xs = mapdata(i -> sparsify(i, 0.05), x)
-    @test xs.data[2].data isa SparseMatrixCSC
-    @test xs.data[1].data[2].data isa SparseMatrixCSC
-    @test xs.data[1].data[1].data == x.data[1].data[1].data
-end
-
 @testset "equals and hash" begin
     a2 = deepcopy(a)
     i2 = deepcopy(i)

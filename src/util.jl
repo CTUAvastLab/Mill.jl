@@ -1,25 +1,3 @@
-"""
-    sparsify(x, nnzrate)
-
-Replace `AbstractMatrix` `x` with `SparseMatrixCSC` if at most `nnzrate` fraction of elements is non-zero.
-
-```jldoctest
-julia> n = ArrayNode([0 0; 0 0])
-2×2 ArrayNode{Matrix{Int64}, Nothing}:
- 0  0
- 0  0
-
-julia> Mill.mapdata(i -> sparsify(i, 0.05), n)
-2×2 ArrayNode{SparseMatrixCSC{Int64, Int64}, Nothing}:
- ⋅  ⋅
- ⋅  ⋅
-```
-
-See also: [`Mill.mapdata`](@ref).
-"""
-sparsify(x, nnzrate) = x
-sparsify(x::Matrix, nnzrate) = (mean(x .≠ 0) < nnzrate) ? sparse(x) : x
-
 # can be removed when https://github.com/FluxML/Flux.jl/issues/1596 is closed
 function Base.reduce(::typeof(hcat), xs::Vector{T})  where T <: OneHotLike
     L = OneHotArrays._nlabels(xs...)
@@ -279,7 +257,7 @@ ProductNode  # 2 obs, 24 bytes
   ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 ```
 """
-replacein(x, oldnode, newnode) = x
+replacein(x, _, _) = x
 replacein(x::Tuple, oldnode, newnode) = tuple([replacein(m, oldnode, newnode) for m in x]...)
 replacein(x::NamedTuple, oldnode, newnode) = (; [k => replacein(x[k], oldnode, newnode) for k in keys(x)]...)
 

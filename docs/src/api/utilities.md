@@ -7,8 +7,6 @@ Pages = ["utilities.md"]
 
 ## API
 ```@docs
-sparsify
-
 list_lens
 find_lens
 findnonempty_lens
