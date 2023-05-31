@@ -72,9 +72,6 @@ export bagconv, BagConv
 include("bagchain.jl")
 export BagChain
 
-include("partialeval.jl")
-export partialeval
-
 # include("mill_string.jl")
 # export MillString, @mill_str
 
