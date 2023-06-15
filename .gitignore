@@ -28,5 +28,4 @@ Manifest.toml
 # Preferences.jl
 LocalPreferences.toml
 
-!docs/Manifest.toml
 .DS_store
