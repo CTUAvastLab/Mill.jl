@@ -15,7 +15,7 @@
 #nb Pkg.status()
 
 # We load all dependencies and fix the seed:
-using FileIO, JLD2, Statistics, Mill, Flux
+using FileIO, JLD2, Statistics, Mill, Flux, OneHotArrays
 
 using Random; Random.seed!(42);
 
@@ -38,7 +38,7 @@ ds = BagNode(ArrayNode(fMat), bagids)
 
 # We also compute labels on the level of bags. In the `Musk` problem, bag label is defined as a maximum of instance labels (i.e. a bag is positive if at least one of its instances is positive):
 y = map(i -> maximum(y[i]) + 1, ds.bags)
-y_oh = Flux.onehotbatch(y, 1:2)
+y_oh = onehotbatch(y, 1:2)
 
 # ### Model construction
 

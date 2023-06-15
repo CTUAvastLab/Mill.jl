@@ -16,9 +16,9 @@ using Combinatorics
 using DataFrames
 using Documenter
 using Flux
-using Flux: onehot, onehotbatch
 using HierarchicalUtils
 using InteractiveUtils
+using OneHotArrays
 using PooledArrays
 using Random
 using SparseArrays

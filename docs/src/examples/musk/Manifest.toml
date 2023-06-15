@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.0"
+julia_version = "1.9.1"
 manifest_format = "2.0"
-project_hash = "4f6d0e018706af8fc65f528b8002c7bec3b3d3cd"
+project_hash = "c980577c0415d2c228751f8ca1d6579dbbffa98a"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -541,10 +541,10 @@ uuid = "128add7d-3638-4c79-886c-908ea0c25c34"
 version = "0.1.4"
 
 [[deps.Mill]]
-deps = ["ChainRulesCore", "Combinatorics", "DataFrames", "DataStructures", "FiniteDifferences", "Flux", "HierarchicalUtils", "LinearAlgebra", "MLUtils", "MacroTools", "OneHotArrays", "Preferences", "Setfield", "SparseArrays", "Statistics", "Zygote"]
+deps = ["ChainRulesCore", "Combinatorics", "DataFrames", "DataStructures", "FiniteDifferences", "Flux", "HierarchicalUtils", "LinearAlgebra", "MLUtils", "MacroTools", "OneHotArrays", "Preferences", "Setfield", "SparseArrays", "Statistics"]
 path = "../../../.."
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
-version = "2.8.5"
+version = "2.9.0"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
@@ -932,7 +932,7 @@ version = "1.0.3"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
-version = "5.7.0+0"
+version = "5.8.0+0"
 
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
