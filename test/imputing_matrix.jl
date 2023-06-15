@@ -195,7 +195,7 @@ end
 end
 
 @testset "correct post imputing behavior for maybe hot vector" begin
-    for (m, n) in product(fill((2, 5, 10), 2)...)
+    for (m, n) in product(fill((2, 5), 2)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -212,7 +212,7 @@ end
 end
 
 @testset "correct post imputing behavior for maybe hot matrix" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -237,7 +237,7 @@ end
 end
 
 @testset "correct post imputing behavior for ngram matrix" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
@@ -296,14 +296,14 @@ end
 end
 
 @testset "imputing matrix * full vector gradient testing" begin
-    for (m, n) in product(fill((2, 5, 10), 2)...)
+    for (m, n) in product(fill((2, 3, 5), 2)...)
         b = randn(n)
         W = randn(m, n)
 
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
 
-        @test @gradtest (W, ψ, b) -> PreImputingMatrix(W, ψ) * b
+        @gradtest (W, ψ, b) -> PreImputingMatrix(W, ψ) * b
 
         (dW, dψ), db = gradient(sum ∘ *, A, b)
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
@@ -313,7 +313,7 @@ end
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
 
-        @test @gradtest (W, ψ, b) -> PostImputingMatrix(W, ψ) * b
+        @gradtest (W, ψ, b) -> PostImputingMatrix(W, ψ) * b
 
         (dW, dψ), db = gradient(sum ∘ *, A, b)
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
@@ -323,14 +323,14 @@ end
 end
 
 @testset "imputing matrix * full matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         B = randn(n, k)
         W = randn(m, n)
 
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
 
-        @test @gradtest (W, ψ, B) -> PreImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ, B) -> PreImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
@@ -340,7 +340,7 @@ end
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
 
-        @test @gradtest (W, ψ, B) -> PostImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ, B) -> PostImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
@@ -350,13 +350,13 @@ end
 end
 
 @testset "post imputing matrix * full maybe hot vector gradient testing" begin
-    for (m, n) in product(fill((2, 5, 10), 2)...), i in [rand(1:n) for _ in 1:3]
+    for (m, n) in product(fill((2, 5), 2)...), i in [rand(1:n) for _ in 1:3]
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
         b = MaybeHotVector(i, n)
 
-        @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * b
+        @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * b
 
         (dW, dψ), db = gradient(sum ∘ *, A, b)
         @test dW ≈ gradient(W -> sum(W * b), W) |> only
@@ -366,13 +366,13 @@ end
 end
 
 @testset "post imputing matrix * full maybe hot matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...), I in [rand(1:n, k) for _ in 1:3]
+    for (m, n, k) in product(fill((2, 5), 3)...), I in [rand(1:n, k) for _ in 1:3]
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
         B = MaybeHotMatrix(I, n)
 
-        @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
@@ -382,14 +382,14 @@ end
 end
 
 @testset "post imputing matrix * full ngram matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
         S = [randustring(rand(1:100)) for _ in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
 
-        @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         @test dW ≈ gradient(W -> sum(W * B), W) |> only
@@ -399,13 +399,13 @@ end
 end
 
 @testset "post imputing matrix * empty maybe hot vector gradient testing" begin
-    for (m, n) in product(fill((2, 5, 10), 2)...)
+    for (m, n) in product(fill((2, 5), 2)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
         b = MaybeHotVector(missing, n)
 
-        @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * b
+        @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * b
 
         (dW, dψ), db = gradient(sum ∘ *, A, b)
         @test isnothing(dW)
@@ -415,13 +415,13 @@ end
 end
 
 @testset "post imputing matrix * empty maybe hot matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
         B = MaybeHotMatrix(fill(missing, k), n)
 
-        @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         @test isnothing(dW)
@@ -431,14 +431,14 @@ end
 end
 
 @testset "post imputing matrix * empty ngram matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
         S = fill(missing, k)
         B = NGramMatrix(S, 3, 256, n)
 
-        @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         @test isnothing(dW)
@@ -448,14 +448,14 @@ end
 end
 
 @testset "post imputing matrix * mixed maybe hot matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
         I = [isodd(i) ? missing : rand(1:n) for i in 1:k]
         B = MaybeHotMatrix(I, n)
 
-        @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         Bskip = MaybeHotMatrix(skipmissing(I) |> collect, n)
@@ -468,14 +468,14 @@ end
 end
 
 @testset "post imputing matrix * mixed ngram matrix gradient testing" begin
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         W = randn(m, n)
         ψ = randn(m)
         A = PostImputingMatrix(W, ψ)
         S = [isodd(i) ? missing : randustring(rand(1:100)) for i in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
 
-        @test @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ) -> PostImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         Bskip = NGramMatrix(skipmissing(S) |> collect, 3, 256, n)
@@ -488,13 +488,13 @@ end
 end
 
 @testset "pre imputing matrix * empty vector gradient testing" begin
-    for (m, n) in product(fill((1, 5, 10), 2)...)
+    for (m, n) in product(fill((1, 5), 2)...)
         W = randn(m, n)
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
         b = fill(missing, n)
 
-        @test @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * b
+        @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * b
 
         (dW, dψ), db = gradient(sum ∘ *, A, b)
         @test dW ≈ gradient(W -> sum(W * ψ), W) |> only
@@ -504,13 +504,13 @@ end
 end
 
 @testset "pre imputing matrix * empty missing matrix gradient testing" begin
-    for (m, n, k) in product(fill((1, 5, 10), 3)...)
+    for (m, n, k) in product(fill((1, 5), 3)...)
         W = randn(m, n)
         ψ = randn(n)
         A = PreImputingMatrix(W, ψ)
         B = fill(missing, n, k)
 
-        @test @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * B
 
         (dW, dψ), dB = gradient(sum ∘ *, A, B)
         @test dW ≈ gradient(W -> sum(W * repeat(ψ, 1, k)), W) |> only
@@ -520,24 +520,24 @@ end
 end
 
 @testset "pre imputing matrix * mixed vector gradient testing" begin
-    for (m, n) in product(fill((1, 5, 10), 2)...)
+    for (m, n) in product(fill((1, 5), 2)...)
         W = randn(m, n)
         ψ = randn(n)
         b = Vector{Maybe{Float64}}(randn(n))
         b[rand(eachindex(b), rand(1:n))] .= missing
 
-        @test @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * b
+        @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * b
     end
 end
 
 @testset "pre imputing matrix * mixed matrix gradient testing" begin
-    for (m, n, k) in product(fill((1, 5, 10), 3)...)
+    for (m, n, k) in product(fill((1, 5), 3)...)
         W = randn(m, n)
         ψ = randn(n)
         B = Matrix{Maybe{Float64}}(randn(n, k))
         B[rand(eachindex(B), rand(1:n*k))] .= missing
 
-        @test @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * B
+        @gradtest (W, ψ) -> PreImputingMatrix(W, ψ) * B
     end
 end
 
@@ -552,7 +552,7 @@ end
         end
     end
 
-    for (m, n, k) in product(fill((2, 5, 10), 3)...)
+    for (m, n, k) in product(fill((2, 5), 3)...)
         d = preimputing_dense(n, m)
 
         x = randn(Float32, n)

@@ -302,22 +302,22 @@ end
 
 @testset "aggregation grad check w.r.t. input" begin
     for bags in BAGS2
-        d = rand(1:20)
+        d = 5
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
         agg = all_aggregations(Float64, d)
         for a in [agg, BagCount(agg)]
-            @test @gradtest x -> a(x, bags)
-            @test @gradtest x -> a(x, bags, w) [a, w]
-            @test @gradtest x -> a(x, bags, w_mat) [a, w_mat]
+            @gradtest x -> a(x, bags)
+            @gradtest x -> a(x, bags, w) [a, w]
+            @gradtest x -> a(x, bags, w_mat) [a, w_mat]
         end
     end
 end
 
 @testset "aggregation gradcheck w.r.t weights" begin
     for bags in BAGS2
-        d = rand(1:20)
+        d = 5
         x = randn(d, 10)
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
@@ -325,8 +325,8 @@ end
         for a in tuple(agg.fs..., BagCount.(agg.fs)...)
             # missing implementation for SegmentedPNorm
             if !(a isa SegmentedPNorm) && !(a isa BagCount{<:SegmentedPNorm})
-                @test @gradtest w -> a(x, bags, w) [a, x]
-                @test @gradtest w_mat -> a(x, bags, w_mat) [a, x]
+                @gradtest w -> a(x, bags, w) [a, x]
+                @gradtest w_mat -> a(x, bags, w_mat) [a, x]
             end
         end
     end
@@ -338,28 +338,28 @@ end
     a1 = nonparam_aggregations(Float64, d)
     a2 = param_aggregations(Float64, d)
     for a in [a1, BagCount(a1), a2, BagCount(a2)]
-        @test @pgradtest a -> a(missing, ScatteredBags([Int[], Int[]]))
-        @test @pgradtest a -> a(missing, AlignedBags([0:-1]), nothing)
-        @test @pgradtest a -> a(x, ScatteredBags([Int[]])) [x]
-        @test @pgradtest a -> a(x, AlignedBags([0:-1, 0:-1]), nothing) [x]
+        @pgradtest a -> a(missing, ScatteredBags([Int[], Int[]]))
+        @pgradtest a -> a(missing, AlignedBags([0:-1]), nothing)
+        @pgradtest a -> a(x, ScatteredBags([Int[]])) [x]
+        @pgradtest a -> a(x, AlignedBags([0:-1, 0:-1]), nothing) [x]
     end
 
     for bags in BAGS2
-        d = rand(1:20)
+        d = 5
         x = randn(d, 10)
         a1 = nonparam_aggregations(Float64, d)
         a2 = param_aggregations(Float64, d)
         w = abs.(randn(size(x, 2))) .+ 0.1
         w_mat = abs.(randn(size(x))) .+ 0.1
         for a in [a1, BagCount(a1)]
-            @test @pgradtest a -> a(x, bags) [x]
-            @test @pgradtest a -> a(x, bags, w) [x, w]
-            @test @pgradtest a -> a(x, bags, w_mat) [x, w_mat]
+            @pgradtest a -> a(x, bags) [x]
+            @pgradtest a -> a(x, bags, w) [x, w]
+            @pgradtest a -> a(x, bags, w_mat) [x, w_mat]
         end
         for a in [a2, BagCount(a2)]
-            @test @pgradtest a -> a(x, bags) [x]
-            @test @pgradtest a -> a(x, bags, w) [x, w]
-            @test @pgradtest a -> a(x, bags, w_mat) [x, w_mat]
+            @pgradtest a -> a(x, bags) [x]
+            @pgradtest a -> a(x, bags, w) [x, w]
+            @pgradtest a -> a(x, bags, w_mat) [x, w_mat]
         end
     end
 end

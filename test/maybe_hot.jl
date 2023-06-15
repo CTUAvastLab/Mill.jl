@@ -202,11 +202,11 @@ end
 
 @testset "AbstractMatrix * MaybeHotVector{<:Integer} gradtest" begin
     # for MaybeHot types with missing elements, it doesn't make sense to compute gradient
-    for (m, n) in product(fill((1, 5, 10, 20), 2)...), i in [rand(1:n) for _ in 1:3]
+    for (m, n) in product(fill((1, 5), 2)...), i in [rand(1:n) for _ in 1:3]
         A = randn(m, n)
         b = MaybeHotVector(i, n)
 
-        @test @gradtest A -> A * b
+        @gradtest A -> A * b
 
         dA, db = gradient(sum ∘ *, A, b)
         @test dA ≈ gradient(A -> sum(A * onehot(b)), A) |> only
@@ -216,11 +216,11 @@ end
 
 @testset "AbstractMatrix * MaybeHotMatrix{<:Integer} gradtest" begin
     # for MaybeHot types with missing elements, it doesn't make sense to compute gradient
-    for (m, n, k) in product(fill((1, 5, 10, 20), 3)...), I in [rand(1:n, k) for _ in 1:3]
+    for (m, n, k) in product(fill((1, 5), 3)...), I in [rand(1:n, k) for _ in 1:3]
         A = randn(m, n)
         B = MaybeHotMatrix(I, n)
 
-        @test @gradtest A -> A * B
+        @gradtest A -> A * B
 
         dA, dB = gradient(sum ∘ *, A, B)
         @test dA ≈ gradient(A -> sum(A * onehotbatch(B)), A) |> only

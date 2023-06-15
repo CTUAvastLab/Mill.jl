@@ -56,7 +56,7 @@ end
         @test convsum(bags, x) == x
         @test convsum(bags, x, y) == [21  10  2100  21000  10000]
         @test convsum(bags, x, y, z) == [42  21  4200  42100  21000]
-        @test @gradtest (xf, yf, zf) -> convsum(bags, xf, yf, zf)
+        @gradtest (xf, yf, zf) -> convsum(bags, xf, yf, zf)
     end
 end
 
@@ -68,12 +68,12 @@ end
     for bags in [AlignedBags([1:1, 2:3, 4:6, 7:15]), ScatteredBags(collect.([1:1, 2:3, 4:6, 7:15]))]
         @test bagconv(x, bags, fs...) ≈ legacy_bagconv(x, bags, filters)
         @test bagconv(x, bags, fs...) ≈ bagconv(xs, bags, fs...)
-        @test @gradtest fs -> bagconv(x, bags, fs...) [x]
-        @test @gradtest fs -> bagconv(xs, bags, fs...) [xs]
-        @test @gradtest x -> bagconv(x, bags, fs...) [fs]
-        @test @gradtest xs -> bagconv(xs, bags, fs...) [fs]
-        @test @gradtest (x, fs) -> bagconv(x, bags, fs...)
-        @test @gradtest (xs, fs) -> bagconv(xs, bags, fs...)
+        @gradtest fs -> bagconv(x, bags, fs...) [x]
+        @gradtest fs -> bagconv(xs, bags, fs...) [xs]
+        @gradtest x -> bagconv(x, bags, fs...) [fs]
+        @gradtest xs -> bagconv(xs, bags, fs...) [fs]
+        @gradtest (x, fs) -> bagconv(x, bags, fs...)
+        @gradtest (xs, fs) -> bagconv(xs, bags, fs...)
     end
 end
 
@@ -96,12 +96,12 @@ end
     end
 
     @testset "Test that gradient of scattered convolution is correct" begin
-        @test @gradtest fs -> bagconv(x, bags, fs...) [x]
-        @test @gradtest fs -> bagconv(xp, bags, fs...) [xp]
-        @test @gradtest x -> bagconv(x, bags, fs...) [fs]
-        @test @gradtest xp -> bagconv(x, bagsp, fs...) [fs]
-        @test @gradtest (x, fs) -> bagconv(x, bagsp, fs...)
-        @test @gradtest (xp, fs) -> bagconv(xp, bagsp, fs...)
+        @gradtest fs -> bagconv(x, bags, fs...) [x]
+        @gradtest fs -> bagconv(xp, bags, fs...) [xp]
+        @gradtest x -> bagconv(x, bags, fs...) [fs]
+        @gradtest xp -> bagconv(x, bagsp, fs...) [fs]
+        @gradtest (x, fs) -> bagconv(x, bagsp, fs...)
+        @gradtest (xp, fs) -> bagconv(xp, bagsp, fs...)
     end
 end
 

@@ -367,20 +367,20 @@ end
                    x -> BagNode(x, bags1)]
             m = reflectinmodel(ds(x), LAYERBUILDER, ABUILDER)
             @inferred m(ds(x))
-            @test @gradtest x -> m(ds(x)) [m]
+            @gradtest x -> m(ds(x)) [m]
         end
 
         for ds in [(x, y) -> ProductNode((x, y)),
                    (x, y) -> ProductNode(a=BagNode(x, bags1), b=BagNode(y, bags2))]
             m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER)
             @inferred m(ds(x, y))
-            @test @gradtest (x, y) -> m(ds(x, y)) [m]
+            @gradtest (x, y) -> m(ds(x, y)) [m]
         end
 
         ds = z -> BagNode(BagNode(z, bags3), bags1)
         m = reflectinmodel(ds(z), LAYERBUILDER, ABUILDER)
         @inferred m(ds(z))
-        @test @gradtest z -> m(ds(z)) [m]
+        @gradtest z -> m(ds(z)) [m]
     end
 end
 
@@ -396,18 +396,18 @@ end
         ds = (x, w1) -> WeightedBagNode(x, bags1, w1)
         m = reflectinmodel(ds(x, w1), LAYERBUILDER, ABUILDER)
         @inferred m(ds(x, w1))
-        @test @gradtest x -> m(ds(x, w1)) [m, w1]
+        @gradtest x -> m(ds(x, w1)) [m, w1]
 
         ds = (x, y, w1, w2) -> ProductNode((WeightedBagNode(x, bags1, w1),
                                             WeightedBagNode(y, bags2, w2)))
         m = reflectinmodel(ds(x, y, w1, w2), LAYERBUILDER, ABUILDER)
         @inferred m(ds(x, y, w1, w2))
-        @test @gradtest (x, y) -> m(ds(x, y, w1, w2)) [m, w1, w2]
+        @gradtest (x, y) -> m(ds(x, y, w1, w2)) [m, w1, w2]
 
         ds = (z, w1, w3) -> WeightedBagNode(WeightedBagNode(z, bags3, w3), bags1, w1)
         m = reflectinmodel(ds(z, w1, w3), LAYERBUILDER, ABUILDER)
         @inferred m(ds(z, w1, w3))
-        @test @gradtest z -> m(ds(z, w1, w3)) [m, w3, w1]
+        @gradtest z -> m(ds(z, w1, w3)) [m, w3, w1]
     end
 end
 
@@ -426,7 +426,7 @@ end
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER)
             @inferred m(ds)
-            @test @pgradtest m -> m(ds) [ds]
+            @pgradtest m -> m(ds) [ds]
         end
     end
 end
@@ -448,7 +448,7 @@ end
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER)
             @inferred m(ds)
-            @test @pgradtest m -> m(ds) [ds, w1, w2, w3]
+            @pgradtest m -> m(ds) [ds, w1, w2, w3]
         end
     end
 end

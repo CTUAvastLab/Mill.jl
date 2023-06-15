@@ -36,37 +36,37 @@ end
 @testset "array gradients" begin
     b = 1.0
     for a in [1.0, 2.0]
-        @test @gradtest a -> 2a + 1 + sin(a)
+        @gradtest a -> 2a + 1 + sin(a)
         # all parameters for gradient computation use same precision
-        @test @gradtest (a, b) -> begin
+        @gradtest (a, b) -> begin
             typeof(a) == typeof(b) && a isa AbstractFloat || error()
             return 2a + b + 1 + sin(a * b)
         end
         # the same applies to explicitly stated closured variables
-        @test @gradtest a -> begin
+        @gradtest a -> begin
             typeof(a) == typeof(b) && a isa AbstractFloat || error()
             2a + b + 1 + sin(a * b)
         end [b]
         # if the variable is not explicitly stated as closured it retains its type
-        @test @gradtest a -> begin
+        @gradtest a -> begin
             typeof(b) == Float64 && a isa AbstractFloat || error()
             2a + b + 1 + sin(a * b)
         end
     end
     for a in [randn(2), randn(2, 2)]
-        @test @gradtest a -> 2a .+ 1 .+ sin.(a)
+        @gradtest a -> 2a .+ 1 .+ sin.(a)
         # all parameters for gradient computation use same precision
-        @test @gradtest (a, b) -> begin
+        @gradtest (a, b) -> begin
             eltype(a) == typeof(b) && a isa Array{<:AbstractFloat} && b isa AbstractFloat || error()
             return 2a .+ b .+ 1 .+ sin.(a .* b)
         end
         # the same applies to closured variables
-        @test @gradtest a -> begin
+        @gradtest a -> begin
             eltype(a) == typeof(b) && a isa Array{<:AbstractFloat} && b isa AbstractFloat || error()
             2a .+ b .+ 1 .+ sin.(a .* b)
         end [b]
         # if the variable is not explicitly stated as closured it retains its type
-        @test @gradtest a -> begin
+        @gradtest a -> begin
             typeof(b) == Float64 && a isa Array{<:AbstractFloat} || error()
             2a .+ b .+ 1 .+ sin.(a .* b)
         end
@@ -77,13 +77,13 @@ end
     m = Dense(2, 2) |> f64
     b = randn(2, 2)
     for x in [randn(2), randn(2, 2)]
-        @test @pgradtest m -> m(x) [x]
+        @pgradtest m -> m(x) [x]
         # closured variables
-        @test @pgradtest m -> begin
+        @pgradtest m -> begin
             eltype(m.weight) == eltype(m.bias) == eltype(x) || error()
         end [x]
         # unclosured variables
-        @test @pgradtest m -> begin
+        @pgradtest m -> begin
             eltype(x) == Float64 || error()
             eltype(m.weight) == eltype(m.bias) && eltype(m.weight) <: AbstractFloat || error()
         end
@@ -142,7 +142,7 @@ end
         x+y, Δ -> (NoTangent(), Δ * 1, @not_implemented("Not implemented"))
     end
     x = y = 1.0
-    @test @gradtest x -> f(x, 1)
+    @gradtest x -> f(x, 1)
     # https://github.com/FluxML/Zygote.jl/issues/1227
     # @test_throws NotImplementedException @gradtest (x, y) -> f(x, y)
     # @test_throws NotImplementedException @gradtest y -> f(1, y)

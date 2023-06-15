@@ -254,7 +254,7 @@ end
 end
 
 @testset "NGramMatrix multiplication gradtest" begin
-    for (n, m) in product([2,3,5], [10, 20])
+    for (n, m) in product([2, 3, 5], [10, 20])
         b = 256
         A = randn(10, m)
 
@@ -279,19 +279,19 @@ end
         @test dA ≈ dNs
         @test dA ≈ dSs
         @test isnothing(dB)
-        @test @gradtest A -> A * B
+        @gradtest A -> A * B
 
         dA, dBi = gradient(f, A, Bi)
         @test dA ≈ dNs
         @test dA ≈ dSs
         @test isnothing(dBi)
-        @test @gradtest A -> A * Bi
+        @gradtest A -> A * Bi
 
         dA, dBc = gradient(f, A, Bc)
         @test dA ≈ dNs
         @test dA ≈ dSs
         @test isnothing(dBi)
-        @test @gradtest A -> A * Bc
+        @gradtest A -> A * Bc
     end
 end
 
@@ -303,7 +303,7 @@ end
         @test hcat(A, A).S == vcat(S, S)
 
         W = randn(40, 2057)
-        @test @gradtest W -> W * A
+        @gradtest W -> W * A
 
         n = ArrayNode(A, nothing)
         @test reduce(catobs, [n, n]).data.S == vcat(S, S)
