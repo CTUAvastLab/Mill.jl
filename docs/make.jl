@@ -46,9 +46,6 @@ Pkg.activate(musk_path) do
     Literate.notebook(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk")
 end
 
-Pkg.update()
-Pkg.instantiate()
-
 DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
     using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
     ENV["LINES"] = ENV["COLUMNS"] = typemax(Int)

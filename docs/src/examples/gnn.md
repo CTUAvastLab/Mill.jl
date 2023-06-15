@@ -1,33 +1,3 @@
-```@setup gnn
-using Mill
-
-using Graphs, GraphRecipes, Plots, Random
-Random.seed!(22)
-
-g = SimpleGraph(9)
-for e in [(1, 2), (1, 3), (1, 4),
-          (2, 4), (2, 5),
-          (3, 4), (3, 5), (3, 6), (3, 8),
-          (4, 5), (4, 6), (4, 9),
-          (5, 7), (5, 8),
-          (6, 5), (6, 7), (6, 8),
-          (7, 8),
-          (8, 9)
-]
-    add_edge!(g, e...)
-end
-
-gp = graphplot(adjacency_matrix(g); linecolor = :darkgrey,
-                                    nodecolor=:lightgrey,
-                                    fontsize=11,
-                                    markersize=0.2, nodeshape=:circle,
-                                    background_color=:transparent,
-                                    markercolor = range(colorant"white", stop=colorant"grey", length=nv(g)),
-                                    names=1:nv(g)
-                                    )
-savefig(gp, "graph.svg")
-```
-
 # GNN in 16 lines
 
 As has been mentioned in [Mandlik2020](@cite), multiple instance learning is an essential piece for implementing message passing inference over graphs, the main concept behind spatial *Graph Neural Networks* (GNNs). It is straightforward and quick to achieve this with [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). We begin with some dependencies:
@@ -53,7 +23,7 @@ for e in [(1, 2), (1, 3), (1, 4),
 end
 ```
 
-![](graph.svg)
+![](../assets/graph.svg)
 
 Furthermore, let's assume that each vertex is described by three features stored in a matrix `X`:
 

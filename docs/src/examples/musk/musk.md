@@ -8,7 +8,7 @@ ENV["LINES"] = 25
 ENV["COLUMNS"] = 125
 ```
 ```@meta
-EditURL = "<unknown>/src/examples/musk/musk_literate.jl"
+EditURL = "<unknown>/docs/src/examples/musk/musk_literate.jl"
 ```
 
 # Musk
@@ -21,7 +21,7 @@ EditURL = "<unknown>/src/examples/musk/musk_literate.jl"
 We load all dependencies and fix the seed:
 
 ````@example musk
-using FileIO, JLD2, Statistics, Mill, Flux
+using FileIO, JLD2, Statistics, Mill, Flux, OneHotArrays
 
 using Random; Random.seed!(42);
 nothing #hide
@@ -62,7 +62,7 @@ We also compute labels on the level of bags. In the `Musk` problem, bag label is
 
 ````@example musk
 y = map(i -> maximum(y[i]) + 1, ds.bags)
-y_oh = Flux.onehotbatch(y, 1:2)
+y_oh = onehotbatch(y, 1:2)
 ````
 
 ### Model construction

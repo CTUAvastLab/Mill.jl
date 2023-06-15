@@ -1,4 +1,4 @@
-using FileIO, JLD2, Statistics, Mill, Flux
+using FileIO, JLD2, Statistics, Mill, Flux, OneHotArrays
 
 using Random; Random.seed!(42);
 
@@ -11,7 +11,7 @@ y = load("musk.jld2", "y")
 ds = BagNode(ArrayNode(fMat), bagids)
 
 y = map(i -> maximum(y[i]) + 1, ds.bags)
-y_oh = Flux.onehotbatch(y, 1:2)
+y_oh = onehotbatch(y, 1:2)
 
 model = BagModel(
     Dense(166, 50, Flux.tanh),

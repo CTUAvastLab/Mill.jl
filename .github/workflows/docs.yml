@@ -31,6 +31,8 @@ jobs:
             using Pkg;
             Pkg.develop(PackageSpec(path=pwd()));
             Pkg.instantiate()'
+      - name: Generate assets
+        run: julia --project=docs/ docs/make_assets.jl
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

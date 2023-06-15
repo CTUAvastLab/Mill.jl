@@ -1,25 +1,3 @@
-```@setup dag
-using Mill
-
-using Graphs, GraphRecipes, Plots, Random
-Random.seed!(4)
-
-g = SimpleDiGraph(8)
-for e in [(1, 2), (1, 3), (2, 4), (2, 5), (3, 5),
-          (3, 6), (5, 7), (6, 5), (6, 8), (7, 8)]
-    add_edge!(g, e...)
-end
-
-gp = graphplot(adjacency_matrix(g); linecolor = :darkgrey,
-                                    nodecolor=:lightgrey,
-                                    fontsize=11,
-                                    markersize=0.2, nodeshape=:circle,
-                                    background_color=:transparent,
-                                    names=range('a', length=nv(g))
-                                    )
-savefig(gp, "dag.svg")
-```
-
 # DAGs
 
 ```@example dag
@@ -29,7 +7,7 @@ Imagine a data/knowledge base represented in a form of a directed acyclic graph 
 
 For example, in the graph below, when we infer some value for vertex `e`, we ignore vertices `d`, `g`, and `h`:
 
-![](dag.svg)
+![](../assets/dag.svg)
 
 Firstly, we define a new type for our graph that would be able to store a structure of the graph together with vertex features:
 
