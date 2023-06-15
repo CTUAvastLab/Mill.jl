@@ -234,6 +234,8 @@ catobs(as::Maybe{WeightedBagNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{ProductNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{LazyNode}...) = reduce(catobs, collect(as))
 
+catobs(as::AbstractVector{<:AbstractMillNode}) = reduce(catobs, as)
+
 Base.cat(as::AbstractMillNode...; dims::Colon) = catobs(as...)
 
 # reduction of common datatypes the way we like it
@@ -247,5 +249,3 @@ Base.reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
 function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractMillNode
     reduce(catobs, skipmissing(as) |> collect)
 end
-
-catobs(as::AbstractVector{<:AbstractMillNode}) = reduce(catobs, as)

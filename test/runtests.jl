@@ -18,6 +18,7 @@ using Documenter
 using Flux
 using Flux: onehot, onehotbatch
 using HierarchicalUtils
+using InteractiveUtils
 using PooledArrays
 using Random
 using SparseArrays
