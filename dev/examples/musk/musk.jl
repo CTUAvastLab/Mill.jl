@@ -1,7 +1,4 @@
-using FileIO, JLD2, Statistics, Mill, Flux
-using Flux: throttle, @epochs
-using Mill: reflectinmodel
-using Base.Iterators: repeated
+using FileIO, JLD2, Statistics, Mill, Flux, OneHotArrays
 
 using Random; Random.seed!(42);
 
@@ -14,23 +11,25 @@ y = load("musk.jld2", "y")
 ds = BagNode(ArrayNode(fMat), bagids)
 
 y = map(i -> maximum(y[i]) + 1, ds.bags)
-y_oh = Flux.onehotbatch(y, 1:2)
+y_oh = onehotbatch(y, 1:2)
 
 model = BagModel(
-    Dense(166, 10, Flux.tanh),
-    BagCount(SegmentedMeanMax(10)),
-    Chain(Dense(21, 10, Flux.tanh), Dense(10, 2)))
+    Dense(166, 50, Flux.tanh),
+    SegmentedMeanMax(50),
+    Chain(Dense(100, 50, Flux.tanh), Dense(50, 2)))
 
 model(ds)
 
-loss(ds, y_oh) = Flux.logitcrossentropy(model(ds), y_oh)
+opt_state = Flux.setup(ADAM(), model)
 
-opt = Flux.ADAM()
-for i in 1:10
-    @info "Epoch $i"
-    Flux.train!(loss, Flux.params(model), repeated((ds, y_oh), 1000), opt)
-    println(loss(ds, y_oh))
+loss(m, x, y) = Flux.logitcrossentropy(m(x), y)
+
+for e in 1:100
+    if e % 10 == 1
+        @info "Epoch $e" training_loss=loss(model, ds, y_oh)
+    end
+    Flux.train!(loss, model, [(ds, y_oh)], opt_state)
 end
 
-mean(mapslices(argmax, model(ds), dims = 1)' .≠ y)
+mean(Flux.onecold(model(ds), 1:2) .== y)
 
