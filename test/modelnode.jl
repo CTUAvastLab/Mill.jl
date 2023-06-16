@@ -238,15 +238,19 @@ end
     end
 
     x1 = rand([1, 2], 3, 3) |> ArrayNode
-    x2 = rand([1, 2, missing], 3, 3) |> ArrayNode
-    x3 = fill(missing, 3, 3) |> ArrayNode
+    x2 = rand([1, 2], 3, 3) |> sparse |> ArrayNode
+    x3 = rand([1, 2], 3, 3) |> PooledArray |> ArrayNode
+    x4 = rand([1, 2, missing], 3, 3) |> ArrayNode
+    x5 = fill(missing, 3, 3) |> ArrayNode
     for f in [f1, f2]
         @test _get_first(f(x1)) isa Flux.Dense{T, <:Matrix} where T
-        @test _get_first(f(x2)) isa PreImputingDense
-        @test _get_first(f(x3)) isa PreImputingDense
-        for x in [x1, x2, x3] @inferred f(x)(x) end
+        @test _get_first(f(x2)) isa Flux.Dense{T, <:Matrix} where T
+        @test _get_first(f(x3)) isa Flux.Dense{T, <:Matrix} where T
+        @test _get_first(f(x4)) isa PreImputingDense
+        @test _get_first(f(x5)) isa PreImputingDense
+        for x in [x1, x2, x3, x4, x5] @inferred f(x)(x) end
     end
-    for x in [x1, x2, x3]
+    for x in [x1, x2, x3, x4, x5]
         @test _get_first(f3(x)) isa PreImputingDense
         @inferred f3(x)(x)
     end

@@ -10,6 +10,7 @@ using LinearAlgebra
 using MLUtils
 using MacroTools
 using OneHotArrays
+using PooledArrays
 using Preferences
 using Setfield
 using SparseArrays

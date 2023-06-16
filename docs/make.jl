@@ -95,5 +95,5 @@ makedocs(
         )
 
 deploydocs(
-           repo = "github.com/CTUAvastLab/Mill.jl.git"
-          )
+    repo = "github.com/CTUAvastLab/Mill.jl.git"
+)
