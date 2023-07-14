@@ -252,6 +252,8 @@ function adjustbags(b::ScatteredBags, mask::AbstractVector{Bool})
     ScatteredBags(new_bags)
 end
 
+Base.mapreduce(f, op, b::AbstractBags) = mapreduce(f, op, b.bags)
+
 Base.vcat(bs::AbstractBags{T}...) where T = _catbags(collect(bs))
 Base.reduce(::typeof(vcat), bs::Vector{T}) where T <: AbstractBags = _catbags(bs)
 
