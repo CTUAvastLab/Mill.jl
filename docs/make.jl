@@ -52,7 +52,7 @@ DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
 end; recursive=true)
 
 makedocs(
-         CitationBibliography(joinpath(@__DIR__, "references.bib")),
+         CitationBibliography(joinpath(@__DIR__, "references.bib"), style=:numeric),
          sitename = "Mill.jl",
          format = Documenter.HTML(sidebar_sitename=false,
                                   collapselevel=2,

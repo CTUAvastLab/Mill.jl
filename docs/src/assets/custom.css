@@ -9,6 +9,33 @@ article#documenter-page img {
     margin-right: auto;
 }
 
+.content pre {
+    border: 1px;
+    border-radius: 4px;
+}
+
+.documenter-example-output {
+    border: 1px solid LightGray !important;
+}
+
+.admonition {
+    border-width: 0px !important;
+}
+
+.admonition-header {
+    font-weight: normal !important;
+    border-radius: 4px 4px 0px 0px;
+}
+
+.docstring {
+    border-radius: 4px !important;
+}
+
+.docstring>header {
+    border-radius: 4px 4px 0px 0px !important;
+    border-bottom: 0px !important;
+}
+
 .display-light-only {display: block;}
 .display-dark-only {display: none;}
 .theme--documenter-dark .display-light-only {display: none;}
