@@ -18,7 +18,7 @@
 │   The input will be converted, but any earlier layers may be very slow.
 │   layer = Dense(4 =&gt; 2)       # 10 parameters
 │   summary(x) = &quot;4×10 Matrix{Float64}&quot;
-└ @ Flux ~/.julia/packages/Flux/EHgZm/src/layers/stateless.jl:60</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; printtree(m)</code><code class="nohighlight hljs ansi" style="display:block;">BagModel ↦ BagCount([SegmentedMean(2); SegmentedMax(2)]) ↦ Dense(5 =&gt; 2)  # 4 arrays, 16 params, 224 bytes
+└ @ Flux ~/.julia/packages/Flux/r3RWW/src/layers/stateless.jl:60</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; printtree(m)</code><code class="nohighlight hljs ansi" style="display:block;">BagModel ↦ BagCount([SegmentedMean(2); SegmentedMax(2)]) ↦ Dense(5 =&gt; 2)  # 4 arrays, 16 params, 224 bytes
   ╰── ProductModel ↦ Dense(8 =&gt; 2)  # 2 arrays, 18 params, 152 bytes
         ├── BagModel ↦ BagCount([SegmentedMean(2); SegmentedMax(2)]) ↦ Dense(5 =&gt; 2)  # 4 arrays, 16 params, 224 bytes
         │     ╰── ArrayModel(Dense(4 =&gt; 2))  # 2 arrays, 10 params, 120 bytes
@@ -30,14 +30,14 @@
 │   The input will be converted, but any earlier layers may be very slow.
 │   layer = Dense(4 =&gt; 2)       # 10 parameters
 │   summary(x) = &quot;4×10 Matrix{Float64}&quot;
-└ @ Flux ~/.julia/packages/Flux/EHgZm/src/layers/stateless.jl:60
+└ @ Flux ~/.julia/packages/Flux/r3RWW/src/layers/stateless.jl:60
 2×3 Matrix{Float32}:
  -0.567694  -0.510898  -2.1421
   0.789971   2.08877    0.606856</code></pre><p>The sample <code>ds</code> serves here as a <em>specimen</em> needed to specify a structure of the problem and calculate dimensions.</p><h3 id="Optional-arguments"><a class="docs-heading-anchor" href="#Optional-arguments">Optional arguments</a><a id="Optional-arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Optional-arguments" title="Permalink"></a></h3><p>To have better control over the topology, <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> accepts up to two more optional arguments and four keyword arguments:</p><ul><li>The first optional argument expects a function that returns a layer (or a set of layers) given input dimension <code>d</code> (defaults to <code>d -&gt; Flux.Dense(d, 10)</code>).</li><li>The second optional argument is a function returning aggregation function for <a href="../../api/model_nodes/#Mill.BagModel"><code>BagModel</code></a> nodes (defaults to <code>BagCount ∘ SegmentedMeanMax</code>).</li></ul><p>Compare the following example to the previous one:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; m = reflectinmodel(ds, d -&gt; Dense(d, 5, relu), SegmentedMax);</code><code class="nohighlight hljs ansi" style="display:block;">┌ Warning: Layer with Float32 parameters got Float64 input.
 │   The input will be converted, but any earlier layers may be very slow.
 │   layer = Dense(4 =&gt; 5, relu)  # 25 parameters
 │   summary(x) = &quot;4×10 Matrix{Float64}&quot;
-└ @ Flux ~/.julia/packages/Flux/EHgZm/src/layers/stateless.jl:60</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; printtree(m)</code><code class="nohighlight hljs ansi" style="display:block;">BagModel ↦ SegmentedMax(5) ↦ Dense(5 =&gt; 5, relu)  # 3 arrays, 35 params, 260 bytes
+└ @ Flux ~/.julia/packages/Flux/r3RWW/src/layers/stateless.jl:60</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; printtree(m)</code><code class="nohighlight hljs ansi" style="display:block;">BagModel ↦ SegmentedMax(5) ↦ Dense(5 =&gt; 5, relu)  # 3 arrays, 35 params, 260 bytes
   ╰── ProductModel ↦ Dense(20 =&gt; 5, relu)  # 2 arrays, 105 params, 500 bytes
         ├── BagModel ↦ SegmentedMax(5) ↦ Dense(5 =&gt; 5, relu)  # 3 arrays, 35 params, 260 bytes
         │     ╰── ArrayModel(Dense(4 =&gt; 5, relu))  # 2 arrays, 25 params, 180 bytes
@@ -49,7 +49,7 @@
 │   The input will be converted, but any earlier layers may be very slow.
 │   layer = Dense(4 =&gt; 5, relu)  # 25 parameters
 │   summary(x) = &quot;4×10 Matrix{Float64}&quot;
-└ @ Flux ~/.julia/packages/Flux/EHgZm/src/layers/stateless.jl:60
+└ @ Flux ~/.julia/packages/Flux/r3RWW/src/layers/stateless.jl:60
 5×3 Matrix{Float32}:
  0.103104   0.626581  0.758349
  0.0        0.0       0.0
@@ -68,7 +68,7 @@
 │   The input will be converted, but any earlier layers may be very slow.
 │   layer = Dense(4 =&gt; 5, relu)  # 25 parameters
 │   summary(x) = &quot;4×10 Matrix{Float64}&quot;
-└ @ Flux ~/.julia/packages/Flux/EHgZm/src/layers/stateless.jl:60
+└ @ Flux ~/.julia/packages/Flux/r3RWW/src/layers/stateless.jl:60
 BagModel ↦ [SegmentedMean(5); SegmentedMax(5)] ↦ Chain(Dense(10 =&gt; 20, relu), Dense(20 =&gt; 12))  # 6 arrays, 482 params, 2.117 KiB
   ╰── ProductModel ↦ Dense(20 =&gt; 5, relu)  # 2 arrays, 105 params, 500 bytes
         ├── BagModel ↦ [SegmentedMean(5); SegmentedMax(5)] ↦ Dense(10 =&gt; 5, relu)  # 4 arrays, 65 params, 420 bytes
@@ -83,7 +83,7 @@ BagModel ↦ [SegmentedMean(5); SegmentedMax(5)] ↦ Chain(Dense(10 =&gt; 20, re
 │   The input will be converted, but any earlier layers may be very slow.
 │   layer = Dense(4 =&gt; 5, relu)  # 25 parameters
 │   summary(x) = &quot;4×10 Matrix{Float64}&quot;
-└ @ Flux ~/.julia/packages/Flux/EHgZm/src/layers/stateless.jl:60
+└ @ Flux ~/.julia/packages/Flux/r3RWW/src/layers/stateless.jl:60
 BagModel ↦ [SegmentedMean(5); SegmentedMax(5)] ↦ Chain(Dense(10 =&gt; 20, relu), Dense(20 =&gt; 12))  # 6 arrays, 482 params, 2.117 KiB
   ╰── ProductModel ↦ Dense(20 =&gt; 5, relu)  # 2 arrays, 105 params, 500 bytes
         ├── BagModel ↦ SegmentedMean(5) ↦ Dense(5 =&gt; 5, relu)  # 3 arrays, 35 params, 260 bytes
@@ -92,4 +92,4 @@ BagModel ↦ [SegmentedMean(5); SegmentedMax(5)] ↦ Chain(Dense(10 =&gt; 20, re
         ├── BagModel ↦ SegmentedPNorm(5) ↦ Dense(5 =&gt; 5, relu)  # 5 arrays, 45 params, 380 bytes
         │     ╰── BagModel ↦ [SegmentedMean(5); SegmentedMax(5)] ↦ Dense(10 =&gt; 5, relu)  # 4 arrays, 65 params, 420 bytes
         │           ╰── ArrayModel(Dense(2 =&gt; 5, relu))  # 2 arrays, 15 params, 140 bytes
-        ╰── ArrayModel(Dense(2 =&gt; 5, relu))  # 2 arrays, 15 params, 140 bytes</code></pre><p>There are even more ways to modify the reflection behavior, see the <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> api reference.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Friday 16 June 2023 10:10">Friday 16 June 2023</span>. Using Julia version 1.9.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+        ╰── ArrayModel(Dense(2 =&gt; 5, relu))  # 2 arrays, 15 params, 140 bytes</code></pre><p>There are even more ways to modify the reflection behavior, see the <a href="../../api/model_nodes/#Mill.reflectinmodel"><code>reflectinmodel</code></a> api reference.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../more_on_nodes/">« More on nodes</a><a class="docs-footer-nextpage" href="../aggregation/">Bag aggregation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 26 July 2023 20:24">Wednesday 26 July 2023</span>. Using Julia version 1.9.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

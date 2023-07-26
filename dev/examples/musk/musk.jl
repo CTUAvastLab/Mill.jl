@@ -20,7 +20,7 @@ model = BagModel(
 
 model(ds)
 
-opt_state = Flux.setup(ADAM(), model)
+opt_state = Flux.setup(Adam(), model)
 
 loss(m, x, y) = Flux.logitcrossentropy(m(x), y)
 

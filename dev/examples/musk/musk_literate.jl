@@ -56,9 +56,9 @@ model(ds)
 
 # ### Training
 
-# Since `Mill` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `ADAM` optimizer:
+# Since `Mill` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `Adam` optimizer:
 
-opt_state = Flux.setup(ADAM(), model)
+opt_state = Flux.setup(Adam(), model)
 
 # ...define a loss function as `Flux.logitcrossentropy`:
 
