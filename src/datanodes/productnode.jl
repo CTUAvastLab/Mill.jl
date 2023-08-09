@@ -59,6 +59,7 @@ ProductNode(ds, args...) = ProductNode(tuple(ds), args...)
 ProductNode(args...; ns...) = ProductNode(NamedTuple(ns), args...)
 
 Flux.@functor ProductNode
+
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)
 
 dropmeta(x::ProductNode) = ProductNode(map(dropmeta, x.data))

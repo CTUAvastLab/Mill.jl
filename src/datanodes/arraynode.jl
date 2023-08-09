@@ -5,7 +5,7 @@ Data node for storing array-like data of type `A` and metadata of type `C`. The 
 
 See also: [`AbstractMillNode`](@ref), [`ArrayModel`](@ref).
 """
-struct ArrayNode{A<:AbstractArray,C} <: AbstractMillNode
+struct ArrayNode{A<:AbstractArray, C} <: AbstractMillNode
     data::A
     metadata::C
 end
@@ -40,7 +40,7 @@ function Base.reduce(::typeof(catobs), as::Vector{<:ArrayNode})
     ArrayNode(reduce(catobs, data.(as)), reduce(catobs, metadata.(as)))
 end
 
-_cat_meta(f, ::Vector{Nothing}) = nothing
+_cat_meta(_, ::Vector{Nothing}) = nothing
 _cat_meta(f, m) = reduce(f, m)
 
 Base.vcat(as::ArrayNode...) = reduce(vcat, collect(as))

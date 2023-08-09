@@ -246,6 +246,18 @@ Base.reduce(::typeof(catobs), as::Vector{Missing}) = missing
 Base.reduce(::typeof(catobs), as::Vector{Nothing}) = nothing
 Base.reduce(::typeof(catobs), as::Vector{Union{Missing, Nothing}}) = nothing
 
-function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: AbstractMillNode
-    reduce(catobs, skipmissing(as) |> collect)
+function Base.reduce(::typeof(catobs), as::Vector{Maybe{T}}) where T <: Union{
+                                                                            AbstractMillNode,
+                                                                            AbstractVector,
+                                                                            AbstractMatrix
+                                                                        }
+    reduce(catobs, skipmissing(as))
+end
+
+function Base.reduce(::typeof(catobs), as::Vector{Optional{T}}) where T <: Union{
+                                                                            AbstractMillNode,
+                                                                            AbstractVector,
+                                                                            AbstractMatrix
+                                                                        }
+    reduce(catobs, [a for a in as if !isnothing(a)])
 end

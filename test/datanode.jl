@@ -97,88 +97,63 @@ end
     @test numobs(i) == numobs(b)
 end
 
-@testset "ArrayNode hcat and vcat" begin
-    @test catobs(e, e).data == hcat(e.data, e.data) == reduce(catobs, [e,e]).data
+@testset "ArrayNode catobs, hcat and vcat" begin
     @test hcat(e, e).data == hcat(e.data, e.data)
+    @test hcat(e, e).metadata == hcat(e.metadata, e.metadata)
+    @inferred hcat(e, e)
+
     @test vcat(e, e).data == vcat(e.data, e.data)
-    x = ArrayNode(randn(2,3), rand(2, 3))
+    @test vcat(e, e).metadata == vcat(e.metadata, e.metadata)
+    @inferred vcat(e, e)
+
+    @test hcat(e, e).data == catobs(e, e).data
+    @test vcat(e, e).metadata == catobs(e, e).metadata
+
+    @test catobs(e, e) == reduce(catobs, [e, e]) == cat(e, e, dims=ndims(e))
+    @inferred catobs(e, e)
+    @inferred reduce(catobs, [e, e])
+    @inferred cat(e, e, dims=ndims(e))
+
+    x = ArrayNode(randn(2, 3), rand(2, 3))
     @test catobs(x, x[0:-1]) isa ArrayNode{Matrix{Float64}, Matrix{Float64}}
     @inferred catobs(x, x[0:-1])
     @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Matrix{Float64}, Matrix{Float64}}
     @inferred reduce(catobs, [x, x[0:-1]])
-    @test cat(e, e, dims = ndims(e)).data == hcat(e.data, e.data)
 end
 
 @testset "BagNode catobs" begin
-    @test catobs(a, b, c).data.data == hcat(a.data.data, b.data.data, c.data.data)
-    @test reduce(catobs, [a, b, c]).data.data == hcat(a.data.data, b.data.data, c.data.data)
-    @test catobs(a, b, c).bags.bags == vcat(a.bags, b.bags, c.bags).bags
-    @test reduce(catobs, [a, b, c]).bags.bags == vcat(a.bags, b.bags, c.bags).bags
-    @test catobs(c, a).data.data == hcat(c.data.data, a.data.data)
-    @test reduce(catobs, [c, a]).data.data == hcat(c.data.data, a.data.data)
-    @test catobs(c, a).bags.bags == vcat(c.bags, a.bags).bags
-    @test reduce(catobs, [c, a]).bags.bags == vcat(c.bags, a.bags).bags
-    @test catobs(a, c).data.data == hcat(a.data.data, c.data.data)
-    @test reduce(catobs, [a, c]).data.data == hcat(a.data.data, c.data.data)
-    @test catobs(a, c).bags.bags == vcat(a.bags, c.bags).bags
-    @test reduce(catobs, [a, c]).bags.bags == vcat(a.bags, c.bags).bags
-    @test catobs(a, d).data.data == hcat(a.data.data, d.data.data)
-    @test reduce(catobs, [a, d]).data.data == hcat(a.data.data, d.data.data)
-    @test catobs(a, d).bags.bags == vcat(a.bags, d.bags).bags
-    @test reduce(catobs, [a, d]).bags.bags == vcat(a.bags, d.bags).bags
-    @test catobs(d, a).data.data == hcat(d.data.data, a.data.data)
-    @test reduce(catobs, [d, a]).data.data == hcat(d.data.data, a.data.data)
-    @test catobs(d, a).bags.bags == vcat(d.bags, a.bags).bags
-    @test reduce(catobs, [d, a]).bags.bags == vcat(d.bags, a.bags).bags
-    @test catobs(d).data.data == hcat(d.data.data)
-    @test reduce(catobs, [d]).data.data == hcat(d.data.data)
-    @test catobs(d).bags.bags == vcat(d.bags).bags
-    @test reduce(catobs, [d]).bags.bags == vcat(d.bags).bags
-    @test cat(a, b, dims = ndims(a)).data.data == hcat(a.data.data, b.data.data)
+    for ns in [(a, b, c), (c, a), (a, d), (d, a), (d,)]
+        @test catobs(ns...).data == hcat(map(Mill.data, ns)...)
+        @test catobs(ns...).bags == vcat(map(n -> n.bags, ns)...)
+        @test catobs(ns...).metadata == vcat(map(Mill.metadata, ns)...)
+        @test reduce(catobs, ns) == catobs(ns...) == cat(ns..., dims=ndims(ns[1]))
+    end
 end
 
-@testset "WeightedBagNode catobs" begin
-    @test catobs(wa, wb, wc).data.data == hcat(wa.data.data, wb.data.data, wc.data.data)
-    @test reduce(catobs, [wa, wb, wc]).data.data == hcat(wa.data.data, wb.data.data, wc.data.data)
-    @test catobs(wa, wb, wc).bags.bags == vcat(wa.bags, wb.bags, wc.bags).bags
-    @test reduce(catobs, [wa, wb, wc]).bags.bags == vcat(wa.bags, wb.bags, wc.bags).bags
-    @test catobs(wc, wa).data.data == hcat(wc.data.data, wa.data.data)
-    @test reduce(catobs, [wc, wa]).data.data == hcat(wc.data.data, wa.data.data)
-    @test catobs(wc, wa).bags.bags == vcat(wc.bags, wa.bags).bags
-    @test reduce(catobs, [wc, wa]).bags.bags == vcat(wc.bags, wa.bags).bags
-    @test catobs(wa, wc).data.data == hcat(wa.data.data, wc.data.data)
-    @test reduce(catobs, [wa, wc]).data.data == hcat(wa.data.data, wc.data.data)
-    @test catobs(wa, wc).bags.bags == vcat(wa.bags, wc.bags).bags
-    @test reduce(catobs, [wa, wc]).bags.bags == vcat(wa.bags, wc.bags).bags
-    @test catobs(wa, wd).data.data == hcat(wa.data.data, wd.data.data)
-    @test reduce(catobs, [wa, wd]).data.data == hcat(wa.data.data, wd.data.data)
-    @test catobs(wa, wd).bags.bags == vcat(wa.bags, wd.bags).bags
-    @test reduce(catobs, [wa, wd]).bags.bags == vcat(wa.bags, wd.bags).bags
-    @test catobs(wd, wa).data.data == hcat(wd.data.data, wa.data.data)
-    @test reduce(catobs, [wd, wa]).data.data == hcat(wd.data.data, wa.data.data)
-    @test catobs(wd, wa).bags.bags == vcat(wd.bags, wa.bags).bags
-    @test reduce(catobs, [wd, wa]).bags.bags == vcat(wd.bags, wa.bags).bags
-    @test catobs(wd).data.data == hcat(wd.data.data)
-    @test reduce(catobs, [wd]).data.data == hcat(wd.data.data)
-    @test catobs(wd).bags.bags == vcat(wd.bags).bags
-    @test reduce(catobs, [wd]).bags.bags == vcat(wd.bags).bags
+@testset "WeighteBagNode catobs" begin
+    for ns in [(wa, wb, wc), (wc, wa), (wa, wd), (wd, wa), (wd,)]
+        @test catobs(ns...).data == hcat(map(Mill.data, ns)...)
+        @test catobs(ns...).weights == vcat(map(n -> n.weights, ns)...)
+        @test catobs(ns...).bags == vcat(map(n -> n.bags, ns)...)
+        @test catobs(ns...).metadata == vcat(map(Mill.metadata, ns)...)
+        @test reduce(catobs, ns) == catobs(ns...) == cat(ns..., dims=ndims(ns[1]))
+    end
 end
 
-@testset "hierarchical catobs on ProductNodes" begin
-    @test catobs(f, h).data[1].data.data == reduce(catobs, [f, h]).data[1].data.data ==
-        hcat(wb.data.data, wc.data.data)
-    @test catobs(f, h).data[2].data.data == reduce(catobs, [f, h]).data[2].data.data ==
-        hcat(b.data.data, c.data.data)
-    @test catobs(f, h, f).data[1].data.data == reduce(catobs, [f, h, f]).data[1].data.data ==
-        hcat(wb.data.data, wc.data.data, wb.data.data)
-    @test numobs(catobs(f,h)) == numobs(f) + numobs(h)
+@testset "ProductNodes catobs" begin
+    @test catobs(f, h) == reduce(catobs, [f, h])
+    @test catobs(f, h, f) == reduce(catobs, [f, h, f])
+    @test catobs(g, g) == reduce(catobs, [g, g])
+    @test catobs(k, l) == reduce(catobs, [k, l])
 
-    @test catobs(g, g).data[1].data.data == reduce(catobs, [g, g]).data[1].data.data ==
-        hcat(c.data.data, c.data.data)
-    @test catobs(g, g).data[2].data.data == reduce(catobs, [g, g]).data[2].data.data ==
-        hcat(wc.data.data, wc.data.data)
-    @test catobs(g, g, g).data[1].data.data == reduce(catobs, [g, g, g]).data[1].data.data ==
-        hcat(c.data.data, c.data.data, c.data.data)
+    @test catobs(f, h).data[1].data.data == hcat(wb.data.data, wc.data.data)
+    @test catobs(f, h).data[2].data.data == hcat(b.data.data, c.data.data)
+    @test catobs(f, h, f).data[1].data.data == hcat(wb.data.data, wc.data.data, wb.data.data)
+    @test numobs(catobs(f, h)) == numobs(f) + numobs(h)
+
+    @test catobs(g, g).data[1].data.data == hcat(c.data.data, c.data.data)
+    @test catobs(g, g).data[2].data.data == hcat(wc.data.data, wc.data.data)
+    @test catobs(g, g, g).data[1].data.data == hcat(c.data.data, c.data.data, c.data.data)
     @test numobs(catobs(g, g)) == 2numobs(g)
 
     @test catobs(k, l).data[1].data.data == hcat(wb.data.data, wc.data.data)
@@ -201,12 +176,39 @@ end
     @test_throws ArgumentError reduce(catobs, [l, m])
 end
 
-@testset "catobs with missing values" begin
-    @test catobs(a, b, c).data.data == catobs(a, b, missing, c).data.data
-    @test catobs(a, b, c).bags.bags == catobs(a, b, missing, c).bags.bags
-    @test catobs(wa, wb, wc).data.data == catobs(wa, wb, missing, wc).data.data
-    @test catobs(wa, wb, wc).bags.bags == catobs(wa, wb, missing, wc).bags.bags
-    @test catobs(wa, wb, wc).weights == catobs(wa, wb, missing, wc).weights
+@testset "catobs with missing nodes" begin
+    @test catobs(e, e) == catobs(e, missing, e) == catobs(missing, e, missing, e)
+    @test catobs(a, b, c) == catobs(a, missing, b, c) == catobs(missing, a, b, c)
+    @test catobs(wa, wb, wc) == catobs(wa, wb, missing, wc) == catobs(wa, wb, wc, missing)
+    @test catobs(k, l) == catobs(k, missing, l) == catobs(missing, k, l)
+end
+
+@testset "catobs with missing data" begin
+    @test catobs(a, b) == catobs(a, BagNode(missing, AlignedBags()), b)
+    @test catobs(wa, wb) == catobs(WeightedBagNode(missing, AlignedBags(), Float64[]), wa, wb)
+end
+
+@testset "catobs with `nothing` metadata" begin
+    ee = catobs(e, ArrayNode(zeros(2, 0)))
+    @test e.metadata == ee.metadata
+
+    aa = catobs(a, BagNode(zeros(3, 0), AlignedBags()))
+    @test a.metadata == aa.metadata
+    @test a.data.metadata == aa.data.metadata
+
+    waa = catobs(wa, WeightedBagNode(zeros(3, 0), AlignedBags(), zeros(0)))
+    @test wa.metadata == waa.metadata
+    @test wa.data.metadata == waa.data.metadata
+
+    ff = catobs(f, ProductNode((
+        WeightedBagNode(zeros(3, 0), AlignedBags(), zeros(0)),
+        BagNode(zeros(3, 0), AlignedBags())
+    )))
+    @test f.metadata == ff.metadata
+    @test f.data[1].metadata == ff.data[1].metadata
+    @test f.data[2].metadata == ff.data[2].metadata
+    @test f.data[1].data.metadata == ff.data[1].data.metadata
+    @test f.data[2].data.metadata == ff.data[2].data.metadata
 end
 
 @testset "catobs stability" begin
@@ -214,6 +216,7 @@ end
         @inferred catobs(n, n)
         @inferred reduce(catobs, [n, n])
         @inferred catobs([n, n])
+        @inferred cat(n, n, dims=ndims(n))
     end
 end
 
