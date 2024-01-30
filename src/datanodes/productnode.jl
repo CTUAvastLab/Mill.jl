@@ -1,7 +1,8 @@
 """
     ProductNode{T, C} <: AbstractProductNode
 
-Data node representing a Cartesian product of several spaces each represented by subtree stored in iterable of type `T`. May store metadata of type `C`.
+Data node representing a Cartesian product of several spaces each represented by subtree stored
+in iterable of type `T`. May store metadata of type `C`.
 
 See also: [`AbstractProductNode`](@ref), [`AbstractMillNode`](@ref), [`ProductModel`](@ref).
 """
@@ -95,6 +96,6 @@ end
 Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(data(x), i), subset(metadata(x), i))
 Base.getindex(x::ProductNode{<:Vector}, i::VecOrRange{<:Int}) = ProductNode(map(x -> getindex(x, i), data(x)), subset(metadata(x), i))
 
-Base.hash(e::ProductNode, h::UInt) = hash((e.data, e.metadata), h)
-(e1::ProductNode == e2::ProductNode) = e1.data == e2.data && e1.metadata == e2.metadata
-Base.isequal(e1::ProductNode, e2::ProductNode) = isequal(e1.data, e2.data) && isequal(e1.metadata, e2.metadata)
+Base.hash(n::ProductNode, h::UInt) = hash((n.data, n.metadata), h)
+(n1::ProductNode == n2::ProductNode) = n1.data == n2.data && n1.metadata == n2.metadata
+Base.isequal(n1::ProductNode, n2::ProductNode) = isequal(n1.data, n2.data) && isequal(n1.metadata, n2.metadata)

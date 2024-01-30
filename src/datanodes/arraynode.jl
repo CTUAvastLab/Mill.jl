@@ -76,6 +76,6 @@ end
 _arraynode(m) = ArrayNode(m)
 _arraynode(m::AbstractMillNode) = m
 
-Base.hash(e::ArrayNode, h::UInt) = hash((e.data, e.metadata), h)
-(e1::ArrayNode == e2::ArrayNode) = isequal(e1.data == e2.data, true) && e1.metadata == e2.metadata
-Base.isequal(e1::ArrayNode, e2::ArrayNode) = isequal(e1.data, e2.data) && isequal(e1.metadata, e2.metadata)
+Base.hash(n::ArrayNode, h::UInt) = hash((n.data, n.metadata), h)
+(n1::ArrayNode == n2::ArrayNode) = isequal(n1.data == n2.data, true) && n1.metadata == n2.metadata
+Base.isequal(n1::ArrayNode, n2::ArrayNode) = isequal(n1.data, n2.data) && isequal(n1.metadata, n2.metadata)

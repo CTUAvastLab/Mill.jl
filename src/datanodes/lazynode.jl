@@ -92,6 +92,6 @@ end
 
 _show_data(io, n::LazyNode{N}) where {N} = print(io, "(", eltype(n.data), ")")
 
-Base.hash(e::LazyNode, h::UInt) = hash((e.data), h)
-(e1::LazyNode == e2::LazyNode) = e1.data == e2.data
-Base.isequal(e1::LazyNode, e2::LazyNode) = isequal(e1.data, e2.data)
+Base.hash(n::LazyNode, h::UInt) = hash((n.data), h)
+(n1::LazyNode == n2::LazyNode) = n1.data == n2.data
+Base.isequal(n1::LazyNode, n2::LazyNode) = isequal(n1.data, n2.data)

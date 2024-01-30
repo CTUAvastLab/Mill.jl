@@ -73,8 +73,8 @@ function removeinstances(a::WeightedBagNode, mask)
         subset(a.weights, findall(mask)), a.metadata)
 end
 
-Base.hash(e::WeightedBagNode, h::UInt) = hash((e.data, e.bags, e.weights, e.metadata), h)
-(e1::WeightedBagNode == e2::WeightedBagNode) =
-    e1.data == e2.data && e1.bags == e2.bags && e1.weights == e2.weights && e1.metadata == e2.metadata
-Base.isequal(e1::WeightedBagNode, e2::WeightedBagNode) =
-    isequal(e1.data, e2.data) && isequal(e1.bags, e2.bags) && isequal(e1.weights, e2.weights) && isequal(e1.metadata, e2.metadata)
+Base.hash(n::WeightedBagNode, h::UInt) = hash((n.data, n.bags, n.weights, n.metadata), h)
+(n1::WeightedBagNode == n2::WeightedBagNode) =
+    n1.data == n2.data && n1.bags == n2.bags && n1.weights == n2.weights && n1.metadata == n2.metadata
+Base.isequal(n1::WeightedBagNode, n2::WeightedBagNode) =
+    isequal(n1.data, n2.data) && isequal(n1.bags, n2.bags) && isequal(n1.weights, n2.weights) && isequal(n1.metadata, n2.metadata)
