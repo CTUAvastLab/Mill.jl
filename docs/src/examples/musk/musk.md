@@ -8,7 +8,7 @@ ENV["LINES"] = 25
 ENV["COLUMNS"] = 125
 ```
 ```@meta
-EditURL = "<unknown>/src/examples/musk/musk_literate.jl"
+EditURL = "musk_literate.jl"
 ```
 
 # Musk

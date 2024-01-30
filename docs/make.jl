@@ -52,13 +52,15 @@ DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
 end; recursive=true)
 
 makedocs(
-         CitationBibliography(joinpath(@__DIR__, "references.bib"), style=:numeric),
          sitename = "Mill.jl",
          format = Documenter.HTML(sidebar_sitename=false,
                                   collapselevel=2,
                                   assets=["assets/favicon.ico", "assets/custom.css"]),
-         strict = [:eval_block, :example_block, :meta_block, :setup_block],
+         warnonly = Documenter.except(:eval_block, :example_block, :meta_block, :setup_block),
          modules = [Mill],
+         plugins = [
+             CitationBibliography(joinpath(@__DIR__, "references.bib"), style=:numeric)
+         ],
          pages = [
                   "Home" => "index.md",
                   "Motivation" => "motivation.md",

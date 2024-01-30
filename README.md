@@ -29,7 +29,7 @@ Run the following in REPL:
 ] add Mill
 ```
 
-Julia v1.6 or later is required.
+Julia v1.9 or later is required.
 
 ## Getting Started
 
@@ -71,4 +71,3 @@ tracking requests and bugs.
 
 
 <a href="https://flyclipart.com/wind-turbine-png-clipart-windmill-pictures-windmill-png-471749">Icon source</a>
-

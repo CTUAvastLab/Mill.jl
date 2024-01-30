@@ -20,7 +20,7 @@ Run the following in REPL:
 ] add Mill
 ```
 
-Julia v1.6 or later is required.
+Julia v1.9 or later is required.
 
 ## Getting started
 
