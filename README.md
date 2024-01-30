@@ -35,7 +35,7 @@ Julia v1.9 or later is required.
 
 - [Documentation](https://ctuavastlab.github.io/Mill.jl/stable/)
 - [API Reference](https://ctuavastlab.github.io/Mill.jl/stable/api/aggregation/)
-- [Musk Example](https://ctuavastlab.github.io/Mill.jl/stable/examples/musk/musk/)
+- [Examples](https://ctuavastlab.github.io/Mill.jl/stable/examples/musk/musk/)
 
 ## Citation
 
