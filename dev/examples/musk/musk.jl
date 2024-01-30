@@ -32,4 +32,3 @@ for e in 1:100
 end
 
 mean(Flux.onecold(model(ds), 1:2) .== y)
-
