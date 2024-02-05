@@ -5,7 +5,7 @@ A much more detailed overview of this subject can be found in [Mandlik2021](@cit
 
 ## What is a Multiple instance learning problem?
 
-In *Multiple Instance Learning* (MIL), also *Multi-Instance Learning*, the sample ``\bm{x}`` is a *set of vectors* (or matrices) ``\{x_1,\ldots,x_l\}``, where ``x_i \in \mathbb{R}^d``. As a result, order does not matter, which makes MIL problems different from sequences. In MIL parlance, sample ``\bm{x}`` is also called *a bag* and its elements ``x_1, \ldots, x_2`` *instances*. MIL problems have been introduced in [Dietterich1997](@cite), and extended and generalized in a series of works [Pevny2018a](@cite), [Pevny2018b](@cite), [Pevny2019](@cite). The most comprehensive introduction known to authors is [Mandlik2020](@cite).
+In *Multiple Instance Learning* (MIL), also *Multi-Instance Learning*, the sample ``\bm{x}`` is a *set of vectors* (or matrices) ``\{x_1,\ldots,x_l\}``, where ``x_i \in \mathbb{R}^d``. As a result, order does not matter, which makes MIL problems different from sequences. In MIL parlance, sample ``\bm{x}`` is also called *a bag* and its elements ``x_1, \ldots, x_2`` *instances*. MIL problems have been introduced in [Dietterich1997](@cite), and extended and generalized in a series of works [Pevny2017a](@cite), [Pevny2017b](@cite), [Pevny2019](@cite). The most comprehensive introduction known to authors is [Mandlik2020](@cite).
 
 Why are MIL problems relevant? Since the seminal paper from [Fisher1936](@cite), the majority of machine learning problems deals with problems like the one shown below:[^1]
 

@@ -3,7 +3,7 @@
 <img class="display-dark-only" src="assets/logo-dark.svg" alt="Mill.jl logo" /style="width: 40%;">
 ```
 
-[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) (Multiple Instance Learning Library) is a library built on top of [`Flux.jl`](https://fluxml.ai) aimed to flexibly prototype *hierarchical multiple instance learning* models as described in [Mandlik2021](@cite), [Pevny2018a](@cite) and  [Pevny2018b](@cite). It is developed to be:
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) (Multiple Instance Learning Library) is a library built on top of [`Flux.jl`](https://fluxml.ai) aimed to flexibly prototype *hierarchical multiple instance learning* models as described in [Mandlik2021](@cite), [Pevny2017a](@cite) and  [Pevny2017b](@cite). It is developed to be:
 
 * **flexible** and **versatile**
 * as **general** as possible
