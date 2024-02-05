@@ -68,12 +68,6 @@ const BAGS3 = [
           AlignedBags([0:-1, 1:2, 3:6, 7:8]))
         ]
 
-function Mill.unpack2mill(ds::LazyNode{:Sentence})
-    s = split.(ds.data, " ")
-    x = NGramMatrix(reduce(vcat, s))
-    BagNode(x, Mill.length2bags(length.(s)))
-end
-
 _init_agg(t::Type{<:Number}, d) = randn(t, d)
 _init_agg(t::Type{<:Integer}, d) = rand(t, d)
 
@@ -88,6 +82,12 @@ param_aggregations(t::Type, d) = vcat(
                                       SegmentedLSE(_init_agg(t, d), _init_agg(t, d)))
 
 all_aggregations(t::Type, d) = vcat(nonparam_aggregations(t, d), param_aggregations(t, d))
+
+function Mill.unpack2mill(ds::LazyNode{:Sentence})
+    s = split.(ds.data, " ")
+    x = NGramMatrix(reduce(vcat, s))
+    BagNode(x, Mill.length2bags(length.(s)))
+end
 
 @testset "Doctests" begin
     DocMeta.setdocmeta!(Mill, :DocTestSetup, quote

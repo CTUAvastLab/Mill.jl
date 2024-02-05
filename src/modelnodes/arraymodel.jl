@@ -9,7 +9,7 @@ an [`ArrayNode`](@ref).
 julia> Random.seed!(0);
 ```
 
-```jldoctest array_model; filter=$(DOCTEST_FILTER)
+```jldoctest array_model; filter=$DOCTEST_FILTER
 julia> n = ArrayNode(randn(Float32, 2, 2))
 2×2 ArrayNode{Matrix{Float32}, Nothing}:
  0.94... 1.53...
@@ -21,7 +21,7 @@ julia> m = ArrayModel(Dense(2, 2))
 ArrayModel(Dense(2 => 2))  # 2 arrays, 6 params, 104 bytes
 ```
 
-```jldoctest array_model; filter=$(DOCTEST_FILTER)
+```jldoctest array_model; filter=$DOCTEST_FILTER
 julia> m(n)
 2×2 Matrix{Float32}:
  -0.50... -0.77...

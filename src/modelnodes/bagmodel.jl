@@ -7,7 +7,7 @@ on every instance, then performs elementwise segmented aggregation `a` and final
 model `bm` on the aggregated representation of every bag in the data node.
 
 # Examples
-```jldoctest; filter=$(DOCTEST_FILTER)
+```jldoctest; filter=$DOCTEST_FILTER
 julia> Random.seed!(0);
 
 julia> n = BagNode(ArrayNode(randn(Float32, 3, 2)), bags([0:-1, 1:2]))

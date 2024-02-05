@@ -19,7 +19,7 @@ ProductModel ↦ identity
   ╰── b: ArrayModel(Dense(2 => 2))  # 2 arrays, 6 params, 104 bytes
 ```
 
-```jldoctest product_model; filter=$(DOCTEST_FILTER)
+```jldoctest product_model; filter=$DOCTEST_FILTER
 julia> m1(n)
 4×2 Matrix{Float32}:
  -2.36...  -3.58...

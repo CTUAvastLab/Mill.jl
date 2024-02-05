@@ -5,13 +5,12 @@ A model node for processing [`LazyNode`](@ref)s. It applies a (sub)model `m` sto
 the [`LazyNode`](@ref) after calling [`Mill.unpack2mill`](@ref).
 
 # Examples
-```jldoctest unpack2mill; output=false
-function Mill.unpack2mill(ds::LazyNode{:Sentence})
+```julia-repl
+julia> function Mill.unpack2mill(ds::LazyNode{:Sentence})
     s = split.(ds.data, " ")
     x = NGramMatrix(reduce(vcat, s))
     BagNode(x, Mill.length2bags(length.(s)))
 end
-# output
 ```
 
 ```jldoctest unpack2mill
@@ -29,7 +28,7 @@ LazyModel{Sentence}
         ╰── ArrayModel(Dense(2053 => 3))  # 2 arrays, 6_162 params, 24.148 KiB
 ```
 
-```jldoctest unpack2mill; filter=$(DOCTEST_FILTER)
+```jldoctest unpack2mill; filter=$DOCTEST_FILTER
 julia> m(n)
 3×3 Matrix{Float32}:
  -0.06... -0.03... -0.04...
