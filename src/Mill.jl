@@ -1,5 +1,6 @@
 module Mill
 
+using Accessors
 using ChainRulesCore
 using Combinatorics
 using DataFrames
@@ -12,14 +13,13 @@ using MacroTools
 using OneHotArrays
 using PooledArrays
 using Preferences
-using Setfield
 using SparseArrays
 using Statistics
 
 using Base: CodeUnits, nameof
 using ChainRulesCore: NotImplemented, NotImplementedException
 using HierarchicalUtils: encode, stringify
-using Setfield: IdentityLens, PropertyLens, IndexLens, ComposedLens
+using Accessors: PropertyLens, IndexLens, ComposedOptic
 
 import Base: *, ==
 

@@ -9,7 +9,8 @@ end
 """
     pred_lens(p, n)
 
-Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n` conforming to predicate `p`.
+Return a `Vector` of `Accessors.jl` lenses for accessing all nodes/fields in `n` conforming to
+predicate `p`.
 
 # Examples
 ```jldoctest
@@ -20,18 +21,35 @@ ProductNode  # 2 obs, 16 bytes
   ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> pred_lens(x -> x isa ArrayNode, n)
-1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
- (@lens _.data[2])
+1-element Vector{Any}:
+ (@optic _.data[2])
 ```
 
 See also: [`list_lens`](@ref), [`find_lens`](@ref), [`findnonempty_lens`](@ref).
 """
-pred_lens(p::Function, n) = _pred_lens(p, n)
+function pred_lens(p::Function, n)
+    result = Any[]
+    _pred_lens!(p, n, (), result)
+    return result
+end
+
+_pred_lens!(p::Function, x, l, result) = p(x) && push!(result, Accessors.opticcompose(l...))
+function _pred_lens!(p::Function, n::T, l, result) where T <: AbstractMillStruct
+    p(n) && push!(result, Accessors.opticcompose(l...))
+    for k in fieldnames(T)
+        _pred_lens!(p, getproperty(n, k), (l..., PropertyLens{k}()), result)
+    end
+end
+function _pred_lens!(p::Function, n::Union{Tuple, NamedTuple}, l, result)
+    for i in eachindex(n)
+        _pred_lens!(p, n[i], (l..., IndexLens((i,))), result)
+    end
+end
 
 """
     list_lens(n)
 
-Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n`.
+Return a `Vector` of `Accessors.jl` lenses for accessing all nodes/fields in `n`.
 
 # Examples
 ```jldoctest
@@ -42,16 +60,16 @@ ProductNode  # 2 obs, 16 bytes
   ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> list_lens(n)
-9-element Vector{Lens}:
- (@lens _)
- (@lens _.data[1])
- (@lens _.data[1].data)
- (@lens _.data[1].bags)
- (@lens _.data[1].metadata)
- (@lens _.data[2])
- (@lens _.data[2].data)
- (@lens _.data[2].metadata)
- (@lens _.metadata)
+9-element Vector{Any}:
+ identity (generic function with 1 method)
+ (@optic _.data[1])
+ (@optic _.data[1].data)
+ (@optic _.data[1].bags)
+ (@optic _.data[1].metadata)
+ (@optic _.data[2])
+ (@optic _.data[2].data)
+ (@optic _.data[2].metadata)
+ (@optic _.metadata)
 ```
 
 See also: [`pred_lens`](@ref), [`find_lens`](@ref), [`findnonempty_lens`](@ref).
@@ -61,7 +79,8 @@ list_lens(n) = pred_lens(t -> true, n)
 """
     findnonempty_lens(n)
 
-Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n` that have at least one observation.
+Return a `Vector` of `Accessors.jl` lenses for accessing all nodes/fields in `n` that contain at
+least one observation.
 
 # Examples
 ```jldoctest
@@ -72,10 +91,10 @@ ProductNode  # 2 obs, 16 bytes
   ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> findnonempty_lens(n)
-3-element Vector{Lens}:
- (@lens _)
- (@lens _.data[1])
- (@lens _.data[2])
+3-element Vector{Any}:
+ identity (generic function with 1 method)
+ (@optic _.data[1])
+ (@optic _.data[2])
 ```
 
 See also: [`pred_lens`](@ref), [`list_lens`](@ref), [`find_lens`](@ref).
@@ -85,8 +104,8 @@ findnonempty_lens(n) = pred_lens(t -> t isa AbstractMillNode && numobs(t) > 0, n
 """
     find_lens(n, x)
 
-Return a `Vector` of `Setfield.Lens`es for accessing all nodes/fields in `n` that return `true` when
-compared to `x` using `Base.===`.
+Return a `Vector` of `Accessors.jl` lenses for accessing all nodes/fields in `n` that return `true`
+when compared to `x` using `Base.===`.
 
 # Examples
 ```jldoctest
@@ -97,30 +116,19 @@ ProductNode  # 2 obs, 16 bytes
   ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
 
 julia> find_lens(n, n.data[1])
-1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
- (@lens _.data[1])
+1-element Vector{Any}:
+ (@optic _.data[1])
 ```
 
 See also: [`pred_lens`](@ref), [`list_lens`](@ref), [`findnonempty_lens`](@ref).
 """
 find_lens(n, x) = pred_lens(t -> t ≡ x, n)
 
-_pred_lens(p::Function, n) = p(n) ? [IdentityLens()] : Lens[]
-function _pred_lens(p::Function, n::T) where T <: AbstractMillStruct
-    res = [map(l -> PropertyLens{k}() ∘ l, _pred_lens(p, getproperty(n, k))) for k in fieldnames(T)]
-    res = vcat(filter(!isempty, res)...)
-    p(n) ? [IdentityLens(); res] : res
-end
-function _pred_lens(p::Function, n::Union{Tuple, NamedTuple})
-    res = [map(l -> IndexLens(tuple(i)) ∘ l, _pred_lens(p, n[i])) for i in eachindex(n)]
-    vcat(filter(!isempty, res)...)
-end
-
 """
     code2lens(n, c)
 
-Convert code `c` from [HierarchicalUtils.jl](@ref) traversal to a `Vector` of `Setfield.Lens` such
-that they access each node in tree egal to `n`.
+Convert code `c` from [HierarchicalUtils.jl](@ref) traversal to a `Vector` of `Accessors.jl`
+lenses such that they access each node in tree `n` egal to node under code `c` in the tree.
 
 # Examples
 ```jldoctest
@@ -133,8 +141,8 @@ ProductNode [""]  # 2 obs, 16 bytes
   ╰── ArrayNode(2×2 Array with Int64 elements) ["U"]  # 2 obs, 80 bytes
 
 julia> code2lens(n, "U")
-1-element Vector{Setfield.ComposedLens{Setfield.PropertyLens{:data}, Setfield.IndexLens{Tuple{Int64}}}}:
- (@lens _.data[2])
+1-element Vector{Any}:
+ (@optic _.data[2])
 ```
 
 See also: [`lens2code`](@ref).
@@ -144,8 +152,8 @@ code2lens(n::AbstractMillStruct, c::AbstractString) = find_lens(n, n[c])
 """
     lens2code(n, l)
 
-Convert `Setfield.Lens` l to a `Vector` of codes from [HierarchicalUtils.jl](@ref) traversal such
-that they access each node in tree egal to `n`.
+Convert `Accessors.jl` lens `l` to a `Vector` of codes from [HierarchicalUtils.jl](@ref) traversal
+such that they access each node in tree `n` egal to node accessible by lens `l`.
 
 # Examples
 ```jldoctest
@@ -157,20 +165,27 @@ ProductNode [""]  # 2 obs, 16 bytes
   │     ╰── ∅ ["M"]
   ╰── ArrayNode(2×2 Array with Int64 elements) ["U"]  # 2 obs, 80 bytes
 
-julia> lens2code(n, (@lens _.data[2]))
+julia> lens2code(n, (@optic _.data[2]))
 1-element Vector{String}:
+ "U"
+
+julia> lens2code(n, (@optic _.data[∗]))
+2-element Vector{String}:
+ "E"
  "U"
 
 ```
 
 See also: [`code2lens`](@ref).
 """
-lens2code(n::AbstractMillStruct, l::Lens) = HierarchicalUtils.find_traversal(n, get(n, l))
+lens2code(n::AbstractMillStruct, l) = mapreduce(vcat, Accessors.getall(n, l)) do x
+    HierarchicalUtils.find_traversal(n, x)
+end
 
 """
     model_lens(m, l)
 
-Convert `Setfield.Lens` `l` for a data node to a new lens for accessing the same location in model `m`.
+Convert `Accessors.jl` lens `l` for a data node to a new lens for accessing the same location in model `m`.
 
 # Examples
 ```jldoctest
@@ -187,26 +202,26 @@ ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes
   │     ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
   ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
 
-julia> model_lens(m, (@lens _.data[2]))
-(@lens _.ms[2])
+julia> model_lens(m, (@optic _.data[2]))
+(@optic _.ms[2])
 ```
 
 See also: [`data_lens`](@ref).
 """
-function model_lens(model, lens::ComposedLens)
-    outerlens = model_lens(model, lens.outer)
-    outerlens ∘ model_lens(get(model, outerlens), lens.inner)
+function model_lens(model, lens::ComposedOptic)
+    innerlens = model_lens(model, lens.inner)
+    innerlens ⨟ model_lens(only(getall(model, innerlens)), lens.outer)
 end
-model_lens(::ArrayModel, ::PropertyLens{:data}) = @lens _.m
-model_lens(::BagModel, ::PropertyLens{:data}) = @lens _.im
-model_lens(::ProductModel, ::PropertyLens{:data}) = @lens _.ms
+model_lens(::ArrayModel, ::PropertyLens{:data}) = @optic _.m
+model_lens(::BagModel, ::PropertyLens{:data}) = @optic _.im
+model_lens(::ProductModel, ::PropertyLens{:data}) = @optic _.ms
 model_lens(::Union{NamedTuple, Tuple}, lens::IndexLens) = lens
-model_lens(::Union{AbstractMillModel, NamedTuple, Tuple}, lens::IdentityLens) = lens
+model_lens(::Union{AbstractMillModel, NamedTuple, Tuple}, lens::typeof(identity)) = lens
 
 """
     data_lens(n, l)
 
-Convert `Setfield.Lens` `l` for a model node to a new lens for accessing the same location in data node `n`.
+Convert `Accessors.jl` lens `l` for a model node to a new lens for accessing the same location in data node `n`.
 
 # Examples
 ```jldoctest
@@ -222,21 +237,21 @@ ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes
   │     ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
   ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
 
-julia> data_lens(n, (@lens _.ms[2]))
-(@lens _.data[2])
+julia> data_lens(n, (@optic _.ms[2]))
+(@optic _.data[2])
 ```
 
 See also: [`data_lens`](@ref).
 """
-function data_lens(ds, lens::ComposedLens)
-    outerlens = data_lens(ds, lens.outer)
-    outerlens ∘ data_lens(get(ds, outerlens), lens.inner)
+function data_lens(ds, lens::ComposedOptic)
+    innerlens = data_lens(ds, lens.inner)
+    innerlens ⨟ data_lens(only(getall(ds, innerlens)), lens.outer)
 end
-data_lens(::ArrayNode, ::PropertyLens{:m}) = @lens _.data
-data_lens(::AbstractBagNode, ::PropertyLens{:im}) = @lens _.data
-data_lens(::AbstractProductNode, ::PropertyLens{:ms}) = @lens _.data
+data_lens(::ArrayNode, ::PropertyLens{:m}) = @optic _.data
+data_lens(::AbstractBagNode, ::PropertyLens{:im}) = @optic _.data
+data_lens(::AbstractProductNode, ::PropertyLens{:ms}) = @optic _.data
 data_lens(::Union{NamedTuple, Tuple}, lens::IndexLens) = lens
-data_lens(::Union{AbstractMillNode, NamedTuple, Tuple}, lens::IdentityLens) = lens
+data_lens(::Union{AbstractMillNode, NamedTuple, Tuple}, lens::typeof(identity)) = lens
 
 """
     replacein(n, old, new)

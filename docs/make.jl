@@ -1,6 +1,6 @@
 using Pkg
 using Documenter, DocumenterCitations, Literate
-using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
+using Mill, Flux, Random, SparseArrays, Accessors, HierarchicalUtils
 
 #=
 Useful resources for writing docs:
@@ -53,7 +53,7 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
 end
 
 DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
-    using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
+    using Mill, Flux, Random, SparseArrays, Accessors, HierarchicalUtils
     ENV["LINES"] = ENV["COLUMNS"] = typemax(Int)
 end; recursive=true)
 

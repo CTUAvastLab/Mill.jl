@@ -14,7 +14,7 @@ m = reflectinmodel(x)
     all_fields = vcat(all_nodes, [md, an1.data, b.bags, an2.data, wb.bags, wb.weights, an3.data])
     all_fields = vcat(all_fields, Mill.metadata.(all_nodes))
 
-    @test all(l -> get(x, l) in all_fields, ls)
+    @test all(l -> only(getall(x, l)) in all_fields, ls)
     @test all(n -> n in all_fields, [walk(x, t) for t in list_traversal(x)])
 
     ls = list_lens(m)
@@ -22,23 +22,23 @@ m = reflectinmodel(x)
     all_fields = vcat(all_nodes, [m.m, m.ms[1].m, m.ms[1].ms.b.im.m, m.ms[1].ms.b.a, m.ms[1].ms.b.bm,
                       m.ms[1].ms.wb.im.m, m.ms[1].ms.wb.a, m.ms[1].ms.wb.bm, m.ms[2].m])
 
-    @test all(l -> get(m, l) in all_fields, ls)
+    @test all(l -> only(getall(m, l)) in all_fields, ls)
     @test all(n -> n in all_fields, [walk(m, t) for t in list_traversal(m)])
 end
 
 @testset "findnonempty_lens" begin
-    @test all(numobs.([get(x, l) for l in findnonempty_lens(x)]) .> 0)
+    @test all(numobs.([only(getall(x, l)) for l in findnonempty_lens(x)]) .> 0)
 end
 
 @testset "find_lens" begin
     for t in list_traversal(x)
         ls = find_lens(x, x[t])
-        @test all(l -> get(x, l) ≡ x[t], ls)
+        @test all(l -> only(getall(x, l)) ≡ x[t], ls)
     end
 
     for t in list_traversal(m)
         ls = find_lens(m, m[t])
-        @test all(l -> get(m, l) ≡ m[t], ls)
+        @test all(l -> only(getall(m, l)) ≡ m[t], ls)
     end
 end
 
@@ -76,4 +76,3 @@ end
         @test m3[t] ≡ m[t]
     end
 end
-

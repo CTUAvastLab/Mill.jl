@@ -8,6 +8,7 @@ using Mill: p_map, inv_p_map, r_map, inv_r_map, _bagnorm
 using Mill: Maybe
 using Mill: @gradtest, @pgradtest, gradf
 
+using Accessors
 using Base.Iterators: partition, product
 using Base: CodeUnits
 using ChainRulesCore
@@ -91,7 +92,7 @@ end
 
 @testset "Doctests" begin
     DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
-        using Mill, Flux, Random, SparseArrays, Setfield, HierarchicalUtils
+        using Mill, Flux, Random, SparseArrays, Accessors, HierarchicalUtils
         # do not shorten prints in doctests
         ENV["LINES"] = ENV["COLUMNS"] = typemax(Int)
     end; recursive=true)
