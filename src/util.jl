@@ -280,7 +280,3 @@ function replacein(x::LazyModel{N}, oldnode, newnode) where {N}
     x ≡ oldnode && return newnode
     LazyModel{N}(replacein(x.m, oldnode, newnode))
 end
-
-(m::AbstractMillModel)(x::AbstractVector{<:AbstractMillNode}) = ChainRulesCore.ignore_derivatives() do
-    reduce(catobs, x)
-end |> m
