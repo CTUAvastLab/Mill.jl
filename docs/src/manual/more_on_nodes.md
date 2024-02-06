@@ -11,7 +11,7 @@ The main advantage of the [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) li
 Let's start the demonstration by nesting two MIL problems. The outer MIL model contains three samples (outer-level bags), whose instances are (inner-level) bags themselves. The first outer-level bag contains one inner-level bag problem with two inner-level instances, the second outer-level bag contains two inner-level bags with total of three inner-level instances, and finally the third outer-level bag contains two inner bags with four instances:
 
 ```@repl more_on_nodes
-ds = BagNode(BagNode(ArrayNode(randn(4, 10)),
+ds = BagNode(BagNode(ArrayNode(randn(Float32, 4, 10)),
                      [1:2, 3:4, 5:5, 6:7, 8:10]),
              [1:1, 2:3, 4:5])
 ```
@@ -46,17 +46,17 @@ m.im(Mill.data(ds))
 In one final example we demonstrate a complex model consisting of all types of nodes introduced so far:
 
 ```@repl more_on_nodes
-ds = BagNode(ProductNode((BagNode(randn(4, 10),
+ds = BagNode(ProductNode((BagNode(randn(Float32, 4, 10),
                                   [1:2, 3:4, 5:5, 6:7, 8:10]),
-                          randn(3, 5),
-                          BagNode(BagNode(randn(2, 30),
+                          randn(Float32, 3, 5),
+                          BagNode(BagNode(randn(Float32, 2, 30),
                                           [i:i+1 for i in 1:2:30]),
                                   [1:3, 4:6, 7:9, 10:12, 13:15]),
-                          randn(2, 5))),
+                          randn(Float32, 2, 5))),
              [1:1, 2:3, 4:5])
 ```
 
-As data and model trees tend to be complex, `Mill` limits the printing. To inspect the whole tree, use
+When data and model trees become complex, `Mill` limits the printing. To inspect the whole tree, use
 `printtree`:
 
 ```@repl more_on_nodes

@@ -66,4 +66,4 @@ TypeIterator(BagModel, m) |> collect
 PredicateIterator(x -> numobs(x) ≥ 10, ds) |> collect
 ```
 
-For the complete showcase of possibilites, refer to [HierarchicalUtils.jl](https://github.com/CTUAvastLab/HierarchicalUtils.jl) and [this notebook](https://github.com/CTUAvastLab/HierarchicalUtils.jl/blob/master/examples/mill_integration.ipynb)
+For the complete showcase of possibilites, refer to [HierarchicalUtils.jl](https://github.com/CTUAvastLab/HierarchicalUtils.jl) and [this notebook](https://github.com/CTUAvastLab/HierarchicalUtils.jl/blob/master/examples/mill_integration.ipynb).

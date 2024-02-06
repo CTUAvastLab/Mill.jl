@@ -82,8 +82,8 @@ Instances are first passed through a single layer with 50 neurons (input dimensi
 model(ds)
 ````
 
-!!! unk "An easier way for model construction"
-   Note that the model can be obtained in a more straightforward way using [Model reflection](@ref).
+!!! ukn "Easier model construction"
+    Note that the model can be obtained in a more straightforward way using [Model reflection](@ref).
 
 ### Training
 

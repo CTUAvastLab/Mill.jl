@@ -7,13 +7,13 @@ using Mill, Flux
 Since constructions of large models can be a tedious and error-prone process, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) provides [`reflectinmodel`](@ref) function that helps to automate it. The simplest definition accepts only one argument, a sample `ds`, and returns a compatible model:
 
 ```@repl reflection
-ds = BagNode(ProductNode((BagNode(randn(4, 10),
+ds = BagNode(ProductNode((BagNode(randn(Float32, 4, 10),
                                   [1:2, 3:4, 5:5, 6:7, 8:10]),
-                          randn(3, 5),
-                          BagNode(BagNode(randn(2, 30),
+                          randn(Float32, 3, 5),
+                          BagNode(BagNode(randn(Float32, 2, 30),
                                           [i:i+1 for i in 1:2:30]),
                                   [1:3, 4:6, 7:9, 10:12, 13:15]),
-                          randn(2, 5))),
+                          randn(Float32, 2, 5))),
              [1:1, 2:3, 4:5]);
 printtree(ds)
 
@@ -74,3 +74,56 @@ reflectinmodel(ds, d -> Dense(d, 5, relu), SegmentedMeanMax;
 ```
 
 There are even more ways to modify the reflection behavior, see the [`reflectinmodel`](@ref) api reference.
+
+### `Float` precision
+
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) is built on top of [`Flux.jl`](https://fluxml.ai),
+which by default uses 32-bit precision for model parameters:
+
+```@repl reflection
+Dense(2, 2).weight |> eltype
+```
+
+If you attempt to process `Float64` data with model using lower precision, you get a warning:
+
+```@repl reflection
+x = randn(2, 2)
+eltype(x)
+m = Dense(2, 2)
+m(x)
+```
+
+Unless additional arguments are provided, [`reflectinmodel`](@ref) also instantiates all `Dense`
+layers using 32-bit precision:
+
+```@repl reflection
+x = randn(Float32, 2, 2) |> ArrayNode
+eltype(Mill.data(x))
+m = reflectinmodel(x)
+m.m.weight |> eltype
+```
+
+Because [`reflectinmodel`](@ref) evaluates (sub)models on parts of the input when building the
+model, if some `Float64` values are passed in, the warning is shown during construction as well as
+during the evaluation:
+
+```@repl reflection
+x = randn(2, 2) |> ArrayNode
+eltype(Mill.data(x))
+m = reflectinmodel(x)
+m(x)
+```
+
+To prevent this from happening, we recommend making sure that the same precision is used for input
+data and for [`reflectinmodel`](@ref) parameters. For example:
+
+```@repl reflection
+x32 = randn(Float32, 2, 2) |> ArrayNode
+m = reflectinmodel(x32)
+
+x64 = randn(2, 2) |> ArrayNode
+m = reflectinmodel(x64, d -> f64(Dense(d, 5)), d -> f64(SegmentedMean(d)))
+```
+
+Functions `Flux.f64` and `Flux.f32` may come in handy.
+

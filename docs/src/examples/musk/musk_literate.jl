@@ -51,8 +51,8 @@ model = BagModel(
 # Instances are first passed through a single layer with 50 neurons (input dimension is 166) with `tanh` non-linearity, then we use `mean` and `max` aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 50 neurons and `tanh` nonlinearity followed by linear layer with 2 neurons (output dimension). We check that forward pass works
 model(ds)
 
-# !!! unk "An easier way for model construction"
-#    Note that the model can be obtained in a more straightforward way using [Model reflection](@ref).
+#md # !!! ukn "Easier model construction"
+#md #     Note that the model can be obtained in a more straightforward way using [Model reflection](@ref).
 
 # ### Training
 

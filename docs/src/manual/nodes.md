@@ -158,11 +158,12 @@ Three instances of the [`BagNode`](@ref) are represented by red subtrees are fir
 [`ProductNode`](@ref) can be thought of as a [Cartesian Product](https://en.wikipedia.org/wiki/Cartesian_product) or a `Dictionary`. It holds a `Tuple` or `NamedTuple` of nodes (not necessarily of the same type). For example, a [`ProductNode`](@ref) with the [`BagNode`](@ref) and the [`ArrayNode`](@ref) from above and two more nodes as children would look like this:
 
 ```@repl nodes
-PN = ProductNode(tuple(
-        ArrayNode(randn(2, 3)),
-        BagNode(ArrayNode(zeros(4, 4)), [1:1, 2:2, 3:4]),
+PN = tuple(
+        ArrayNode(randn(Float32, 2, 3)),
+        BagNode(ArrayNode(zeros(Float32, 4, 4)), [1:1, 2:2, 3:4]),
         BN,
-        AN))
+        AN
+    ) |> ProductNode
 ```
 
 Analogically, the [`ProductModel`](@ref) contains a `Tuple` or `NamedTuple` of (sub)models processing each of its children (stored in `ms` field standing for models), as well as one more (sub)model `m`:
