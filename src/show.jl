@@ -41,7 +41,7 @@ function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
     end
 end
 
-_show_data(io, _) = print(io)
+_show_data(io, _) = nothing
 
 """
     modelsummary(m::AbstractMillModel)
