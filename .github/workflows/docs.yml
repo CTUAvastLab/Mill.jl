@@ -4,25 +4,16 @@ on:
   push:
     branches:
       - master
-    tags: '*'
-    paths:
-      - 'docs/**'
-      - 'src/**'
-      - '.github/workflows/docs.yml'
+      - dev
   pull_request:
-    paths:
-      - 'docs/**'
-      - 'src/**'
-      - '.github/workflows/docs.yml'
-
-env:
-  JULIA_NUM_THREADS: 1
+    branches:
+      - master
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1'
@@ -34,7 +25,7 @@ jobs:
       - name: Generate assets
         run: julia --project=docs/ docs/make_assets.jl
       - name: Build and deploy
+        run: julia --project=docs/ docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-        run: julia --project=docs/ docs/make.jl
