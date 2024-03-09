@@ -11,7 +11,7 @@ struct ProductNode{T, C} <: AbstractProductNode
     metadata::C
 
     function ProductNode(data::Union{Tuple,NamedTuple,AbstractVector}, metadata=nothing)
-        @assert length(data) ≥ 1 "Provide at least one subtree!"
+        @assert !isempty(data) "Provide at least one subtree!"
         data = map(_arraynode, data)
         l = numobs(data[1])
         @assert all(n -> numobs(n) == l, data) "All subtrees must have an equal amount of instances!"
