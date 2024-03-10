@@ -22,7 +22,7 @@ ProductNode  # 2 obs, 16 bytes
 
 julia> pred_lens(x -> x isa ArrayNode, n)
 1-element Vector{Any}:
- (@optic _.data[2])
+ (@o _.data[2])
 ```
 
 See also: [`list_lens`](@ref), [`find_lens`](@ref), [`findnonempty_lens`](@ref).
@@ -62,14 +62,14 @@ ProductNode  # 2 obs, 16 bytes
 julia> list_lens(n)
 9-element Vector{Any}:
  identity (generic function with 1 method)
- (@optic _.data[1])
- (@optic _.data[1].data)
- (@optic _.data[1].bags)
- (@optic _.data[1].metadata)
- (@optic _.data[2])
- (@optic _.data[2].data)
- (@optic _.data[2].metadata)
- (@optic _.metadata)
+ (@o _.data[1])
+ (@o _.data[1].data)
+ (@o _.data[1].bags)
+ (@o _.data[1].metadata)
+ (@o _.data[2])
+ (@o _.data[2].data)
+ (@o _.data[2].metadata)
+ (@o _.metadata)
 ```
 
 See also: [`pred_lens`](@ref), [`find_lens`](@ref), [`findnonempty_lens`](@ref).
@@ -93,8 +93,8 @@ ProductNode  # 2 obs, 16 bytes
 julia> findnonempty_lens(n)
 3-element Vector{Any}:
  identity (generic function with 1 method)
- (@optic _.data[1])
- (@optic _.data[2])
+ (@o _.data[1])
+ (@o _.data[2])
 ```
 
 See also: [`pred_lens`](@ref), [`list_lens`](@ref), [`find_lens`](@ref).
@@ -117,7 +117,7 @@ ProductNode  # 2 obs, 16 bytes
 
 julia> find_lens(n, n.data[1])
 1-element Vector{Any}:
- (@optic _.data[1])
+ (@o _.data[1])
 ```
 
 See also: [`pred_lens`](@ref), [`list_lens`](@ref), [`findnonempty_lens`](@ref).
@@ -142,7 +142,7 @@ ProductNode [""]  # 2 obs, 16 bytes
 
 julia> code2lens(n, "U")
 1-element Vector{Any}:
- (@optic _.data[2])
+ (@o _.data[2])
 ```
 
 See also: [`lens2code`](@ref).
@@ -203,7 +203,7 @@ ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes
   ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
 
 julia> model_lens(m, (@optic _.data[2]))
-(@optic _.ms[2])
+(@o _.ms[2])
 ```
 
 See also: [`data_lens`](@ref).
@@ -238,7 +238,7 @@ ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes
   ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
 
 julia> data_lens(n, (@optic _.ms[2]))
-(@optic _.data[2])
+(@o _.data[2])
 ```
 
 See also: [`data_lens`](@ref).
