@@ -65,7 +65,7 @@ _flatten_agg(a::AbstractAggregation) = [a]
 
 AggregationStack(fs::AbstractAggregation...) = AggregationStack(fs)
 
-Flux.@functor AggregationStack
+Flux.@layer :ignore AggregationStack
 
 function (a::AggregationStack)(x::Maybe{AbstractArray}, bags::AbstractBags, args...)
     reduce(vcat, (f(x, bags, args...) for f in a.fs))

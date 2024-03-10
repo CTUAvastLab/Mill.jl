@@ -66,7 +66,7 @@ struct GNN{L, M, R}
     m::R
 end
 
-Flux.@functor GNN
+Flux.@layer :ignore GNN
 
 function mpstep(m::GNN, U, bags, n)
     n == 0 && return(U)

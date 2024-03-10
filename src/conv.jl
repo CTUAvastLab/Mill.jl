@@ -210,7 +210,7 @@ struct BagConv{T, F}
     σ::F
 end
 
-Flux.@functor BagConv
+Flux.@layer :ignore BagConv
 
 function BagConv(d::Int, o::Int, n::Int, σ = identity)
     W = (n > 1) ? tuple([randn(o, d) .* sqrt(2.0/(o + d)) for _ in 1:n]...) : randn(o, d) .* sqrt(2.0/(o + d))

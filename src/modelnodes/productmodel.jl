@@ -54,7 +54,7 @@ struct ProductModel{T<:VecOrTupOrNTup{AbstractMillModel},U} <: AbstractMillModel
     end
 end
 
-Flux.@functor ProductModel
+Flux.@layer :ignore ProductModel
 
 """
     ProductModel(ms, m=identity)

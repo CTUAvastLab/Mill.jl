@@ -3,7 +3,7 @@ struct BagChain{T <: Tuple} <: AbstractAggregation
     BagChain(xs...) = new{typeof(xs)}(xs)
 end
 
-Flux.@functor BagChain
+Flux.@layer :ignore BagChain
 
 Flux.@forward BagChain.layers Base.getindex, Base.first, Base.last, Base.lastindex
 Flux.@forward BagChain.layers Base.iterate

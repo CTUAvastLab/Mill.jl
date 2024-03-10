@@ -71,6 +71,6 @@ See also: [`AbstractMillModel`](@ref), [`LazyNode`](@ref), [`Mill.unpack2mill`](
 """
 LazyModel(Name::Symbol, m) = LazyModel{Name}(m)
 
-Flux.@functor LazyModel
+Flux.@layer :ignore LazyModel
 
 (m::LazyModel{Name})(x::LazyNode{Name}) where {Name} = m.m(unpack2mill(x))

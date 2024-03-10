@@ -34,7 +34,7 @@ struct ArrayModel{T} <: AbstractMillModel
     m::T
 end
 
-Flux.@functor ArrayModel
+Flux.@layer :ignore ArrayModel
 
 (m::ArrayModel)(x::ArrayNode) = m.m(x.data)
 

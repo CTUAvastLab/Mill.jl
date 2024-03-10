@@ -16,7 +16,7 @@ struct SegmentedMax{V <: AbstractVector{<:Number}} <: AbstractAggregation
     ψ::V
 end
 
-Flux.@functor SegmentedMax
+Flux.@layer :ignore SegmentedMax
 
 SegmentedMax(T::Type, d::Int) = SegmentedMax(zeros(T, d))
 SegmentedMax(d::Int) = SegmentedMax(Float32, d)

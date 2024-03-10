@@ -16,7 +16,7 @@ struct SegmentedMean{V <: AbstractVector{<:Number}} <: AbstractAggregation
     ψ::V
 end
 
-Flux.@functor SegmentedMean
+Flux.@layer :ignore SegmentedMean
 
 SegmentedMean(T::Type, d::Int) = SegmentedMean(zeros(T, d))
 SegmentedMean(d::Int) = SegmentedMean(Float32, d)

@@ -46,7 +46,7 @@ WeightedBagNode(d::Maybe{AbstractMillNode}, b::AbstractVector, weights::Vector, 
     WeightedBagNode(d, bags(b), weights, metadata)
 WeightedBagNode(d, b, w, m=nothing) = WeightedBagNode(_arraynode(d), b, w, m)
 
-Flux.@functor WeightedBagNode
+Flux.@layer :ignore WeightedBagNode
 
 mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.weights, x.metadata)
 

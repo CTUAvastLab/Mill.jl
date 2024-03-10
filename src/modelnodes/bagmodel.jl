@@ -37,7 +37,7 @@ struct BagModel{T <: AbstractMillModel, A <: Union{AbstractAggregation, BagCount
     bm::U
 end
 
-Flux.@functor BagModel
+Flux.@layer :ignore BagModel
 
 """
     BagModel(im, a, bm=identity)

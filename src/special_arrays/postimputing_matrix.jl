@@ -56,7 +56,7 @@ PostImputingMatrix(W::AbstractMatrix{T}) where T = PostImputingMatrix(W, zeros(T
 
 Flux.@forward PostImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
 
-Flux.@functor PostImputingMatrix
+Flux.@layer :ignore PostImputingMatrix
 
 Base.vcat(As::PostImputingMatrix...) = PostImputingMatrix(vcat((A.W for A in As)...), vcat((A.ψ for A in As)...))
 function Base.hcat(As::PostImputingMatrix...)

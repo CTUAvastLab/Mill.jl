@@ -16,7 +16,7 @@ struct SegmentedSum{V <: AbstractVector{<:Number}} <: AbstractAggregation
     ψ::V
 end
 
-Flux.@functor SegmentedSum
+Flux.@layer :ignore SegmentedSum
 
 SegmentedSum(T::Type, d::Int) = SegmentedSum(zeros(T, d))
 SegmentedSum(d::Int) = SegmentedSum(Float32, d)

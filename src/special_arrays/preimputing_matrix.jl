@@ -51,7 +51,7 @@ PreImputingMatrix(W::AbstractMatrix{T}) where T = PreImputingMatrix(W, zeros(T, 
 
 Flux.@forward PreImputingMatrix.W Base.size, Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex
 
-Flux.@functor PreImputingMatrix
+Flux.@layer :ignore PreImputingMatrix
 
 Base.hcat(As::PreImputingMatrix...) = PreImputingMatrix(hcat((A.W for A in As)...), vcat((A.ψ for A in As)...))
 function Base.vcat(As::PreImputingMatrix...)

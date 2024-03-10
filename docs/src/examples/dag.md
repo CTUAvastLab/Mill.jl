@@ -28,7 +28,7 @@ struct DagModel{M}
     od::Int
 end
 
-Flux.@functor DagModel
+Flux.@layer :ignore DagModel
 
 nothing # hide
 ```

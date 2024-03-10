@@ -59,7 +59,7 @@ See also: [`AbstractProductNode`](@ref), [`AbstractMillNode`](@ref), [`ProductMo
 ProductNode(ds, args...) = ProductNode(tuple(ds), args...)
 ProductNode(args...; ns...) = ProductNode(NamedTuple(ns), args...)
 
-Flux.@functor ProductNode
+Flux.@layer :ignore ProductNode
 
 mapdata(f, x::ProductNode) = ProductNode(map(i -> mapdata(f, i), x.data), x.metadata)
 

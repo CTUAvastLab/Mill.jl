@@ -19,7 +19,7 @@ struct SegmentedPNorm{V <: AbstractVector{<:AbstractFloat}} <: AbstractAggregati
     c::V
 end
 
-Flux.@functor SegmentedPNorm
+Flux.@layer :ignore SegmentedPNorm
 
 SegmentedPNorm(T::Type, d::Int) = SegmentedPNorm(zeros(T, d), randn(T, d), zeros(T, d))
 SegmentedPNorm(d::Int) = SegmentedPNorm(Float32, d)

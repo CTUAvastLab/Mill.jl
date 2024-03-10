@@ -111,7 +111,7 @@ struct PathModel{T, F} <: AbstractMillModel
     path2mill::F
 end
 
-Flux.@functor PathModel
+Flux.@layer :ignore PathModel
 show(io::IO, n::PathModel) = print(io, "PathModel")
 NodeType(::Type{<:PathModel}) = LeafNode()
 

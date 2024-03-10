@@ -18,7 +18,7 @@ struct SegmentedLSE{V <: AbstractVector{<:AbstractFloat}} <: AbstractAggregation
     ρ::V
 end
 
-Flux.@functor SegmentedLSE
+Flux.@layer :ignore SegmentedLSE
 
 SegmentedLSE(T::Type, d::Int) = SegmentedLSE(zeros(T, d), randn(T, d))
 SegmentedLSE(d::Int) = SegmentedLSE(Float32, d)

@@ -49,7 +49,7 @@ struct BagCount{T<:AbstractAggregation}
     a::T
 end
 
-Flux.@functor BagCount
+Flux.@layer :ignore BagCount
 
 _bagcount(T, bags) = permutedims(log.(one(T) .+ length.(bags)))
 ChainRulesCore.@non_differentiable _bagcount(T, bags)
