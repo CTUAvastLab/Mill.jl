@@ -67,17 +67,19 @@ function segmented_max_back(Δ, y, x, ψ, bags)
             end
         else
             fi = first(b)
-            v .= x[:,fi]
+            for k in axes(v,1)
+                v[k] = x[k,fi]
+            end
             idxs .= fi
             for j in b
-                for i in 1:size(x,1)
+                for i in axes(x,1)
                     if v[i] < x[i, j]
                         idxs[i] = j
                         v[i] = x[i, j]
                     end
                 end
             end
-            for i in 1:size(x, 1)
+            for i in axes(x,1)
                 dx[i, idxs[i]] += Δ[i, bi]
             end
         end
