@@ -67,9 +67,10 @@ function segmented_max_back(Δ, y, x, ψ, bags)
             end
         else
             fi = first(b)
-            for k in axes(v,1)
-                v[k] = x[k,fi]
-            end
+            v .= @view x[:,fi]
+            # for k in axes(v,1)
+            #     v[k] = x[k,fi]
+            # end
             idxs .= fi
             for j in b
                 for i in axes(x,1)
