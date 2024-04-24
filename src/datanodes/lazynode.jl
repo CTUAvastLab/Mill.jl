@@ -57,7 +57,7 @@ BagNode  # 2 obs, 120 bytes
 
 See also: [`LazyNode`](@ref), [`LazyModel`](@ref).
 """
-function unpack2mill end
+unpack2mill(::LazyNode{N}) where N = error("No `unpack2mill` method for LazyNode{$N}")
 
 mapdata(f, x::LazyNode{N}) where N = LazyNode{N}(mapdata(f, x.data), x.metadata)
 

@@ -52,8 +52,8 @@ include("special_arrays/special_arrays.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch, maybecold
 export NGramMatrix, NGramIterator, ngrams, ngrams!, countngrams, countngrams!
 export ImputingMatrix, PreImputingMatrix, PostImputingMatrix
-export ImputingDense, PreImputingDense, PostImputingDense
-export preimputing_dense, postimputing_dense, identity_dense
+export PreImputingDense, PostImputingDense
+export preimputing_dense, postimputing_dense
 
 include("aggregations/aggregations.jl")
 export AbstractAggregation, AggregationStack
