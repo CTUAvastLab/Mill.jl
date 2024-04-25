@@ -12,8 +12,8 @@ _subsetof(bags) = bags[_getrange(length(bags))]
 _convshift(n) = (i = div(n, 2); mod(n, 2) == 0 ? (1 - i:i) : (-i : i) )
 
 function _addmatvec!(o::Matrix, i, W::Matrix, x::Matrix, j)
-    @inbounds for s in 1:size(W, 2)
-        for r in 1:size(W, 1)
+    @inbounds for s in axes(W, 2)
+        for r in axes(W, 1)
             o[r, i] += W[r, s] * x[s, j]
         end
     end
@@ -25,23 +25,23 @@ function _addmatvec!(o::Matrix, i, W::Matrix, x::SparseMatrixCSC, j)
     rowptr = x.rowval[rn]
     vals = x.nzval[rn]
     @inbounds for (s, v) in zip(rowptr, vals)
-        for r in 1:size(W, 1)
+        for r in axes(W, 1)
             o[r, i] += W[r, s] * v
         end
     end
 end
 
 function _addmattvec!(o::Matrix, i, W::Matrix, x::AbstractMatrix, j)
-    @inbounds for s in 1:size(W, 1)
-        for r in 1:size(W, 2)
+    @inbounds for s in axes(W, 1)
+        for r in axes(W, 2)
             o[r, i] += W[s, r] * x[s, j]
         end
     end
 end
 
 function _addvecvect!(W::Matrix, Δ::Matrix, i, x::AbstractMatrix, j)
-    @inbounds for r in 1:size(W, 2)
-        for s in 1:size(W, 1)
+    @inbounds for r in axes(W, 2)
+        for s in axes(W, 1)
             W[s, r] += Δ[s, i] * x[r, j]
         end
     end
@@ -53,7 +53,7 @@ function _addvecvect!(W::Matrix, Δ::Matrix, i, x::SparseMatrixCSC, j)
     rowptr = x.rowval[rn]
     vals = x.nzval[rn]
     @inbounds for (r, v) in zip(rowptr, vals)
-        for s in 1:size(W, 1)
+        for s in axes(W, 1)
             W[s, r] += Δ[s, i] * v
         end
     end
@@ -257,4 +257,4 @@ function ChainRulesCore.rrule(::typeof(convsum), bags, xs...)
     convsum(bags, xs...), Δ -> (NoTangent(), NoTangent(),  ∇convsum(Δ, bags, length(xs))...)
 end
 
-legacy_bagconv(x, bags, f::AbstractArray{T, 3}) where {T} = convsum(bags, [f[:, :, i]*x for i in 1:size(f, 3)]...)
+legacy_bagconv(x, bags, f::AbstractArray{T, 3}) where {T} = convsum(bags, [f[:, :, i]*x for i in axes(f, 3)]...)

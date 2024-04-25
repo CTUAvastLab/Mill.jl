@@ -89,7 +89,7 @@ function _postimpute_maybe_hot(A, B)
     @inbounds for (j, k) in enumerate(B.I)
         if !ismissing(k)
             m[j] = false
-            for i in 1:size(C, 1)
+            for i in axes(C, 1)
                 C[i, j] = A.W[i, k]
             end
         end
@@ -103,7 +103,7 @@ function ChainRulesCore.rrule(::typeof(_mul_pi_maybe_hot), A, B)
         dW = zero(A.W)
         @inbounds for (k, j) in enumerate(B.I)
             if !ismissing(j)
-                for i in 1:size(dW, 1)
+                for i in axes(dW, 1)
                     dW[i, j] += Δ[i, k]
                 end
             end

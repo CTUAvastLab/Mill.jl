@@ -46,7 +46,7 @@ function segmented_max_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstrac
             end
         else
             for j in b
-                for i in 1:size(x, 1)
+                for i in axes(x, 1)
                     y[i, bi] = max(y[i, bi], x[i, j])
                 end
             end
@@ -67,20 +67,17 @@ function segmented_max_back(Δ, y, x, ψ, bags)
             end
         else
             fi = first(b)
-            v .= @view x[:,fi]
-            # for k in axes(v,1)
-            #     v[k] = x[k,fi]
-            # end
+            v .= @view x[:, fi]
             idxs .= fi
             for j in b
-                for i in axes(x,1)
+                for i in axes(x, 1)
                     if v[i] < x[i, j]
                         idxs[i] = j
                         v[i] = x[i, j]
                     end
                 end
             end
-            for i in axes(x,1)
+            for i in axes(x, 1)
                 dx[i, idxs[i]] += Δ[i, bi]
             end
         end
@@ -90,7 +87,7 @@ end
 
 function segmented_max_back(Δ, y, x::Missing, ψ, bags) 
     dψ = zero(ψ)
-    @inbounds for (bi, b) in enumerate(bags)
+    @inbounds for bi in eachindex(bags)
         for i in eachindex(ψ)
             dψ[i] += Δ[i, bi]
         end

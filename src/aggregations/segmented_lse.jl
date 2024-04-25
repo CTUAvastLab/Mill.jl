@@ -125,7 +125,7 @@ end
 
 function segmented_lse_back(Δ, ::Missing, ψ, bags)
     dψ = zero(ψ)
-    @inbounds for (bi, b) in enumerate(bags)
+    @inbounds for bi in eachindex(bags)
         for i in eachindex(ψ)
             dψ[i] += Δ[i, bi]
         end

@@ -338,12 +338,12 @@ end
 SparseArrays.SparseMatrixCSC(x::NGramMatrix) = SparseArrays.SparseMatrixCSC{Int64, UInt}(x)
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(x::NGramMatrix) where {Tv, Ti <: Integer}
     size(x, 2) == 0 && return sparse(Ti[],Ti[],Tv[], size(x,1), size(x,2))
-    l = sum(map(i -> length(NGramIterator(x, i)), 1:size(x, 2)))
+    l = sum(map(i -> length(NGramIterator(x, i)), axes(x, 2)))
     I = zeros(Ti, l)
     J = zeros(Ti, l)
     V = ones(Tv, l)
     vid = 1
-    for j in 1:size(x, 2)
+    for j in axes(x, 2)
         for i in NGramIterator(x, j)
             I[vid] = i + 1
             J[vid] = j
@@ -377,7 +377,7 @@ function _mul_ngram_vec!(s, A, B, bn, C, k, z, ψ=nothing)
     for l in 1:_len(s, B.n)
         z = mod(_next_ngram(z, l, s, B.n, B.b, bn), B.m)
         zi = z + 1
-        for i in 1:size(C, 1)
+        for i in axes(C, 1)
             @inbounds C[i, k] += A[i, zi]
         end
     end
@@ -403,7 +403,7 @@ function _∇A_mul_ngram_vec!(Δ, s, B, bn, ∇A, k, z)
     for l in 1:_len(s, B.n)
         z = mod(_next_ngram(z, l, s, B.n, B.b, bn), B.m)
         zi = z + 1
-        for i in 1:size(∇A, 1)
+        for i in axes(∇A, 1)
             @inbounds ∇A[i, zi] += Δ[i, k]
         end
     end

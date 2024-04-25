@@ -55,7 +55,7 @@ function _pnorm_precomp(x::AbstractMatrix, bags)
     @inbounds for (bi, b) in enumerate(bags)
         if !isempty(b)
             for j in b
-                for i in 1:size(x, 1)
+                for i in axes(x, 1)
                     M[i, bi] = max(M[i, bi], abs(x[i, j]))
                 end
             end
@@ -77,11 +77,11 @@ function _segmented_pnorm_norm(a::AbstractMatrix, ψ::AbstractVector, p::Abstrac
         else
             ws = _bagnorm(w, b)
             for j in b
-                for i in 1:size(a, 1)
+                for i in axes(a, 1)
                     y[i, bi] += _weight(w, i, j, t) * abs(a[i, j] / M[i, bi]) ^ p[i]
                 end
             end
-            for i in 1:size(a, 1)
+            for i in axes(a, 1)
                 y[i, bi] = M[i, bi] * (y[i, bi] / _weightsum(ws, i)) ^ (one(t) / p[i])
             end
         end
@@ -97,9 +97,7 @@ end
 
 function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
     da = zero(a)
-    dp = zero(p)
-    dps1 = zero(p)
-    dps2 = zero(p)
+    dp, dps1, dps2 = zero(p), zero(p), zero(p)
     dψ = zero(ψ)
     @inbounds for (bi, b) in enumerate(bags)
         if isempty(b)
@@ -111,7 +109,7 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
             dps1 .= zero(eltype(p))
             dps2 .= zero(eltype(p))
             for j in b
-                for i in 1:size(a, 1)
+                for i in axes(a, 1)
                     ab = abs(a[i, j])
                     da[i, j] += Δ[i, bi] * _weight(w, i, j, eltype(p)) *
                         sign(a[i, j]) / _weightsum(ws, i) * (ab / y[i, bi]) ^ (p[i] - one(eltype(p)))
@@ -120,7 +118,7 @@ function segmented_pnorm_back(Δ, y, a, ψ, p, bags, w, M)
                     dps2[i] += ww
                 end
             end
-            for i in 1:size(a, 1)
+            for i in axes(a, 1)
                 t = y[i, bi] / p[i]
                 t *= dps1[i] / dps2[i] - (p[i] * log(M[i, bi]) + log(dps2[i]) - log(_weightsum(ws, i))) / p[i]
                 dp[i] += Δ[i, bi] * t
@@ -132,7 +130,7 @@ end
 
 function segmented_pnorm_back(Δ, y, ψ, bags) 
     dψ = zero(ψ)
-    @inbounds for (bi, b) in enumerate(bags)
+    @inbounds for bi in eachindex(bags)
         for i in eachindex(ψ)
             dψ[i] += Δ[i, bi]
         end
