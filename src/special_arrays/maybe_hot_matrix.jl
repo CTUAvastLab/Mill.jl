@@ -1,5 +1,5 @@
 """
-    MaybeHotMatrix{T, U, V} <: AbstractMatrix{V}
+    MaybeHotMatrix{T, V} <: AbstractMatrix{U}
 
 A matrix-like structure for representing one-hot encoded variables.
 Like `Flux.OneHotMatrix` but supports `missing` values.
@@ -8,17 +8,15 @@ Construct with the [`maybehotbatch`](@ref) function.
 
 See also: [`MaybeHotVector`](@ref), [`maybehot`](@ref).
 """
-struct MaybeHotMatrix{T, U, V} <: AbstractMatrix{V}
+struct MaybeHotMatrix{T, U} <: AbstractMatrix{U}
     I::Vector{T}
-    l::U
-    MaybeHotMatrix(I::Vector{T}, l::U) where {T <: Integer, U <: Integer} = new{T, U, Bool}(I, l)
-    MaybeHotMatrix(I::Vector{Missing}, l::U) where U <: Integer = new{Missing, U, Missing}(I, l)
-    function MaybeHotMatrix(I::Vector{T}, l::U) where {T <: Maybe{Integer}, U <: Integer}
-        new{T, U, Maybe{Bool}}(I, l)
-    end
+    l::Int
+    MaybeHotMatrix(I::Vector{T}, l::Int) where T <: Integer = new{T, Bool}(I, l)
+    MaybeHotMatrix(I::Vector{Missing}, l::Int) = new{Missing, Missing}(I, l)
+    MaybeHotMatrix(I::Vector{T}, l::Int) where T <: Maybe{Integer} = new{T, Maybe{Bool}}(I, l)
 
-    function MaybeHotMatrix{T, U, V}(I, l) where {T <: Maybe{Integer}, U <: Integer, V <: Maybe{Bool}}
-        new{T, U, V}(convert(Vector{T}, I), convert(U, l))
+    function MaybeHotMatrix{T, U}(I, l) where {T <: Maybe{Integer}, U <: Maybe{Bool}}
+        new{T, U}(convert(Vector{T}, I), l)
     end
 end
 
@@ -36,13 +34,13 @@ _getindex(X::MaybeHotMatrix, ::Colon, i::Integer) = MaybeHotVector(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, i::AbstractArray) = MaybeHotMatrix(X.I[i], X.l)
 _getindex(X::MaybeHotMatrix, ::Colon, ::Colon) = MaybeHotMatrix(copy(X.I), X.l)
 
-function Base.convert(::Type{<:MaybeHotMatrix{T, U}}, X::MaybeHotMatrix) where {T, U}
-    MaybeHotMatrix(convert(Vector{T}, X.I), convert(U, X.l))
+function Base.convert(::Type{<:MaybeHotMatrix{T}}, X::MaybeHotMatrix) where T
+    MaybeHotMatrix(convert(Vector{T}, X.I), X.l)
 end
 
-function Base.promote_rule(::Type{MaybeHotMatrix{T, U, V}},
-        ::Type{MaybeHotMatrix{A, B, C}}) where {T, A, U, B, V, C}
-    MaybeHotMatrix{promote_type(T, A), promote_type(U, B), promote_type(V, C)}
+function Base.promote_rule(::Type{MaybeHotMatrix{T, U}},
+        ::Type{MaybeHotMatrix{A, B}}) where {T, A, U, B}
+    MaybeHotMatrix{promote_type(T, A), promote_type(U, B)}
 end
 
 function _check_l(Xs::AbstractVecOrTuple{MaybeHotMatrix})
