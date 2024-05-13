@@ -18,7 +18,7 @@ julia> n = ArrayNode(randn(Float32, 2, 2))
 
 ```jldoctest array_model
 julia> m = ArrayModel(Dense(2, 2))
-ArrayModel(Dense(2 => 2))  # 2 arrays, 6 params, 104 bytes
+ArrayModel(Dense(2 => 2))  2 arrays, 6 params, 104 bytes
 ```
 
 ```jldoctest array_model; filter=$DOCTEST_FILTER

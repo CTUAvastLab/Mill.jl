@@ -85,9 +85,6 @@ include("gradients.jl")
 Base.getindex(n::AbstractMillStruct, i::AbstractString) = HierarchicalUtils.walk(n, i)
 
 include("show.jl")
-export datasummary, modelsummary
-
-include("hierarchical_utils.jl")
-export printtree
+export datasummary, modelsummary, printtree
 
 end

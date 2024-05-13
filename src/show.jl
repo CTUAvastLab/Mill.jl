@@ -1,4 +1,20 @@
-import HierarchicalUtils: nodeshow, nodecommshow
+import HierarchicalUtils: NodeType, LeafNode, InnerNode, children, nodeshow, nodecommshow
+
+@nospecialize
+
+NodeType(::Type{<:Union{Missing, ArrayNode, ArrayModel, LazyNode}}) = LeafNode()
+NodeType(::Type{<:AbstractMillNode}) = InnerNode()
+NodeType(::Type{<:AbstractMillModel}) = InnerNode()
+NodeType(::Type{<:LazyModel}) = InnerNode()
+
+children(n::AbstractBagNode) = (n.data,)
+children(n::BagModel) = (n.im,)
+children(n::ProductNode) = n.data
+children(n::ProductModel) = n.ms
+children(n::LazyModel) = (n.m,)
+
+@specialize
+
 
 """
     datasummary(n::AbstractMillNode)
@@ -8,8 +24,8 @@ Print summary of parameters of node `n`.
 # Examples
 ```jldoctest
 julia> n = ProductNode(ArrayNode(randn(2, 3)))
-ProductNode  # 3 obs, 8 bytes
-  ╰── ArrayNode(2×3 Array with Float64 elements)  # 3 obs, 96 bytes
+ProductNode  3 obs, 8 bytes
+  ╰── ArrayNode(2×3 Array with Float64 elements)  3 obs, 96 bytes
 
 julia> datasummary(n)
 "Data summary: 3 obs, 112 bytes."
@@ -26,22 +42,58 @@ function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::AbstractMillNode
     HierarchicalUtils.printtree(io, n; htrunc=5, vtrunc=10, breakline=false)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::ArrayNode))
+    print(io, join(size(n), "×"), " ", summary(n))
+    if !isempty(n.data)
+        print(io, ":\n")
+        Base.print_array(IOContext(io, :typeinfo => eltype(n.data)), n.data)
+    end
+end
+
+function Base.show(io::IO, m::MIME"text/plain", @nospecialize(n::LazyNode))
+    print(io, summary(n))
+    if !isempty(n.data)
+        print(io, ":\n")
+        if n.data isa AbstractArray
+            Base.print_array(IOContext(io, :typeinfo => eltype(n.data)), n.data)
+        else
+            print(io, " ")
+            show(io, m, n.data)
+        end
+    end
+end
+
 nodeshow(io::IO, ::Missing) = print(io, "∅")
 nodeshow(io::IO, ::LazyNode{N, Nothing}) where {N} = print(io, "LazyNode{$N} ∅")
 
 function nodecommshow(io::IO, @nospecialize(n::AbstractMillNode))
     bytes = Base.format_bytes(Base.summarysize(n) - (isleaf(n) ? 0 : Base.summarysize(data(n))))
-    print(io, " # ", numobs(n), " obs, ", bytes)
+    print(io, " ", numobs(n), " obs, ", bytes)
 end
 
 function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
     print(io, nameof(typeof(n)))
-    if !get(io, :compact, false)
-        _show_data(io, n)
-    end
+    get(io, :compact, false) || _show_data(io, n)
 end
 
-_show_data(io, _) = nothing
+function Base.show(io::IO, @nospecialize(n::LazyNode{T})) where T
+    print(io, nameof(typeof(n)), "{", T, "}")
+    get(io, :compact, false) || _show_data(io, n)
+end
+
+_show_data(_, _) = nothing
+
+function _show_data(io, n::ArrayNode{T}) where {T <: AbstractArray}
+    print(io, "(")
+    if ndims(n.data) == 1
+        print(io, nameof(T), " of length ", length(n.data))
+    else
+        print(io, join(size(n), "×"), " ", nameof(T))
+    end
+    print(io, " with ", eltype(n.data), " elements)")
+end
+
+_show_data(io, n::LazyNode{N}) where {N} = print(io, "(", eltype(n.data), ")")
 
 """
     modelsummary(m::AbstractMillModel)
@@ -52,7 +104,7 @@ Print summary of parameters of model `m`.
 ```jldoctest
 julia> m = ProductModel(ArrayModel(Dense(2, 3)))
 ProductModel ↦ identity
-  ╰── ArrayModel(Dense(2 => 3))  # 2 arrays, 9 params, 116 bytes
+  ╰── ArrayModel(Dense(2 => 3))  2 arrays, 9 params, 116 bytes
 
 julia> modelsummary(m)
 "Model summary: 2 arrays, 9 params, 116 bytes"
@@ -75,7 +127,7 @@ end
 _levelparams(m::ArrayModel) = Flux.params(m.m)
 _levelparams(m::BagModel) = Flux.params(m.a, m.bm)
 _levelparams(m::ProductModel) = Flux.params(m.m)
-_levelparams(m::LazyModel) = Flux.Params([])
+_levelparams(::LazyModel) = Flux.Params([])
 _levelparams(m) = _levelparams(NodeType(m), m)
 _levelparams(::LeafNode, m) = Flux.params(m)
 function _levelparams(_, m)
@@ -93,7 +145,7 @@ function nodecommshow(io::IO, @nospecialize(m::AbstractMillModel))
     ps = _levelparams(m).params |> destruct
     if !isempty(ps)
         npars = Flux.underscorise(sum(length, ps))
-        print(io, " # ", length(ps), " arrays, ", npars, " params")
+        print(io, " ", length(ps), " arrays, ", npars, " params")
         if !isempty(ps) && Flux._all(iszero, ps)
             print(io, " (all zero)")
         elseif Flux._any(isnan, ps)
@@ -108,15 +160,13 @@ end
 
 function Base.show(io::IO, @nospecialize(n::AbstractMillModel))
     print(io, nameof(typeof(n)))
-    if !get(io, :compact, false)
-        _show_submodels(io, n)
-    end
+    get(io, :compact, false) || _show_submodels(io, n)
 end
 
 _show_submodels(io, m::ArrayModel) = print(io, "(", m.m, ")")
 _show_submodels(io, m::BagModel) = print(io, " ↦ ", m.a, " ↦ ", m.bm)
 _show_submodels(io, m::ProductModel) = print(io, " ↦ ", m.m)
-_show_submodels(io, m::LazyModel{Name}) where {Name} = print(io, "{", Name, "}")
+_show_submodels(io, ::LazyModel{Name}) where {Name} = print(io, "{", Name, "}")
 _show_submodels(io, _) = print(io)
 
 function Base.showarg(io::IO, x::MaybeHotVector, toplevel)
@@ -136,7 +186,7 @@ function Base.replace_in_print_matrix(x::MaybeHotArray, i::Integer, j::Integer, 
     ismissing(x[i, j]) || x[i, j] ? s : Base.replace_with_centered_mark(s)
 end
 
-function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix,MaybeHotArray,NGramMatrix}
+function Base.show(io::IO, X::T) where T <: Union{ImputingMatrix, MaybeHotArray, NGramMatrix}
     if get(io, :compact, false)
         if ndims(X) == 1
             print(io, length(X), "-element ", nameof(T))
@@ -187,7 +237,5 @@ _name(::PostImputingMatrix) = "[postimputing]"
 
 function Base.show(io::IO, a::T) where T <: AbstractAggregation
     print(io, nameof(T))
-    if !get(io, :compact, false)
-        print(io, "(", length(a), ")")
-    end
+    get(io, :compact, false) || print(io, "(", length(a), ")")
 end

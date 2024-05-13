@@ -33,63 +33,63 @@ layers in these types are replaced by their imputing variants.
 # Examples
 ```jldoctest
 julia> n1 = ProductNode(a=ArrayNode(NGramMatrix(["a", missing])))
-ProductNode  # 2 obs, 32 bytes
-  ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements)  # 2 obs, 129 bytes
+ProductNode  2 obs, 32 bytes
+  ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements)  2 obs, 129 bytes
 
 julia> n2 = ProductNode((ArrayNode([0 1]), BagNode(ArrayNode([0 1; 2 3]), bags([1:1, 2:2]))))
-ProductNode  # 2 obs, 24 bytes
-  ├── ArrayNode(1×2 Array with Int64 elements)  # 2 obs, 64 bytes
-  ╰── BagNode  # 2 obs, 96 bytes
-        ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
+ProductNode  2 obs, 24 bytes
+  ├── ArrayNode(1×2 Array with Int64 elements)  2 obs, 64 bytes
+  ╰── BagNode  2 obs, 96 bytes
+        ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 80 bytes
 
 julia> n = ProductNode((n1, n2))
-ProductNode  # 2 obs, 56 bytes
-  ├── ProductNode  # 2 obs, 32 bytes
-  │     ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements)  # 2 obs, 129 bytes
-  ╰── ProductNode  # 2 obs, 24 bytes
-        ├── ArrayNode(1×2 Array with Int64 elements)  # 2 obs, 64 bytes
-        ╰── BagNode  # 2 obs, 96 bytes
-              ╰── ArrayNode(2×2 Array with Int64 elements)  # 2 obs, 80 bytes
+ProductNode  2 obs, 56 bytes
+  ├── ProductNode  2 obs, 32 bytes
+  │     ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements)  2 obs, 129 bytes
+  ╰── ProductNode  2 obs, 24 bytes
+        ├── ArrayNode(1×2 Array with Int64 elements)  2 obs, 64 bytes
+        ╰── BagNode  2 obs, 96 bytes
+              ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 80 bytes
 
 julia> reflectinmodel(n)
-ProductModel ↦ Dense(20 => 10)  # 2 arrays, 210 params, 920 bytes
+ProductModel ↦ Dense(20 => 10)  2 arrays, 210 params, 920 bytes
   ├── ProductModel ↦ identity
-  │     ╰── a: ArrayModel([postimputing]Dense(2053 => 10))  # 3 arrays, 20_550 params, 80.391 KiB
-  ╰── ProductModel ↦ Dense(11 => 10)  # 2 arrays, 120 params, 560 bytes
+  │     ╰── a: ArrayModel([postimputing]Dense(2053 => 10))  3 arrays, 20_550 params, 80.391 KiB
+  ╰── ProductModel ↦ Dense(11 => 10)  2 arrays, 120 params, 560 bytes
         ├── ArrayModel(identity)
-        ╰── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  # 4 arrays, 240 params, 1.094 KiB
-              ╰── ArrayModel(Dense(2 => 10))  # 2 arrays, 30 params, 200 bytes
+        ╰── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.094 KiB
+              ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes
 
 julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean, all_imputing=true)
-ProductModel ↦ Dense(6 => 3)  # 2 arrays, 21 params, 164 bytes
+ProductModel ↦ Dense(6 => 3)  2 arrays, 21 params, 164 bytes
   ├── ProductModel ↦ identity
-  │     ╰── a: ArrayModel([postimputing]Dense(2053 => 3))  # 3 arrays, 6_165 params, 24.199 KiB
-  ╰── ProductModel ↦ Dense(4 => 3)  # 2 arrays, 15 params, 140 bytes
-        ├── ArrayModel([preimputing]Dense(1 => 1))  # 3 arrays, 3 params, 132 bytes
-        ╰── BagModel ↦ SegmentedMean(3) ↦ Dense(3 => 3)  # 3 arrays, 15 params, 180 bytes
-              ╰── ArrayModel([preimputing]Dense(2 => 3))  # 3 arrays, 11 params, 164 bytes
+  │     ╰── a: ArrayModel([postimputing]Dense(2053 => 3))  3 arrays, 6_165 params, 24.199 KiB
+  ╰── ProductModel ↦ Dense(4 => 3)  2 arrays, 15 params, 140 bytes
+        ├── ArrayModel([preimputing]Dense(1 => 1))  3 arrays, 3 params, 132 bytes
+        ╰── BagModel ↦ SegmentedMean(3) ↦ Dense(3 => 3)  3 arrays, 15 params, 180 bytes
+              ╰── ArrayModel([preimputing]Dense(2 => 3))  3 arrays, 11 params, 164 bytes
 
 julia> printtree(n; trav=true)
-ProductNode [""]  # 2 obs, 56 bytes
-  ├── ProductNode ["E"]  # 2 obs, 32 bytes
-  │     ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements) ["M"]  # 2 obs, 129 bytes
-  ╰── ProductNode ["U"]  # 2 obs, 24 bytes
-        ├── ArrayNode(1×2 Array with Int64 elements) ["Y"]  # 2 obs, 64 bytes
-        ╰── BagNode ["c"]  # 2 obs, 96 bytes
-              ╰── ArrayNode(2×2 Array with Int64 elements) ["e"]  # 2 obs, 80 bytes
+ProductNode [""]  2 obs, 56 bytes
+  ├── ProductNode ["E"]  2 obs, 32 bytes
+  │     ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements) ["M"]  2 obs, 129 bytes
+  ╰── ProductNode ["U"]  2 obs, 24 bytes
+        ├── ArrayNode(1×2 Array with Int64 elements) ["Y"]  2 obs, 64 bytes
+        ╰── BagNode ["c"]  2 obs, 96 bytes
+              ╰── ArrayNode(2×2 Array with Int64 elements) ["e"]  2 obs, 80 bytes
 
 julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean;
                         fsm=Dict("e" => d -> Chain(Dense(d, 2), Dense(2, 2))),
                         fsa=Dict("c" => SegmentedLSE),
                         single_key_identity=false,
                         single_scalar_identity=false)
-ProductModel ↦ Dense(6 => 3)  # 2 arrays, 21 params, 164 bytes
-  ├── ProductModel ↦ Dense(3 => 3)  # 2 arrays, 12 params, 128 bytes
-  │     ╰── a: ArrayModel([postimputing]Dense(2053 => 3))  # 3 arrays, 6_165 params, 24.199 KiB
-  ╰── ProductModel ↦ Dense(6 => 3)  # 2 arrays, 21 params, 164 bytes
-        ├── ArrayModel(Dense(1 => 3))  # 2 arrays, 6 params, 104 bytes
-        ╰── BagModel ↦ SegmentedLSE(2) ↦ Dense(2 => 3)  # 4 arrays, 13 params, 212 bytes
-              ╰── ArrayModel(Chain(Dense(2 => 2), Dense(2 => 2)))  # 4 arrays, 12 params, 208 bytes
+ProductModel ↦ Dense(6 => 3)  2 arrays, 21 params, 164 bytes
+  ├── ProductModel ↦ Dense(3 => 3)  2 arrays, 12 params, 128 bytes
+  │     ╰── a: ArrayModel([postimputing]Dense(2053 => 3))  3 arrays, 6_165 params, 24.199 KiB
+  ╰── ProductModel ↦ Dense(6 => 3)  2 arrays, 21 params, 164 bytes
+        ├── ArrayModel(Dense(1 => 3))  2 arrays, 6 params, 104 bytes
+        ╰── BagModel ↦ SegmentedLSE(2) ↦ Dense(2 => 3)  4 arrays, 13 params, 212 bytes
+              ╰── ArrayModel(Chain(Dense(2 => 2), Dense(2 => 2)))  4 arrays, 12 params, 208 bytes
 ```
 
 See also: [`AbstractMillNode`](@ref), [`AbstractMillModel`](@ref), [`ProductNode`](@ref), [`BagNode`](@ref), [`ArrayNode`](@ref).

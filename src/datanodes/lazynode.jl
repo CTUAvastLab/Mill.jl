@@ -51,8 +51,8 @@ end;
 
 ```jldoctest
 julia> LazyNode{:Sentence}(["foo bar", "baz"]) |> Mill.unpack2mill
-BagNode  # 2 obs, 120 bytes
-  ╰── ArrayNode(2053×3 NGramMatrix with Int64 elements)  # 3 obs, 274 bytes
+BagNode  2 obs, 120 bytes
+  ╰── ArrayNode(2053×3 NGramMatrix with Int64 elements)  3 obs, 274 bytes
 ```
 
 See also: [`LazyNode`](@ref), [`LazyModel`](@ref).
@@ -68,28 +68,6 @@ function Base.reduce(::typeof(catobs), as::Vector{<: LazyNode{N}}) where N
 end
 
 Base.getindex(x::LazyNode{N, T}, i::VecOrRange{<:Int}) where {N, T} = LazyNode{N}(subset(x.data, i))
-
-function Base.show(io::IO, @nospecialize(n::LazyNode{T})) where T
-    print(io, nameof(typeof(n)), "{", T, "}")
-    if !get(io, :compact, false)
-        _show_data(io, n)
-    end
-end
-
-function Base.show(io::IO, m::MIME"text/plain", @nospecialize(n::LazyNode))
-    print(io, summary(n))
-    if !isempty(n.data)
-        print(io, ":\n")
-        if n.data isa AbstractArray
-            Base.print_array(IOContext(io, :typeinfo => eltype(n.data)), n.data)
-        else
-            print(io, " ")
-            show(io, m, n.data)
-        end
-    end
-end
-
-_show_data(io, n::LazyNode{N}) where {N} = print(io, "(", eltype(n.data), ")")
 
 Base.hash(n::LazyNode, h::UInt) = hash((n.data), h)
 (n1::LazyNode == n2::LazyNode) = n1.data == n2.data

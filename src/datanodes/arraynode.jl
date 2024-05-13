@@ -55,24 +55,6 @@ end
 
 Base.getindex(x::ArrayNode, i::VecOrRange{<:Int}) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
 
-function Base.show(io::IO, ::MIME"text/plain", @nospecialize(n::ArrayNode))
-    print(io, join(size(n), "×"), " ", summary(n))
-    if !isempty(n.data)
-        print(io, ":\n")
-        Base.print_array(IOContext(io, :typeinfo => eltype(n.data)), n.data)
-    end
-end
-
-function _show_data(io, n::ArrayNode{T}) where {T <: AbstractArray}
-    print(io, "(")
-    if ndims(n.data) == 1
-        print(io, nameof(T), " of length ", length(n.data))
-    else
-        print(io, join(size(n), "×"), " ", nameof(T))
-    end
-    print(io, " with ", eltype(n.data), " elements)")
-end
-
 _arraynode(m) = ArrayNode(m)
 _arraynode(m::AbstractMillNode) = m
 
