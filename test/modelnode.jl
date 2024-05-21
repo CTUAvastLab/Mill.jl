@@ -50,7 +50,7 @@ end
     @test eltype(m(x)) == Float64
 
     @test m(x) == m.m(x.data)
-    @inferred m(x)
+    @test_nowarn @inferred m(x)
 end
 
 @testset "bag model" begin
@@ -63,7 +63,7 @@ end
     @test eltype(m(x)) == Float64
 
     @test m(x) == m.bm(m.a(m.im.m(x.data.data), x.bags))
-    @inferred m(x)
+    @test_nowarn @inferred m(x)
 end
 
 @testset "nested bag model" begin
@@ -81,7 +81,7 @@ end
     @test eltype(m(x)) == Float64
 
     @test m(x) == m.bm(m.a(m.im.bm(m.im.a(m.im.im.m(bn.data.data), bn.bags)), x.bags))
-    @inferred m(x)
+    @test_nowarn @inferred m(x)
 
     a = BagNode(BagNode(randn(Float64, 2, 2), [1:2]), [1:1])
     b = BagNode(missing, [0:-1])
@@ -104,11 +104,11 @@ end
 
     @test m(b) == m.bm(m.a(b.data, b.bags))
     @test eltype(m(b)) == Float64
-    @inferred m(b)
+    @test_nowarn @inferred m(b)
     for ds in [a, c, abc, bca]
         @test m(ds) == m.bm(m.a(m.im.bm(m.im.a(m.im.im.m(ds.data.data.data), ds.data.bags)), ds.bags))
         @test eltype(m(ds)) == Float64
-        @inferred m(ds)
+        @test_nowarn @inferred m(ds)
     end
 end
 
@@ -132,7 +132,7 @@ end
                                m.ms[:b].m(b)))
         @test eltype(m(x)) == Float64
         @test size(m(x)) == (2, 4)
-        @inferred m(x)
+        @test_nowarn @inferred m(x)
     end
 
     a = BagNode(randn(3, 4), [1:2, 3:4])
@@ -158,7 +158,7 @@ end
                                mb.bm(mb.a(mb.im.m(b.data.data), b.bags))))
         @test size(m(x)) == (2, 2)
         @test eltype(m(x)) == Float64
-        @inferred m(x)
+        @test_nowarn @inferred m(x)
     end
     @test_throws AssertionError m(x3)
 
@@ -172,7 +172,7 @@ end
 
     @test m(x) == m.m(m.ms[1].m(x.data[1].data))
     # ProductNodes with arrays are unstable because of vcat()
-    # @inferred m(x)
+    # @test_nowarn @inferred m(x)
 end
 
 @testset "product model keys and haskey" begin
@@ -200,13 +200,13 @@ end
     x2 = maybehot(missing, 1:3) |> ArrayNode
     for f in [f1, f2, f3], x in [x1, x2]
         @test _get_first(f(x)) isa PostImputingDense
-        @inferred f(x)(x)
+        @test_nowarn @inferred f(x)(x)
     end
 
     x1 = onehot(2, 1:3) |> ArrayNode
     for f in [f1, f2, f3]
         @test _get_first(f(x1)) isa Dense
-        @inferred f(x1)(x1)
+        @test_nowarn @inferred f(x1)(x1)
     end
 
     x1 = maybehotbatch([1, 2, 3], 1:3) |> ArrayNode
@@ -214,13 +214,13 @@ end
     x3 = maybehotbatch(fill(missing, 3), 1:3) |> ArrayNode
     for f in [f1, f2, f3], x in [x1, x2, x3]
         @test _get_first(f(x)) isa PostImputingDense
-        @inferred f(x)(x)
+        @test_nowarn @inferred f(x)(x)
     end
 
     x1 = onehotbatch([1, 2, 3], 1:3) |> ArrayNode
     for f in [f1, f2, f3]
         @test _get_first(f(x1)) isa Dense
-        @inferred f(x1)(x1)
+        @test_nowarn @inferred f(x1)(x1)
     end
 
     x1 = NGramMatrix(["a", "b", "c"]) |> ArrayNode
@@ -230,11 +230,11 @@ end
         @test _get_first(f(x1)) isa Flux.Dense{T, <:Matrix} where T
         @test _get_first(f(x2)) isa PostImputingDense
         @test _get_first(f(x3)) isa PostImputingDense
-        for x in [x1, x2, x3] @inferred f(x)(x) end
+        for x in [x1, x2, x3] @test_nowarn @inferred f(x)(x) end
     end
     for x in [x1, x2, x3]
         @test _get_first(f3(x)) isa PostImputingDense
-        @inferred f3(x)(x)
+        @test_nowarn @inferred f3(x)(x)
     end
 
     x1 = rand([1, 2], 3, 3) |> ArrayNode
@@ -248,11 +248,11 @@ end
         @test _get_first(f(x3)) isa Flux.Dense{T, <:Matrix} where T
         @test _get_first(f(x4)) isa PreImputingDense
         @test _get_first(f(x5)) isa PreImputingDense
-        for x in [x1, x2, x3, x4, x5] @inferred f(x)(x) end
+        for x in [x1, x2, x3, x4, x5] @test_nowarn @inferred f(x)(x) end
     end
     for x in [x1, x2, x3, x4, x5]
         @test _get_first(f3(x)) isa PreImputingDense
-        @inferred f3(x)(x)
+        @test_nowarn @inferred f3(x)(x)
     end
 
     # BagNode and ProductNode submodels are not mapped
@@ -283,7 +283,7 @@ end
     for m in [m1, m1_ski, m1_ski_fsm]
         @test eltype(m(x1)) == Float64
         @test size(m(x1)) == (2, 4)
-        @inferred m(x1)
+        @test_nowarn @inferred m(x1)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
     end
@@ -291,7 +291,7 @@ end
     for m in [m2, m2_ski, m2_ski_fsm]
         @test eltype(m(x2)) == Float64
         @test size(m(x2)) == (2, 4)
-        @inferred m(x2)
+        @test_nowarn @inferred m(x2)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
     end
@@ -299,7 +299,7 @@ end
     for m in [m3, m3_ski, m3_ski_fsm]
         @test eltype(m(x3)) == Float64
         @test size(m(x3)) == (2, 4)
-        @inferred m(x3)
+        @test_nowarn @inferred m(x3)
         @test m isa ProductModel
         @test m.ms[1] isa ArrayModel
         @test m.ms[2] isa ArrayModel
@@ -336,7 +336,7 @@ end
     @test size(m1_sci(x1)) == (1, 3)
     @test eltype(m1_sci(x1)) == Float64
     @test m1_sci isa ArrayModel
-    @inferred m1(x1)
+    @test_nowarn @inferred m1(x1)
 
     @test size(m2(x2)) == (2, 2)
     @test eltype(m2(x2)) == Float64
@@ -346,7 +346,7 @@ end
     @test eltype(m2_sci(x2)) == Float64
     @test m2_sci isa BagModel
     @test m2_sci.im isa ArrayModel{typeof(identity)}
-    @inferred m2(x2)
+    @test_nowarn @inferred m2(x2)
 
     @test size(m3(x3)) == (2, 4)
     @test eltype(m3(x3)) == Float64
@@ -358,7 +358,7 @@ end
     @test m3_sci isa ProductModel
     @test m3_sci.ms[1] isa ArrayModel{typeof(identity)}
     @test m3_sci.ms[2] isa ArrayModel{<:Dense}
-    @inferred m3(x3)
+    @test_nowarn @inferred m3(x3)
 end
 
 @testset "model aggregation grad check w.r.t. inputs" begin
@@ -370,20 +370,20 @@ end
         for ds in [x -> ArrayNode(x),
                    x -> BagNode(x, bags1)]
             m = reflectinmodel(ds(x), LAYERBUILDER, ABUILDER)
-            @inferred m(ds(x))
+            @test_nowarn @inferred m(ds(x))
             @gradtest x -> m(ds(x)) [m]
         end
 
         for ds in [(x, y) -> ProductNode((x, y)),
                    (x, y) -> ProductNode(a=BagNode(x, bags1), b=BagNode(y, bags2))]
             m = reflectinmodel(ds(x, y), LAYERBUILDER, ABUILDER)
-            @inferred m(ds(x, y))
+            @test_nowarn @inferred m(ds(x, y))
             @gradtest (x, y) -> m(ds(x, y)) [m]
         end
 
         ds = z -> BagNode(BagNode(z, bags3), bags1)
         m = reflectinmodel(ds(z), LAYERBUILDER, ABUILDER)
-        @inferred m(ds(z))
+        @test_nowarn @inferred m(ds(z))
         @gradtest z -> m(ds(z)) [m]
     end
 end
@@ -399,18 +399,18 @@ end
 
         ds = (x, w1) -> WeightedBagNode(x, bags1, w1)
         m = reflectinmodel(ds(x, w1), LAYERBUILDER, ABUILDER)
-        @inferred m(ds(x, w1))
+        @test_nowarn @inferred m(ds(x, w1))
         @gradtest x -> m(ds(x, w1)) [m, w1]
 
         ds = (x, y, w1, w2) -> ProductNode((WeightedBagNode(x, bags1, w1),
                                             WeightedBagNode(y, bags2, w2)))
         m = reflectinmodel(ds(x, y, w1, w2), LAYERBUILDER, ABUILDER)
-        @inferred m(ds(x, y, w1, w2))
+        @test_nowarn @inferred m(ds(x, y, w1, w2))
         @gradtest (x, y) -> m(ds(x, y, w1, w2)) [m, w1, w2]
 
         ds = (z, w1, w3) -> WeightedBagNode(WeightedBagNode(z, bags3, w3), bags1, w1)
         m = reflectinmodel(ds(z, w1, w3), LAYERBUILDER, ABUILDER)
-        @inferred m(ds(z, w1, w3))
+        @test_nowarn @inferred m(ds(z, w1, w3))
         @gradtest z -> m(ds(z, w1, w3)) [m, w3, w1]
     end
 end
@@ -429,7 +429,7 @@ end
                    BagNode(BagNode(z, bags3), bags1)
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER)
-            @inferred m(ds)
+            @test_nowarn @inferred m(ds)
             @pgradtest m -> m(ds) [ds]
         end
     end
@@ -451,7 +451,7 @@ end
                    WeightedBagNode(WeightedBagNode(z, bags3, w3), bags1, w1)
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER)
-            @inferred m(ds)
+            @test_nowarn @inferred m(ds)
             @pgradtest m -> m(ds) [ds, w1, w2, w3]
         end
     end

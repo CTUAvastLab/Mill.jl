@@ -100,25 +100,25 @@ end
 @testset "ArrayNode catobs, hcat and vcat" begin
     @test hcat(e, e).data == hcat(e.data, e.data)
     @test hcat(e, e).metadata == hcat(e.metadata, e.metadata)
-    @inferred hcat(e, e)
+    @test_nowarn @inferred hcat(e, e)
 
     @test vcat(e, e).data == vcat(e.data, e.data)
     @test vcat(e, e).metadata == vcat(e.metadata, e.metadata)
-    @inferred vcat(e, e)
+    @test_nowarn @inferred vcat(e, e)
 
     @test hcat(e, e).data == catobs(e, e).data
     @test vcat(e, e).metadata == catobs(e, e).metadata
 
     @test catobs(e, e) == reduce(catobs, [e, e]) == cat(e, e, dims=ndims(e))
-    @inferred catobs(e, e)
-    @inferred reduce(catobs, [e, e])
-    @inferred cat(e, e, dims=ndims(e))
+    @test_nowarn @inferred catobs(e, e)
+    @test_nowarn @inferred reduce(catobs, [e, e])
+    @test_nowarn @inferred cat(e, e, dims=ndims(e))
 
     x = ArrayNode(randn(2, 3), rand(2, 3))
     @test catobs(x, x[0:-1]) isa ArrayNode{Matrix{Float64}, Matrix{Float64}}
-    @inferred catobs(x, x[0:-1])
+    @test_nowarn @inferred catobs(x, x[0:-1])
     @test reduce(catobs, [x, x[0:-1]]) isa ArrayNode{Matrix{Float64}, Matrix{Float64}}
-    @inferred reduce(catobs, [x, x[0:-1]])
+    @test_nowarn @inferred reduce(catobs, [x, x[0:-1]])
 end
 
 @testset "BagNode catobs" begin
@@ -213,10 +213,10 @@ end
 
 @testset "catobs stability" begin
     for n in [a, b, c, d, e, f, h, k, l, wa, wb, wc, wd]
-        @inferred catobs(n, n)
-        @inferred reduce(catobs, [n, n])
-        @inferred catobs([n, n])
-        @inferred cat(n, n, dims=ndims(n))
+        @test_nowarn @inferred catobs(n, n)
+        @test_nowarn @inferred reduce(catobs, [n, n])
+        @test_nowarn @inferred catobs([n, n])
+        @test_nowarn @inferred cat(n, n, dims=ndims(n))
     end
 end
 

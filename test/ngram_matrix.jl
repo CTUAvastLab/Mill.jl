@@ -115,20 +115,20 @@ end
     @test areequal(hcat(M2, M3), reduce(hcat, [M2, M3]), NGramMatrix(vcat(S2, S3)))
     @test areequal(hcat(M1, M2, M3), reduce(hcat, [M1, M2, M3]), NGramMatrix(vcat(S1, S2, S3)))
 
-    @inferred hcat(M1, M1)
-    @inferred reduce(hcat, [M1, M1])
-    @inferred hcat(M2, M2)
-    @inferred reduce(hcat, [M2, M2])
-    @inferred hcat(M3, M3)
-    @inferred reduce(hcat, [M3, M3])
-    @inferred hcat(M1, M2)
-    @inferred reduce(hcat, [M1, M2])
-    @inferred hcat(M2, M3)
-    @inferred reduce(hcat, [M2, M3])
-    @inferred hcat(M3, M1)
-    @inferred reduce(hcat, [M3, M1])
-    @inferred hcat(M1, M2, M3)
-    @inferred reduce(hcat, [M1, M2, M3])
+    @test_nowarn @inferred hcat(M1, M1)
+    @test_nowarn @inferred reduce(hcat, [M1, M1])
+    @test_nowarn @inferred hcat(M2, M2)
+    @test_nowarn @inferred reduce(hcat, [M2, M2])
+    @test_nowarn @inferred hcat(M3, M3)
+    @test_nowarn @inferred reduce(hcat, [M3, M3])
+    @test_nowarn @inferred hcat(M1, M2)
+    @test_nowarn @inferred reduce(hcat, [M1, M2])
+    @test_nowarn @inferred hcat(M2, M3)
+    @test_nowarn @inferred reduce(hcat, [M2, M3])
+    @test_nowarn @inferred hcat(M3, M1)
+    @test_nowarn @inferred reduce(hcat, [M3, M1])
+    @test_nowarn @inferred hcat(M1, M2, M3)
+    @test_nowarn @inferred reduce(hcat, [M1, M2, M3])
 
     @test_throws DimensionMismatch hcat(NGramMatrix(S1, 1), NGramMatrix(S1, 2))
     @test_throws DimensionMismatch hcat(NGramMatrix(S1, 2, 256), NGramMatrix(S1, 2, 128))
@@ -208,9 +208,9 @@ end
         @test all(A * B ≈ A * SparseMatrixCSC(Bi))
         @test all(A * B ≈ A * SparseMatrixCSC(Bc))
 
-        @inferred A * B
-        @inferred A * Bi
-        @inferred A * Bc
+        @test_nowarn @inferred A * B
+        @test_nowarn @inferred A * Bi
+        @test_nowarn @inferred A * Bc
 
         @test eltype(A * B) == eltype(A)
         @test eltype(A * Bi) == eltype(A)
@@ -243,9 +243,9 @@ end
             @test A * Bc[:, c] == A * B1[:, c]
         end
 
-        @inferred A * B1
-        @inferred A * Bi
-        @inferred A * Bc
+        @test_nowarn @inferred A * B1
+        @test_nowarn @inferred A * Bi
+        @test_nowarn @inferred A * Bc
 
         @test eltype(A * B2) == Maybe{eltype(A)}
         @test eltype(A * Bi) == Maybe{eltype(A)}

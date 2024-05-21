@@ -67,20 +67,20 @@ end
     @test areequal(hcat(mhm, mhm3), reduce(hcat, [mhm, mhm3]), MaybeHotMatrix(vcat(mhm.I, mhm3.I), l))
     @test areequal(hcat(mhm3, mhm2), reduce(hcat, [mhm3, mhm2]), MaybeHotMatrix(vcat(mhm3.I, mhm2.I), l))
 
-    @inferred hcat(mhm)
-    @inferred reduce(hcat, [mhm])
-    @inferred hcat(mhm2)
-    @inferred reduce(hcat, [mhm2])
-    @inferred hcat(mhm3)
-    @inferred reduce(hcat, [mhm3])
-    @inferred hcat(mhm, mhm2)
-    @inferred reduce(hcat, [mhm, mhm2])
-    @inferred hcat(mhm, mhm3)
-    @inferred reduce(hcat, [mhm, mhm3])
-    @inferred hcat(mhm, mhm2, mhm3)
-    @inferred reduce(hcat, [mhm, mhm2, mhm3])
-    @inferred hcat(mhvs...)
-    @inferred reduce(hcat, mhvs)
+    @test_nowarn @inferred hcat(mhm)
+    @test_nowarn @inferred reduce(hcat, [mhm])
+    @test_nowarn @inferred hcat(mhm2)
+    @test_nowarn @inferred reduce(hcat, [mhm2])
+    @test_nowarn @inferred hcat(mhm3)
+    @test_nowarn @inferred reduce(hcat, [mhm3])
+    @test_nowarn @inferred hcat(mhm, mhm2)
+    @test_nowarn @inferred reduce(hcat, [mhm, mhm2])
+    @test_nowarn @inferred hcat(mhm, mhm3)
+    @test_nowarn @inferred reduce(hcat, [mhm, mhm3])
+    @test_nowarn @inferred hcat(mhm, mhm2, mhm3)
+    @test_nowarn @inferred reduce(hcat, [mhm, mhm2, mhm3])
+    @test_nowarn @inferred hcat(mhvs...)
+    @test_nowarn @inferred reduce(hcat, mhvs)
 
     @test_throws DimensionMismatch hcat(MaybeHotVector.([1, 2], [l, l+1])...)
     @test_throws DimensionMismatch hcat(MaybeHotMatrix.([[1], [2, 3]], [l, l+1])...)
@@ -151,12 +151,12 @@ end
     @test eltype(W * x3) ≡ eltype(W * X2) ≡ Missing
     @test eltype(W * X3) ≡ Maybe{eltype(W)}
 
-    @inferred W * x1
-    @inferred W * x2
-    @inferred W * x3
-    @inferred W * X1
-    @inferred W * X2
-    @inferred W * X3
+    @test_nowarn @inferred W * x1
+    @test_nowarn @inferred W * x2
+    @test_nowarn @inferred W * x3
+    @test_nowarn @inferred W * X1
+    @test_nowarn @inferred W * X2
+    @test_nowarn @inferred W * X3
 
     @test_throws DimensionMismatch W * MaybeHotVector(1, 5)
     @test_throws DimensionMismatch W * MaybeHotVector(missing, 3)

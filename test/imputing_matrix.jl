@@ -5,7 +5,7 @@
     for is in powerset(1:4), is in permutations(is)
         length(is) > 0 || continue
         @test hcat(As[is]...) == PreImputingMatrix(hcat(Ws[is]...), vcat(ψs[is]...))
-        @inferred hcat(As[is]...)
+        @test_nowarn @inferred hcat(As[is]...)
         @test_throws ArgumentError vcat(As[is]...)
     end
 
@@ -15,7 +15,7 @@
     for is in powerset(1:4), is in permutations(is)
         length(is) > 0 || continue
         @test vcat(As[is]...) == PostImputingMatrix(vcat(Ws[is]...), vcat(ψs[is]...))
-        @inferred vcat(As[is]...)
+        @test_nowarn @inferred vcat(As[is]...)
         @test_throws ArgumentError hcat(As[is]...)
     end
 end
@@ -43,7 +43,7 @@ end
         A = PreImputingMatrix(W, ob)
         @test A * b == W * ob
         @test eltype(A * b) ≡ promote_type(eltype(W), eltype(ob))
-        @inferred A * b
+        @test_nowarn @inferred A * b
     end
 
     function _test_imput(W, ob::Vector, t=10, p=0.2)
@@ -103,10 +103,10 @@ end
     @test A * B3 == W * [2 3; 1 1]
     @test A * B4 == W * [3 2; 1 1]
 
-    @inferred A * B1
-    @inferred A * B2
-    @inferred A * B3
-    @inferred A * B4
+    @test_nowarn @inferred A * B1
+    @test_nowarn @inferred A * B2
+    @test_nowarn @inferred A * B3
+    @test_nowarn @inferred A * B4
 
     @test eltype(A * B1) ≡ eltype(A * B2) ≡ eltype(A * B3) ≡ eltype(A * B4) ≡ Int64
 end
@@ -148,8 +148,8 @@ end
     b = [3, 1]
     @test A * B == W * B
     @test A * b == W * b
-    @inferred A * B
-    @inferred A * b
+    @test_nowarn @inferred A * B
+    @test_nowarn @inferred A * b
     @test eltype(A * B) ≡ Int64
     @test eltype(A * b) ≡ Int64
 
@@ -157,8 +157,8 @@ end
     b = [3, missing]
     @test isequal(A * B, W * B)
     @test isequal(A * b, W * b)
-    @inferred A * B
-    @inferred A * b
+    @test_nowarn @inferred A * B
+    @test_nowarn @inferred A * b
     @test eltype(A * B) ≡ Maybe{Int64}
     @test eltype(A * b) ≡ Maybe{Int64}
 
@@ -170,8 +170,8 @@ end
     b = randn(3)
     @test A * B ≈ W * B
     @test A * b ≈ W * b
-    @inferred A * B
-    @inferred A * b
+    @test_nowarn @inferred A * B
+    @test_nowarn @inferred A * b
     @test eltype(A * B) ≡ Float64
     @test eltype(A * b) ≡ Float64
 
@@ -179,8 +179,8 @@ end
     b = [3.0, missing, 1.0]
     @test isequal(A * B, W * B)
     @test isequal(A * b, W * b)
-    @inferred A * B
-    @inferred A * b
+    @test_nowarn @inferred A * B
+    @test_nowarn @inferred A * b
     @test eltype(A * B) ≡ Maybe{Float64}
     @test eltype(A * b) ≡ Maybe{Float64}
 
@@ -188,8 +188,8 @@ end
     b = fill(missing, 3)
     @test isequal(A * B, W * B)
     @test isequal(A * b, W * b)
-    @inferred A * B
-    @inferred A * b
+    @test_nowarn @inferred A * B
+    @test_nowarn @inferred A * b
     @test eltype(A * B) ≡ Missing
     @test eltype(A * b) ≡ Missing
 end
@@ -202,11 +202,11 @@ end
         i = rand(1:n)
         b = MaybeHotVector(i, n)
         @test A * b == W * onehot(b)
-        @inferred A * b
+        @test_nowarn @inferred A * b
         @test eltype(A * b) ≡ eltype(W)
         b = MaybeHotVector(missing, n)
         @test A * b == ψ
-        @inferred A * b
+        @test_nowarn @inferred A * b
         @test eltype(A * b) ≡ eltype(ψ)
     end
 end
@@ -223,13 +223,13 @@ end
         B2 = MaybeHotMatrix(i2, n)
         B3 = MaybeHotMatrix(i3, n)
         @test A * B1 == W * onehotbatch(B1)
-        @inferred A * B1
+        @test_nowarn @inferred A * B1
         @test eltype(A * B1) ≡ eltype(W)
         @test all(isequal(ψ), eachcol(A * B2))
-        @inferred A * B2
+        @test_nowarn @inferred A * B2
         @test eltype(A * B2) ≡ eltype(ψ)
         C = A * B3
-        @inferred A * B3
+        @test_nowarn @inferred A * B3
         @test eltype(A * B3) ≡ promote_type(eltype(W), eltype(ψ))
         @test all(isequal(ψ), eachcol(C[:, ismissing.(i3)]))
         @test C[:, .!ismissing.(i3)] == W * onehotbatch(skipmissing(i3), 1:n)
@@ -245,13 +245,13 @@ end
         S = [randustring(rand(1:100)) for _ in 1:k] |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
         @test A * B ≈ W * Matrix(SparseMatrixCSC(B))
-        @inferred A * B
+        @test_nowarn @inferred A * B
         @test eltype(A * B) ≡ eltype(W)
 
         S = fill(missing, k) |> PooledArray
         B = NGramMatrix(S, 3, 256, n)
         @test all(isequal(ψ), eachcol(A * B))
-        @inferred A * B
+        @test_nowarn @inferred A * B
         @test eltype(A * B) ≡ eltype(ψ)
 
         if k > 1
@@ -260,7 +260,7 @@ end
             C = A * B
             @test all(isequal(ψ), eachcol(C[:, ismissing.(S)]))
             @test C[:, .!ismissing.(S)] ≈ W * NGramMatrix(skipmissing(S) |> collect, 3, 256, n)
-            @inferred A * B
+            @test_nowarn @inferred A * B
             @test eltype(A * B) ≡ promote_type(eltype(W), eltype(ψ))
         end
     end

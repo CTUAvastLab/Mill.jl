@@ -245,9 +245,9 @@ end
         w_mat = abs.(randn(t2, size(x))) .+ t2(0.1)
         agg = all_aggregations(t1, 3)
         for a in [agg, BagCount(agg)]
-            @inferred a(x, b)
-            @inferred a(x, b, w)
-            @inferred a(x, b, w_mat)
+            @test_nowarn @inferred a(x, b)
+            @test_nowarn @inferred a(x, b, w)
+            @test_nowarn @inferred a(x, b, w_mat)
             @test eltype(a(x, b)) ≡
                     eltype(a(x, b, w)) ≡
                     eltype(a(x, b, w_mat)) ≡
