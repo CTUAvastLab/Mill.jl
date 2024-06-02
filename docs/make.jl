@@ -66,9 +66,9 @@ makedocs(
                               ],
                   "Examples" => [
                                  "Musk" => "examples/musk/musk.md",
+                                 "Processing JSONs" => "examples/jsons.md",
                                  "GNNs in 16 lines" => "examples/gnn.md",
-                                 "DAGs" => "examples/dag.md",
-                                 "Processing JSONs" => "examples/jsons.md"
+                                 "DAGs" => "examples/dag.md"
                                 ],
                   "External tools" => [
                                        "HierarchicalUtils.jl" => "tools/hierarchical.md"

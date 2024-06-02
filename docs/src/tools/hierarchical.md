@@ -1,15 +1,15 @@
-```@setup hierarchical 
-using Mill
+```@setup hierarchical
+using Mill, Flux
 ```
 
 # HierarchicalUtils.jl
 [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) uses [HierarchicalUtils.jl](https://github.com/CTUAvastLab/HierarchicalUtils.jl) which brings a lot of additional features.
 
-```@example hierarchical 
+```@example hierarchical
 using HierarchicalUtils
 ```
 
-## Printing 
+## Printing
 
 For instance, `Base.show` with `text/plain` MIME calls `HierarchicalUtils.printtree`:
 
@@ -36,7 +36,7 @@ printtree(ds)
 Callling with `trav=true` enables convenient traversal functionality with string indexing:
 
 ```@repl hierarchical
-m = reflectinmodel(ds)
+m = reflectinmodel(Flux.f32(ds))
 printtree(m; trav=true)
 ```
 
