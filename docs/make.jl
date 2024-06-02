@@ -31,39 +31,24 @@ Pkg.activate(musk_path) do
     old_path = Pkg.project().path
     Pkg.activate(pwd())
     Pkg.instantiate()
-
-    ENV["LINES"] = 25
-    ENV["COLUMNS"] = 125
     ```
     """ * s * """
     ```@setup musk
     Pkg.activate(old_path)
     ```
     """
-    Literate.markdown(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk",
-                                                                credit=false, postprocess=add_setup)
-    Literate.script(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk", credit=false)
-    Literate.notebook(joinpath(musk_path, "musk_literate.jl"), musk_path, name="musk")
+    path = joinpath(musk_path, "musk_literate.jl")
+    Literate.markdown(path, musk_path, name="musk", credit=false, postprocess=add_setup)
+    Literate.script(path, musk_path, name="musk", credit=false)
+    Literate.notebook(path, musk_path, name="musk")
 end
-
-function Mill.unpack2mill(ds::LazyNode{:Sentence})
-    s = split.(ds.data, " ")
-    x = NGramMatrix(reduce(vcat, s))
-    BagNode(x, Mill.length2bags(length.(s)))
-end
-
-DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
-    using Mill, Flux, Random, SparseArrays, Accessors, HierarchicalUtils
-    ENV["LINES"] = ENV["COLUMNS"] = typemax(Int)
-end; recursive=true)
 
 makedocs(
-         sitename = "Mill.jl",
-         format = Documenter.HTML(sidebar_sitename=false,
-                                  collapselevel=2,
-                                  assets=["assets/favicon.ico", "assets/custom.css"]),
+         sitename = "Mill.jl", modules = [Mill], doctest = false,
+         format = Documenter.HTML(sidebar_sitename = false,
+                                  collapselevel = 2,
+                                  assets = ["assets/favicon.ico", "assets/custom.css"]),
          warnonly = Documenter.except(:eval_block, :example_block, :meta_block, :setup_block),
-         modules = [Mill],
          plugins = [
              CitationBibliography(joinpath(@__DIR__, "references.bib"), style=:numeric)
          ],
@@ -102,6 +87,4 @@ makedocs(
                  ],
         )
 
-deploydocs(
-    repo = "github.com/CTUAvastLab/Mill.jl.git"
-)
+deploydocs(repo = "github.com/CTUAvastLab/Mill.jl.git")
