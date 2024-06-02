@@ -20,9 +20,9 @@ model = BagModel(
 
 model(ds)
 
-opt_state = Flux.setup(Adam(), model)
+opt_state = Flux.setup(Adam(), model);
 
-loss(m, x, y) = Flux.logitcrossentropy(m(x), y)
+loss(m, x, y) = Flux.logitcrossentropy(m(x), y);
 
 for e in 1:100
     if e % 10 == 1
