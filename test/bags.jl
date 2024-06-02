@@ -33,6 +33,7 @@ end
     @test length2bags([2]).bags == [1:2]
     @test length2bags([1]).bags == [1:1]
     @test length2bags([0]).bags == [0:-1]
+    @test length2bags(Int[]).bags == []
 end
 
 @testset "maxindex" begin

@@ -1,7 +1,7 @@
 using DataStructures: SortedDict, OrderedDict
 
-_empty_range(t::Type{<:Signed}) = zero(t):-one(t)
-_empty_range(t::Type{<:Unsigned}) = one(t):zero(t)
+_empty_range(T::Type{<:Signed}) = zero(T):-one(T)
+_empty_range(T::Type{<:Unsigned}) = one(T):zero(T)
 
 """
     AbstractBags{T}
@@ -103,10 +103,13 @@ AlignedBags{Int64}(UnitRange{Int64}[1:1, 2:4, 5:6])
 See also: [`AlignedBags`](@ref).
 """
 function length2bags(ls::Vector{T}) where T <: Integer
-    ls = vcat([zero(T)], cumsum(ls))
-    bags = map(i -> i[1] + 1:i[2], zip(ls[1:end-1], ls[2:end]))
-    bags = map(b -> isempty(b) ? _empty_range(T) : b, bags)
-    AlignedBags(bags)
+    ranges = Vector{UnitRange{T}}(undef, length(ls))
+    s = 1
+    @inbounds for (i, l) in enumerate(ls)
+        ranges[i] = l > 0 ? (s:s+l-one(T)) : _empty_range(T)
+        s += l
+    end
+    AlignedBags(ranges)
 end
 
 ChainRulesCore.@non_differentiable length2bags(ls)
