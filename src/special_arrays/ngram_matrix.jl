@@ -410,5 +410,5 @@ function _∇A_mul_ngram_vec!(Δ, s, B, bn, ∇A, k, z)
 end
 
 Base.hash(M::NGramMatrix, h::UInt) = hash((M.S, M.n, M.b, M.m), h)
-(M1::NGramMatrix == M2::NGramMatrix) = isequal(M1.S == M2.S, true) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
+(M1::NGramMatrix == M2::NGramMatrix) = M1.S == M2.S && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
 Base.isequal(M1::NGramMatrix, M2::NGramMatrix) = isequal(M1.S, M2.S) && M1.n == M2.n && M1.b == M2.b && M1.m == M2.m
