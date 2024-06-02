@@ -37,10 +37,10 @@ Pkg.activate(musk_path) do
     Pkg.activate(old_path)
     ```
     """
-    path = joinpath(musk_path, "musk_literate.jl")
-    Literate.markdown(path, musk_path, name="musk", credit=false, postprocess=add_setup)
-    Literate.script(path, musk_path, name="musk", credit=false)
-    Literate.notebook(path, musk_path, name="musk")
+    literate_file = joinpath(musk_path, "musk_literate.jl")
+    Literate.markdown(literate_file, musk_path, name="musk", credit=false, postprocess=add_setup)
+    Literate.script(literate_file, musk_path, name="musk", credit=false)
+    Literate.notebook(literate_file, musk_path, name="musk")
 end
 
 makedocs(

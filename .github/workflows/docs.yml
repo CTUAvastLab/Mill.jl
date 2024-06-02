@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - dev
+    tags: '*'
   pull_request:
     branches:
       - master
@@ -17,6 +18,7 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1'
+      - uses: julia-actions/cache@v2
       - name: Install dependencies
         run: julia --project=docs/ -e '
             using Pkg;
