@@ -62,7 +62,7 @@ opt_state = Flux.setup(Adam(), model);
 
 # ...define a loss function as `Flux.logitcrossentropy`:
 
-loss(m, x, y) = Flux.logitcrossentropy(m(x), y);
+loss(m, x, y) = Flux.Losses.logitcrossentropy(m(x), y);
 
 # ...and run a simple training procedure using the `Flux.train!` procedure:
 
