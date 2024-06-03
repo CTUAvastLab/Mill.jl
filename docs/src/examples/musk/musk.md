@@ -94,7 +94,7 @@ nothing #hide
 ...define a loss function as `Flux.logitcrossentropy`:
 
 ````@example musk
-loss(m, x, y) = Flux.logitcrossentropy(m(x), y);
+loss(m, x, y) = Flux.Losses.logitcrossentropy(m(x), y);
 nothing #hide
 ````
 

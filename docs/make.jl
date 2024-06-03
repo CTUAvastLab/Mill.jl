@@ -1,6 +1,5 @@
-using Pkg
-using Documenter, DocumenterCitations, Literate
-using Mill, Flux, Random, SparseArrays, Accessors, HierarchicalUtils
+using Mill
+using Pkg, Documenter, DocumenterCitations, Literate
 
 #=
 Useful resources for writing docs:
