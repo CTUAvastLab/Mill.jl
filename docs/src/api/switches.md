@@ -2,7 +2,7 @@
 
 ## Index
 ```@index
-Pages = ["general.md"]
+Pages = ["switches.md"]
 ```
 
 ## API

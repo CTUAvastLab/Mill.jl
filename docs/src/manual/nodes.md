@@ -2,7 +2,7 @@
 using Mill
 ```
 
-!!! ukw "Tip"
+!!! ukn "Tip"
     It is recommended to read the [Motivation](@ref) section first to understand the crucial ideas behind hierarchical multiple instance learning.
 
 # Nodes
