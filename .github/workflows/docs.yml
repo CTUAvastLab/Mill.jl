@@ -10,6 +10,10 @@ on:
     branches:
       - master
 
+permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+  actions: write
+  contents: read
+
 jobs:
   docs:
     runs-on: ubuntu-latest
