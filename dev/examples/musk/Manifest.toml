@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.3"
+julia_version = "1.10.4"
 manifest_format = "2.0"
 project_hash = "c980577c0415d2c228751f8ca1d6579dbbffa98a"
 
@@ -310,9 +310,9 @@ weakdeps = ["StaticArrays"]
 
 [[deps.Functors]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "d3e63d9fa13f8eaa2f06f64949e2afc593ff52c2"
+git-tree-sha1 = "8a66c07630d6428eaab3506a0eabfcf4a9edea05"
 uuid = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
-version = "0.4.10"
+version = "0.4.11"
 
 [[deps.Future]]
 deps = ["Random"]
@@ -332,9 +332,9 @@ version = "0.1.6"
 
 [[deps.HierarchicalUtils]]
 deps = ["DataStructures", "OrderedCollections"]
-git-tree-sha1 = "467ec10dba7f66b8076d77edeea03bb8f94ac7a8"
+git-tree-sha1 = "e557591ce208361842641a35222814c6245b2044"
 uuid = "f9ccea15-0695-44b9-8113-df7c26ae4fa9"
-version = "2.2.1"
+version = "2.2.3"
 
 [[deps.IRTools]]
 deps = ["InteractiveUtils", "MacroTools"]
