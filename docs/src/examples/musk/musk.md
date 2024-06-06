@@ -26,7 +26,7 @@ nothing #hide
 
 ### Loading the data
 
-Now we load the dataset and transform it into a `Mill` structure. The `musk.jld2` file contains...
+Now we load the dataset and transform it into a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structure. The `musk.jld2` file contains...
 * a matrix with features, each column is one instance:
 
 ````@example musk
@@ -64,7 +64,7 @@ y_oh = onehotbatch(y, 1:2)
 
 ### Model construction
 
-Once the data are in `Mill` internal format, we will manually create a model. [`BagModel`](@ref) is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
+Once the data are in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) internal format, we will manually create a model. [`BagModel`](@ref) is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:
 
 ````@example musk
 model = BagModel(
@@ -84,7 +84,7 @@ model(ds)
 
 ### Training
 
-Since `Mill` is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `Adam` optimizer:
+Since [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) is entirely compatible with [`Flux.jl`](https://fluxml.ai), we can use its `Adam` optimizer:
 
 ````@example musk
 opt_state = Flux.setup(Adam(), model);

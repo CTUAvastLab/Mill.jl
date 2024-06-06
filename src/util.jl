@@ -9,7 +9,7 @@ end
 """
     pred_lens(p, n)
 
-Return a `Vector` of `Accessors.jl` lenses for accessing all nodes/fields in `n` conforming to
+Return a `Vector` of [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lenses for accessing all nodes/fields in `n` conforming to
 predicate `p`.
 
 # Examples
@@ -49,7 +49,7 @@ end
 """
     list_lens(n)
 
-Return a `Vector` of `Accessors.jl` lenses for accessing all nodes/fields in `n`.
+Return a `Vector` of [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lenses for accessing all nodes/fields in `n`.
 
 # Examples
 ```jldoctest
@@ -79,7 +79,7 @@ list_lens(n) = pred_lens(t -> true, n)
 """
     findnonempty_lens(n)
 
-Return a `Vector` of `Accessors.jl` lenses for accessing all nodes/fields in `n` that contain at
+Return a `Vector` of [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lenses for accessing all nodes/fields in `n` that contain at
 least one observation.
 
 # Examples
@@ -104,7 +104,7 @@ findnonempty_lens(n) = pred_lens(t -> t isa AbstractMillNode && numobs(t) > 0, n
 """
     find_lens(n, x)
 
-Return a `Vector` of `Accessors.jl` lenses for accessing all nodes/fields in `n` that return `true`
+Return a `Vector` of [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lenses for accessing all nodes/fields in `n` that return `true`
 when compared to `x` using `Base.===`.
 
 # Examples
@@ -127,7 +127,7 @@ find_lens(n, x) = pred_lens(t -> t ≡ x, n)
 """
     code2lens(n, c)
 
-Convert code `c` from [HierarchicalUtils.jl](@ref) traversal to a `Vector` of `Accessors.jl`
+Convert code `c` from [`HierarchicalUtils.jl`](@ref) traversal to a `Vector` of [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl)
 lenses such that they access each node in tree `n` egal to node under code `c` in the tree.
 
 # Examples
@@ -152,7 +152,7 @@ code2lens(n::AbstractMillStruct, c::AbstractString) = find_lens(n, n[c])
 """
     lens2code(n, l)
 
-Convert `Accessors.jl` lens `l` to a `Vector` of codes from [HierarchicalUtils.jl](@ref) traversal
+Convert [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lens `l` to a `Vector` of codes from [`HierarchicalUtils.jl`](@ref) traversal
 such that they access each node in tree `n` egal to node accessible by lens `l`.
 
 # Examples
@@ -185,7 +185,7 @@ end
 """
     model_lens(m, l)
 
-Convert `Accessors.jl` lens `l` for a data node to a new lens for accessing the same location in model `m`.
+Convert [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lens `l` for a data node to a new lens for accessing the same location in model `m`.
 
 # Examples
 ```jldoctest
@@ -221,7 +221,7 @@ model_lens(::Union{AbstractMillModel, NamedTuple, Tuple}, lens::typeof(identity)
 """
     data_lens(n, l)
 
-Convert `Accessors.jl` lens `l` for a model node to a new lens for accessing the same location in data node `n`.
+Convert [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lens `l` for a model node to a new lens for accessing the same location in data node `n`.
 
 # Examples
 ```jldoctest

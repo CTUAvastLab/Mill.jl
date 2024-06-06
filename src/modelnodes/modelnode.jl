@@ -1,7 +1,7 @@
 """
     AbstractMillModel
 
-Supertype for any model defined in `Mill.jl`.
+Supertype for any model defined in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
 """
 abstract type AbstractMillModel end
 

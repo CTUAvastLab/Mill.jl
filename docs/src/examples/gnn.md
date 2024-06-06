@@ -31,7 +31,10 @@ Furthermore, let's assume that each vertex is described by three features stored
 X = ArrayNode(randn(Float32, 3, 10))
 ```
 
-We use [`ScatteredBags`](@ref) from `Mill` to encode neighbors of each vertex. In other words, each vertex is described by a bag of its neighbors. This information is conveniently stored in `fadjlist` field of `g`, therefore the bags can be constructed as:
+We use [`ScatteredBags`](@ref) from [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) to encode
+neighbors of each vertex. In other words, each vertex is described by a bag of its neighbors. This
+information is conveniently stored in `fadjlist` field of `g`, therefore the bags can be constructed
+as:
 
 ```@repl gnn
 b = ScatteredBags(g.fadjlist)
@@ -83,7 +86,9 @@ end
 nothing # hide
 ```
 
-As it is the case with whole `Mill`, even this graph neural network is properly integrated with [`Flux.jl`](https://fluxml.ai) ecosystem and suports automatic differentiation:
+As it is the case with whole [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), even this graph
+neural network is properly integrated with [`Flux.jl`](https://fluxml.ai) ecosystem and suports
+automatic differentiation:
 
 ```@example gnn
 zd = 4
@@ -100,6 +105,8 @@ gnn(g, X, 5)
 gradient(m -> m(g, X, 5) |> sum, gnn)
 ```
 
-The above implementation is surprisingly general, as it supports an arbitrarily rich description of vertices. For simplicity, we used only vectors in `X`, however, any `Mill` hierarchy is applicable.
+The above implementation is surprisingly general, as it supports an arbitrarily rich description of
+vertices. For simplicity, we used only vectors in `X`, however, any
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) hierarchy is applicable.
 
 To put different weights on edges, one can use [Weighted aggregation](@ref).

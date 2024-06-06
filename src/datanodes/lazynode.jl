@@ -37,7 +37,7 @@ LazyNode(Name::Symbol, d, m=nothing) = LazyNode{Name}(d, m)
 """
     Mill.unpack2mill(x::LazyNode)
 
-Return a representation of [`LazyNode`](@ref) `x` using `Mill.jl` structures. Every custom
+Return a representation of [`LazyNode`](@ref) `x` using [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) structures. Every custom
 [`LazyNode`](@ref) should have a special method as it is used in [`LazyModel`](@ref).
 
 # Examples

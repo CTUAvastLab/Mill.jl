@@ -2,13 +2,13 @@
     reflectinmodel(x::AbstractMillNode, fm=d -> Dense(d, 10), fa=BagCount ∘ SegmentedMeanMax;
         fsm=Dict(), fsa=Dict(), single_key_identity=true, single_scalar_identity=true, all_imputing=false)
 
-Build a `Mill.jl` model capable of processing `x`.
+Build a [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) model capable of processing `x`.
 
 All inner `Dense` layers are constructed using `fm`, a function accepting input dimension `d` and
 returning a suitable model. All aggregation operators are constructed using `fa` in a similar manner.
 
 More fine-grained control can be achieved with `fsm` and `fsa` keyword arguments, which should be
-`Dict`s of `c => f` pairs, where `c` is a `String` traversal code from [HierarchicalUtils.jl](@ref) and
+`Dict`s of `c => f` pairs, where `c` is a `String` traversal code from [`HierarchicalUtils.jl`](@ref) and
 `f` is a function. These definitions override `fm` and `fa`.
 
 If a [`ProductNode`](@ref) with only a single child (subtree) is encountered, its final `m` model

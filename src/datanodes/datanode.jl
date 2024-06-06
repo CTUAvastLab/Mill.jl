@@ -98,7 +98,7 @@ function catobs end
 
 Extract a subset `i` of samples (observations) stored in node `n`.
 
-Similar to `Base.getindex` or `MLUtils.getobs` but defined for all `Mill.jl` compatible data as well.
+Similar to `Base.getindex` or `MLUtils.getobs` but defined for all [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) compatible data as well.
 
 # Examples
 ```jldoctest

@@ -59,7 +59,9 @@ hosts = [
 ]
 ```
 
-`Mill` offers `n`gram histogram-based representation for strings. To get started, we pass the vector of strings into the constructor of [`NGramMatrix`](@ref):
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) offers `n`gram histogram-based representation
+for strings. To get started, we pass the vector of strings into the constructor of
+    [`NGramMatrix`](@ref):
 
 ```@repl leafs
 hosts_ngrams = NGramMatrix(hosts, 3, 256, 7)
@@ -139,4 +141,8 @@ gradient(m -> sum(m(ds)), m)
 !!! ukn "Numerical features"
     To put all numerical features into one [`ArrayNode`](@ref) is a design choice. We could as well introduce more keys in the final [`ProductNode`](@ref). The model treats these two cases slightly differently (see [Nodes](@ref) section).
 
-This dummy example illustrates the versatility of `Mill`. With little to no preprocessing we are able to process complex hierarchical structures and avoid manually designing feature extraction procedures. For a more involved study on processing Internet traffic with `Mill`, see for example [Pevny2020](@cite).
+This dummy example illustrates the versatility of
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl). With little to no preprocessing we are able to
+process complex hierarchical structures and avoid manually designing feature extraction procedures.
+For a more involved study on processing Internet traffic with
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl), see for example [Pevny2020](@cite).

@@ -26,9 +26,10 @@ Julia v1.9 or later is required.
 
 For the quickest start, see the [Musk](@ref) example.
 
-* [Motivation](@ref): a brief introduction into the philosophy of `Mill`
-* [Manual](@ref Nodes): a brief tutorial into `Mill`
-* [Examples](@ref Musk): some examples of `Mill` use
+* [Motivation](@ref): a brief introduction into the philosophy of
+  [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl)
+* [Manual](@ref Nodes): a brief tutorial into [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl)
+* [Examples](@ref Musk): some examples of [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) use
 * [External tools](@ref HierarchicalUtils.jl): examples of integration with other packages
 * [Public API](@ref Aggregation): extensive API reference
 * [References](@ref): related literature

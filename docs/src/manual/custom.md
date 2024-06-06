@@ -5,12 +5,18 @@ using Flux
 
 ## Custom nodes
 
-[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data, such as `Array`, `DataFrame`, and others. It is of course possible to define a custom data (and model) nodes. A useful abstraction for implementing custom data nodes suitable for most cases  is [`LazyNode`](@ref), which you can easily use to extend the functionality of `Mill`.
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) data nodes are lightweight wrappers around data,
+such as `Array`, `DataFrame`, and others. It is of course possible to define a custom data (and
+model) nodes. A useful abstraction for implementing custom data nodes suitable for most cases  is
+[`LazyNode`](@ref), which you can easily use to extend the functionality of
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
 
 ### Unix path example
 
-Let's define a custom node type for representing path names in Unix and one custom model type for processing it. [`LazyNode`](@ref)
-serves as a bolierplate for simple extension of `Mill` ecosystem. We start by by defining an example of such node:
+Let's define a custom node type for representing path names in Unix and one custom model type for
+processing it. [`LazyNode`](@ref) serves as a bolierplate for simple extension of
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) ecosystem. We start by by defining an example of
+such node:
 
 ```@repl custom
 ds = LazyNode{:Path}(["/var/lib/blob_files/myfile.blob"])
@@ -20,10 +26,11 @@ Entirely new type is not needed, because we can dispatch on the first type param
 `:Path` "tag" in this case defines a special kind of [`LazyNode`](@ref). Consequently, we can define
 multiple variations of custom [`LazyNode`](@ref) without any conflicts in dispatch.
 
-As a next step, we extend the [`Mill.unpack2mill`](@ref) function, which always takes one [`LazyNode`](@ref)
-and produces an arbitrary `Mill` structure. We will represent individual file and directory names (as obtained
-by `splitpath`) using an [`NGramMatrix`](@ref) representation and, for simplicity, the whole path as
-a bag of individual names:
+As a next step, we extend the [`Mill.unpack2mill`](@ref) function, which always takes one
+[`LazyNode`](@ref) and produces an arbitrary [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl)
+structure. We will represent individual file and directory names (as obtained by `splitpath`) using
+an [`NGramMatrix`](@ref) representation and, for simplicity, the whole path as a bag of individual
+names:
 
 ```@example custom
 function Mill.unpack2mill(ds::LazyNode{:Path})
@@ -69,10 +76,13 @@ pm(ds)
 The solution using [`LazyNode`](@ref) is sufficient in most scenarios. For other cases, it is recommended to equip custom nodes with the following functionality:
 
 * allow nesting (if needed)
-* implement [`Mill.subset`](@ref) and optionally `Base.getindex` to obtain subsets of observations. `Mill` already defines [`Mill.subset`](@ref) for common datatypes, which can be used.
+* implement [`Mill.subset`](@ref) and optionally `Base.getindex` to obtain subsets of observations.
+  [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) already defines [`Mill.subset`](@ref) for
+  common datatypes, which can be used.
 * allow concatenation of nodes with [`catobs`](@ref). Optionally, implement `reduce(catobs, ...)` as well to avoid excessive compilations if a number of arguments will vary a lot
-* define a specialized method for `MLUtils.numobs`, which we can however import directly from `Mill`.
-* register the custom node with [HierarchicalUtils.jl](@ref) to obtain pretty printing, iterators and other functionality
+* define a specialized method for `MLUtils.numobs`, which we can however import directly from
+  [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
+* register the custom node with [`HierarchicalUtils.jl`](@ref) to obtain pretty printing, iterators and other functionality
 
 Here is an example of a custom node with the same functionality as in the [Unix path example](@ref)
 section:

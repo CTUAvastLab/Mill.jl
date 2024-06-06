@@ -56,14 +56,15 @@ ds = BagNode(ProductNode((BagNode(randn(Float32, 4, 10),
              [1:1, 2:3, 4:5])
 ```
 
-When data and model trees become complex, `Mill` limits the printing. To inspect the whole tree, use
-`printtree`:
+When data and model trees become complex, [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) limits
+the printing. To inspect the whole tree, use `printtree`:
 
 ```@repl more_on_nodes
 printtree(ds)
 ```
 
-Instead of defining a model manually, we can also make use of [Model reflection](@ref), another `Mill` functionality, which simplifies model creation:
+Instead of defining a model manually, we can also make use of [Model reflection](@ref), another
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) functionality, which simplifies model creation:
 
 ```@repl more_on_nodes
 m = reflectinmodel(ds, d -> Dense(d, 2), SegmentedMean)
@@ -72,7 +73,8 @@ m(ds)
 
 ## Node conveniences
 
-To make the handling of data and model hierarchies easier, `Mill` provides several tools. Let's setup some data:
+To make the handling of data and model hierarchies easier,
+[`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) provides several tools. Let's setup some data:
 
 ```@repl more_on_nodes
 AN = ArrayNode(Float32.([1 2 3 4; 5 6 7 8]))
@@ -95,7 +97,8 @@ numobs(PN)
 
 ### Indexing and Slicing
 
-Indexing in [`Mill`] operates **on the level of observations**:
+Indexing in [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) operates **on the level of
+observations**:
 
 ```@repl more_on_nodes
 AN[1]
