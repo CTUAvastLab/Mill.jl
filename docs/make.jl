@@ -52,38 +52,38 @@ makedocs(
              CitationBibliography(joinpath(@__DIR__, "references.bib"), style=:numeric)
          ],
          pages = [
-                  "Home" => "index.md",
-                  "Motivation" => "motivation.md",
-                  "Manual" => [
-                               "Nodes" => "manual/nodes.md",
-                               "More on nodes" => "manual/more_on_nodes.md",
-                               "Model reflection" => "manual/reflectin.md",
-                               "Bag aggregation" => "manual/aggregation.md",
-                               "Data in leaves" => "manual/leaf_data.md",
-                               "Missing data" => "manual/missing.md",
-                               "Custom nodes" => "manual/custom.md"
-                              ],
-                  "Examples" => [
-                                 "Musk" => "examples/musk/musk.md",
-                                 "Processing JSONs" => "examples/jsons.md",
-                                 "GNNs in 16 lines" => "examples/gnn.md",
-                                 "DAGs" => "examples/dag.md"
-                                ],
-                  "External tools" => [
-                                       "HierarchicalUtils.jl" => "tools/hierarchical.md"
-                                      ],
-                  "Public API" => [
-                            "Aggregation" => "api/aggregation.md",
-                            "Bags" => "api/bags.md",
-                            "Data nodes" => "api/data_nodes.md",
-                            "Model nodes" => "api/model_nodes.md",
-                            "Special Arrays" => "api/special_arrays.md",
-                            "Switches" => "api/switches.md",
-                            "Utilities" => "api/utilities.md"
-                           ],
-                  "References" => "references.md",
-                  "Citation" => "citation.md"
-                 ],
+             "Home" => "index.md",
+             "Motivation" => "motivation.md",
+             "Manual" => [
+                 "Nodes" => "manual/nodes.md",
+                 "More on nodes" => "manual/more_on_nodes.md",
+                 "Model reflection" => "manual/reflectin.md",
+                 "Bag aggregation" => "manual/aggregation.md",
+                 "Data in leaves" => "manual/leaf_data.md",
+                 "Missing data" => "manual/missing.md",
+                 "Custom nodes" => "manual/custom.md"
+             ],
+             "Examples" => [
+                 "Musk" => "examples/musk/musk.md",
+                 "Processing JSONs" => "examples/jsons.md",
+                 "GNNs in 16 lines" => "examples/gnn.md",
+                 "DAGs" => "examples/dag.md"
+             ],
+             "External tools" => [
+                 "HierarchicalUtils.jl" => "tools/hierarchical.md"
+             ],
+             "Public API" => [
+                 "Aggregation" => "api/aggregation.md",
+                 "Bags" => "api/bags.md",
+                 "Data nodes" => "api/data_nodes.md",
+                 "Model nodes" => "api/model_nodes.md",
+                 "Special Arrays" => "api/special_arrays.md",
+                 "Switches" => "api/switches.md",
+                 "Utilities" => "api/utilities.md"
+             ],
+             "References" => "references.md",
+             "Citation" => "citation.md"
+         ],
         )
 
 deploydocs(repo = "github.com/CTUAvastLab/Mill.jl.git")
