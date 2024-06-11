@@ -70,7 +70,7 @@ Kindly cite our work with the following entries if you find it interesting, plea
   }
   ```
 
-* this implementation (fill in the used `version`):
+* this implementation (fill in the used `version`)
 
   ```
   @software{Mill,

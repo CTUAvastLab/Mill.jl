@@ -414,9 +414,9 @@ version = "0.9.19"
 
 [[deps.LLVM]]
 deps = ["CEnum", "LLVMExtra_jll", "Libdl", "Preferences", "Printf", "Requires", "Unicode"]
-git-tree-sha1 = "065c36f95709dd4a676dc6839a35d6fa6f192f24"
+git-tree-sha1 = "9ed3ebaf6bc3db16cf45ce34b968d348fc54d990"
 uuid = "929cbde3-209d-540e-8aea-75f648917ca0"
-version = "7.1.0"
+version = "7.2.0"
 
     [deps.LLVM.extensions]
     BFloat16sExt = "BFloat16s"
