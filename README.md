@@ -43,15 +43,16 @@ Kindly cite our work with the following entries if you find it interesting, plea
   data*](https://jmlr.org/papers/v23/21-0174.html)
 
   ```
-  @article{Mandlik2021,
-    author  = {Šimon Mandlík and Matěj Račinský and Viliam Lisý and Tomáš Pevný},
-    title   = {JsonGrinder.jl: automated differentiable neural architecture for embedding arbitrary JSON data},
-    journal = {Journal of Machine Learning Research},
-    year    = {2022},
-    volume  = {23},
-    number  = {298},
-    pages   = {1--5},
-    url     = {http://jmlr.org/papers/v23/21-0174.html}
+  @article{Mandlik2022,
+   author = {Šimon Mandlík and Matěj Račinský and Viliam Lisý and Tomáš Pevný},
+   issn = {1533-7928},
+   issue = {298},
+   journal = {Journal of Machine Learning Research},
+   pages = {1-5},
+   title = {JsonGrinder.jl: automated differentiable neural architecture for embedding arbitrary JSON data},
+   volume = {23},
+   url = {http://jmlr.org/papers/v23/21-0174.html},
+   year = {2022},
   }
   ```
 
