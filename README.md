@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/CTUAvastLab/Mill.jl/blob/master/LICENSE.md)
 [![Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://CTUAvastLab.github.io/Mill.jl/stable)
 [![Build Status](https://github.com/CTUAvastLab/Mill.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/CTUAvastLab/Mill.jl/actions/workflows/ci.yml)
-[![codecov.io](http://codecov.io/github/CTUAvastLab/Mill.jl/coverage.svg?branch=master)](http://codecov.io/github/CTUAvastLab/Mill.jl?branch=master)
+[![codecov](https://codecov.io/gh/CTUAvastLab/Mill.jl/graph/badge.svg?token=bIjsTgkv8C)](https://codecov.io/gh/CTUAvastLab/Mill.jl)
 
 `Mill.jl` (Multiple Instance Learning Library) is a library aimed to build flexible hierarchical multi-instance learning models built on top of [`Flux.jl`](https://fluxml.ai). It is developed to be:
 
