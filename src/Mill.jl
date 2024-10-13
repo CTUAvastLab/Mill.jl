@@ -3,6 +3,7 @@ module Mill
 using Accessors
 using ChainRulesCore
 using Combinatorics
+using Compat
 using DataFrames
 using FiniteDifferences
 using Flux
@@ -39,6 +40,9 @@ promote_maybe_type(::Type{<:Maybe{T}}, ::Type{<:Maybe{U}}) where {T, U} = promot
 promote_maybe_type(t1, t2) = promote_type(t1, t2)
 
 include("switches.jl")
+@compat public emptyismissing, emptyismissing!
+@compat public string_start_code, string_start_code!
+@compat public string_end_code, string_end_code!
 
 include("bags.jl")
 export AbstractBags, AlignedBags, ScatteredBags, length2bags, remapbags, bags, adjustbags
@@ -47,6 +51,7 @@ include("datanodes/datanode.jl")
 export AbstractMillNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export numobs, getobs, catobs, removeinstances, dropmeta
+@compat public subset, data, metadata, mapdata, unpack2mill
 
 include("special_arrays/special_arrays.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch, maybecold
