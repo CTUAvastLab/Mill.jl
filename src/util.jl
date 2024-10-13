@@ -15,10 +15,10 @@ predicate `p`.
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode  2 obs, 16 bytes
-  ├── BagNode  2 obs, 88 bytes
+ProductNode  2 obs, 0 bytes
+  ├── BagNode  2 obs, 80 bytes
   │     ╰── ∅
-  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
 
 julia> pred_lens(x -> x isa ArrayNode, n)
 1-element Vector{Any}:
@@ -54,10 +54,10 @@ Return a `Vector` of [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode  2 obs, 16 bytes
-  ├── BagNode  2 obs, 88 bytes
+ProductNode  2 obs, 0 bytes
+  ├── BagNode  2 obs, 80 bytes
   │     ╰── ∅
-  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
 
 julia> list_lens(n)
 9-element Vector{Any}:
@@ -85,10 +85,10 @@ least one observation.
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode  2 obs, 16 bytes
-  ├── BagNode  2 obs, 88 bytes
+ProductNode  2 obs, 0 bytes
+  ├── BagNode  2 obs, 80 bytes
   │     ╰── ∅
-  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
 
 julia> findnonempty_lens(n)
 3-element Vector{Any}:
@@ -110,10 +110,10 @@ when compared to `x` using `Base.===`.
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode  2 obs, 16 bytes
-  ├── BagNode  2 obs, 88 bytes
+ProductNode  2 obs, 0 bytes
+  ├── BagNode  2 obs, 80 bytes
   │     ╰── ∅
-  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
 
 julia> find_lens(n, n.data[1])
 1-element Vector{Any}:
@@ -135,10 +135,10 @@ lenses such that they access each node in tree `n` egal to node under code `c` i
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])));
 
 julia> printtree(n; trav=true)
-ProductNode [""]  2 obs, 16 bytes
-  ├── BagNode ["E"]  2 obs, 88 bytes
+ProductNode [""]  2 obs, 0 bytes
+  ├── BagNode ["E"]  2 obs, 80 bytes
   │     ╰── ∅ ["M"]
-  ╰── ArrayNode(2×2 Array with Int64 elements) ["U"]  2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements) ["U"]  2 obs, 88 bytes
 
 julia> code2lens(n, "U")
 1-element Vector{Any}:
@@ -160,10 +160,10 @@ such that they access each node in tree `n` egal to node accessible by lens `l`.
 julia> n = ProductNode((BagNode(missing, bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])));
 
 julia> printtree(n; trav=true)
-ProductNode [""]  2 obs, 16 bytes
-  ├── BagNode ["E"]  2 obs, 88 bytes
+ProductNode [""]  2 obs, 0 bytes
+  ├── BagNode ["E"]  2 obs, 80 bytes
   │     ╰── ∅ ["M"]
-  ╰── ArrayNode(2×2 Array with Int64 elements) ["U"]  2 obs, 80 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements) ["U"]  2 obs, 88 bytes
 
 julia> lens2code(n, (@optic _.data[2]))
 1-element Vector{String}:
@@ -191,16 +191,16 @@ Convert [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lens `l` 
 ```jldoctest
 julia> n = ProductNode((BagNode(randn(Float32, 2, 2), bags([0:-1, 0:-1])),
                         ArrayNode(Float32[1 2; 3 4])))
-ProductNode  2 obs, 24 bytes
-  ├── BagNode  2 obs, 96 bytes
-  │     ╰── ArrayNode(2×2 Array with Float32 elements)  2 obs, 64 bytes
-  ╰── ArrayNode(2×2 Array with Float32 elements)  2 obs, 64 bytes
+ProductNode  2 obs, 0 bytes
+  ├── BagNode  2 obs, 80 bytes
+  │     ╰── ArrayNode(2×2 Array with Float32 elements)  2 obs, 72 bytes
+  ╰── ArrayNode(2×2 Array with Float32 elements)  2 obs, 72 bytes
 
 julia> m = reflectinmodel(n)
-ProductModel ↦ Dense(20 => 10)  2 arrays, 210 params, 920 bytes
-  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.094 KiB
-  │     ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes
-  ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes
+ProductModel ↦ Dense(20 => 10)  2 arrays, 210 params, 928 bytes
+  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.102 KiB
+  │     ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes
+  ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes
 
 julia> model_lens(m, (@optic _.data[2]))
 (@o _.ms[2])
@@ -226,16 +226,16 @@ Convert [`Accessors.jl`](https://github.com/JuliaObjects/Accessors.jl) lens `l` 
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(randn(Float32, 2, 2), bags([0:-1, 0:-1])), ArrayNode(Float32[1 2; 3 4])))
-ProductNode  2 obs, 24 bytes
-  ├── BagNode  2 obs, 96 bytes
-  │     ╰── ArrayNode(2×2 Array with Float32 elements)  2 obs, 64 bytes
-  ╰── ArrayNode(2×2 Array with Float32 elements)  2 obs, 64 bytes
+ProductNode  2 obs, 0 bytes
+  ├── BagNode  2 obs, 80 bytes
+  │     ╰── ArrayNode(2×2 Array with Float32 elements)  2 obs, 72 bytes
+  ╰── ArrayNode(2×2 Array with Float32 elements)  2 obs, 72 bytes
 
 julia> m = reflectinmodel(n)
-ProductModel ↦ Dense(20 => 10)  2 arrays, 210 params, 920 bytes
-  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.094 KiB
-  │     ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes
-  ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes
+ProductModel ↦ Dense(20 => 10)  2 arrays, 210 params, 928 bytes
+  ├── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.102 KiB
+  │     ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes
+  ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes
 
 julia> data_lens(n, (@optic _.ms[2]))
 (@o _.data[2])
@@ -263,15 +263,15 @@ Short description
 # Examples
 ```jldoctest
 julia> n = ProductNode((BagNode(randn(2, 2), bags([0:-1, 0:-1])), ArrayNode([1 2; 3 4])))
-ProductNode  2 obs, 24 bytes
-  ├── BagNode  2 obs, 96 bytes
-  │     ╰── ArrayNode(2×2 Array with Float64 elements)  2 obs, 80 bytes
-  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 80 bytes
+ProductNode  2 obs, 0 bytes
+  ├── BagNode  2 obs, 80 bytes
+  │     ╰── ArrayNode(2×2 Array with Float64 elements)  2 obs, 88 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
 
 julia> replacein(n, n.data[1], ArrayNode(maybehotbatch([1, 2], 1:2)))
-ProductNode  2 obs, 24 bytes
-  ├── ArrayNode(2×2 MaybeHotMatrix with Bool elements)  2 obs, 80 bytes
-  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 80 bytes
+ProductNode  2 obs, 0 bytes
+  ├── ArrayNode(2×2 MaybeHotMatrix with Bool elements)  2 obs, 64 bytes
+  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
 ```
 """
 replacein(x, _, _) = x

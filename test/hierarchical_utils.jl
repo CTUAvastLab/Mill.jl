@@ -148,24 +148,24 @@ end
 @testset "printtree" begin
     @test buf_printtree(n2, trav=true) ==
         """
-        ProductNode [""]  2 obs, 120 bytes
-          ├── ProductNode ["E"]  2 obs, 80 bytes
-          │     ├─── b: BagNode ["I"]  2 obs, 192 bytes
-          │     │         ╰── ArrayNode(3×4 Array with Float32 elements) ["K"]  4 obs, 96 bytes
-          │     ╰── wb: WeightedBagNode ["M"]  2 obs, 280 bytes
-          │               ╰── ArrayNode(17×4 NGramMatrix with Int64 elements) ["O"]  4 obs, 186 bytes
-          ╰── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) ["U"]  2 obs, 464 bytes
+        ProductNode [""]  2 obs, 0 bytes
+          ├── ProductNode ["E"]  2 obs, 0 bytes
+          │     ├─── b: BagNode ["I"]  2 obs, 176 bytes
+          │     │         ╰── ArrayNode(3×4 Array with Float32 elements) ["K"]  4 obs, 104 bytes
+          │     ╰── wb: WeightedBagNode ["M"]  2 obs, 240 bytes
+          │               ╰── ArrayNode(17×4 NGramMatrix with Int64 elements) ["O"]  4 obs, 154 bytes
+          ╰── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) ["U"]  2 obs, 424 bytes
         """
 
     @test buf_printtree(n2m, trav=true) ==
         """
-        ProductModel ↦ Dense(20 => 10) [""]  2 arrays, 210 params, 920 bytes
-          ├── ProductModel ↦ Dense(20 => 10) ["E"]  2 arrays, 210 params, 920 bytes
-          │     ├─── b: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["I"]  4 arrays, 240 params, 1.094 KiB
-          │     │         ╰── ArrayModel(Dense(3 => 10)) ["K"]  2 arrays, 40 params, 240 bytes
-          │     ╰── wb: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["M"]  4 arrays, 240 params, 1.094 KiB
-          │               ╰── ArrayModel(Dense(17 => 10)) ["O"]  2 arrays, 180 params, 800 bytes
-          ╰── ArrayModel(Dense(10 => 10)) ["U"]  2 arrays, 110 params, 520 bytes
+        ProductModel ↦ Dense(20 => 10) [""]  2 arrays, 210 params, 928 bytes
+          ├── ProductModel ↦ Dense(20 => 10) ["E"]  2 arrays, 210 params, 928 bytes
+          │     ├─── b: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["I"]  4 arrays, 240 params, 1.102 KiB
+          │     │         ╰── ArrayModel(Dense(3 => 10)) ["K"]  2 arrays, 40 params, 248 bytes
+          │     ╰── wb: BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["M"]  4 arrays, 240 params, 1.102 KiB
+          │               ╰── ArrayModel(Dense(17 => 10)) ["O"]  2 arrays, 180 params, 808 bytes
+          ╰── ArrayModel(Dense(10 => 10)) ["U"]  2 arrays, 110 params, 528 bytes
         """
 end
 
@@ -188,7 +188,7 @@ end
     @test buf_printtree(m, trav=true) ==
         """
         LazyModel{Codons} [""]
-          ╰── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["U"]  4 arrays, 240 params, 1.094 KiB
-                ╰── ArrayModel(Dense(64 => 10)) ["k"]  2 arrays, 650 params, 2.617 KiB
+          ╰── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10) ["U"]  4 arrays, 240 params, 1.102 KiB
+                ╰── ArrayModel(Dense(64 => 10)) ["k"]  2 arrays, 650 params, 2.625 KiB
         """
 end

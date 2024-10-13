@@ -97,9 +97,9 @@ julia> maybehotbatch([:c, :a], [:a, :b, :c])
 
 julia> maybehotbatch([missing, 2], 1:3)
 3×2 MaybeHotMatrix with eltype Union{Missing, Bool}:
- missing    ⋅
- missing   true
- missing    ⋅
+ missing  ⋅
+ missing  1
+ missing  ⋅
 ```
 
 See also: [`maybehot`](@ref), [`MaybeHotMatrix`](@ref), [`MaybeHotVector`](@ref).

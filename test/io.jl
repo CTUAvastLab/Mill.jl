@@ -7,72 +7,72 @@
         2×5 ArrayNode{Matrix{Float32}, Nothing}:
          1.0  1.0  1.0  1.0  1.0
          1.0  1.0  1.0  1.0  1.0"""
-    @test datasummary(an) == "Data summary: 5 obs, 88 bytes."
+    @test datasummary(an) == "Data summary: 5 obs, 96 bytes."
 
     anm = reflectinmodel(an)
     @test repr(anm) == "ArrayModel(Dense(2 => 10))"
     @test repr(anm; context=:compact => true) == "ArrayModel"
     @test repr(MIME("text/plain"), anm) ==
         """
-        ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes"""
-    @test modelsummary(anm) == "Model summary: 2 arrays, 30 params, 200 bytes"
+        ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes"""
+    @test modelsummary(anm) == "Model summary: 2 arrays, 30 params, 208 bytes"
 
     bn = BagNode(deepcopy(an), bags([1:2, 3:5]))
     @test repr(bn) == repr(bn; context=:compact => true) == "BagNode"
     @test repr(MIME("text/plain"), bn) ==
         """
-        BagNode  2 obs, 96 bytes
-          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 88 bytes"""
-    @test datasummary(bn) == "Data summary: 2 obs, 184 bytes."
+        BagNode  2 obs, 80 bytes
+          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 96 bytes"""
+    @test datasummary(bn) == "Data summary: 2 obs, 176 bytes."
 
     bnm = reflectinmodel(bn, d -> Dense(d, 10), SegmentedMean)
     @test repr(bnm) == "BagModel ↦ SegmentedMean(10) ↦ Dense(10 => 10)"
     @test repr(bnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), bnm) ==
         """
-        BagModel ↦ SegmentedMean(10) ↦ Dense(10 => 10)  3 arrays, 120 params, 600 bytes
-          ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes"""
-    @test modelsummary(bnm) == "Model summary: 5 arrays, 150 params, 800 bytes"
+        BagModel ↦ SegmentedMean(10) ↦ Dense(10 => 10)  3 arrays, 120 params, 608 bytes
+          ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes"""
+    @test modelsummary(bnm) == "Model summary: 5 arrays, 150 params, 816 bytes"
 
     wbn = WeightedBagNode(deepcopy(an), bags([1:2, 3:5]), rand(Float32, 5))
     @test repr(wbn) == repr(wbn; context=:compact => true) == "WeightedBagNode"
     @test repr(MIME("text/plain"), wbn) ==
         """
-        WeightedBagNode  2 obs, 164 bytes
-          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 88 bytes"""
-    @test datasummary(wbn) == "Data summary: 2 obs, 252 bytes."
+        WeightedBagNode  2 obs, 148 bytes
+          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 96 bytes"""
+    @test datasummary(wbn) == "Data summary: 2 obs, 244 bytes."
 
     wbnm = reflectinmodel(wbn)
     @test repr(wbnm) == "BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)"
     @test repr(wbnm; context=:compact => true) == "BagModel"
     @test repr(MIME("text/plain"), wbnm) == 
         """
-        BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.094 KiB
-          ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes"""
-    @test modelsummary(wbnm) == "Model summary: 6 arrays, 270 params, 1.289 KiB"
+        BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.102 KiB
+          ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes"""
+    @test modelsummary(wbnm) == "Model summary: 6 arrays, 270 params, 1.305 KiB"
 
 	pn = ProductNode(bn=deepcopy(bn), wbn=deepcopy(wbn))
     @test repr(pn) == repr(pn; context=:compact => true) == "ProductNode"
     @test repr(MIME("text/plain"), pn) ==
         """
-        ProductNode  2 obs, 40 bytes
-          ├─── bn: BagNode  2 obs, 96 bytes
-          │          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 88 bytes
-          ╰── wbn: WeightedBagNode  2 obs, 164 bytes
-                     ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 88 bytes"""
-    @test datasummary(pn) == "Data summary: 2 obs, 516 bytes."
+        ProductNode  2 obs, 0 bytes
+          ├─── bn: BagNode  2 obs, 80 bytes
+          │          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 96 bytes
+          ╰── wbn: WeightedBagNode  2 obs, 148 bytes
+                     ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 96 bytes"""
+    @test datasummary(pn) == "Data summary: 2 obs, 420 bytes."
 
     pnm = reflectinmodel(pn, d -> Dense(d, 10), BagCount ∘ SegmentedMean)
     @test repr(pnm) == "ProductModel ↦ Dense(20 => 10)"
     @test repr(pnm; context=:compact => true) == "ProductModel"
     @test repr(MIME("text/plain"), pnm) ==
         """
-        ProductModel ↦ Dense(20 => 10)  2 arrays, 210 params, 920 bytes
-          ├─── bn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ Dense(11 => 10)  3 arrays, 130 params, 640 bytes
-          │          ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes
-          ╰── wbn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ Dense(11 => 10)  3 arrays, 130 params, 640 bytes
-                     ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 200 bytes"""
-    @test modelsummary(pnm) == "Model summary: 12 arrays, 530 params, 2.539 KiB"
+        ProductModel ↦ Dense(20 => 10)  2 arrays, 210 params, 928 bytes
+          ├─── bn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ Dense(11 => 10)  3 arrays, 130 params, 648 bytes
+          │          ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes
+          ╰── wbn: BagModel ↦ BagCount(SegmentedMean(10)) ↦ Dense(11 => 10)  3 arrays, 130 params, 648 bytes
+                     ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes"""
+    @test modelsummary(pnm) == "Model summary: 12 arrays, 530 params, 2.578 KiB"
 
     ln = LazyNode{:Sentence}(["a", "b", "c", "d"])
     @test repr(ln) == "LazyNode{Sentence}(String)"
@@ -92,21 +92,21 @@
     @test repr(MIME("text/plain"), lnm) == 
         """
         LazyModel{Sentence}
-          ╰── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.094 KiB
-                ╰── ArrayModel(Dense(2053 => 10))  2 arrays, 20_540 params, 80.312 KiB"""
-    @test modelsummary(lnm) == "Model summary: 6 arrays, 20_780 params, 81.406 KiB"
+          ╰── BagModel ↦ BagCount([SegmentedMean(10); SegmentedMax(10)]) ↦ Dense(21 => 10)  4 arrays, 240 params, 1.102 KiB
+                ╰── ArrayModel(Dense(2053 => 10))  2 arrays, 20_540 params, 80.320 KiB"""
+    @test modelsummary(lnm) == "Model summary: 6 arrays, 20_780 params, 81.422 KiB"
 end
 
 @testset "special parameter values" begin
     m = reflectinmodel(ArrayNode(ones(Float32, 2, 5)))
 
     m.m.weight[1,1] = Inf
-    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2 => 10))  2 arrays, 30 params (some Inf), 200 bytes"
+    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2 => 10))  2 arrays, 30 params (some Inf), 208 bytes"
     m.m.bias[1] = NaN
-    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2 => 10))  2 arrays, 30 params (some NaN), 200 bytes"
+    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2 => 10))  2 arrays, 30 params (some NaN), 208 bytes"
     m.m.weight .= 0
     m.m.bias .= 0
-    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2 => 10))  2 arrays, 30 params (all zero), 200 bytes"
+    @test repr(MIME("text/plain"), m) == "ArrayModel(Dense(2 => 10))  2 arrays, 30 params (all zero), 208 bytes"
 end
 
 @testset "aggregation io" begin
@@ -187,8 +187,8 @@ end
     @test repr(MIME("text/plain"), X) ==
         """
         2×2 MaybeHotMatrix with eltype Union{Missing, Bool}:
-         missing    ⋅  
-         missing   true"""
+         missing  ⋅
+         missing  1"""
 
     X = MaybeHotMatrix([missing, missing, missing], 4)
     @test repr(X) == "MaybeHotMatrix(I = [missing, missing, missing], l = 4)"
@@ -238,11 +238,11 @@ end
 @testset "imputing dense io" begin
     m = preimputing_dense(1, 1)
     @test repr(m) == repr(m; context=:compact => true) == "[preimputing]Dense(1 => 1)"
-    @test repr(MIME("text/plain"), m) == "[preimputing]Dense(1 => 1)  3 arrays, 3 params, 132 bytes"
+    @test repr(MIME("text/plain"), m) == "[preimputing]Dense(1 => 1)  3 arrays, 3 params, 140 bytes"
 
     m = postimputing_dense(2, 1)
     @test repr(m) == repr(m; context=:compact => true) == "[postimputing]Dense(2 => 1)"
-    @test repr(MIME("text/plain"), m) == "[postimputing]Dense(2 => 1)  3 arrays, 4 params, 136 bytes"
+    @test repr(MIME("text/plain"), m) == "[postimputing]Dense(2 => 1)  3 arrays, 4 params, 144 bytes"
 end
 
 @testset "ngram matrix io" begin

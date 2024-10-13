@@ -24,11 +24,11 @@ Print summary of parameters of node `n`.
 # Examples
 ```jldoctest
 julia> n = ProductNode(ArrayNode(randn(2, 3)))
-ProductNode  3 obs, 8 bytes
-  ╰── ArrayNode(2×3 Array with Float64 elements)  3 obs, 96 bytes
+ProductNode  3 obs, 0 bytes
+  ╰── ArrayNode(2×3 Array with Float64 elements)  3 obs, 104 bytes
 
 julia> datasummary(n)
-"Data summary: 3 obs, 112 bytes."
+"Data summary: 3 obs, 104 bytes."
 ```
 
 See also: [`modelsummary`](@ref).
@@ -104,10 +104,10 @@ Print summary of parameters of model `m`.
 ```jldoctest
 julia> m = ProductModel(ArrayModel(Dense(2, 3)))
 ProductModel ↦ identity
-  ╰── ArrayModel(Dense(2 => 3))  2 arrays, 9 params, 116 bytes
+  ╰── ArrayModel(Dense(2 => 3))  2 arrays, 9 params, 124 bytes
 
 julia> modelsummary(m)
-"Model summary: 2 arrays, 9 params, 116 bytes"
+"Model summary: 2 arrays, 9 params, 124 bytes"
 ```
 
 See also: [`datasummary`](@ref).
