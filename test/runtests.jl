@@ -90,17 +90,22 @@ function Mill.unpack2mill(ds::LazyNode{:Sentence})
     BagNode(x, Mill.length2bags(length.(s)))
 end
 
-@testset "Doctests" begin
-    DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
-        using Mill, Flux, Random, SparseArrays, Accessors, HierarchicalUtils
-        # do not shorten prints in doctests
-        ENV["LINES"] = ENV["COLUMNS"] = typemax(Int)
-    end; recursive=true)
-    doctest(Mill)
+@static if VERSION ≥ v"1.11.0"
+    @testset "Doctests" begin
+        DocMeta.setdocmeta!(Mill, :DocTestSetup, quote
+            using Mill, Flux, Random, SparseArrays, Accessors, HierarchicalUtils
+            # do not shorten prints in doctests
+            ENV["LINES"] = ENV["COLUMNS"] = typemax(Int)
+        end; recursive=true)
+        doctest(Mill)
+    end
 end
 
 for test_f in readdir(".")
     (endswith(test_f, ".jl") && test_f ≠ "runtests.jl") || continue
+    @static if VERSION < v"1.11.0"
+        test_f == "io.jl" && continue
+    end
     @testset verbose = true "$test_f" begin
         include(test_f)
     end
