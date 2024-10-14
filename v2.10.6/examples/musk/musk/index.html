@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Musk · Mill.jl</title><meta name="title" content="Musk · Mill.jl"/><meta property="og:title" content="Musk · Mill.jl"/><meta property="twitter:title" content="Musk · Mill.jl"/><meta name="description" content="Documentation for Mill.jl."/><meta property="og:description" content="Documentation for Mill.jl."/><meta property="twitter:description" content="Documentation for Mill.jl."/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><link href="../../../assets/favicon.ico" rel="icon" type="image/x-icon"/><link href="../../../assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../../"><img class="docs-light-only" src="../../../assets/logo.svg" alt="Mill.jl logo"/><img class="docs-dark-only" src="../../../assets/logo-dark.svg" alt="Mill.jl logo"/></a><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../../">Home</a></li><li><a class="tocitem" href="../../../motivation/">Motivation</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../../../manual/nodes/">Nodes</a></li><li><a class="tocitem" href="../../../manual/more_on_nodes/">More on nodes</a></li><li><a class="tocitem" href="../../../manual/reflectin/">Model reflection</a></li><li><a class="tocitem" href="../../../manual/aggregation/">Bag aggregation</a></li><li><a class="tocitem" href="../../../manual/leaf_data/">Data in leaves</a></li><li><a class="tocitem" href="../../../manual/missing/">Missing data</a></li><li><a class="tocitem" href="../../../manual/custom/">Custom nodes</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>Musk</a></li><li><a class="tocitem" href="../../jsons/">Processing JSONs</a></li><li><a class="tocitem" href="../../gnn/">GNNs in 16 lines</a></li><li><a class="tocitem" href="../../dag/">DAGs</a></li></ul></li><li><span class="tocitem">External tools</span><ul><li><a class="tocitem" href="../../../tools/hierarchical/">HierarchicalUtils.jl</a></li></ul></li><li><span class="tocitem">Public API</span><ul><li><a class="tocitem" href="../../../api/aggregation/">Aggregation</a></li><li><a class="tocitem" href="../../../api/bags/">Bags</a></li><li><a class="tocitem" href="../../../api/data_nodes/">Data nodes</a></li><li><a class="tocitem" href="../../../api/model_nodes/">Model nodes</a></li><li><a class="tocitem" href="../../../api/special_arrays/">Special Arrays</a></li><li><a class="tocitem" href="../../../api/switches/">Switches</a></li><li><a class="tocitem" href="../../../api/utilities/">Utilities</a></li></ul></li><li><a class="tocitem" href="../../../references/">References</a></li><li><a class="tocitem" href="../../../citation/">Citation</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Musk</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Musk</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/CTUAvastLab/Mill.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/CTUAvastLab/Mill.jl/blob/master/docs/src/examples/musk/musk_literate.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Musk"><a class="docs-heading-anchor" href="#Musk">Musk</a><a id="Musk-1"></a><a class="docs-heading-anchor-permalink" href="#Musk" title="Permalink"></a></h1><p><a href="https://archive.ics.uci.edu/ml/datasets/Musk+(Version+2)"><code>Musk dataset</code></a> is a classic MIL problem of the field, introduced in [<a href="../../../references/#Dietterich1997">5</a>]. Below we demonstrate how to solve this problem using <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a>.</p><div class="admonition is-category-ukn"><header class="admonition-header">Jupyter notebook</header><div class="admonition-body"><p>This example is also available as a <a href="https://nbviewer.jupyter.org/github/CTUAvastLab/Mill.jl/blob/gh-pages/v2.10.6/examples/musk/musk.ipynb">Jupyter notebook</a> and the environment is accessible <a href="https://github.com/CTUAvastLab/Mill.jl/tree/master/docs/src/examples/musk">here</a>.</p></div></div><p>We load all dependencies and fix the seed:</p><pre><code class="language-julia hljs">using FileIO, JLD2, Statistics, Mill, Flux, OneHotArrays
+
+using Random; Random.seed!(42);</code></pre><h3 id="Loading-the-data"><a class="docs-heading-anchor" href="#Loading-the-data">Loading the data</a><a id="Loading-the-data-1"></a><a class="docs-heading-anchor-permalink" href="#Loading-the-data" title="Permalink"></a></h3><p>Now we load the dataset and transform it into a <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> structure. The <code>musk.jld2</code> file contains...</p><ul><li>a matrix with features, each column is one instance:</li></ul><pre><code class="language-julia hljs">fMat = load(&quot;musk.jld2&quot;, &quot;fMat&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">166×476 Matrix{Float32}:
+   42.0    42.0    42.0    42.0    42.0  …    38.0    43.0    39.0    52.0
+ -198.0  -191.0  -191.0  -198.0  -198.0     -123.0  -102.0   -58.0  -121.0
+ -109.0  -142.0  -142.0  -110.0  -102.0     -139.0   -20.0    27.0   -24.0
+  -75.0   -65.0   -75.0   -65.0   -75.0       30.0  -101.0    31.0  -104.0
+ -117.0  -117.0  -117.0  -117.0  -117.0     -117.0  -116.0  -117.0  -116.0
+   11.0    55.0    11.0    55.0    10.0  …   -88.0   200.0   -92.0   195.0
+   23.0    49.0    49.0    23.0    24.0      214.0  -166.0    85.0  -162.0
+  -88.0  -170.0  -161.0   -95.0   -87.0      -13.0    66.0    21.0    76.0
+  -28.0   -45.0   -45.0   -28.0   -28.0      -74.0  -222.0   -73.0  -226.0
+  -27.0     5.0   -28.0     5.0   -28.0     -129.0   -49.0   -68.0   -56.0
+    ⋮                                    ⋱                             ⋮
+  -74.0  -302.0   -73.0  -302.0   -73.0     -226.0    32.0  -232.0    34.0
+ -129.0    60.0  -127.0    60.0  -127.0     -210.0   136.0  -206.0   133.0
+ -120.0  -120.0  -120.0  -120.0    51.0       20.0   -15.0    13.0   -20.0
+  -38.0   -39.0   -38.0   -39.0   128.0  …    55.0   143.0    45.0   -46.0
+   30.0    31.0    30.0    30.0   144.0      119.0   121.0   116.0    95.0
+   48.0    48.0    48.0    48.0    43.0       79.0    55.0    79.0    98.0
+  -37.0   -37.0   -37.0   -37.0   -30.0      -28.0   -37.0   -28.0   -14.0
+    6.0     5.0     5.0     6.0    14.0        4.0   -19.0     3.0    12.0
+   30.0    30.0    31.0    30.0    26.0  …    74.0   -36.0    74.0    96.0</code></pre><ul><li>the ids of samples (<em>bags</em> in MIL terminology) specifying to which each instance (column in <code>fMat</code>) belongs to:</li></ul><pre><code class="language-julia hljs">bagids = load(&quot;musk.jld2&quot;, &quot;bagids&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">476-element Vector{Int64}:
+  1
+  1
+  1
+  1
+  2
+  2
+  2
+  2
+  3
+  3
+  ⋮
+ 91
+ 92
+ 92
+ 92
+ 92
+ 92
+ 92
+ 92
+ 92</code></pre><ul><li>and labels defined on the level of instances:</li></ul><pre><code class="language-julia hljs">y = load(&quot;musk.jld2&quot;, &quot;y&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">476-element Vector{Int64}:
+ 1
+ 1
+ 1
+ 1
+ 1
+ 1
+ 1
+ 1
+ 1
+ 1
+ ⋮
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0</code></pre><p>We create a <a href="../../../api/data_nodes/#Mill.BagNode"><code>BagNode</code></a> structure which holds:</p><ol><li>feature matrix and</li><li>ranges identifying which columns in the feature matrix each bag spans.</li></ol><pre><code class="language-julia hljs">ds = BagNode(ArrayNode(fMat), bagids)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr34">BagNode</span><span class="sgr90"><span class="sgr3">  92 obs, 2.766 KiB</span></span>
+<span class="sgr34">  ╰── </span>ArrayNode(166×476 Array with Float32 elements)<span class="sgr90"><span class="sgr3">  476 obs, 308.711 KiB</span></span></code></pre><p>This representation ensures that feed-forward networks do not need to deal with bag boundaries and always process full continuous matrices:</p><p>We also compute labels on the level of bags. In the <code>Musk</code> problem, bag label is defined as a maximum of instance labels (i.e. a bag is positive if at least one of its instances is positive):</p><pre><code class="language-julia hljs">y = map(i -&gt; maximum(y[i]) + 1, ds.bags)
+y_oh = onehotbatch(y, 1:2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×92 OneHotMatrix(::Vector{UInt32}) with eltype Bool:
+ ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  …  1  1  1  1  1  1  1  1  1  1  1  1
+ 1  1  1  1  1  1  1  1  1  1  1  1  1     ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅  ⋅</code></pre><h3 id="Model-construction"><a class="docs-heading-anchor" href="#Model-construction">Model construction</a><a id="Model-construction-1"></a><a class="docs-heading-anchor-permalink" href="#Model-construction" title="Permalink"></a></h3><p>Once the data are in <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> internal format, we will manually create a model. <a href="../../../api/model_nodes/#Mill.BagModel"><code>BagModel</code></a> is designed to implement a basic multi-instance learning model utilizing two feed-forward networks with an aggregaton operator in between:</p><pre><code class="language-julia hljs">model = BagModel(
+    Dense(166, 50, Flux.tanh),
+    SegmentedMeanMax(50),
+    Chain(Dense(100, 50, Flux.tanh), Dense(50, 2)))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr34">BagModel ↦ [SegmentedMean(50); SegmentedMax(50)] ↦ Chain(Dense(100 =&gt; 50, tanh </span><span class="sgr90">⋯</span>
+<span class="sgr34">  ╰── </span>ArrayModel(Dense(166 =&gt; 50, tanh))<span class="sgr90"><span class="sgr3">  2 arrays, 8_350 params, 32.703 KiB</span></span></code></pre><p>Instances are first passed through a single layer with 50 neurons (input dimension is 166) with <code>tanh</code> non-linearity, then we use <code>mean</code> and <code>max</code> aggregation functions simultaneously (for some problems, max is better then mean, therefore we use both), and then we use one layer with 50 neurons and <code>tanh</code> nonlinearity followed by linear layer with 2 neurons (output dimension). We check that forward pass works</p><pre><code class="language-julia hljs">model(ds)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×92 Matrix{Float32}:
+  0.890284  1.01132    0.88188   0.917716  …   1.46193  -0.254     -1.00311
+ -0.864341  0.303749  -0.324059  0.144588     -0.71427   0.569848  -0.302701</code></pre><div class="admonition is-category-ukn"><header class="admonition-header">Easier model construction</header><div class="admonition-body"><p>Note that the model can be obtained in a more straightforward way using <a href="../../../manual/reflectin/#Model-reflection">Model reflection</a>.</p></div></div><h3 id="Training"><a class="docs-heading-anchor" href="#Training">Training</a><a id="Training-1"></a><a class="docs-heading-anchor-permalink" href="#Training" title="Permalink"></a></h3><p>Since <a href="https://github.com/CTUAvastLab/Mill.jl"><code>Mill.jl</code></a> is entirely compatible with <a href="https://fluxml.ai"><code>Flux.jl</code></a>, we can use its <code>Adam</code> optimizer:</p><pre><code class="language-julia hljs">opt_state = Flux.setup(Adam(), model);</code></pre><p>...define a loss function as <code>Flux.logitcrossentropy</code>:</p><pre><code class="language-julia hljs">loss(m, x, y) = Flux.Losses.logitcrossentropy(m(x), y);</code></pre><p>...and run a simple training procedure using the <code>Flux.train!</code> procedure:</p><pre><code class="language-julia hljs">for e in 1:100
+    if e % 10 == 1
+        @info &quot;Epoch $e&quot; training_loss=loss(model, ds, y_oh)
+    end
+    Flux.train!(loss, model, [(ds, y_oh)], opt_state)
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">┌ Info: Epoch 1
+└   training_loss = 0.79128915f0
+┌ Info: Epoch 11
+└   training_loss = 0.39437693f0
+┌ Info: Epoch 21
+└   training_loss = 0.26019752f0
+┌ Info: Epoch 31
+└   training_loss = 0.17811286f0
+┌ Info: Epoch 41
+└   training_loss = 0.12101426f0
+┌ Info: Epoch 51
+└   training_loss = 0.08384432f0
+┌ Info: Epoch 61
+└   training_loss = 0.056013018f0
+┌ Info: Epoch 71
+└   training_loss = 0.04046665f0
+┌ Info: Epoch 81
+└   training_loss = 0.028798176f0
+┌ Info: Epoch 91
+└   training_loss = 0.021703953f0</code></pre><p>Finally, we calculate the (training) accuracy:</p><pre><code class="language-julia hljs">mean(Flux.onecold(model(ds), 1:2) .== y)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1.0</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../../manual/custom/">« Custom nodes</a><a class="docs-footer-nextpage" href="../../jsons/">Processing JSONs »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Monday 14 October 2024 10:49">Monday 14 October 2024</span>. Using Julia version 1.11.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
