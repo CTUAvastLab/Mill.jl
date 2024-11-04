@@ -59,7 +59,7 @@ function _addvecvect!(W::Matrix, Δ::Matrix, i, x::SparseMatrixCSC, j)
     end
 end
 
-function bagconv!(o, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
+function bagconv!(o, x, bags::Union{AlignedBags, Vector{T}}, W...) where T <: UnitRange{<:Integer}
     offsets = _convshift(length(W))
     for b in bags
         for ri in b 
@@ -74,7 +74,7 @@ function bagconv!(o, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitR
     o
 end
 
-function bagconv!(o, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
+function bagconv!(o, x, bags::Union{ScatteredBags, Vector{T}}, W...) where T <: Vector{<:Integer}
     offsets = _convshift(length(W))
     for b in bags
         for (bi, ri) in enumerate(b) 
@@ -91,6 +91,10 @@ end
 
 
 function bagconv(x, bags, W...)
+    if Threads.nthreads() > 1
+        @warn "Multithreading for bagconv assumes no task migration, " *
+            "which is not the case for modern Julia versions." maxlog=1
+    end
     o = similar(W[1], size(W[1], 1), size(x, 2))
     o .= 0
     for i in 1:Threads.nthreads()
@@ -99,7 +103,7 @@ function bagconv(x, bags, W...)
     o
 end
 
-function ∇wbagconv!(∇W, Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
+function ∇wbagconv!(∇W, Δ, x, bags::Union{AlignedBags, Vector{T}}, W...) where T <: UnitRange{<:Integer}
     offsets = _convshift(length(W))
     foreach(w -> w .= 0, ∇W)
     for b in bags
@@ -113,7 +117,7 @@ function ∇wbagconv!(∇W, Δ, x, bags::T, W...) where {T<:Union{AlignedBags, V
     end
 end
 
-function ∇wbagconv!(∇W, Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
+function ∇wbagconv!(∇W, Δ, x, bags::Union{ScatteredBags, Vector{T}}, W...) where T <: Vector{<:Integer}
     offsets = _convshift(length(W))
     foreach(w -> w .= 0, ∇W)
     for b in bags
@@ -136,7 +140,7 @@ function ∇wbagconv(Δ, x, bags, W...)
     return(tuple(∇Ws[1]...))
 end
 
-function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
+function ∇xbagconv(Δ, x, bags::Union{AlignedBags, Vector{T}}, W...) where T <: UnitRange{<:Integer}
     offsets = _convshift(length(W))
     ∇x = fill(zero(eltype(x)), size(x))
     for b in bags
@@ -151,7 +155,7 @@ function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{U
     ∇x
 end
 
-function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
+function ∇xbagconv(Δ, x, bags::Union{ScatteredBags, Vector{T}}, W...) where T <: Vector{<:Integer}
     offsets = _convshift(length(W))
     ∇x = fill(zero(eltype(x)), size(x))
     for b in bags
@@ -166,7 +170,7 @@ function ∇xbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{
     ∇x
 end
 
-function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{UnitRange{Int64}}}}
+function ∇xwbagconv(Δ, x, bags::Union{AlignedBags, Vector{T}}, W...) where T <: UnitRange{<:Integer}
     offsets = _convshift(length(W))
     ∇x = fill(zero(eltype(x)), size(x))
     ∇W = [zero(w) for w in W]
@@ -183,7 +187,7 @@ function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{AlignedBags, Vector{
     ∇x, tuple(∇W...)
 end
 
-function ∇xwbagconv(Δ, x, bags::T, W...) where {T<:Union{ScatteredBags,Vector{Vector{Int64}}}}
+function ∇xwbagconv(Δ, x, bags::Union{ScatteredBags, Vector{T}}, W...) where T Vector{<:Integer}
     offsets = _convshift(length(W))
     ∇x = zero(W[1])
     ∇W = [zero(w) for w in W]
@@ -212,7 +216,7 @@ end
 
 Flux.@layer :ignore BagConv
 
-function BagConv(d::Int, o::Int, n::Int, σ = identity)
+function BagConv(d::Integer, o::Integer, n::Integer, σ = identity)
     W = (n > 1) ? tuple([randn(o, d) .* sqrt(2.0/(o + d)) for _ in 1:n]...) : randn(o, d) .* sqrt(2.0/(o + d))
     BagConv(W, σ)
 end
