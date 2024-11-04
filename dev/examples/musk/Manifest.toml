@@ -600,7 +600,7 @@ version = "0.2.0"
 deps = ["Accessors", "ChainRulesCore", "Combinatorics", "Compat", "DataFrames", "DataStructures", "FiniteDifferences", "Flux", "HierarchicalUtils", "LinearAlgebra", "MLUtils", "MacroTools", "OneHotArrays", "PooledArrays", "Preferences", "SparseArrays", "Statistics", "Test"]
 path = "../../../.."
 uuid = "1d0525e4-8992-11e8-313c-e310e1f6ddea"
-version = "2.10.6"
+version = "2.11.0"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
