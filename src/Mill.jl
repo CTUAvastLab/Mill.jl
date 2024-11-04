@@ -17,10 +17,11 @@ using Preferences
 using SparseArrays
 using Statistics
 
+using Accessors: PropertyLens, IndexLens, ComposedOptic
 using Base: CodeUnits, nameof
 using ChainRulesCore: NotImplemented, NotImplementedException
 using HierarchicalUtils: encode, stringify
-using Accessors: PropertyLens, IndexLens, ComposedOptic
+using MLUtils: batch, unbatch
 
 import Base: *, ==
 
@@ -51,7 +52,7 @@ include("datanodes/datanode.jl")
 export AbstractMillNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export numobs, getobs, catobs, removeinstances, dropmeta
-@compat public subset, data, metadata, mapdata, unpack2mill
+@compat public data, metadata, mapdata, unpack2mill
 
 include("special_arrays/special_arrays.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch, maybecold

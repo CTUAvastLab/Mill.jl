@@ -18,8 +18,8 @@ end
 
 Flux.@layer :ignore SegmentedMean
 
-SegmentedMean(T::Type, d::Int) = SegmentedMean(zeros(T, d))
-SegmentedMean(d::Int) = SegmentedMean(Float32, d)
+SegmentedMean(T::Type, d::Integer) = SegmentedMean(zeros(T, d))
+SegmentedMean(d::Integer) = SegmentedMean(Float32, d)
 
 Flux.@forward SegmentedMean.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

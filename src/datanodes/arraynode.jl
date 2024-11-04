@@ -1,7 +1,8 @@
 """
     ArrayNode{A <: AbstractArray, C} <: AbstractMillNode
 
-Data node for storing array-like data of type `A` and metadata of type `C`. The convention is that samples are stored along the last axis, e.g. in columns of a matrix.
+Data node for storing array-like data of type `A` and metadata of type `C`. The convention is that
+samples are stored along the last axis, e.g. in columns of a matrix.
 
 See also: [`AbstractMillNode`](@ref), [`ArrayModel`](@ref).
 """
@@ -53,7 +54,9 @@ function Base.reduce(::typeof(hcat), as::Vector{<:ArrayNode})
     ArrayNode(reduce(hcat, data.(as)), _cat_meta(hcat, metadata.(as)))
 end
 
-Base.getindex(x::ArrayNode, i::VecOrRange{<:Int}) = ArrayNode(subset(x.data, i), subset(x.metadata, i))
+function Base.getindex(x::ArrayNode, i::VecOrRange{<:Integer})
+    ArrayNode(x.data[:, i], metadata_getindex(x.metadata, i))
+end
 
 _arraynode(m) = ArrayNode(m)
 _arraynode(m::AbstractMillNode) = m

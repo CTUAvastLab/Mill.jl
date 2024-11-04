@@ -48,14 +48,17 @@ Return metadata stored in node `n`.
 
 # Examples
 ```jldoctest
-julia> Mill.metadata(ArrayNode([1 2; 3 4], "metadata"))
-"metadata"
+julia> Mill.metadata(ArrayNode([1 2; 3 4], ["foo", "bar"]))
+2-element Vector{String}:
+ "foo"
+ "bar"
 
-julia> Mill.metadata(BagNode(ArrayNode([1 2; 3 4]), [1, 2], "metadata"))
-"metadata"
+julia> Mill.metadata(BagNode(ArrayNode([1 2; 3 4]), [1, 2], ["metadata"]))
+1-element Vector{String}:
+ "metadata"
 ```
 
-See also: [`Mill.data`](@ref)
+See also: [`Mill.data`](@ref), [`Mill.dropmeta`](@ref), [`Mill.metadata_getindex`](@ref).
 """
 metadata(x::AbstractMillNode) = x.metadata
 
@@ -88,32 +91,8 @@ ProductNode  2 obs, 0 bytes
   ╰── t2: BagNode  2 obs, 80 bytes
             ╰── ArrayNode(3×6 Array with Float64 elements)  6 obs, 200 bytes
 ```
-
-See also: [`Mill.subset`](@ref).
 """
 function catobs end
-
-"""
-    subset(n, i)
-
-Extract a subset `i` of samples (observations) stored in node `n`.
-
-Similar to `Base.getindex` or `MLUtils.getobs` but defined for all [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) compatible data as well.
-
-# Examples
-```jldoctest
-julia> Mill.subset(ArrayNode(NGramMatrix(["Hello", "world"])), 2)
-2053×1 ArrayNode{NGramMatrix{String, Vector{String}, Int64}, Nothing}:
- "world"
-
-julia> Mill.subset(BagNode(ArrayNode(randn(2, 8)), [1:2, 3:3, 4:7, 8:8]), 1:3)
-BagNode  3 obs, 96 bytes
-  ╰── ArrayNode(2×7 Array with Float64 elements)  7 obs, 168 bytes
-```
-
-See also: [`catobs`](@ref).
-"""
-function subset end
 
 """
     removeinstances(n::AbstractBagNode, mask)
@@ -162,7 +141,7 @@ julia> isnothing(Mill.metadata(n2))
 true
 ```
 
-See also: [`Mill.metadata`](@ref).
+See also: [`Mill.metadata`](@ref), [`Mill.metadata_getindex`](@ref).
 """
 function dropmeta end
 
@@ -196,20 +175,47 @@ julia> Mill.data(n2).b
 """
 mapdata(f, x) = f(x)
 
-Base.getindex(x::T, i::BitArray{1}) where T <: AbstractMillNode = x[findall(i)]
-Base.getindex(x::T, i::Vector{Bool}) where T <: AbstractMillNode = x[findall(i)]
-Base.getindex(x::AbstractMillNode, i::Int) = x[i:i]
+Base.getindex(x::AbstractMillNode, i::Integer) = getindex(x, i:i)
 Base.lastindex(ds::AbstractMillNode) = numobs(ds)
 MLUtils.getobs(x::AbstractMillNode) = x
 MLUtils.getobs(x::AbstractMillNode, i) = x[i]
+MLUtils.unbatch(x::AbstractMillNode) = [x[i] for i in 1:numobs(x)]
 
-subset(x::AbstractMatrix, i) = x[:, i]
-subset(x::AbstractVector, i) = x[i]
-subset(x::AbstractMillNode, i) = x[i]
-subset(x::DataFrame, i) = x[i, :]
-subset(::Missing, i) = missing
-subset(::Nothing, i) = nothing
-subset(xs::Union{Tuple, NamedTuple}, i) = map(x -> x[i], xs)
+"""
+    metadata_getindex(x, i::Integer)
+    metadata_getindex(x, i::VecOrRange{<:Integer})
+
+Index into metadata `x`. In [`Mill.jl`](@ref), it is assumed that the second or last dimension
+indexes into observations, whichever is smaller. This function can be used when implementing
+custom subtypes of [`AbstractMillNode`](@ref).
+
+# Examples
+```jldoctest
+julia> Mill.metadata_getindex(["foo", "bar", "baz"], 2)
+"bar"
+
+julia> Mill.metadata_getindex(["foo", "bar", "baz"], 2:3)
+2-element Vector{String}:
+ "bar"
+ "baz"
+
+julia> Mill.metadata_getindex([1 2 3; 4 5 6], 2)
+2-element Vector{Int64}:
+ 2
+ 5
+
+julia> Mill.metadata_getindex([1 2 3; 4 5 6], [1, 3])
+2×2 Matrix{Int64}:
+ 1  3
+ 4  6
+```
+
+See also: [`Mill.metadata`](@ref), [`Mill.dropmeta`](@ref).
+"""
+metadata_getindex(x, _) = x
+@generated function metadata_getindex(x::AbstractArray{T, U}, i) where {T, U}
+    U == 1 ? :(getindex(x, i)) : :(getindex(x, :, i, $(Colon() for _ in 3:U)...))
+end
 
 include("arraynode.jl")
 Base.ndims(::ArrayNode) = Colon()
@@ -235,10 +241,10 @@ catobs(as::Maybe{ProductNode}...) = reduce(catobs, collect(as))
 catobs(as::Maybe{LazyNode}...) = reduce(catobs, collect(as))
 
 catobs(as::AbstractVector{<:AbstractMillNode}) = reduce(catobs, as)
+MLUtils.batch(xs::AbstractVecOrTuple{<:AbstractMillNode}) = reduce(catobs, xs)
 
 Base.cat(as::AbstractMillNode...; dims::Colon) = catobs(as...)
 
-# reduction of common datatypes the way we like it
 Base.reduce(::typeof(catobs), as::Vector{<:DataFrame}) = reduce(vcat, as)
 Base.reduce(::typeof(catobs), as::Vector{<:AbstractMatrix}) = reduce(hcat, as)
 Base.reduce(::typeof(catobs), as::Vector{<:AbstractVector}) = reduce(vcat, as)

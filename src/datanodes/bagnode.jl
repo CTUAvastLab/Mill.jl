@@ -54,10 +54,10 @@ mapdata(f, x::BagNode) = BagNode(mapdata(f, x.data), x.bags, x.metadata)
 
 dropmeta(x::BagNode) = BagNode(dropmeta(x.data), x.bags)
 
-function Base.getindex(x::BagNode, i::VecOrRange{<:Int})
+function Base.getindex(x::BagNode, i::VecOrRange{<:Integer})
     nb, ii = remapbags(x.bags, i)
     emptyismissing() && isempty(ii) && return(BagNode(missing, nb, nothing))
-    BagNode(subset(x.data,ii), nb, subset(x.metadata, i))
+    BagNode(x.data[ii], nb, metadata_getindex(x.metadata, i))
 end
 
 function Base.reduce(::typeof(catobs), as::Vector{<:BagNode})
@@ -68,7 +68,9 @@ function Base.reduce(::typeof(catobs), as::Vector{<:BagNode})
     )
 end
 
-removeinstances(a::BagNode, mask) = BagNode(subset(a.data, findall(mask)), adjustbags(a.bags, mask), a.metadata)
+function removeinstances(a::BagNode, mask)
+    BagNode(a.data[mask], adjustbags(a.bags, mask), a.metadata)
+end
 
 Base.hash(n::BagNode, h::UInt) = hash((n.data, n.bags, n.metadata), h)
 (n1::BagNode == n2::BagNode) = n1.data == n2.data && n1.bags == n2.bags && n1.metadata == n2.metadata

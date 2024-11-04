@@ -21,8 +21,8 @@ end
 
 Flux.@layer :ignore SegmentedPNorm
 
-SegmentedPNorm(T::Type, d::Int) = SegmentedPNorm(zeros(T, d), randn(T, d), zeros(T, d))
-SegmentedPNorm(d::Int) = SegmentedPNorm(Float32, d)
+SegmentedPNorm(T::Type, d::Integer) = SegmentedPNorm(zeros(T, d), randn(T, d), zeros(T, d))
+SegmentedPNorm(d::Integer) = SegmentedPNorm(Float32, d)
 
 Flux.@forward SegmentedPNorm.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

@@ -33,7 +33,7 @@ Mill.metadata
 datasummary
 dropmeta
 catobs
-Mill.subset
+Mill.metadata_getindex
 Mill.mapdata
 removeinstances
 

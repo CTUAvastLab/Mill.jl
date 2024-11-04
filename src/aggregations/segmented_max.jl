@@ -18,8 +18,8 @@ end
 
 Flux.@layer :ignore SegmentedMax
 
-SegmentedMax(T::Type, d::Int) = SegmentedMax(zeros(T, d))
-SegmentedMax(d::Int) = SegmentedMax(Float32, d)
+SegmentedMax(T::Type, d::Integer) = SegmentedMax(zeros(T, d))
+SegmentedMax(d::Integer) = SegmentedMax(Float32, d)
 
 Flux.@forward SegmentedMax.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

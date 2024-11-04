@@ -93,8 +93,9 @@ function Base.reduce(::typeof(catobs), as::Vector{<:ProductNode})
     ProductNode(_cattrees(ds), reduce(catobs, metadata.(as)))
 end
 
-Base.getindex(x::ProductNode, i::VecOrRange{<:Int}) = ProductNode(subset(data(x), i), subset(metadata(x), i))
-Base.getindex(x::ProductNode{<:Vector}, i::VecOrRange{<:Int}) = ProductNode(map(x -> getindex(x, i), data(x)), subset(metadata(x), i))
+function Base.getindex(x::ProductNode, i::VecOrRange{<:Integer})
+    ProductNode(map(v -> v[i], x.data), metadata_getindex(x.metadata, i))
+end
 
 Base.hash(n::ProductNode, h::UInt) = hash((n.data, n.metadata), h)
 (n1::ProductNode == n2::ProductNode) = n1.data == n2.data && n1.metadata == n2.metadata

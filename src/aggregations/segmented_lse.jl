@@ -20,8 +20,8 @@ end
 
 Flux.@layer :ignore SegmentedLSE
 
-SegmentedLSE(T::Type, d::Int) = SegmentedLSE(zeros(T, d), randn(T, d))
-SegmentedLSE(d::Int) = SegmentedLSE(Float32, d)
+SegmentedLSE(T::Type, d::Integer) = SegmentedLSE(zeros(T, d), randn(T, d))
+SegmentedLSE(d::Integer) = SegmentedLSE(Float32, d)
 
 Flux.@forward SegmentedLSE.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

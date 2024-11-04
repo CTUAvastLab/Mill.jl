@@ -18,8 +18,8 @@ end
 
 Flux.@layer :ignore SegmentedSum
 
-SegmentedSum(T::Type, d::Int) = SegmentedSum(zeros(T, d))
-SegmentedSum(d::Int) = SegmentedSum(Float32, d)
+SegmentedSum(T::Type, d::Integer) = SegmentedSum(zeros(T, d))
+SegmentedSum(d::Integer) = SegmentedSum(Float32, d)
 
 Flux.@forward SegmentedSum.ψ Base.getindex, Base.length, Base.size, Base.firstindex, Base.lastindex,
         Base.first, Base.last, Base.iterate, Base.eltype

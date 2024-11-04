@@ -1,14 +1,14 @@
+md1 = ["metadata"]
 md2 = fill("metadata", 2)
 md3 = fill("metadata", 3)
-md4 = fill("metadata", 4)
-a = BagNode(rand(3, 4), [1:4], md4)
-b = BagNode(rand(3, 4), [1:2, 3:4], md4)
-c = BagNode(rand(3, 4), [1:1, 2:2, 3:4], md4)
-d = BagNode(rand(3, 4), [1:4, 0:-1], md4)
-wa = WeightedBagNode(rand(3, 4), [1:4], rand(1:4, 4) .|> Float64, md4)
-wb = WeightedBagNode(rand(3, 4), [1:2, 3:4], rand(1:4, 4) .|> Float64, md4)
-wc = WeightedBagNode(rand(3, 4), [1:1, 2:2, 3:4], rand(1:4, 4) .|> Float64, md4)
-wd = WeightedBagNode(rand(3, 4), [1:4, 0:-1], rand(1:4, 4) .|> Float64, md4)
+a = BagNode(rand(3, 4), [1:4], md1)
+b = BagNode(rand(3, 4), [1:2, 3:4], md2)
+c = BagNode(rand(3, 4), [1:1, 2:2, 3:4], md3)
+d = BagNode(rand(3, 4), [1:4, 0:-1], md2)
+wa = WeightedBagNode(rand(3, 4), [1:4], rand(1:4, 4) .|> Float64, md1)
+wb = WeightedBagNode(rand(3, 4), [1:2, 3:4], rand(1:4, 4) .|> Float64, md2)
+wc = WeightedBagNode(rand(3, 4), [1:1, 2:2, 3:4], rand(1:4, 4) .|> Float64, md3)
+wd = WeightedBagNode(rand(3, 4), [1:4, 0:-1], rand(1:4, 4) .|> Float64, md2)
 e = ArrayNode(rand(2, 2), md2)
 
 f = ProductNode((wb,b), md2)
@@ -218,6 +218,21 @@ end
         @test_nowarn @inferred catobs([n, n])
         @test_nowarn @inferred cat(n, n, dims=ndims(n))
     end
+end
+
+@testset "MLUtils.batch and MLUtils.unbatch" begin
+    a = ArrayNode(rand(2, 1))
+    b = ArrayNode(rand(2, 1))
+    @test [a, b] == MLUtils.unbatch(MLUtils.batch([a, b]))
+    a = BagNode(rand(2, 1), [1:1])
+    b = BagNode(rand(2, 0), [0:-1])
+    @test [a, b] == MLUtils.unbatch(MLUtils.batch([a, b]))
+    wa = WeightedBagNode(rand(2, 1), [1:1], rand(1))
+    wb = WeightedBagNode(rand(2, 0), [0:-1], Float64[])
+    @test [wa, wb] == MLUtils.unbatch(MLUtils.batch([wa, wb]))
+    a = ProductNode((a, wa))
+    b = ProductNode((b, wb))
+    @test [a, b] == MLUtils.unbatch(MLUtils.batch([a, b]))
 end
 
 @testset "BagNode indexing" begin

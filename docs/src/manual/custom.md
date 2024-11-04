@@ -76,9 +76,7 @@ pm(ds)
 The solution using [`LazyNode`](@ref) is sufficient in most scenarios. For other cases, it is recommended to equip custom nodes with the following functionality:
 
 * allow nesting (if needed)
-* implement [`Mill.subset`](@ref) and optionally `Base.getindex` to obtain subsets of observations.
-  [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) already defines [`Mill.subset`](@ref) for
-  common datatypes, which can be used.
+* implement `Base.getindex` to obtain subsets of observations. We make use of [`Mill.metadata_getindex`](@ref) to index the metadata.
 * allow concatenation of nodes with [`catobs`](@ref). Optionally, implement `reduce(catobs, ...)` as well to avoid excessive compilations if a number of arguments will vary a lot
 * define a specialized method for `MLUtils.numobs`, which we can however import directly from
   [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl).
@@ -103,11 +101,10 @@ end
 PathNode(data::Vector{S}) where {S <: AbstractString} = PathNode(data, nothing)
 Base.show(io::IO, n::PathNode) = print(io, "PathNode ($(numobs(n)) obs)")
 
-Base.ndims(n::PathNode) = Colon()
+Base.ndims(::PathNode) = Colon()
 numobs(n::PathNode) = length(n.data)
 catobs(ns::PathNode) = PathNode(vcat(data.(ns)...), catobs(metadata.(as)...))
-Base.getindex(n::PathNode, i::VecOrRange{<:Int}) = PathNode(subset(data(x), i),
-                                                            subset(metadata(x), i))
+Base.getindex(n::PathNode, i::VecOrRange{<:Int}) = PathNode(n.data[i], Mill.metadata_getindex(n.metadata, i))
 NodeType(::Type{<:PathNode}) = LeafNode()
 nothing # hide
 ```
@@ -122,7 +119,7 @@ struct PathModel{T, F} <: AbstractMillModel
 end
 
 Flux.@layer :ignore PathModel
-show(io::IO, n::PathModel) = print(io, "PathModel")
+show(io::IO, ::PathModel) = print(io, "PathModel")
 NodeType(::Type{<:PathModel}) = LeafNode()
 
 path2mill(ds::PathNode) = path2mill(ds.data)

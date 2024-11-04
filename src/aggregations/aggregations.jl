@@ -59,7 +59,7 @@ for p in filter(p -> length(p) > 1, collect(powerset(collect(1:length(names)))))
     s = Symbol("Segmented", names[p]...)
     @eval begin
         """
-            $($(s))([t::Type, ]d::Int)
+            $($(s))([t::Type, ]d::Integer)
 
         Construct [`AggregationStack`](@ref) consisting of $($(
             join("[`Segmented" .* names[p] .* "`](@ref)", ", ", " and ")
@@ -83,11 +83,11 @@ for p in filter(p -> length(p) > 1, collect(powerset(collect(1:length(names)))))
         See also: [`AbstractAggregation`](@ref), [`AggregationStack`](@ref), [`SegmentedSum`](@ref),
             [`SegmentedMax`](@ref), [`SegmentedMean`](@ref), [`SegmentedPNorm`](@ref), [`SegmentedLSE`](@ref).
         """
-        function $s(d::Int)
+        function $s(d::Integer)
             AggregationStack($((Expr(:call, Symbol("Segmented", n), :d) for n in names[p])...))
         end
     end
-    @eval function $s(::Type{T}, d::Int) where T
+    @eval function $s(::Type{T}, d::Integer) where T
         AggregationStack($((Expr(:call, Symbol("Segmented", n), :T, :d) for n in names[p])...))
     end
     @eval export $s

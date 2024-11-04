@@ -19,6 +19,7 @@ using Documenter
 using Flux
 using HierarchicalUtils
 using InteractiveUtils
+using MLUtils
 using OneHotArrays
 using PooledArrays
 using Random

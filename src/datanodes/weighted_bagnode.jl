@@ -52,10 +52,10 @@ mapdata(f, x::WeightedBagNode) = WeightedBagNode(mapdata(f, x.data), x.bags, x.w
 
 dropmeta(x::WeightedBagNode) = WeightedBagNode(dropmeta(x.data), x.bags, x.weights)
 
-function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Int}) where {T, B, W}
+function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Integer}) where {T, B, W}
     nb, ii = remapbags(x.bags, i)
     emptyismissing() && isempty(ii) && return (WeightedBagNode(missing, nb, W[], nothing))
-    WeightedBagNode(subset(x.data, ii), nb, subset(x.weights, ii), subset(x.metadata, ii))
+    WeightedBagNode(x.data[ii], nb, x.weights[ii], metadata_getindex(x.metadata, i))
 end
 
 function Base.reduce(::typeof(catobs), as::Vector{<:WeightedBagNode})
@@ -68,9 +68,7 @@ function Base.reduce(::typeof(catobs), as::Vector{<:WeightedBagNode})
 end
 
 function removeinstances(a::WeightedBagNode, mask)
-    WeightedBagNode(subset(a.data, findall(mask)),
-        adjustbags(a.bags, mask),
-        subset(a.weights, findall(mask)), a.metadata)
+    WeightedBagNode(a.data[mask], adjustbags(a.bags, mask), a.weights[mask], a.metadata)
 end
 
 Base.hash(n::WeightedBagNode, h::UInt) = hash((n.data, n.bags, n.weights, n.metadata), h)

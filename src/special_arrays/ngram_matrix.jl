@@ -295,8 +295,6 @@ _getindex(X::NGramMatrix, ::Colon, i::Integer) = NGramMatrix(X.S[[i]], X.n, X.b,
 _getindex(X::NGramMatrix, ::Colon, i::Union{AbstractArray, UnitRange}) = NGramMatrix(X.S[i], X.n, X.b, X.m)
 _getindex(X::NGramMatrix, ::Colon, ::Colon) = NGramMatrix(X.S[:], X.n, X.b, X.m)
 
-subset(a::NGramMatrix, i) = NGramMatrix(a.S[i], a.n, a.b, a.m)
-
 function Base.convert(::Type{<:NGramMatrix{T, U}}, A::NGramMatrix) where {T, U <: AbstractVector{T}}
     NGramMatrix(convert(U, A.S), A.n, A.b, A.m)
 end
