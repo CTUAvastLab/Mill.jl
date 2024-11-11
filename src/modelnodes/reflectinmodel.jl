@@ -33,23 +33,23 @@ layers in these types are replaced by their imputing variants.
 # Examples
 ```jldoctest
 julia> n1 = ProductNode(a=ArrayNode(NGramMatrix(["a", missing])))
-ProductNode  2 obs, 0 bytes
-  ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements)  2 obs, 97 bytes
+ProductNode  2 obs
+  ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements)  2 obs
 
 julia> n2 = ProductNode((ArrayNode([0 1]), BagNode(ArrayNode([0 1; 2 3]), bags([1:1, 2:2]))))
-ProductNode  2 obs, 0 bytes
-  ├── ArrayNode(1×2 Array with Int64 elements)  2 obs, 72 bytes
-  ╰── BagNode  2 obs, 80 bytes
-        ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
+ProductNode  2 obs
+  ├── ArrayNode(1×2 Array with Int64 elements)  2 obs
+  ╰── BagNode  2 obs
+        ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs
 
 julia> n = ProductNode((n1, n2))
-ProductNode  2 obs, 0 bytes
-  ├── ProductNode  2 obs, 0 bytes
-  │     ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements)  2 obs, 97 bytes
-  ╰── ProductNode  2 obs, 0 bytes
-        ├── ArrayNode(1×2 Array with Int64 elements)  2 obs, 72 bytes
-        ╰── BagNode  2 obs, 80 bytes
-              ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
+ProductNode  2 obs
+  ├── ProductNode  2 obs
+  │     ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements)  2 obs
+  ╰── ProductNode  2 obs
+        ├── ArrayNode(1×2 Array with Int64 elements)  2 obs
+        ╰── BagNode  2 obs
+              ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs
 
 julia> reflectinmodel(n)
 ProductModel ↦ Dense(20 => 10)  2 arrays, 210 params, 928 bytes
@@ -70,13 +70,13 @@ ProductModel ↦ Dense(6 => 3)  2 arrays, 21 params, 172 bytes
               ╰── ArrayModel([preimputing]Dense(2 => 3))  3 arrays, 11 params, 172 bytes
 
 julia> printtree(n; trav=true)
-ProductNode [""]  2 obs, 0 bytes
-  ├── ProductNode ["E"]  2 obs, 0 bytes
-  │     ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements) ["M"]  2 obs, 97 bytes
-  ╰── ProductNode ["U"]  2 obs, 0 bytes
-        ├── ArrayNode(1×2 Array with Int64 elements) ["Y"]  2 obs, 72 bytes
-        ╰── BagNode ["c"]  2 obs, 80 bytes
-              ╰── ArrayNode(2×2 Array with Int64 elements) ["e"]  2 obs, 88 bytes
+ProductNode [""]  2 obs
+  ├── ProductNode ["E"]  2 obs
+  │     ╰── a: ArrayNode(2053×2 NGramMatrix with Union{Missing, Int64} elements) ["M"]  2 obs
+  ╰── ProductNode ["U"]  2 obs
+        ├── ArrayNode(1×2 Array with Int64 elements) ["Y"]  2 obs
+        ╰── BagNode ["c"]  2 obs
+              ╰── ArrayNode(2×2 Array with Int64 elements) ["e"]  2 obs
 
 julia> reflectinmodel(n, d -> Dense(d, 3), SegmentedMean;
                         fsm=Dict("e" => d -> Chain(Dense(d, 2), Dense(2, 2))),

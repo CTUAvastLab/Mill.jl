@@ -80,16 +80,16 @@ julia> catobs(ArrayNode(zeros(2, 2)), ArrayNode([1 2; 3 4]))
  0.0  0.0  3.0  4.0
 
 julia> n = ProductNode(t1=ArrayNode(randn(2, 3)), t2=BagNode(ArrayNode(randn(3, 8)), bags([1:3, 4:5, 6:8])))
-ProductNode  3 obs, 0 bytes
-  ├── t1: ArrayNode(2×3 Array with Float64 elements)  3 obs, 104 bytes
-  ╰── t2: BagNode  3 obs, 96 bytes
-            ╰── ArrayNode(3×8 Array with Float64 elements)  8 obs, 248 bytes
+ProductNode  3 obs
+  ├── t1: ArrayNode(2×3 Array with Float64 elements)  3 obs
+  ╰── t2: BagNode  3 obs
+            ╰── ArrayNode(3×8 Array with Float64 elements)  8 obs
 
 julia> catobs(n[1], n[3])
-ProductNode  2 obs, 0 bytes
-  ├── t1: ArrayNode(2×2 Array with Float64 elements)  2 obs, 88 bytes
-  ╰── t2: BagNode  2 obs, 80 bytes
-            ╰── ArrayNode(3×6 Array with Float64 elements)  6 obs, 200 bytes
+ProductNode  2 obs
+  ├── t1: ArrayNode(2×2 Array with Float64 elements)  2 obs
+  ╰── t2: BagNode  2 obs
+            ╰── ArrayNode(3×6 Array with Float64 elements)  6 obs
 ```
 """
 function catobs end
@@ -102,12 +102,12 @@ Remove instances from `n` using `mask` and remap bag indices accordingly.
 # Examples
 ```jldoctest
 julia> b1 = BagNode(ArrayNode([1 2 3; 4 5 6]), bags([1:2, 0:-1, 3:3]))
-BagNode  3 obs, 96 bytes
-  ╰── ArrayNode(2×3 Array with Int64 elements)  3 obs, 104 bytes
+BagNode  3 obs
+  ╰── ArrayNode(2×3 Array with Int64 elements)  3 obs
 
 julia> b2 = removeinstances(b1, [false, true, true])
-BagNode  3 obs, 96 bytes
-  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs, 88 bytes
+BagNode  3 obs
+  ╰── ArrayNode(2×2 Array with Int64 elements)  2 obs
 
 julia> b2.data
 2×2 ArrayNode{Matrix{Int64}, Nothing}:
@@ -153,14 +153,14 @@ Recursively apply `f` to data in all leaves of `x`.
 # Examples
 ```jldoctest
 julia> n1 = ProductNode(a=zeros(2,2), b=ones(2,2))
-ProductNode  2 obs, 0 bytes
-  ├── a: ArrayNode(2×2 Array with Float64 elements)  2 obs, 88 bytes
-  ╰── b: ArrayNode(2×2 Array with Float64 elements)  2 obs, 88 bytes
+ProductNode  2 obs
+  ├── a: ArrayNode(2×2 Array with Float64 elements)  2 obs
+  ╰── b: ArrayNode(2×2 Array with Float64 elements)  2 obs
 
 julia> n2 = Mill.mapdata(x -> x .+ 1, n1)
-ProductNode  2 obs, 0 bytes
-  ├── a: ArrayNode(2×2 Array with Float64 elements)  2 obs, 88 bytes
-  ╰── b: ArrayNode(2×2 Array with Float64 elements)  2 obs, 88 bytes
+ProductNode  2 obs
+  ├── a: ArrayNode(2×2 Array with Float64 elements)  2 obs
+  ╰── b: ArrayNode(2×2 Array with Float64 elements)  2 obs
 
 julia> Mill.data(n2).a
 2×2 ArrayNode{Matrix{Float64}, Nothing}:

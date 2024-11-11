@@ -24,8 +24,8 @@ Print summary of parameters of node `n`.
 # Examples
 ```jldoctest
 julia> n = ProductNode(ArrayNode(randn(2, 3)))
-ProductNode  3 obs, 0 bytes
-  ╰── ArrayNode(2×3 Array with Float64 elements)  3 obs, 104 bytes
+ProductNode  3 obs
+  ╰── ArrayNode(2×3 Array with Float64 elements)  3 obs
 
 julia> datasummary(n)
 "Data summary: 3 obs, 104 bytes."
@@ -66,10 +66,7 @@ end
 nodeshow(io::IO, ::Missing) = print(io, "∅")
 nodeshow(io::IO, ::LazyNode{N, Nothing}) where {N} = print(io, "LazyNode{$N} ∅")
 
-function nodecommshow(io::IO, @nospecialize(n::AbstractMillNode))
-    bytes = Base.format_bytes(Base.summarysize(n) - (isleaf(n) ? 0 : Base.summarysize(data(n))))
-    print(io, " ", numobs(n), " obs, ", bytes)
-end
+nodecommshow(io::IO, @nospecialize(n::AbstractMillNode)) = print(io, " ", numobs(n), " obs")
 
 function Base.show(io::IO, @nospecialize(n::AbstractMillNode))
     print(io, nameof(typeof(n)))

@@ -11,8 +11,8 @@ model `bm` on the aggregated representation of every bag in the data node.
 julia> Random.seed!(0);
 
 julia> n = BagNode(ArrayNode(randn(Float32, 3, 2)), bags([0:-1, 1:2]))
-BagNode  2 obs, 80 bytes
-  ╰── ArrayNode(3×2 Array with Float32 elements)  2 obs, 80 bytes
+BagNode  2 obs
+  ╰── ArrayNode(3×2 Array with Float32 elements)  2 obs
 
 julia> m = BagModel(ArrayModel(Dense(3, 2)), SegmentedMeanMax(2), Dense(4, 2))
 BagModel ↦ [SegmentedMean(2); SegmentedMax(2)] ↦ Dense(4 => 2)  4 arrays, 14 params, 224 bytes

@@ -149,13 +149,13 @@ end
     @testset "printtree" begin
         @test buf_printtree(n2, trav=true) ==
             """
-            ProductNode [""]  2 obs, 0 bytes
-              ├── ProductNode ["E"]  2 obs, 0 bytes
-              │     ├─── b: BagNode ["I"]  2 obs, 176 bytes
-              │     │         ╰── ArrayNode(3×4 Array with Float32 elements) ["K"]  4 obs, 104 bytes
-              │     ╰── wb: WeightedBagNode ["M"]  2 obs, 240 bytes
-              │               ╰── ArrayNode(17×4 NGramMatrix with Int64 elements) ["O"]  4 obs, 154 bytes
-              ╰── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) ["U"]  2 obs, 424 bytes
+            ProductNode [""]  2 obs
+              ├── ProductNode ["E"]  2 obs
+              │     ├─── b: BagNode ["I"]  2 obs
+              │     │         ╰── ArrayNode(3×4 Array with Float32 elements) ["K"]  4 obs
+              │     ╰── wb: WeightedBagNode ["M"]  2 obs
+              │               ╰── ArrayNode(17×4 NGramMatrix with Int64 elements) ["O"]  4 obs
+              ╰── ArrayNode(10×2 SparseMatrixCSC with Float32 elements) ["U"]  2 obs
             """
 
         @test buf_printtree(n2m, trav=true) ==
@@ -181,7 +181,7 @@ end
 
         @test buf_printtree(ds, trav=true) ==
             """
-            LazyNode{Codons}(String) [""]  4 obs, 8 bytes
+            LazyNode{Codons}(String) [""]  4 obs
               ├── "GGGCGGCGA" ["6"]
               ├── "CCTCGCGGG" ["E"]
               ├── "TTTTCGCTATTTATGAAAATT" ["M"]

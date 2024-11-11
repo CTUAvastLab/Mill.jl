@@ -21,8 +21,8 @@
     @test repr(bn) == repr(bn; context=:compact => true) == "BagNode"
     @test repr(MIME("text/plain"), bn) ==
         """
-        BagNode  2 obs, 80 bytes
-          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 96 bytes"""
+        BagNode  2 obs
+          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs"""
     @test datasummary(bn) == "Data summary: 2 obs, 176 bytes."
 
     bnm = reflectinmodel(bn, d -> Dense(d, 10), SegmentedMean)
@@ -38,8 +38,8 @@
     @test repr(wbn) == repr(wbn; context=:compact => true) == "WeightedBagNode"
     @test repr(MIME("text/plain"), wbn) ==
         """
-        WeightedBagNode  2 obs, 148 bytes
-          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 96 bytes"""
+        WeightedBagNode  2 obs
+          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs"""
     @test datasummary(wbn) == "Data summary: 2 obs, 244 bytes."
 
     wbnm = reflectinmodel(wbn)
@@ -55,11 +55,11 @@
     @test repr(pn) == repr(pn; context=:compact => true) == "ProductNode"
     @test repr(MIME("text/plain"), pn) ==
         """
-        ProductNode  2 obs, 0 bytes
-          ├─── bn: BagNode  2 obs, 80 bytes
-          │          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 96 bytes
-          ╰── wbn: WeightedBagNode  2 obs, 148 bytes
-                     ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs, 96 bytes"""
+        ProductNode  2 obs
+          ├─── bn: BagNode  2 obs
+          │          ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs
+          ╰── wbn: WeightedBagNode  2 obs
+                     ╰── ArrayNode(2×5 Array with Float32 elements)  5 obs"""
     @test datasummary(pn) == "Data summary: 2 obs, 420 bytes."
 
     pnm = reflectinmodel(pn, d -> Dense(d, 10), BagCount ∘ SegmentedMean)
