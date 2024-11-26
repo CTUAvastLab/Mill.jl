@@ -213,6 +213,7 @@ julia> Mill.metadata_getindex([1 2 3; 4 5 6], [1, 3])
 See also: [`Mill.metadata`](@ref), [`Mill.dropmeta`](@ref).
 """
 metadata_getindex(x, _) = x
+metadata_getindex(x::AbstractMillNode, i) = metadata_getindex(metadata(x), i)
 @generated function metadata_getindex(x::AbstractArray{T, U}, i) where {T, U}
     U == 1 ? :(getindex(x, i)) : :(getindex(x, :, i, $(Colon() for _ in 3:U)...))
 end

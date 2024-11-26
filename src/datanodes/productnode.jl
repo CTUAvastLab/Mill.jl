@@ -94,7 +94,7 @@ function Base.reduce(::typeof(catobs), as::Vector{<:ProductNode})
 end
 
 function Base.getindex(x::ProductNode, i::VecOrRange{<:Integer})
-    ProductNode(map(v -> v[i], x.data), metadata_getindex(x.metadata, i))
+    ProductNode(map(v -> v[i], x.data), metadata_getindex(x, i))
 end
 
 Base.hash(n::ProductNode, h::UInt) = hash((n.data, n.metadata), h)

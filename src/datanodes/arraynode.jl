@@ -55,7 +55,7 @@ function Base.reduce(::typeof(hcat), as::Vector{<:ArrayNode})
 end
 
 function Base.getindex(x::ArrayNode, i::VecOrRange{<:Integer})
-    ArrayNode(x.data[:, i], metadata_getindex(x.metadata, i))
+    ArrayNode(x.data[:, i], metadata_getindex(x, i))
 end
 
 _arraynode(m) = ArrayNode(m)

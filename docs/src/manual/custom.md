@@ -104,7 +104,7 @@ Base.show(io::IO, n::PathNode) = print(io, "PathNode ($(numobs(n)) obs)")
 Base.ndims(::PathNode) = Colon()
 numobs(n::PathNode) = length(n.data)
 catobs(ns::PathNode) = PathNode(vcat(data.(ns)...), catobs(metadata.(as)...))
-Base.getindex(n::PathNode, i::VecOrRange{<:Int}) = PathNode(n.data[i], Mill.metadata_getindex(n.metadata, i))
+Base.getindex(n::PathNode, i::VecOrRange{<:Int}) = PathNode(n.data[i], Mill.metadata_getindex(n, i))
 NodeType(::Type{<:PathNode}) = LeafNode()
 nothing # hide
 ```

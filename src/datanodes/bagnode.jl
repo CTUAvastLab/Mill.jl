@@ -57,7 +57,7 @@ dropmeta(x::BagNode) = BagNode(dropmeta(x.data), x.bags)
 function Base.getindex(x::BagNode, i::VecOrRange{<:Integer})
     nb, ii = remapbags(x.bags, i)
     emptyismissing() && isempty(ii) && return(BagNode(missing, nb, nothing))
-    BagNode(x.data[ii], nb, metadata_getindex(x.metadata, i))
+    BagNode(x.data[ii], nb, metadata_getindex(x, i))
 end
 
 function Base.reduce(::typeof(catobs), as::Vector{<:BagNode})

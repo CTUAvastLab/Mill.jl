@@ -52,7 +52,7 @@ include("datanodes/datanode.jl")
 export AbstractMillNode, AbstractProductNode, AbstractBagNode
 export ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 export numobs, getobs, catobs, removeinstances, dropmeta
-@compat public data, metadata, mapdata, unpack2mill
+@compat public data, metadata, metadata_getindex, mapdata, unpack2mill
 
 include("special_arrays/special_arrays.jl")
 export MaybeHotVector, MaybeHotMatrix, maybehot, maybehotbatch, maybecold

@@ -55,7 +55,7 @@ dropmeta(x::WeightedBagNode) = WeightedBagNode(dropmeta(x.data), x.bags, x.weigh
 function Base.getindex(x::WeightedBagNode{T, B, W}, i::VecOrRange{<:Integer}) where {T, B, W}
     nb, ii = remapbags(x.bags, i)
     emptyismissing() && isempty(ii) && return (WeightedBagNode(missing, nb, W[], nothing))
-    WeightedBagNode(x.data[ii], nb, x.weights[ii], metadata_getindex(x.metadata, i))
+    WeightedBagNode(x.data[ii], nb, x.weights[ii], metadata_getindex(x, i))
 end
 
 function Base.reduce(::typeof(catobs), as::Vector{<:WeightedBagNode})

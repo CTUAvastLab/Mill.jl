@@ -68,7 +68,7 @@ function Base.reduce(::typeof(catobs), as::Vector{<: LazyNode{N}}) where N
 end
 
 function Base.getindex(x::LazyNode{N}, i::VecOrRange{<:Int}) where N
-    LazyNode{N}(x.data[i], metadata_getindex(x.metadata, i))
+    LazyNode{N}(x.data[i], metadata_getindex(x, i))
 end
 
 Base.hash(n::LazyNode, h::UInt) = hash((n.data), h)
