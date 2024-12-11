@@ -111,9 +111,9 @@ See also: [`datasummary`](@ref).
 """
 function modelsummary(m::AbstractMillModel)
     # params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
-    ps = Flux.params(m)
+    ps = Flux.trainables(m)
     npars = Flux.underscorise(sum(length, ps))
-    bytes = Base.format_bytes(sum(Base.summarysize, collect(ps.params)))
+    bytes = Base.format_bytes(sum(Base.summarysize, ps))
     string("Model summary: ", length(ps), " arrays, ", npars, " params, ", bytes)
 end
 
