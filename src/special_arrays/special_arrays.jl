@@ -66,6 +66,25 @@ ChainRulesCore.ProjectTo(X::NGramMatrix) = ProjectTo{typeof(X)}()
 # Allow NGramMatrix to reach specialisation of * etc:
 Flux._match_eltype(_, ::Type, x::NGramMatrix) = x
 
+#=
+Note on defining `{Post|Pre}ImputingMatrix as a subtype of `AbstractMatrix`. Advantages:
+- conceptually "is" a matrix,
+- can be reused inside `Flux.Dense`, which expects `AbstractMatrix`,
+- can reuse `print_array` from `Base` for pretty printing.
+
+On the other hand:
+- Zygote.jl and also ChainRules.jl will define rules for AD, which we have to opt-out or correct them
+- `Flux.trainables` will return the matrix itself, not its parameters as its recursion stops on any
+    `AbstractMatrix{<:Number}`.
+
+Relevant issues:
+https://github.com/FluxML/Flux.jl/issues/2559
+https://github.com/FluxML/Flux.jl/issues/2045
+https://github.com/FluxML/Zygote.jl/issues/1146
+
+If this continues to be a problem, we can stop definining `{Post|Pre}ImputingMatrix` as a subtype of
+`AbstractMatrix` and take inspiration e.g. from `SVD` and other `Factorization` subtypes.
+=#
 include("preimputing_matrix.jl")
 include("postimputing_matrix.jl")
 

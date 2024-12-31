@@ -121,27 +121,22 @@ function Base.show(io::IO, ::MIME"text/plain", @nospecialize(m::AbstractMillMode
     HierarchicalUtils.printtree(io, m; htrunc=5, vtrunc=10, breakline = false)
 end
 
-_levelparams(m::ArrayModel) = Flux.params(m.m)
-_levelparams(m::BagModel) = Flux.params(m.a, m.bm)
-_levelparams(m::ProductModel) = Flux.params(m.m)
-_levelparams(::LazyModel) = Flux.Params([])
+# do not recurse
+_levelparams(m::ArrayModel) = trainables(m.m)
+_levelparams(m::BagModel) = vcat(trainables(m.a), trainables(m.bm))
+_levelparams(m::ProductModel) = trainables(m.m)
+_levelparams(::LazyModel) = []
 _levelparams(m) = _levelparams(NodeType(m), m)
-_levelparams(::LeafNode, m) = Flux.params(m)
+_levelparams(::LeafNode, m) = trainables(m)
 function _levelparams(_, m)
     error("Define custom HierarchicalUtils.nodecommshow or Mill._levelparams for $(nameof(typeof(m)))")
 end
 
 function nodecommshow(io::IO, @nospecialize(m::AbstractMillModel))
     # params summary from https://github.com/FluxML/Flux.jl/blob/master/src/layers/show.jl
-
-    # destructuralize params of special matrices
-    destruct(m::AbstractArray{<:Number}) = [m]
-    destruct(m) = isempty(m) ? collect(m) : reduce(vcat, map(destruct, collect(m)))
-    destruct(m::ImputingMatrix) = [m.W, m.ψ]
-
-    ps = _levelparams(m).params |> destruct
+    ps = _levelparams(m)
     if !isempty(ps)
-        npars = Flux.underscorise(sum(length, ps))
+        npars = Flux.underscorise(sum(length, ps; init=0))
         print(io, " ", length(ps), " arrays, ", npars, " params")
         if !isempty(ps) && Flux._all(iszero, ps)
             print(io, " (all zero)")
