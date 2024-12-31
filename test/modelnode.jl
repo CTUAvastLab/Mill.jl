@@ -430,7 +430,7 @@ end
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER)
             @test_nowarn @inferred m(ds)
-            @pgradtest m -> m(ds) [ds]
+            @gradtest m -> m(ds) [ds]
         end
     end
 end
@@ -452,7 +452,7 @@ end
                   ]
             m = reflectinmodel(ds, LAYERBUILDER, ABUILDER)
             @test_nowarn @inferred m(ds)
-            @pgradtest m -> m(ds) [ds, w1, w2, w3]
+            @gradtest m -> m(ds) [ds, w1, w2, w3]
         end
     end
 end

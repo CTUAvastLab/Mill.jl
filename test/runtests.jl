@@ -6,7 +6,7 @@ using Mill: BagConv, convsum, bagconv, legacy_bagconv, _convshift, ∇wbagconv, 
 using Mill: ngrams, countngrams
 using Mill: p_map, inv_p_map, r_map, inv_r_map, _bagnorm
 using Mill: Maybe
-using Mill: @gradtest, @pgradtest, gradf
+using Mill: @gradtest, gradf
 
 using Accessors
 using Base.Iterators: partition, product

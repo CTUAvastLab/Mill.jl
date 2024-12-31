@@ -25,12 +25,7 @@ end
     @test_macro_throws AssertionError @gradtest 1
     @test_macro_throws AssertionError @gradtest "2"
     @test_macro_throws AssertionError @gradtest x + y
-
-    @test_macro_throws AssertionError @pgradtest (m, ds) -> m(ds)
-    @test_macro_throws AssertionError @pgradtest () -> m(ds)
-
     @test_macro_throws AssertionError @gradtest x -> x + y y
-    @test_macro_throws AssertionError @pgradtest () -> m(x) x
 end
 
 @testset "array gradients" begin
@@ -73,17 +68,19 @@ end
     end
 end
 
-@testset "parameter gradients" begin
+@testset "struct gradients" begin
     m = Dense(2, 2) |> f64
     b = randn(2, 2)
     for x in [randn(2), randn(2, 2)]
-        @pgradtest m -> m(x) [x]
+        @gradtest m -> m(x) [x]
+        @gradtest x -> m(x) [m]
+        @gradtest (m, x) -> m(x)
         # closured variables
-        @pgradtest m -> begin
+        @gradtest m -> begin
             eltype(m.weight) == eltype(m.bias) == eltype(x) || error()
         end [x]
         # unclosured variables
-        @pgradtest m -> begin
+        @gradtest m -> begin
             eltype(x) == Float64 || error()
             eltype(m.weight) == eltype(m.bias) && eltype(m.weight) <: AbstractFloat || error()
         end
@@ -103,7 +100,7 @@ end
     @test gradient(f, 1) ≠ gradient(f, 2)
     @test gradient(f, 2) ≠ gradient(f, 3)
     # 2nd derivative
-    _, df = gradf(a -> gradient(f, a)[1], 1)
+    _, df = gradf(a -> Flux.Zygote.gradient(f, a)[1], 1)
     @test df(1) ≠ df(2)
     @test df(2) ≠ df(3)
     @test gradient(df, 1) ≠ gradient(df, 2)
@@ -117,23 +114,19 @@ end
     @test sum(A .* gf(A1)) == f(A1)
     @test sum(A .* gf(A2)) == f(A2)
     @test gradient(f, A1) ≠ gradient(f, A2)
-    _, df = gradf(A -> gradient(f, A)[1], A1)
+    _, df = gradf(A -> Flux.Zygote.gradient(f, A)[1], A1)
     @test df(A1) ≠ df(A2)
     @test gradient(df, A1) ≠ gradient(df, A2)
 
     m1 = Dense(2, 2, relu) |> f64
     m2 = Dense(2, 2, relu) |> f64
     x = randn(2, 10)
-    gf1 = () -> m1(x)
-    gf2 = () -> m2(x)
-    A1, f1 = gradf(gf1, Flux.params(m1))
-    A2, f2 = gradf(gf2, Flux.params(m2))
-    @test f1() ≠ f2()
-    @test sum(A1 .* gf1()) == f1()
-    @test sum(A2 .* gf2()) == f2()
-    @test gradient(f1, Flux.params(m1)) ≠ gradient(f2, Flux.params(m2))
-    @test gradient(f1, Flux.params(m1)) ≠ gradient(f1, Flux.params(m2))
-    @test gradient(f2, Flux.params(m2)) ≠ gradient(f2, Flux.params(m1))
+    gf = m -> m(x)
+    A, f = gradf(gf, m1)
+    @test f(m1) ≠ f(m2)
+    @test sum(A .* gf(m1)) == f(m1)
+    @test sum(A .* gf(m2)) == f(m2)
+    @test gradient(f, m1) ≠ gradient(f, m2)
 end
 
 @testset "not implemented" begin

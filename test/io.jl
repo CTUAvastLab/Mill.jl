@@ -51,7 +51,7 @@
           ╰── ArrayModel(Dense(2 => 10))  2 arrays, 30 params, 208 bytes"""
     @test modelsummary(wbnm) == "Model summary: 6 arrays, 270 params, 1.305 KiB"
 
-	pn = ProductNode(bn=deepcopy(bn), wbn=deepcopy(wbn))
+    pn = ProductNode(bn=deepcopy(bn), wbn=deepcopy(wbn))
     @test repr(pn) == repr(pn; context=:compact => true) == "ProductNode"
     @test repr(MIME("text/plain"), pn) ==
         """

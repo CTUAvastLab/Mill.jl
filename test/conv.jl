@@ -1,4 +1,3 @@
-
 @testset "convolution shift" begin
     @test _convshift(2) == 0:1
     @test _convshift(3) == -1:1
@@ -110,7 +109,7 @@ end
     x = Matrix(xs)
     for bags in [AlignedBags([1:1, 2:3, 4:6, 7:15]), ScatteredBags(collect.([1:1, 2:3, 4:6, 7:15]))]
         m = BagConv(3, 4, 3, relu)
-        @test length(Flux.params(m)) == 3
+        @test length(Flux.trainables(m)) == 3
         @test size(m(x, bags)) == (4, 15)
         @test size(m(xs, bags)) == (4, 15)
 
@@ -119,6 +118,6 @@ end
         @test size(m(xs, bags)) == (4, 15)
 
         m = BagChain(BagConv(3, 4, 3, relu), BagConv(3, 4, 2))
-        @test length(Flux.params(m)) == 5
+        @test length(Flux.trainables(m)) == 5
     end
 end
