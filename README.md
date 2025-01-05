@@ -44,7 +44,7 @@ Kindly cite our work with the following entries if you find it interesting, plea
 
   ```
   @article{Mandlik2022,
-    author = {{\v{S}}imon Mandl{\'{i}}k and Mat{\v{e}}j Račinsk{\'{y}} and Viliam Lis{\'{y}} and Tom{\'{a}}{\v{s}} Pevn{\'{y}}},
+    author = {{\v{S}}imon Mandl{\'{i}}k and Mat{\v{e}}j Ra{\v{c}}insk{\'{y}} and Viliam Lis{\'{y}} and Tom{\'{a}}{\v{s}} Pevn{\'{y}}},
     issn = {1533-7928},
     issue = {298},
     journal = {Journal of Machine Learning Research},
