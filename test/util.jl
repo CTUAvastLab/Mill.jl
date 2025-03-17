@@ -19,8 +19,8 @@ m = reflectinmodel(x)
 
     ls = list_lens(m)
     all_nodes = NodeIterator(m) |> collect
-    all_fields = vcat(all_nodes, [m.m, m.ms[1].m, m.ms[1].ms.b.im.m, m.ms[1].ms.b.a, m.ms[1].ms.b.bm,
-                      m.ms[1].ms.wb.im.m, m.ms[1].ms.wb.a, m.ms[1].ms.wb.bm, m.ms[2].m])
+    all_fields = vcat(all_nodes, [m.m, m[1].m, m[1][:b].im.m, m[1][:b].a, m[1][:b].bm,
+            m[1][:wb].im.m, m[1][:wb].a, m[1][:wb].bm, m[2].m])
 
     @test all(l -> only(getall(m, l)) in all_fields, ls)
     @test all(n -> n in all_fields, [walk(m, t) for t in list_traversal(m)])

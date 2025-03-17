@@ -49,7 +49,7 @@ m["Y"]
 The following two approaches give the same result:
 
 ```@repl hierarchical
-m["Y"] ≡ m.im.ms[1]
+m["Y"] ≡ m.im[1]
 ```
 
 ## Counting functions and iterators

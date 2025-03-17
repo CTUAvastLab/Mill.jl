@@ -188,7 +188,7 @@ m = reflectinmodel(ds)
 Here, `[pre_imputing]Dense` and `[post_imputing]Dense` are standard dense layers with a special matrix inside:
 
 ```@repl missing
-dense = m.ms[1].m; typeof(dense.weight)
+dense = m[1].m; typeof(dense.weight)
 ```
 
 Inside [`Mill.jl`](https://github.com/CTUAvastLab/Mill.jl) we add a special definition `Base.show`

@@ -122,14 +122,14 @@ end
 
     m = reflectinmodel(x1, LAYERBUILDER)
     @test m isa ProductModel
-    @test m.ms[:a] isa ArrayModel
-    @test m.ms[:b] isa ArrayModel
+    @test m[:a] isa ArrayModel
+    @test m[:b] isa ArrayModel
 
     @test m(x1) == m(x2) == m(x3)
 
     for x in [x1, x2, x3]
-        @test m(x) == m.m(vcat(m.ms[:a].m(a),
-                               m.ms[:b].m(b)))
+        @test m(x) == m.m(vcat(m[:a].m(a),
+                               m[:b].m(b)))
         @test eltype(m(x)) == Float64
         @test size(m(x)) == (2, 4)
         @test_nowarn @inferred m(x)
@@ -144,15 +144,15 @@ end
 
     m = reflectinmodel(x1, LAYERBUILDER)
     @test m isa ProductModel
-    @test m.ms[1] isa BagModel
-    @test m.ms[1].im isa ArrayModel
-    @test m.ms[1].bm isa Dense
-    @test m.ms[2] isa BagModel
-    @test m.ms[2].im isa ArrayModel
-    @test m.ms[2].bm isa Dense
+    @test m[1] isa BagModel
+    @test m[1].im isa ArrayModel
+    @test m[1].bm isa Dense
+    @test m[2] isa BagModel
+    @test m[2].im isa ArrayModel
+    @test m[2].bm isa Dense
 
-    ma = m.ms[1]
-    mb = m.ms[2]
+    ma = m[1]
+    mb = m[2]
     for x in [x1, x2]
         @test m(x) == m.m(vcat(ma.bm(ma.a(ma.im.m(a.data.data), a.bags)),
                                mb.bm(mb.a(mb.im.m(b.data.data), b.bags))))
@@ -165,12 +165,12 @@ end
     x = ProductNode([randn(3, 4)])
     m = reflectinmodel(x, LAYERBUILDER)
     @test m isa ProductModel
-    @test m.ms[1] isa ArrayModel
+    @test m[1] isa ArrayModel
 
     @test size(m(x)) == (2, 4)
     @test eltype(m(x)) == Float64
 
-    @test m(x) == m.m(m.ms[1].m(x.data[1].data))
+    @test m(x) == m.m(m[1].m(x.data[1].data))
     # ProductNodes with arrays are unstable because of vcat()
     # @test_nowarn @inferred m(x)
 end
@@ -285,7 +285,7 @@ end
         @test size(m(x1)) == (2, 4)
         @test_nowarn @inferred m(x1)
         @test m isa ProductModel
-        @test m.ms[1] isa ArrayModel
+        @test m[1] isa ArrayModel
     end
 
     for m in [m2, m2_ski, m2_ski_fsm]
@@ -293,7 +293,7 @@ end
         @test size(m(x2)) == (2, 4)
         @test_nowarn @inferred m(x2)
         @test m isa ProductModel
-        @test m.ms[1] isa ArrayModel
+        @test m[:a] isa ArrayModel
     end
 
     for m in [m3, m3_ski, m3_ski_fsm]
@@ -301,8 +301,8 @@ end
         @test size(m(x3)) == (2, 4)
         @test_nowarn @inferred m(x3)
         @test m isa ProductModel
-        @test m.ms[1] isa ArrayModel
-        @test m.ms[2] isa ArrayModel
+        @test m[:a] isa ArrayModel
+        @test m[:b] isa ArrayModel
     end
 
     @test m1.m isa Dense
@@ -351,13 +351,13 @@ end
     @test size(m3(x3)) == (2, 4)
     @test eltype(m3(x3)) == Float64
     @test m3 isa ProductModel
-    @test m3.ms[1] isa ArrayModel{<:Dense}
-    @test m3.ms[2] isa ArrayModel{<:Dense}
+    @test m3[:a] isa ArrayModel{<:Dense}
+    @test m3[:b] isa ArrayModel{<:Dense}
     @test size(m3_sci(x3)) == (2, 4)
     @test eltype(m3_sci(x3)) == Float64
     @test m3_sci isa ProductModel
-    @test m3_sci.ms[1] isa ArrayModel{typeof(identity)}
-    @test m3_sci.ms[2] isa ArrayModel{<:Dense}
+    @test m3_sci[:a] isa ArrayModel{typeof(identity)}
+    @test m3_sci[:b] isa ArrayModel{<:Dense}
     @test_nowarn @inferred m3(x3)
 end
 

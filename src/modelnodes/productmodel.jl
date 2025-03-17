@@ -94,7 +94,8 @@ See also: [`AbstractMillModel`](@ref), [`AbstractProductNode`](@ref), [`ProductN
 ProductModel(ms, args...) = ProductModel(tuple(ms), args...)
 ProductModel(args...; ns...) = ProductModel(NamedTuple(ns), args...)
 
-Base.getindex(m::ProductModel, i::Symbol) = m.ms[i]
+Base.getindex(m::ProductModel{<:NamedTuple}, i::Symbol) = m.ms[i]
+Base.getindex(m::ProductModel{<:Union{Tuple, Vector}}, i::Integer) = m.ms[i]
 Base.keys(m::ProductModel) = keys(m.ms)
 Base.haskey(m::ProductModel{<:NamedTuple}, k::Symbol) = haskey(m.ms, k)
 
