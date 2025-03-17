@@ -113,6 +113,7 @@ function ChainRulesCore.rrule(::typeof(_mul_pi_maybe_hot), A, B)
         dW
     end
     C, Δ -> begin
+        Δ = unthunk(Δ)
         NoTangent(),
         Tangent{typeof(A)}(W = @thunk(∇W(Δ)),
                            ψ = @thunk(vec(sum(view(Δ, :, m), dims=2)))),
@@ -142,6 +143,7 @@ function ChainRulesCore.rrule(::typeof(_mul_pi_ngram), A, B)
         dW
     end
     _postimpute_ngram(A, B), Δ -> begin
+        Δ = unthunk(Δ)
         NoTangent(),
         Tangent{typeof(A)}(W = @thunk(∇W(Δ)),
                            ψ = @thunk(vec(sum(view(Δ, :, ismissing.(B.S)), dims=2)))),
