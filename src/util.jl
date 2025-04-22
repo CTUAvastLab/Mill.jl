@@ -1,11 +1,3 @@
-# can be removed when https://github.com/FluxML/OneHotArrays.jl/issues/32 is closed
-function Base.reduce(::typeof(hcat), xs::Vector{T})  where T <: OneHotLike
-    L = size(xs[1], 1)
-    all(x -> size(x, 1) .== L, xs) ||
-        throw(DimensionMismatch("The number of labels are not the same for all one-hot arrays."))
-    OneHotArray(reduce(vcat, map(OneHotArrays._indices, xs)), L)
-end
-
 """
     pred_lens(p, n)
 
