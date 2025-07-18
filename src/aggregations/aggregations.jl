@@ -22,7 +22,7 @@ abstract type AbstractAggregation end
 @inline _weightsum(ws::AbstractVector, i) = ws[i]
 
 # more stable definitions for r_map and p_map
-ChainRulesCore.rrule(::typeof(softplus), x) = softplus.(x), Δ -> (NoTangent(), Δ .* σ.(x))
+ChainRulesCore.rrule(::typeof(softplus), x) = softplus.(x), Δ -> (NoTangent(), unthunk(Δ) .* σ.(x))
 
 # our definition of type min for Maybe{...} types
 _typemin(t::Type) = typemin(t)

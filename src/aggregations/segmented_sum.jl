@@ -56,6 +56,7 @@ function segmented_sum_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstrac
 end
 
 function segmented_sum_back(Δ, y, x, ψ, bags, w) 
+    Δ = unthunk(Δ)
     dx = zero(x)
     dψ = zero(ψ)
     dw = isnothing(w) ? ZeroTangent() : zero(w)
@@ -96,6 +97,6 @@ end
 
 function ChainRulesCore.rrule(::typeof(segmented_sum_forw), args...)
     y = segmented_sum_forw(args...)
-    grad = Δ -> (NoTangent(), segmented_sum_back(Δ, y, args...)...)
+    grad = Δ -> (NoTangent(), segmented_sum_back(unthunk(Δ), y, args...)...)
     y, grad
 end
