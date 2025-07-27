@@ -56,7 +56,6 @@ function segmented_sum_forw(x::AbstractMatrix, ψ::AbstractVector, bags::Abstrac
 end
 
 function segmented_sum_back(Δ, y, x, ψ, bags, w) 
-    Δ = unthunk(Δ)
     dx = zero(x)
     dψ = zero(ψ)
     dw = isnothing(w) ? ZeroTangent() : zero(w)

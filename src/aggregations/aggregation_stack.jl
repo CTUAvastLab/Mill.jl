@@ -67,10 +67,6 @@ AggregationStack(fs::AbstractAggregation...) = AggregationStack(fs)
 
 Flux.@layer :ignore AggregationStack
 
-# function (a::AggregationStack)(x::Maybe{AbstractArray}, bags::AbstractBags, args...)
-#     reduce(vcat, (f(x, bags, args...) for f in a.fs))
-# end
-
 @generated function (a::AggregationStack{T})(x::Maybe{AbstractArray}, bags::AbstractBags, args...) where {T<:Tuple}
     l = T.parameters |> length
     chs = map(1:l) do i
