@@ -1,8 +1,10 @@
 # GPU data movement for Mill data nodes
 
+using Mill
 using Mill: ArrayNode, BagNode, WeightedBagNode, ProductNode, LazyNode
 using Mill: MaybeHotVector, MaybeHotMatrix, NGramMatrix
 using Mill: PreImputingMatrix, PostImputingMatrix
+import Mill: _mul
 
 # Type alias for GPU MaybeHotMatrix (defined early since used in type signatures below)
 const CuMaybeHotMatrix{T, U} = MaybeHotMatrix{T, <:CUDA.CUDA.CuVector{T}, U}
@@ -72,7 +74,7 @@ function Base.:*(A::CUDA.CuMatrix{T}, b::MaybeHotVector{<:Integer}) where T
 end
 
 function Base.:*(A::CUDA.CuMatrix{T}, b::MaybeHotVector{Missing}) where T
-    CUDA.fill(T(NaN), size(A, 1))
+    CUDA.fill(missing, size(A, 1))
 end
 
 # Multiplication: CUDA.CuMatrix * CuMaybeHotMatrix (indices on GPU)
@@ -82,15 +84,15 @@ function Base.:*(A::CUDA.CuMatrix{T}, B::CuMaybeHotMatrix{<:Integer, <:Any}) whe
 end
 
 function Base.:*(A::CUDA.CuMatrix{T}, B::CuMaybeHotMatrix{Missing, <:Any}) where T
-    CUDA.fill(T(NaN), size(A, 1), length(B.I))
+    CUDA.fill(missing, size(A, 1), length(B.I))
 end
 
 function Base.:*(A::CUDA.CuMatrix{T}, B::CuMaybeHotMatrix{<:Mill.Maybe{<:Integer}, <:Any}) where T
-    _mul_cumatrix_cumaybehot_mixed(A, B)
+    _mul(A, B)
 end
 
 # GPU kernel for mixed missing/non-missing multiplication
-function _mul_cumatrix_cumaybehot_mixed(A::CUDA.CuMatrix{T}, B::CuMaybeHotMatrix{<:Any, <:Any}) where T
+function _mul(A::CuArray{T, 2}, B::MaybeHotMatrix{U, V} where {U<:Union{Missing, UInt32}, V<:(CuArray{U, 1})}) where {T}
     m, n = size(A, 1), length(B.I)
     result = CUDA.zeros(T, m, n)
 
@@ -119,8 +121,8 @@ function _gather_kernel!(result, A, indices)
 end
 
 # Gradient rule for CUDA.CuMatrix * CuMaybeHotMatrix{Maybe}
-function ChainRulesCore.rrule(::typeof(_mul_cumatrix_cumaybehot_mixed), A::CUDA.CuMatrix{T}, B::CuMaybeHotMatrix{<:Any, <:Any}) where T
-    result = _mul_cumatrix_cumaybehot_mixed(A, B)
+function ChainRulesCore.rrule(::typeof(*), A::CUDA.CuMatrix{T}, B::CuMaybeHotMatrix{<:Any, <:Any}) where T
+    result = _mul(A, B)
 
     function pullback(Δ)
         Δ = ChainRulesCore.unthunk(Δ)
@@ -247,7 +249,7 @@ function _postimpute_gather_kernel!(result, W, ψ, indices)
 end
 
 # Gradient rule for PostImputingMatrix * CuMaybeHotMatrix{Maybe}
-function ChainRulesCore.rrule(::typeof(_postimpute_cumaybehot_gpu), A::PostImputingMatrix{T, <:CUDA.CuMatrix, <:CUDA.CuVector}, B::CuMaybeHotMatrix{<:Any, <:Any}) where T
+function ChainRulesCore.rrule(::typeof(*), A::PostImputingMatrix{T, <:CUDA.CuMatrix, <:CUDA.CuVector}, B::CuMaybeHotMatrix{<:Any, <:Any}) where T
     result = _postimpute_cumaybehot_gpu(A, B)
 
     function pullback(Δ)

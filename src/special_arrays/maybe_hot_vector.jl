@@ -48,12 +48,16 @@ end
 Base.hcat(xs::T...) where T <: MaybeHotVector = _typed_hcat(T, xs)
 Base.hcat(xs::MaybeHotVector...) = _typed_hcat(_promote_types(xs...), xs)
 function _typed_hcat(::Type{MaybeHotVector{T, U}}, xs::Tuple{Vararg{MaybeHotVector}}) where {T, U}
-    MaybeHotMatrix{T, U}([x.i for x in xs], _check_l(xs))
+    # Use Vector{T} as the index vector type and let constructor infer the rest
+    indices = T[x.i for x in xs]
+    MaybeHotMatrix(indices, _check_l(xs))
 end
 
 Base.reduce(::typeof(hcat), xs::Vector{<:MaybeHotVector}) = _typed_hcat(mapreduce(typeof, promote_type, xs), xs)
 function _typed_hcat(::Type{MaybeHotVector{T, U}}, xs::AbstractVector{<:MaybeHotVector}) where {T, U}
-    MaybeHotMatrix{T, U}([x.i for x in xs], _check_l(xs))
+    # Use Vector{T} as the index vector type and let constructor infer the rest
+    indices = T[x.i for x in xs]
+    MaybeHotMatrix(indices, _check_l(xs))
 end
 
 Base.reduce(::typeof(catobs), as::Vector{<:MaybeHotVector}) = reduce(hcat, as)

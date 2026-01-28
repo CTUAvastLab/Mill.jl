@@ -8,6 +8,7 @@ using Test
 # Only run tests if CUDA is functional
 try
     using CUDA
+    using cuDNN
     if CUDA.functional()
         @info "CUDA is available, running GPU tests"
 
@@ -58,56 +59,19 @@ try
             @test gx.data.b.data isa CuArray
         end
 
-        @testset "SegmentedSum GPU" begin
+        @testset "Segmented Operators" for op in (Mill.SegmentedSum, Mill.SegmentedMean, Mill.SegmentedMax)
             x = randn(Float32, 4, 10)
             bags = Mill.AlignedBags([1:3, 4:5, 6:10])
             ψ = zeros(Float32, 4)
 
             # CPU result
-            agg = Mill.SegmentedSum(ψ)
+            agg = op(ψ)
             y_cpu = agg(x, bags, nothing)
 
             # GPU result
             gx = CuArray(x)
-            gψ = CuArray(ψ)
             gbags = gpu(bags)
-            y_gpu = Mill.segmented_sum_forw(gx, gψ, gbags, nothing)
-
-            @test Array(y_gpu) ≈ y_cpu
-        end
-
-        @testset "SegmentedMean GPU" begin
-            x = randn(Float32, 4, 10)
-            bags = Mill.AlignedBags([1:3, 4:5, 6:10])
-            ψ = zeros(Float32, 4)
-
-            # CPU result
-            agg = Mill.SegmentedMean(ψ)
-            y_cpu = agg(x, bags, nothing)
-
-            # GPU result
-            gx = CuArray(x)
-            gψ = CuArray(ψ)
-            gbags = gpu(bags)
-            y_gpu = Mill.segmented_mean_forw(gx, gψ, gbags, nothing)
-
-            @test Array(y_gpu) ≈ y_cpu
-        end
-
-        @testset "SegmentedMax GPU" begin
-            x = randn(Float32, 4, 10)
-            bags = Mill.AlignedBags([1:3, 4:5, 6:10])
-            ψ = zeros(Float32, 4)
-
-            # CPU result
-            agg = Mill.SegmentedMax(ψ)
-            y_cpu = agg(x, bags, nothing)
-
-            # GPU result
-            gx = CuArray(x)
-            gψ = CuArray(ψ)
-            gbags = gpu(bags)
-            y_gpu = Mill.segmented_max_forw(gx, gψ, gbags)
+            y_gpu = gpu(agg)(gx, gbags, nothing)
 
             @test Array(y_gpu) ≈ y_cpu
         end
@@ -243,11 +207,11 @@ try
             @test gM_missing isa MaybeHotMatrix{Missing, <:CuVector{Missing}, Missing}
             y_gpu = gW * gM_missing
             @test size(y_gpu) == (5, 3)
-            @test all(isnan, Array(y_gpu))  # NaN used as proxy for missing on GPU
+            @test all(x -> x === missing, Array(y_gpu))  # NaN used as proxy for missing on GPU
 
             # Mixed case
             M_mixed = MaybeHotMatrix(Union{UInt32, Missing}[UInt32(2), missing, UInt32(5)], 10)
-            gM_mixed = gpu(M_mixed)
+            gM_mixed = gpu(M_mixed);
             @test gM_mixed.I isa CuVector{Union{Missing, UInt32}}
 
             y_gpu = gW * gM_mixed

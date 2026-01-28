@@ -1,23 +1,40 @@
 """
-    MaybeHotMatrix{T, V} <: AbstractMatrix{U}
+    MaybeHotMatrix{T, V<:AbstractVector{T}, U} <: AbstractMatrix{U}
 
 A matrix-like structure for representing one-hot encoded variables.
 Like `Flux.OneHotMatrix` but supports `missing` values.
+
+The type is parameterized on the vector type `V`, allowing indices to be stored
+on different backends (e.g., `Vector` for CPU, `CuVector` for GPU).
 
 Construct with the [`maybehotbatch`](@ref) function.
 
 See also: [`MaybeHotVector`](@ref), [`maybehot`](@ref).
 """
-struct MaybeHotMatrix{T, U} <: AbstractMatrix{U}
-    I::Vector{T}
+struct MaybeHotMatrix{T, V<:AbstractVector{T}, U} <: AbstractMatrix{U}
+    I::V
     l::Int
-    MaybeHotMatrix(I::Vector{T}, l::Int) where T <: Integer = new{T, Bool}(I, l)
-    MaybeHotMatrix(I::Vector{Missing}, l::Int) = new{Missing, Missing}(I, l)
-    MaybeHotMatrix(I::Vector{T}, l::Int) where T <: Maybe{Integer} = new{T, Maybe{Bool}}(I, l)
 
-    function MaybeHotMatrix{T, U}(I, l) where {T <: Maybe{Integer}, U <: Maybe{Bool}}
-        new{T, U}(convert(Vector{T}, I), l)
+    # Inner constructors for CPU Vector
+    MaybeHotMatrix(I::Vector{T}, l::Int) where T <: Integer = new{T, Vector{T}, Bool}(I, l)
+    MaybeHotMatrix(I::Vector{Missing}, l::Int) = new{Missing, Vector{Missing}, Missing}(I, l)
+    MaybeHotMatrix(I::Vector{T}, l::Int) where T <: Maybe{Integer} = new{T, Vector{T}, Maybe{Bool}}(I, l)
+
+    # General inner constructor for any AbstractVector
+    function MaybeHotMatrix{T, V, U}(I::V, l::Int) where {T, V<:AbstractVector{T}, U}
+        new{T, V, U}(I, l)
     end
+end
+
+# Convenience constructor that infers U from T for any AbstractVector
+function MaybeHotMatrix(I::V, l::Int) where {T<:Integer, V<:AbstractVector{T}}
+    MaybeHotMatrix{T, V, Bool}(I, l)
+end
+function MaybeHotMatrix(I::V, l::Int) where {V<:AbstractVector{Missing}}
+    MaybeHotMatrix{Missing, V, Missing}(I, l)
+end
+function MaybeHotMatrix(I::V, l::Int) where {T<:Maybe{Integer}, V<:AbstractVector{T}}
+    MaybeHotMatrix{T, V, Maybe{Bool}}(I, l)
 end
 
 MaybeHotMatrix(i::Integer, l::Integer) = MaybeHotMatrix([i], l)
@@ -38,10 +55,15 @@ function Base.convert(::Type{<:MaybeHotMatrix{T}}, X::MaybeHotMatrix) where T
     MaybeHotMatrix(convert(Vector{T}, X.I), X.l)
 end
 
-function Base.promote_rule(::Type{MaybeHotMatrix{T, U}},
-        ::Type{MaybeHotMatrix{A, B}}) where {T, A, U, B}
-    MaybeHotMatrix{promote_type(T, A), promote_type(U, B)}
+function Base.promote_rule(::Type{MaybeHotMatrix{T, V1, U}},
+        ::Type{MaybeHotMatrix{A, V2, B}}) where {T, V1, A, V2, U, B}
+    # Promote element types and use Vector with the promoted element type
+    P = promote_type(T, A)
+    MaybeHotMatrix{P, Vector{P}, promote_type(U, B)}
 end
+
+# this is needed for compatibility with GPUs
+Flux._match_eltype(layer, ::Type, x::MaybeHotMatrix) = x
 
 function _check_l(Xs::AbstractVecOrTuple{MaybeHotMatrix})
     l = Xs[1].l
