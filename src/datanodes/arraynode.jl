@@ -29,8 +29,6 @@ See also: [`AbstractMillNode`](@ref), [`ArrayModel`](@ref).
 """
 ArrayNode(d::AbstractArray) = ArrayNode(d, nothing)
 
-Flux.@layer :ignore ArrayNode
-
 mapdata(f, x::ArrayNode) = ArrayNode(mapdata(f, x.data), x.metadata)
 
 dropmeta(x::ArrayNode) = ArrayNode(x.data)

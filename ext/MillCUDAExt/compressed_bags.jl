@@ -80,8 +80,8 @@ Move CompressedBags to GPU, converting to Int32 for GPU efficiency.
 """
 function Flux.gpu(b::CompressedBags)
     CompressedBags(
-        CuArray(Int32.(b.indices)),
-        CuArray([Int32(r.start):Int32(r.stop) for r in b.bags]),
+        gpu(Int32.(b.indices)),
+        gpu([Int32(r.start):Int32(r.stop) for r in b.bags]),
         Int32(b.num_observations)
     )
 end
@@ -109,3 +109,7 @@ end
 
 # Helper function to check if a bag is empty
 @inline isbagempty(bags::AbstractVector{<:UnitRange}, bi::Int) = isempty(bags[bi])
+
+
+# Flux.cpu(b::AlignedBags) = cpu(b)
+# Flux.cpu(b::ScatteredBags) = cpu(b)

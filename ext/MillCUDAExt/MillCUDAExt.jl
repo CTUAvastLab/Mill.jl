@@ -4,6 +4,7 @@ using CUDA
 using Flux
 using Mill
 using ChainRulesCore
+using Adapt
 
 # Import functions we need to extend
 import Mill: segmented_sum_forw, segmented_mean_forw, segmented_max_forw
