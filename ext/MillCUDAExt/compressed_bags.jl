@@ -50,20 +50,19 @@ Base.isempty(b::CompressedBags) = isempty(b.bags)
 Mill.numobs(b::CompressedBags) = length(b.bags)
 maxindex(b::CompressedBags) = isempty(b) ? -1 : b.num_observations
 
-"""
-    CompressedBags(bags::Union{AlignedBags, ScatteredBags})
-
-Convert CPU bag representation to CompressedBags format suitable for GPU transfer.
-"""
-function CompressedBags(bags::AlignedBags{T}) where T
-    indices = reduce(vcat, [collect(b) for b in bags.bags]; init=T[])
-    if isempty(indices)
-        return CompressedBags(indices, UnitRange{T}[], zero(T))
-    end
-    bs = Mill.length2bags(length.(bags.bags))
-    CompressedBags(indices, bs.bags, T(maximum(indices)))
+# maxindex for CuAlignedBags: compute on GPU to avoid scalar indexing
+function maxindex(b::CuAlignedBags{T}) where T
+    isempty(b) && return -1
+    # Extract stop values of all ranges via GPU broadcast, then find maximum via GPU reduction
+    stops = b.bags .|> (r -> r.stop)  # CuArray{T} of range stop values
+    Int(maximum(stops))
 end
 
+"""
+    CompressedBags(bags::ScatteredBags)
+
+Convert CPU ScatteredBags to CompressedBags format suitable for GPU transfer.
+"""
 function CompressedBags(bags::ScatteredBags{T}) where T
     indices = reduce(vcat, [collect(b) for b in bags.bags]; init=T[])
     if isempty(indices)
@@ -87,11 +86,11 @@ function Flux.gpu(b::CompressedBags)
 end
 
 """
-    Flux.gpu(b::Union{AlignedBags, ScatteredBags})
+    Flux.gpu(b::ScatteredBags)
 
-Move CPU bags to GPU by first converting to CompressedBags format.
+Move ScatteredBags to GPU by converting to CompressedBags format.
+AlignedBags moves to GPU natively as CuAlignedBags via Adapt.@adapt_structure.
 """
-Flux.gpu(b::AlignedBags) = gpu(CompressedBags(b))
 Flux.gpu(b::ScatteredBags) = gpu(CompressedBags(b))
 
 """

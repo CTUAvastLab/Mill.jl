@@ -257,8 +257,8 @@ end
 end
 
 @testset "r_map and p_map are stable" begin
-    @test first(gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
-    @test first(gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
+    @test first(Flux.gradient(softplus, 10000)) ≈ σ(10000) ≈ 1.0
+    @test first(Flux.gradient(softplus, -10000)) ≈ σ(-10000) ≈ 0
 end
 
 @testset "missing values" begin

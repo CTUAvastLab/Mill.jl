@@ -17,22 +17,34 @@ try
         MillCUDAExt = Base.get_extension(Mill, :MillCUDAExt)
         CompressedBags = MillCUDAExt.CompressedBags
         CuCompressedBags = MillCUDAExt.CuCompressedBags
+        CuAlignedBags = MillCUDAExt.CuAlignedBags
 
-        @testset "CompressedBags" begin
-            # Test conversion from AlignedBags
+        @testset "CuAlignedBags" begin
+            # Test GPU transfer of AlignedBags
             bags = Mill.AlignedBags([1:3, 4:5, 6:10])
-            cbags = CompressedBags(bags)
-            @test length(cbags) == 3
-            @test cbags.num_observations == 10
+            gbags = gpu(bags)
+            @test gbags isa CuAlignedBags
+            @test length(gbags) == 3
+            @test gbags.bags isa CuArray
 
-            # Test GPU transfer
-            gcbags = gpu(bags)
-            @test gcbags isa CuCompressedBags
+            # Round-trip: gpu then cpu
+            bags_back = cpu(gbags)
+            @test bags_back isa Mill.AlignedBags
+            @test bags_back == bags
 
             # Test empty bags handling
             empty_bags = Mill.AlignedBags([1:2, 3:2, 4:5])  # middle bag is empty
-            cempty = CompressedBags(empty_bags)
-            @test length(cempty) == 3
+            gempty = gpu(empty_bags)
+            @test gempty isa CuAlignedBags
+            @test length(gempty) == 3
+        end
+
+        @testset "CompressedBags (ScatteredBags)" begin
+            # CompressedBags is still used for ScatteredBags
+            sbags = Mill.ScatteredBags([[1,3,5], [2,4], Int[]])
+            gcbags = gpu(sbags)
+            @test gcbags isa CuCompressedBags
+            @test length(gcbags) == 3
         end
 
         @testset "ArrayNode GPU" begin
@@ -46,7 +58,7 @@ try
             x = BagNode(ArrayNode(randn(Float32, 3, 10)), [1:3, 4:5, 6:10])
             gx = gpu(x)
             @test gx.data.data isa CuArray
-            @test gx.bags isa MillCUDAExt.CuCompressedBags
+            @test gx.bags isa MillCUDAExt.CuAlignedBags
         end
 
         @testset "ProductNode GPU" begin
@@ -341,7 +353,7 @@ try
 
             gds = gpu(ds)
             @test gds.data.data isa MaybeHotMatrix{UInt32, <:CuVector, Bool}
-            @test gds.bags isa MillCUDAExt.CuCompressedBags
+            @test gds.bags isa MillCUDAExt.CuAlignedBags
 
             # Create model and test forward pass
             model = reflectinmodel(ds, d -> Dense(d, 5), SegmentedMean)

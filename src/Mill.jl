@@ -1,6 +1,7 @@
 module Mill
 
 using Accessors
+using Adapt
 using ChainRulesCore
 using Combinatorics
 using Compat

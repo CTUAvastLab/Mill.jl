@@ -11,19 +11,31 @@ Supertype for structures storing indices of type `T` of bags' instances in [`Bag
 abstract type AbstractBags{T} end
 
 """
-    AlignedBags{T <: Integer} <: AbstractBags{T}
+    AlignedBags{T <: Integer, V <: AbstractVector{UnitRange{T}}} <: AbstractBags{T}
 
 [`AlignedBags`](@ref) struct stores indices of bags' instances in one or more `UnitRange{T}`s.
 This is only possible if instances of every bag are stored in one contiguous block.
 
+The storage vector `V` is `Vector{UnitRange{T}}` on CPU and can be a `CuArray{UnitRange{T}}`
+on GPU when the CUDA extension is loaded.
+
 See also: [`ScatteredBags`](@ref).
 """
-struct AlignedBags{T <: Integer} <: AbstractBags{T}
-    bags::Vector{UnitRange{T}}
+struct AlignedBags{T <: Integer, V <: AbstractVector{UnitRange{T}}} <: AbstractBags{T}
+    bags::V
+end
+
+AlignedBags(bags::V) where {T, V <: AbstractVector{UnitRange{T}}} = AlignedBags{T, V}(bags)
+
+Adapt.@adapt_structure AlignedBags
+
+# Custom show: display only the element type parameter for a clean API representation
+function Base.show(io::IO, b::AlignedBags{T}) where T
+    print(io, "AlignedBags{$T}(", b.bags, ")")
 end
 
 Flux.@forward AlignedBags.bags Base.getindex, Base.setindex!, Base.firstindex, Base.lastindex,
-    Base.eachindex, Base.first, Base.last, Base.iterate, Base.eltype, Base.length
+    Base.eachindex, Base.first, Base.last, Base.iterate, Base.eltype, Base.length, Base.isempty
 
 """
     AlignedBags()
@@ -263,7 +275,7 @@ Base.reduce(::typeof(vcat), bs::Vector{T}) where T <: AbstractBags = _catbags(bs
 maxindex(x) = isempty(x) ? -1 : maximum(x)
 maxindex(b::AbstractBags) = isempty(b) ? -1 : mapreduce(maxindex, max, b.bags)
 
-function _catbags(bs::Vector{AlignedBags{T}}) where T <: Integer
+function _catbags(bs::Vector{<:AlignedBags{T}}) where T <: Integer
     nbs = Vector{UnitRange{T}}(undef, sum(length.(bs)))
     o, no, i = zero(T), zero(T), 1
     @inbounds for b in bs

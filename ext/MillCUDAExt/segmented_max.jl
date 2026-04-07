@@ -127,3 +127,97 @@ function ChainRulesCore.rrule(::typeof(segmented_max_forw), x::Missing, ψ::CuVe
     end
     y, segmented_max_pullback
 end
+
+# CuAlignedBags kernels: bags[col] is a direct UnitRange of instance indices (no indirection)
+
+function kernel_segmented_max_forw_aligned!(o, maxI, x, ψ, bags)
+    idx = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+    n_rows, n_cols = size(o)
+
+    if idx <= n_rows * n_cols
+        row = ((idx - 1) % n_rows) + 1
+        col = ((idx - 1) ÷ n_rows) + 1
+
+        bag = bags[col]
+        if isempty(bag)
+            @inbounds o[row, col] = ψ[row]
+            @inbounds maxI[row, col] = 0
+        else
+            max_val = typemin(eltype(o))
+            max_idx = Int32(0)
+            @inbounds for j in bag
+                val = x[row, j]
+                if val > max_val
+                    max_val = val
+                    max_idx = j
+                end
+            end
+            @inbounds o[row, col] = max_val
+            @inbounds maxI[row, col] = max_idx
+        end
+    end
+    return nothing
+end
+
+function segmented_max_forw_with_maxI(x::CuMatrix, ψ::CuVector, bags::CuAlignedBags)
+    o = CUDA.zeros(eltype(x), size(x, 1), length(bags.bags))
+    maxI = CUDA.zeros(Int32, size(x, 1), length(bags.bags))
+
+    n_elements = length(o)
+    if n_elements > 0
+        threads, blocks = compute_grid_config(n_elements)
+        @cuda threads=threads blocks=blocks kernel_segmented_max_forw_aligned!(o, maxI, x, ψ, bags.bags)
+    end
+    o, maxI
+end
+
+function segmented_max_forw(x::CuMatrix, ψ::CuVector, bags::CuAlignedBags)
+    segmented_max_forw_with_maxI(x, ψ, bags)[1]
+end
+
+segmented_max_forw(::Missing, ψ::CuVector, bags::CuAlignedBags) = repeat(ψ, 1, length(bags.bags))
+
+function segmented_max_back(Δ::CuMatrix, maxI::CuMatrix{Int32}, y, x::CuMatrix, ψ::CuVector, bags::CuAlignedBags)
+    dx = CUDA.zeros(eltype(x), size(x))
+    dψ = CUDA.zeros(eltype(ψ), length(ψ))
+
+    n_elements = length(Δ)
+    if n_elements > 0
+        threads, blocks = compute_grid_config(n_elements)
+        @cuda threads=threads blocks=blocks kernel_segmented_max_back!(dx, Δ, maxI, bags.bags)
+        @cuda threads=threads blocks=blocks kernel_sum_to_ψ!(dψ, Δ, bags.bags)
+    end
+
+    dx, dψ, ChainRulesCore.NoTangent()
+end
+
+function segmented_max_back(Δ::CuMatrix, y, x::Missing, ψ::CuVector, bags::CuAlignedBags)
+    dψ = CUDA.zeros(eltype(ψ), length(ψ))
+    n_elements = length(Δ)
+    if n_elements > 0
+        threads, blocks = compute_grid_config(n_elements)
+        @cuda threads=threads blocks=blocks kernel_sum_to_ψ!(dψ, Δ, bags.bags)
+    end
+    ChainRulesCore.ZeroTangent(), dψ, ChainRulesCore.NoTangent()
+end
+
+# CuAlignedBags rrules
+function ChainRulesCore.rrule(::typeof(segmented_max_forw), x::CuMatrix, ψ::CuVector, bags::CuAlignedBags)
+    y, maxI = segmented_max_forw_with_maxI(x, ψ, bags)
+    function segmented_max_pullback(Δ)
+        Δ_unthunked = ChainRulesCore.unthunk(Δ)
+        grads = segmented_max_back(Δ_unthunked, maxI, y, x, ψ, bags)
+        (ChainRulesCore.NoTangent(), grads...)
+    end
+    y, segmented_max_pullback
+end
+
+function ChainRulesCore.rrule(::typeof(segmented_max_forw), x::Missing, ψ::CuVector, bags::CuAlignedBags)
+    y = segmented_max_forw(x, ψ, bags)
+    function segmented_max_pullback(Δ)
+        Δ_unthunked = ChainRulesCore.unthunk(Δ)
+        grads = segmented_max_back(Δ_unthunked, y, x, ψ, bags)
+        (ChainRulesCore.NoTangent(), grads...)
+    end
+    y, segmented_max_pullback
+end
