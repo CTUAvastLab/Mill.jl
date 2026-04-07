@@ -7,39 +7,35 @@ import Mill: _mul
 # Type alias for GPU MaybeHotMatrix (defined early since used in type signatures below)
 const CuMaybeHotMatrix{T, U} = MaybeHotMatrix{T, <:CUDA.CUDA.CuVector{T}, U}
 
-# ArrayNode GPU movement
+# Data nodes: Flux.gpu uses fmap (Functors), so explicit methods are required for
+# correct handling of AlignedBags → CompressedBags conversion in BagNode/WeightedBagNode.
+# adapt_structure is also defined so adapt() works when called directly (e.g. Lux-style).
+
 function Flux.gpu(ds::ArrayNode)
     ArrayNode(gpu(ds.data), ds.metadata)
 end
-
 function Flux.cpu(ds::ArrayNode)
     ArrayNode(cpu(ds.data), ds.metadata)
 end
+Adapt.adapt_structure(to, ds::ArrayNode) = ArrayNode(adapt(to, ds.data), ds.metadata)
 
-
-# BagNode GPU movement
 function Flux.gpu(ds::BagNode)
     BagNode(gpu(ds.data), gpu(ds.bags), ds.metadata)
 end
-
 function Flux.cpu(ds::BagNode)
     BagNode(cpu(ds.data), cpu(ds.bags), ds.metadata)
 end
 
-# WeightedBagNode GPU movement
 function Flux.gpu(ds::WeightedBagNode)
     WeightedBagNode(gpu(ds.data), gpu(ds.bags), gpu(ds.weights), ds.metadata)
 end
-
 function Flux.cpu(ds::WeightedBagNode)
     WeightedBagNode(cpu(ds.data), cpu(ds.bags), cpu(ds.weights), ds.metadata)
 end
 
-# ProductNode GPU movement
 function Flux.gpu(ds::ProductNode)
     ProductNode(map(gpu, ds.data), ds.metadata)
 end
-
 function Flux.cpu(ds::ProductNode)
     ProductNode(map(cpu, ds.data), ds.metadata)
 end
@@ -49,18 +45,15 @@ end
 # MaybeHotVector - single index, keep on CPU (negligible data)
 Adapt.adapt_structure(to, x::MaybeHotVector) = x
 
-# MaybeHotMatrix - move indices to GPU
-# function Adapt.adapt_structure(to, x::MaybeHotMatrix)
-#     MaybeHotMatrix(Adapt.adapt_structure(to, x.I), x.l)
-# end
-
-function Flux.cpu(x::MaybeHotMatrix)
-    MaybeHotMatrix(Flux.cpu(x.I), x.l)
-end
-
+# MaybeHotMatrix - explicit gpu/cpu use cu() which handles isbits Union types;
+# adapt_structure is also provided for direct adapt() calls (Lux-style transfers).
 function Flux.gpu(x::MaybeHotMatrix)
     MaybeHotMatrix(cu(x.I), x.l)
 end
+function Flux.cpu(x::MaybeHotMatrix)
+    MaybeHotMatrix(Flux.cpu(x.I), x.l)
+end
+Adapt.adapt_structure(to, x::MaybeHotMatrix) = MaybeHotMatrix(adapt(to, x.I), x.l)
 
 # Multiplication: CUDA.CuMatrix * MaybeHotVector (column selection) - indices on CPU
 function Base.:*(A::CUDA.CuMatrix{T}, b::MaybeHotVector{<:Integer}) where T
@@ -162,22 +155,14 @@ function Base.:*(A::CUDA.CuMatrix{T}, B::MaybeHotMatrix{<:Mill.Maybe{<:Integer}}
     A * gpu(B)
 end
 
-# NGramMatrix - convert to dense for GPU operations
-# NGramMatrix is inherently sparse, so we convert to dense CUDA.CuMatrix
+# NGramMatrix - convert to dense for GPU operations (inherently sparse, dense is more efficient)
 function Adapt.adapt_structure(to, x::NGramMatrix)
-    # Convert NGramMatrix to dense matrix then move to GPU
-    dense = Matrix(x)
-    CUDA.CuArray(dense)
+    adapt(to, Matrix(x))
 end
 
 # ImputingMatrix GPU support
-function Adapt.adapt_structure(to, x::PreImputingMatrix)
-    PreImputingMatrix(Adapt.adapt_structure(to, x.W), Adapt.adapt_structure(to, x.ψ))
-end
-
-function Adapt.adapt_structure(to, x::PostImputingMatrix)
-    PostImputingMatrix(Adapt.adapt_structure(to, x.W), Adapt.adapt_structure(to, x.ψ))
-end
+Adapt.@adapt_structure PreImputingMatrix
+Adapt.@adapt_structure PostImputingMatrix
 
 # PostImputingMatrix * MaybeHotVector on GPU (MaybeHotVector stays on CPU - single index)
 function Base.:*(A::PostImputingMatrix{T, <:CUDA.CuMatrix, <:CUDA.CuVector}, b::MaybeHotVector{<:Integer}) where T
@@ -287,31 +272,6 @@ function Base.:*(A::PostImputingMatrix{T, <:CUDA.CuMatrix, <:CUDA.CuVector}, B::
     A * gpu(B)
 end
 
-# # Aggregation operators GPU movement
-# function Adapt.adapt_structure(to, a::Mill.SegmentedSum)
-#     Mill.SegmentedSum(Adapt.adapt_structure(to, a.ψ))
-# end
-
-# function Adapt.adapt_structure(to, a::Mill.SegmentedMean)
-#     Mill.SegmentedMean(Adapt.adapt_structure(to, a.ψ))
-# end
-
-# function Adapt.adapt_structure(to, a::Mill.SegmentedMax)
-#     Mill.SegmentedMax(Adapt.adapt_structure(to, a.ψ))
-# end
-
-# function Adapt.adapt_structure(to, a::Mill.SegmentedPNorm)
-#     Mill.SegmentedPNorm(Adapt.adapt_structure(to, a.ψ), Adapt.adapt_structure(to, a.ρ), Adapt.adapt_structure(to, a.c))
-# end
-
-# function Adapt.adapt_structure(to, a::Mill.SegmentedLSE)
-#     Mill.SegmentedLSE(Adapt.adapt_structure(to, a.ψ), Adapt.adapt_structure(to, a.ρ))
-# end
-
-# function Adapt.adapt_structure(to, a::Mill.AggregationStack)
-#     Mill.AggregationStack(map(gpu, a.fs))
-# end
-
-# function Adapt.adapt_structure(to, a::Mill.BagCount)
-#     a  # BagCount has no parameters
-# end
+# Aggregation operator GPU support: fmap (used by Flux.gpu) automatically recurses into
+# all struct fields, so the ψ/ρ/c vectors inside SegmentedMean, SegmentedPNorm, etc.
+# are moved to GPU without any explicit adapt_structure. The commented-out block was dead code.
