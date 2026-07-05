@@ -61,7 +61,8 @@ makedocs(
                  "Bag aggregation" => "manual/aggregation.md",
                  "Data in leaves" => "manual/leaf_data.md",
                  "Missing data" => "manual/missing.md",
-                 "Custom nodes" => "manual/custom.md"
+                 "Custom nodes" => "manual/custom.md",
+                 "Mooncake.jl" => "manual/mooncake.md"
              ],
              "Examples" => [
                  "Musk" => "examples/musk/musk.md",
