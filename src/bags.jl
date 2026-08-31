@@ -200,6 +200,23 @@ function bags(k::Vector{<:Integer})
     end
 end
 
+
+"""
+    _total_bag_length(b::AlignedBags, idcs) -> Int
+
+Sum of the lengths of the bags at `idcs`, i.e. how many instances `remapbags`
+needs to copy in total. Computed as its own pass (no allocation) so the
+instance-index output can be allocated exactly once, instead of gathering
+per-bag `collect`s into an array-of-arrays and `vcat`-ing them together.
+"""
+function _total_bag_length(b::AlignedBags, idcs::VecOrRange{<:Integer})
+    total = 0
+    @inbounds for j in idcs
+        total += length(b[j])
+    end
+    total
+end
+
 """
     remapbags(b::AbstractBags, idcs::VecOrRange{<:Integer}) -> (rb, I)
 
@@ -216,13 +233,25 @@ julia> remapbags(ScatteredBags([[1,3], [2], Int[]]), [2])
 ```
 """
 function remapbags(b::AlignedBags{T}, idcs::VecOrRange{<:Integer}) where T
-    rb = AlignedBags(Vector{UnitRange{T}}(undef, length(idcs)))
+    rb = Vector{UnitRange{T}}(undef, length(idcs))
+    I = Vector{T}(undef, _total_bag_length(b, idcs))
     offset = one(T)
-    for (i, j) in enumerate(idcs)
-        rb[i] = (b[j] == _empty_range(T)) ? b[j] : b[j] .- b[j].start .+ offset
-        offset += length(b[j])
+    pos = 1
+    @inbounds for (i, j) in enumerate(idcs)
+        bj = b[j]
+        if bj == _empty_range(T)
+            rb[i] = bj
+        else
+            len = length(bj)
+            rb[i] = offset:(offset + len - one(T))
+            for v in bj
+                I[pos] = v
+                pos += 1
+            end
+            offset += len
+        end
     end
-    rb, Array{T}(reduce(vcat, [collect(b[i]) for i in idcs]; init=AlignedBags[]))
+    AlignedBags(rb), I
 end
 
 function remapbags(b::ScatteredBags{T}, idcs::VecOrRange{<:Int}) where T
